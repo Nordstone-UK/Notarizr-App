@@ -14,7 +14,10 @@ export default function OnboardingScreen3() {
       <Text style={styles.textSubheading}>
         Our app can provide you the Mobile and Online services
       </Text>
-      <MainButton Title="Get Started" />
+      <MainButton
+        Title="Get Started"
+        colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+      />
     </View>
   );
 }

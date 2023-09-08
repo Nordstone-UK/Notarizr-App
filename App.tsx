@@ -12,11 +12,12 @@ import OnboardingScreen1 from './src/screens/OnboardingScreens/OnboardingScreen1
 import OnboardingScreen2 from './src/screens/OnboardingScreens/OnboardingScreen2';
 import OnboardingScreen3 from './src/screens/OnboardingScreens/OnboardingScreen3';
 import SignupAsScreen from './src/screens/SingupAsScreen/SignupAsScreen';
+import LoginScreen from './src/screens/LogIn&SignupScreens/LoginScreen';
 
 function App(): JSX.Element {
   return (
     <SafeAreaView>
-      <SignupAsScreen />
+      <LoginScreen />
     </SafeAreaView>
   );
 }

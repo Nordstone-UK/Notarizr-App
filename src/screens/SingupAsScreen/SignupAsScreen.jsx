@@ -1,26 +1,47 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
+import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
+import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
+import MainButton from '../../components/MainGradientButton/MainButton';
+import {widthToDp} from '../../utils/Responsive';
 
 export default function SignupAsScreen() {
+  const [Client, setClient] = useState(false);
+  const handleClient = () => {
+    setClient(true);
+  };
+
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../../assets/notarizrLogo.png')}
-        style={styles.imagestyles}
+      <CompanyHeader
+        Header={`Join Notarizr 😎 ${'\n'}and enjoy our services`}
+        HeaderStyle={{marginHorizontal: widthToDp(5)}}
       />
-      <Text style={styles.textHeading}>Join Notarizr 😎</Text>
-      <Text style={styles.textHeading}>and enjoy our services</Text>
-      <SignupButton
-        Title="SignUp as Client"
-        colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
-        TextStyle={{color: '#fff'}}
-      />
-      <SignupButton
-        Title="SignUp as Agent"
-        colors={['#F5F6F7', '#fff']}
-        TextStyle={{color: '#000'}}
-      />
+      <BottomSheetStyle>
+        <SignupButton
+          Title="SignUp as Client"
+          colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+          TextStyle={{color: '#fff'}}
+          picture={require('../../../assets/clientPic.png')}
+          handleFunction={handleClient}
+        />
+        <SignupButton
+          Title="SignUp as Agent"
+          colors={['#F5F6F7', '#fff']}
+          TextStyle={{color: '#000'}}
+          picture={require('../../../assets/agentPic.png')}
+          handleFunction={handleClient}
+        />
+        <View style={styles.buttonConatiner}>
+          {Client ? (
+            <MainButton
+              colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+              Title="Get Started"
+            />
+          ) : null}
+        </View>
+      </BottomSheetStyle>
     </View>
   );
 }
@@ -30,18 +51,7 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#FFF2DC',
   },
-  imagestyles: {
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: '15%',
-    marginBottom: '10%',
-  },
-  textHeading: {
-    color: '#000',
-    marginHorizontal: 15,
-    fontSize: 27,
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
+  buttonConatiner: {
+    marginTop: widthToDp(25),
   },
 });
