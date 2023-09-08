@@ -14,8 +14,7 @@ export default function OnboardingScreen3() {
       <Text style={styles.textSubheading}>
         Our app can provide you the Mobile and Online services
       </Text>
-      <MainButton Title="Next" />
-      <SkipButton Title="Skip" />
+      <MainButton Title="Get Started" />
     </View>
   );
 }
