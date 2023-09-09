@@ -32,26 +32,42 @@ export default function LoginScreen() {
         }}
       />
       <BottomSheetStyle>
-        <View
-          style={[
-            styles.searchSection,
-            {borderColor: ColorChange ? '#FF7A28' : '#D3D5DA'},
-          ]}>
-          <Image
-            source={require('../../../assets/emailIcon.png')}
-            style={styles.icon}
-          />
-          <TextInput
-            // mode="outlined"
-            // label={'Email Address'}
-            style={[styles.input]}
-            placeholder="Enter your email address"
-            // outlineColor="#D3D5DA"
-            // activeOutlineColor="#FF7A28"
-            onFocus={FocusColorChaneg}
-          />
+        <View style={{}}>
+          <Text
+            style={{
+              color: 'black',
+              fontWeight: 'bold',
+              fontSize: 15,
+              // marginBottom: ,
+            }}>
+            Email
+          </Text>
+
+          <View
+            style={[
+              styles.searchSection,
+              {borderColor: ColorChange ? '#FF7A28' : '#D3D5DA'},
+            ]}>
+            <Image
+              source={require('../../../assets/emailIcon.png')}
+              style={styles.icon}
+            />
+            <TextInput
+              // mode="outlined"
+              // label={'Email Address'}
+              style={[styles.input]}
+              placeholder="Enter your email address"
+              // outlineColor="#D3D5DA"
+              // activeOutlineColor="#FF7A28"
+              onFocus={FocusColorChaneg}
+            />
+          </View>
         </View>
-        <MainButton colors={['#D3D5DA', '#D3D5DA']} Title="Login" />
+        <MainButton
+          colors={['#D3D5DA', '#D3D5DA']}
+          Title="Login"
+          width={{width: widthToDp(80)}}
+        />
         <View
           style={{
             flexDirection: 'row',
@@ -83,6 +99,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 15,
     marginTop: heightToDp(5),
+    // position: 'absolute',
   },
   input: {
     alignSelf: 'center',
