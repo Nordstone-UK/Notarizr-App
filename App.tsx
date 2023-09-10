@@ -13,11 +13,13 @@ import OnboardingScreen2 from './src/screens/OnboardingScreens/OnboardingScreen2
 import OnboardingScreen3 from './src/screens/OnboardingScreens/OnboardingScreen3';
 import SignupAsScreen from './src/screens/SingupAsScreen/SignupAsScreen';
 import LoginScreen from './src/screens/LogIn&SignupScreens/LoginScreen';
+import SignUpScreen from './src/screens/LogIn&SignupScreens/SignUpScreen';
+import SignUpDetailScreen from './src/screens/LogIn&SignupScreens/SignUpDetailScreen';
 
 function App(): JSX.Element {
   return (
     <SafeAreaView>
-      <LoginScreen />
+      <SignUpDetailScreen />
     </SafeAreaView>
   );
 }

@@ -6,6 +6,7 @@ import {
   Animated,
   View,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -14,16 +15,12 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
-export default function SignUpScreen() {
-  const [ColorChange, setColorChange] = useState();
-  const FocusColorChaneg = () => {
-    setColorChange(!ColorChange);
-  };
+export default function SignUpDetailScreen() {
   return (
     <View style={styles.container}>
       <CompanyHeader
-        Header="Welcome to Notarizr"
-        subHeading="Signup to create an account with us!"
+        Header="Profile Details"
+        subHeading="Please provide us with your profile details"
         HeaderStyle={{alignSelf: 'center'}}
         subHeadingStyle={{
           alignSelf: 'center',
@@ -34,35 +31,33 @@ export default function SignUpScreen() {
       />
 
       <BottomSheetStyle>
-        <View style={{marginTop: heightToDp(5)}}>
+        <ScrollView style={{marginVertical: heightToDp(10)}}>
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/emailIcon.png')}
-            placeholder={'Enter your email address'}
-            LabelTextInput={'Email Address'}
+            leftImageSoucre={require('../../../assets/NameIcon.png')}
+            placeholder={'Enter your full name'}
+            LabelTextInput={'Full Name'}
           />
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/lockIcon.png')}
-            rightImageSource={require('../../../assets/eyeIcon.png')}
-            placeholder={'Enter your password'}
-            LabelTextInput={'Password'}
+            leftImageSoucre={require('../../../assets/phoneIcon.png')}
+            placeholder={'Enter your phone number'}
+            LabelTextInput={'Phone No.'}
+          />
+          <LabelTextInput
+            leftImageSoucre={require('../../../assets/calenderIcon.png')}
+            placeholder={'Enter your date of birth'}
+            LabelTextInput={'Date of Birth'}
+          />
+          <LabelTextInput
+            leftImageSoucre={require('../../../assets/locationIcon.png')}
+            placeholder={'Enter your city'}
+            LabelTextInput={'City'}
           />
           <MainButton
             colors={['#D3D5DA', '#D3D5DA']}
-            Title="Signup"
+            Title="Continue"
             width={{width: widthToDp(80)}}
           />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              marginTop: heightToDp(30),
-            }}>
-            <Text>Already have an account? </Text>
-            <TouchableOpacity>
-              <Text style={{color: '#FF7A28'}}>Sign in</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );
