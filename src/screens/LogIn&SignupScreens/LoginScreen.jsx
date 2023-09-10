@@ -1,11 +1,18 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Animated,
+  View,
+  TextInput,
+} from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
-import {FloatingLabelInput} from 'react-native-floating-label-input';
-import {TextInput} from 'react-native-paper';
+import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
 export default function LoginScreen() {
   const [ColorChange, setColorChange] = useState();
@@ -25,53 +32,36 @@ export default function LoginScreen() {
           color: '#121826',
         }}
       />
+
       <BottomSheetStyle>
-        <View style={{}}>
-          <Text
-            style={{
-              color: 'black',
-              fontWeight: 'bold',
-              fontSize: 15,
-              // marginBottom: ,
-            }}>
-            Email
-          </Text>
-
+        <View style={{marginTop: heightToDp(5)}}>
+          <LabelTextInput
+            leftImageSoucre={require('../../../assets/emailIcon.png')}
+            placeholder={'Enter your email address'}
+            LabelTextInput={'Email Address'}
+          />
+          <LabelTextInput
+            leftImageSoucre={require('../../../assets/lockIcon.png')}
+            rightImageSource={require('../../../assets/eyeIcon.png')}
+            placeholder={'Enter your password'}
+            LabelTextInput={'Password'}
+          />
+          <MainButton
+            colors={['#D3D5DA', '#D3D5DA']}
+            Title="Login"
+            width={{width: widthToDp(80)}}
+          />
           <View
-            style={[
-              styles.searchSection,
-              {borderColor: ColorChange ? '#FF7A28' : '#D3D5DA'},
-            ]}>
-            <Image
-              source={require('../../../assets/emailIcon.png')}
-              style={styles.icon}
-            />
-            <TextInput
-              mode="outlined"
-              label={'Email Address'}
-              style={[styles.input]}
-              placeholder="Enter your email address"
-              outlineColor="#D3D5DA"
-              activeOutlineColor="#FF7A28"
-            />
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              marginTop: heightToDp(30),
+            }}>
+            <Text>Don’t have an account? </Text>
+            <TouchableOpacity>
+              <Text style={{color: '#FF7A28'}}>Sign up</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        <MainButton
-          colors={['#D3D5DA', '#D3D5DA']}
-          Title="Login"
-          width={{width: widthToDp(80)}}
-        />
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            marginTop: heightToDp(70),
-          }}>
-          <Text>Don’t have an account? </Text>
-          <TouchableOpacity>
-            <Text style={{color: '#FF7A28'}}>Sign up</Text>
-          </TouchableOpacity>
         </View>
       </BottomSheetStyle>
     </View>
@@ -104,9 +94,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     color: '#424242',
     marginLeft: widthToDp(3),
+    width: widthToDp(80),
   },
   icon: {
     padding: widthToDp(2),
-    marginLeft: widthToDp(3),
+    marginTop: widthToDp(3),
+  },
+  conta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1, // Add any additional styling you want for the container
+  },
+  input: {
+    flex: 1, // Take up all available space in the container
+    padding: 8, // Adjust padding as needed
+  },
+  image: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+    position: 'absolute',
+    right: 10, // Adjust the right position as needed
   },
 });
+{
+  /* <TextInput
+  mode="outlined"
+  label={'Email Address'}
+  style={[styles.input]}
+  placeholder="Enter your email address"
+  underlineColor="#fff"
+  outlineColor="#fff"
+  // activeOutlineColor="#fff"
+
+  editable={true}
+  // render={() => (
+  //   <Image
+  //     source={require('../../../assets/emailIcon.png')}
+  //     style={styles.icon}
+  //   />
+  // )}
+/>; */
+}
