@@ -12,6 +12,7 @@ import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
+import Colors from '../../themes/Colors';
 
 export default function LabelTextInput(props) {
   const [isFocused, setIsFocused] = useState(false);
@@ -34,18 +35,21 @@ export default function LabelTextInput(props) {
         <TextInput
           onFocus={handleFocus}
           onBlur={handleBlur}
-          style={[styles.input]}
+          style={[styles.input, props.InputStyles]}
           keyboardType={props.keyboardType || 'default'}
           secureTextEntry={props.secureTextEntry || false}
           placeholder={props.placeholder}
+          placeholderTextColor={
+            Colors.DisableColor || props.placeholderTextColor
+          }
         />
         {props.rightImageSource && (
           <Image source={props.rightImageSource} style={styles.icon} />
         )}
       </View>
-      {isFocused ? (
+      {isFocused && props.LabelTextInput ? (
         <Text style={[styles.label, isFocused && styles.labelFocused]}>
-          {props.LabelTextInput}
+          {props.LabelTextInput || null}
         </Text>
       ) : null}
     </View>

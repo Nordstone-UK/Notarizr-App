@@ -11,7 +11,8 @@ export default function MainButton(props) {
         end={{x: 1, y: 0}}
         style={[styles.gradientstyles]}>
         <TouchableOpacity
-          style={[styles.buttonToucableOpacity, props.viewStyle]}>
+          style={[styles.buttonToucableOpacity, props.viewStyle]}
+          onPress={props.onPress}>
           <Text style={[styles.buttonText, props.styles]}>{props.Title}</Text>
         </TouchableOpacity>
       </LinearGradient>

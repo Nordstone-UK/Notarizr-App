@@ -1,7 +1,6 @@
 import {StyleSheet, Text, View} from 'react-native';
 import {widthToDp} from '../../utils/Responsive';
 import React from 'react';
-import {child} from 'react-native-extended-stylesheet';
 
 export default function BottomSheetStyle({children}) {
   return (
@@ -13,32 +12,14 @@ export default function BottomSheetStyle({children}) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: '100%',
-    backgroundColor: '#FFF2DC',
-  },
-  imagestyles: {
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: '15%',
-    marginBottom: '10%',
-  },
-  textHeading: {
-    color: '#000',
-    marginHorizontal: 15,
-    fontSize: 27,
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
-  },
   bottonSheet: {
     flex: 1,
-    marginTop: widthToDp(10),
+    marginTop: widthToDp(2),
     backgroundColor: '#fff',
     borderRadius: 20,
   },
   bottonSheetBar: {
-    borderRadius: 20,
+    borderRadius: 25,
     marginTop: widthToDp(3),
     width: widthToDp(15),
     borderTopWidth: 5,

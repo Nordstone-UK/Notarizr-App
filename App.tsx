@@ -16,11 +16,14 @@ import LoginScreen from './src/screens/LogIn&SignupScreens/LoginScreen';
 import SignUpScreen from './src/screens/LogIn&SignupScreens/SignUpScreen';
 import SignUpDetailScreen from './src/screens/LogIn&SignupScreens/SignUpDetailScreen';
 import ProfilePictureScreen from './src/screens/LogIn&SignupScreens/ProfilePictureScreen';
+import CompletionScreen from './src/screens/CompletionScreen/CompletionScreen';
+import HomeScreenHeader from './src/components/HomeScreenHeader/HomeScreenHeader';
+import HomeScreen from './src/screens/HomeScreen.jsx/HomeScreen';
 
 function App(): JSX.Element {
   return (
     <SafeAreaView>
-      <ProfilePictureScreen />
+      <HomeScreen />
     </SafeAreaView>
   );
 }
