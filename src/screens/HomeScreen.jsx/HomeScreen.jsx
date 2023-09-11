@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   Heading: {
-    fontSize: widthToDp(8),
+    fontSize: widthToDp(6.5),
     fontWeight: '700',
     color: Colors.TextColor,
     paddingLeft: widthToDp(2),

@@ -25,7 +25,7 @@ import MainBookingScreen from './src/screens/MainBookingScreen/MainBookingScreen
 function App(): JSX.Element {
   return (
     <SafeAreaView>
-      <MainBookingScreen />
+      <HomeScreen />
     </SafeAreaView>
   );
 }

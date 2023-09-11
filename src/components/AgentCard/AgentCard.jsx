@@ -18,6 +18,25 @@ export default function AgentCard(props) {
     );
   };
   const address = 'Shop 28, jigara Kalanad Road';
+  const [firstPart, secondPart] = splitStringBefore4thWord(address);
+  function splitStringBefore4thWord(inputString) {
+    // Split the string by space
+    const words = inputString.split(' ');
+
+    // Check if there are at least 4 words
+    if (words.length >= 4) {
+      // Join the first three words with space
+      const firstPart = words.slice(0, 3).join(' ');
+
+      // Join the remaining words with space
+      const secondPart = words.slice(3).join(' ');
+
+      return [firstPart, secondPart];
+    } else {
+      // If there are fewer than 4 words, return the original string as the first part
+      return [inputString, ''];
+    }
+  }
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
@@ -29,9 +48,7 @@ export default function AgentCard(props) {
             paddingVertical: heightToDp(2),
             paddingHorizontal: widthToDp(2),
           }}>
-          <Text style={styles.nameHeading}>
-            Advocate{'\n'}Parimal M. Trivedi
-          </Text>
+          <Text style={styles.nameHeading}>Advocate Parimal M. Trivedi</Text>
           <View
             style={{
               flexDirection: 'row',
@@ -43,7 +60,7 @@ export default function AgentCard(props) {
               style={{
                 width: widthToDp(40),
               }}>
-              <Text style={styles.address}>{address.substring(0, 15)}</Text>
+              <Text style={styles.address}>{firstPart}</Text>
             </View>
           </View>
           <View
@@ -52,7 +69,7 @@ export default function AgentCard(props) {
               flexWrap: 'wrap',
             }}>
             <Text style={[styles.address, {marginLeft: widthToDp(8)}]}>
-              {address.substring(16, address.length)}
+              {secondPart}
             </Text>
           </View>
           <View style={styles.orangeline} />
@@ -88,7 +105,7 @@ const styles = StyleSheet.create({
   },
   nameHeading: {
     fontSize: widthToDp(5),
-    width: widthToDp(50),
+    maxWidth: widthToDp(40),
     paddingVertical: heightToDp(2),
     color: Colors.TextColor,
     fontWeight: '700',
