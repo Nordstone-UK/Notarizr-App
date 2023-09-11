@@ -41,11 +41,13 @@ export default function SignUpDetailScreen() {
             leftImageSoucre={require('../../../assets/phoneIcon.png')}
             placeholder={'Enter your phone number'}
             LabelTextInput={'Phone No.'}
+            keyboardType="numeric"
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/calenderIcon.png')}
             placeholder={'Enter your date of birth'}
             LabelTextInput={'Date of Birth'}
+            keyboardType="numeric"
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/locationIcon.png')}

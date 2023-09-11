@@ -35,6 +35,8 @@ export default function LabelTextInput(props) {
           onFocus={handleFocus}
           onBlur={handleBlur}
           style={[styles.input]}
+          keyboardType={props.keyboardType || 'default'}
+          secureTextEntry={props.secureTextEntry || false}
           placeholder={props.placeholder}
         />
         {props.rightImageSource && (

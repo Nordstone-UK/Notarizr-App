@@ -45,6 +45,7 @@ export default function SignUpScreen() {
             rightImageSource={require('../../../assets/eyeIcon.png')}
             placeholder={'Enter your password'}
             LabelTextInput={'Password'}
+            secureTextEntry={true}
           />
           <MainButton
             colors={['#D3D5DA', '#D3D5DA']}

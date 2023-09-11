@@ -15,11 +15,12 @@ import SignupAsScreen from './src/screens/SingupAsScreen/SignupAsScreen';
 import LoginScreen from './src/screens/LogIn&SignupScreens/LoginScreen';
 import SignUpScreen from './src/screens/LogIn&SignupScreens/SignUpScreen';
 import SignUpDetailScreen from './src/screens/LogIn&SignupScreens/SignUpDetailScreen';
+import ProfilePictureScreen from './src/screens/LogIn&SignupScreens/ProfilePictureScreen';
 
 function App(): JSX.Element {
   return (
     <SafeAreaView>
-      <SignUpDetailScreen />
+      <ProfilePictureScreen />
     </SafeAreaView>
   );
 }
