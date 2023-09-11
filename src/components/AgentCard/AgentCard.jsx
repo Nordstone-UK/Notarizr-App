@@ -3,42 +3,44 @@ import React from 'react';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LinearGradient from 'react-native-linear-gradient';
+import AgentCardPicture from '../AgentCardPicture/AgentCardPicture';
 
 export default function AgentCard(props) {
+  const OrangeGradient = string => {
+    return (
+      <LinearGradient
+        style={styles.locationStyle}
+        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}>
+        <Text style={styles.placestyle}>{string}</Text>
+      </LinearGradient>
+    );
+  };
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
-        <Image
-          source={require('../../../assets/agentCardPic.png')}
-          style={styles.cardImage}
-        />
-        <Text style={styles.ImageProces}>On Process</Text>
-        <LinearGradient
-          style={styles.dateContainer}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          start={{x: 0, y: 0}}
-          end={{x: 1, y: 0}}>
-          <Text style={styles.dateStyle}>12:30</Text>
-          <Text style={styles.dateStyle}>22</Text>
-          <Text style={styles.dateStyle}>Sep</Text>
-        </LinearGradient>
-        <View>
-          <Text style={styles.nameHeading}>Advocate Parimal M. Trivedi</Text>
-          <View style={{flexDirection: 'row'}}>
+        <View style={{paddingHorizontal: widthToDp(2)}}>
+          <AgentCardPicture />
+        </View>
+        <View
+          style={{
+            paddingVertical: heightToDp(2),
+            paddingHorizontal: widthToDp(2),
+          }}>
+          <Text style={styles.nameHeading}>
+            Advocate{'\n'}Parimal M. Trivedi
+          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'nowrap',
+            }}>
             <Image source={require('../../../assets/locationIcon.png')} />
-
+            {OrangeGradient('At Office')}
             <View>
-              <LinearGradient
-                style={styles.locationStyle}
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}>
-                <Text style={styles.placestyle}>At Office</Text>
-              </LinearGradient>
+              <Text style={styles.address}>Shop 28, jigara Kalawad Road</Text>
             </View>
-            <Text style={styles.address}>
-              Shop 28, {'\n'} jigara Kalawad Road
-            </Text>
           </View>
           <View style={styles.orangeline} />
           <View
@@ -58,22 +60,24 @@ export default function AgentCard(props) {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    borderColor: '#000',
+    borderColor: '#1212',
     borderWidth: 2,
     borderRadius: 10,
-    margin: widthToDp(5),
-    paddingVertical: heightToDp(5),
+    marginVertical: widthToDp(5),
+    paddingTop: heightToDp(2),
+    paddingBottom: heightToDp(4),
     marginHorizontal: heightToDp(2),
   },
   nameHeading: {
-    fontSize: widthToDp(6),
-    width: widthToDp(60),
+    fontSize: widthToDp(5),
+    width: widthToDp(50),
+    paddingVertical: heightToDp(2),
     color: Colors.TextColor,
     fontWeight: '700',
   },
   dateContainer: {
     position: 'absolute',
-    bottom: 10,
+    bottom: heightToDp(-2),
     paddingHorizontal: widthToDp(6.5),
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -83,11 +87,12 @@ const styles = StyleSheet.create({
   ImageProces: {
     color: '#fff',
     backgroundColor: Colors.CardProcessColor,
-    fontWeight: '600',
-    fontSize: widthToDp(5),
+    fontWeight: '700',
+    fontSize: widthToDp(4),
+    paddingHorizontal: widthToDp(2.7),
     position: 'absolute',
     marginLeft: widthToDp(1.5),
-    bottom: heightToDp(22),
+    bottom: heightToDp(19),
   },
   cardImage: {
     margin: widthToDp(1.5),
@@ -100,34 +105,35 @@ const styles = StyleSheet.create({
   },
   address: {
     color: Colors.TextColor,
-    fontSize: widthToDp(5),
-    // width: widthToDp(50),
+    fontSize: widthToDp(4),
+    width: widthToDp(40),
   },
   placestyle: {
     color: Colors.white,
-    fontSize: widthToDp(5),
+    fontSize: widthToDp(4),
   },
   locationStyle: {
-    borderRadius: 10,
+    borderRadius: 20,
     paddingHorizontal: widthToDp(2),
+    marginHorizontal: widthToDp(0.5),
+    height: heightToDp(6),
   },
   orangeline: {
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     borderColor: Colors.Orange,
     width: widthToDp(70),
-    right: widthToDp(4),
+    right: widthToDp(6),
     zIndex: -1,
     paddingVertical: heightToDp(2),
   },
   totalStyles: {
     color: Colors.TextColor,
     fontSize: widthToDp(5),
-    fontWeight: '600',
   },
   paymentStyle: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
     fontWeight: '800',
-    marginRight: widthToDp(15),
+    marginRight: widthToDp(10),
   },
 });
