@@ -19,11 +19,13 @@ import ProfilePictureScreen from './src/screens/LogIn&SignupScreens/ProfilePictu
 import CompletionScreen from './src/screens/CompletionScreen/CompletionScreen';
 import HomeScreenHeader from './src/components/HomeScreenHeader/HomeScreenHeader';
 import HomeScreen from './src/screens/HomeScreen.jsx/HomeScreen';
+import LegalDocScreen from './src/screens/LegalDocumentsScren/LegalDocScreen';
+import MainBookingScreen from './src/screens/MainBookingScreen/MainBookingScreen';
 
 function App(): JSX.Element {
   return (
     <SafeAreaView>
-      <HomeScreen />
+      <MainBookingScreen />
     </SafeAreaView>
   );
 }

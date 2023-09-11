@@ -17,7 +17,7 @@ export default function HomeScreen() {
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
-          {/* <Text style={styles.Heading}>
+          <Text style={styles.Heading}>
             Know how Notarizr helps you in notarizing your documents
           </Text>
           <Image
@@ -28,14 +28,16 @@ export default function HomeScreen() {
             <Text style={styles.Heading}>Categories</Text>
             <Text style={styles.subheading}>View all</Text>
           </View>
-          <View style={styles.PictureBar}>
-            <Image source={require('../../../assets/legalDocIcon.png')} />
-            <Image source={require('../../../assets/estateDocIcon.png')} />
+          <View style={styles.CategoryPictures}>
+            <View style={styles.PictureBar}>
+              <Image source={require('../../../assets/legalDocIcon.png')} />
+              <Image source={require('../../../assets/estateDocIcon.png')} />
+            </View>
+            <View style={styles.PictureBar}>
+              <Image source={require('../../../assets/medicalDocIcon.png')} />
+              <Image source={require('../../../assets/businessDocIcon.png')} />
+            </View>
           </View>
-          <View style={styles.PictureBar}>
-            <Image source={require('../../../assets/medicalDocIcon.png')} />
-            <Image source={require('../../../assets/businessDocIcon.png')} />
-          </View> */}
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
             <Text style={styles.subheading}>View all</Text>
@@ -71,11 +73,14 @@ const styles = StyleSheet.create({
   CategoryBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: heightToDp(3),
+    marginVertical: heightToDp(3),
   },
   PictureBar: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
+    marginVertical: heightToDp(1),
+  },
+  CategoryPictures: {
     marginVertical: heightToDp(2),
   },
 });

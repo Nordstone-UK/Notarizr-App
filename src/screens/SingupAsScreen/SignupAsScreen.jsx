@@ -5,6 +5,7 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {widthToDp} from '../../utils/Responsive';
+import Colors from '../../themes/Colors';
 
 export default function SignupAsScreen() {
   const [Client, setClient] = useState(false);
@@ -21,7 +22,7 @@ export default function SignupAsScreen() {
       <BottomSheetStyle>
         <SignupButton
           Title="SignUp as Client"
-          colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+          color={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           TextStyle={{color: '#fff'}}
           picture={require('../../../assets/clientPic.png')}
           handleFunction={handleClient}
@@ -36,7 +37,7 @@ export default function SignupAsScreen() {
         <View style={styles.buttonConatiner}>
           {Client ? (
             <MainButton
-              colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+              color={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Get Started"
             />
           ) : null}

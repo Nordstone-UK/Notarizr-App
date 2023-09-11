@@ -1,10 +1,14 @@
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
+import {widthToDp} from '../../utils/Responsive';
 
 export default function MainButton(props) {
   return (
-    <View>
+    <View
+      style={{
+        marginHorizontal: widthToDp(0),
+      }}>
       <LinearGradient
         colors={props.colors}
         start={{x: 0, y: 0}}
@@ -24,7 +28,6 @@ const styles = StyleSheet.create({
   gradientstyles: {
     marginTop: '10%',
     borderRadius: 10,
-    width: '90%',
     alignSelf: 'center',
   },
   buttonToucableOpacity: {},

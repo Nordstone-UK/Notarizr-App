@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     paddingVertical: widthToDp(1),
     position: 'absolute',
     marginLeft: widthToDp(1.5),
-    bottom: heightToDp(18),
+    bottom: heightToDp(19),
   },
   cardImage: {
     margin: widthToDp(1.5),
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   dateStyle: {
     color: Colors.white,
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: widthToDp(4),
     marginVertical: heightToDp(0.5),
   },

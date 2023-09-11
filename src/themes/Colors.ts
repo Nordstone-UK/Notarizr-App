@@ -9,6 +9,9 @@ const Colors = {
   Black: '#000',
   TextColor: '#121826',
   CardProcessColor: '#6184FF',
+  Pink: '#FFA0F5',
+  LightBlue: '#86BCE2',
+  DarkBlue: '#8695E2',
 };
 
 export default Colors;

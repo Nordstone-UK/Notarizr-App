@@ -1,4 +1,4 @@
-import {StyleSheet, Text, Image, View} from 'react-native';
+import {StyleSheet, Text, Image, View, Platform} from 'react-native';
 import React from 'react';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
@@ -17,6 +17,7 @@ export default function AgentCard(props) {
       </LinearGradient>
     );
   };
+  const address = 'Shop 28, jigara Kalanad Road';
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
@@ -34,13 +35,25 @@ export default function AgentCard(props) {
           <View
             style={{
               flexDirection: 'row',
-              flexWrap: 'nowrap',
+              flexWrap: 'wrap',
             }}>
             <Image source={require('../../../assets/locationIcon.png')} />
             {OrangeGradient('At Office')}
-            <View>
-              <Text style={styles.address}>Shop 28, jigara Kalawad Road</Text>
+            <View
+              style={{
+                width: widthToDp(40),
+              }}>
+              <Text style={styles.address}>{address.substring(0, 15)}</Text>
             </View>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+            }}>
+            <Text style={[styles.address, {marginLeft: widthToDp(8)}]}>
+              {address.substring(16, address.length)}
+            </Text>
           </View>
           <View style={styles.orangeline} />
           <View
@@ -48,6 +61,7 @@ export default function AgentCard(props) {
               flexDirection: 'row',
               justifyContent: 'space-between',
               paddingTop: heightToDp(5),
+              marginRight: widthToDp(2),
             }}>
             <Text style={styles.totalStyles}>Total</Text>
             <Text style={styles.paymentStyle}>$400</Text>
@@ -63,10 +77,14 @@ const styles = StyleSheet.create({
     borderColor: '#1212',
     borderWidth: 2,
     borderRadius: 10,
-    marginVertical: widthToDp(5),
+    marginVertical: widthToDp(2),
     paddingTop: heightToDp(2),
     paddingBottom: heightToDp(4),
     marginHorizontal: heightToDp(2),
+    shadowColor: '#171717',
+    shadowOffset: {width: -2, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   nameHeading: {
     fontSize: widthToDp(5),
@@ -106,7 +124,7 @@ const styles = StyleSheet.create({
   address: {
     color: Colors.TextColor,
     fontSize: widthToDp(4),
-    width: widthToDp(40),
+    // width: widthToDp(40),
   },
   placestyle: {
     color: Colors.white,
@@ -122,7 +140,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
     width: widthToDp(70),
-    right: widthToDp(6),
+    right: widthToDp(10),
     zIndex: -1,
     paddingVertical: heightToDp(2),
   },
