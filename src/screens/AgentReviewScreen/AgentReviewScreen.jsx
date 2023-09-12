@@ -52,7 +52,7 @@ export default function AgentReviewScreen(props) {
       </View>
       <View style={{marginTop: heightToDp(2)}} />
       <BottomSheetStyle>
-        <Text>Descri[</Text>
+        <Text>Description</Text>
       </BottomSheetStyle>
     </View>
   );

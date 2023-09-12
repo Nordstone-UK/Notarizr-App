@@ -21,7 +21,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="OnboardingScreen1">
-        {/* <Stack.Screen
+        <Stack.Screen
           name="OnboardingScreen1"
           component={OnboardingScreen1}
           options={{headerShown: false}}
@@ -82,12 +82,12 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
-        /> */}
-        <Stack.Screen
+        />
+        {/* <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
           options={{headerShown: false}}
-        />
+        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
