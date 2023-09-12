@@ -7,6 +7,7 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
 export default function AgentReviewScreen(props) {
   const name = 'Advocate Mary Smith';
@@ -51,8 +52,37 @@ export default function AgentReviewScreen(props) {
         />
       </View>
       <View style={{marginTop: heightToDp(2)}} />
-      <BottomSheetStyle>
-        <Text>Descri[</Text>
+      <BottomSheetStyle
+        stlye={{
+          flex: 1,
+        }}>
+        <View style={styles.sheetContainer}>
+          <Text style={styles.heading}>Description:</Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences
+          </Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences
+          </Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences
+          </Text>
+        </View>
+        <View style={styles.addressView}>
+          <Image
+            source={require('../../../assets/locationIcon.png')}
+            style={styles.locationImage}
+          />
+          <Text style={styles.preference}>
+            Legal building, James street, New York
+          </Text>
+        </View>
+        <View style={styles.button}>
+          <GradientButton
+            Title="Book Agent"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          />
+        </View>
       </BottomSheetStyle>
     </View>
   );
@@ -82,14 +112,34 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     alignSelf: 'center',
   },
-  locationStyle: {
-    // borderRadius: 20,
-    // paddingHorizontal: widthToDp(2),
-    // marginHorizontal: widthToDp(0.5),
-    backgroundColor: 'transparent',
+  heading: {
+    fontSize: widthToDp(6),
+    color: Colors.TextColor,
+    marginLeft: widthToDp(3),
+    marginBottom: heightToDp(2),
+  },
+  preference: {
+    marginLeft: widthToDp(3),
+    fontSize: widthToDp(4),
+    color: Colors.TextColor,
   },
   star: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
+  },
+  sheetContainer: {
+    marginTop: heightToDp(4),
+  },
+  locationImage: {
+    tintColor: Colors.Black,
+  },
+  addressView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: heightToDp(8),
+    marginLeft: widthToDp(3),
+  },
+  button: {
+    // height: 100,
   },
 });

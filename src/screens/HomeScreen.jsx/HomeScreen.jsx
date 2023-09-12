@@ -19,7 +19,7 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 export default function HomeScreen({navigation}) {
   return (
     <View style={styles.container}>
-      <HomeScreenHeader />
+      <HomeScreenHeader Title="One Click and Select our services." />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}

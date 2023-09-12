@@ -14,7 +14,7 @@ export default function HomeScreenHeader(props) {
         />
         <Text style={[styles.textHeading, props.HeaderStyle]}>Lamthao</Text>
       </View>
-      <Text style={styles.heading}>One Click and Select our services.</Text>
+      <Text style={styles.heading}>{props.Title}</Text>
       <LabelTextInput
         leftImageSoucre={require('../../../assets/Search.png')}
         placeholder={'Search'}
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(5),
   },
   heading: {
-    fontSize: widthToDp(8),
+    fontSize: widthToDp(7),
     fontWeight: '700',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),

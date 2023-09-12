@@ -8,6 +8,7 @@ const Colors = {
   Orange: '#FF7A28',
   Black: '#000',
   TextColor: '#121826',
+  DullTextColor: '##6C727F',
   CardProcessColor: '#6184FF',
   Pink: '#FFA0F5',
   LightBlue: '#86BCE2',

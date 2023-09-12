@@ -5,7 +5,6 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
-import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';

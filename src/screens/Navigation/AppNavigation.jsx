@@ -15,6 +15,9 @@ import SignUpDetailScreen from '../LogIn&SignupScreens/SignUpDetailScreen';
 import MainBookingScreen from '../MainBookingScreen/MainBookingScreen';
 import RegisterCompletionScreen from '../LogIn&SignupScreens/RegisterCompletionScreen';
 import AgentReviewScreen from '../AgentReviewScreen/AgentReviewScreen';
+import AgentBookCompletion from '../CompletionScreen/AgentBookCompletion';
+import AllBookingScreen from '../AllBookingScreen/AllBookingScreen';
+import MedicalBookingScreen from '../AllBookingScreen/MedicalBookingScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
@@ -83,9 +86,24 @@ export default function AppNavigation() {
             headerShown: false,
           }}
         /> */}
-        <Stack.Screen
+        {/* <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
+          options={{headerShown: false}}
+        /> */}
+        {/* <Stack.Screen
+          name="AgentBookCompletion"
+          component={AgentBookCompletion}
+          options={{headerShown: false}}
+        /> */}
+        {/* <Stack.Screen
+          name="AllBookingScreen"
+          component={AllBookingScreen}
+          options={{headerShown: false}}
+        /> */}
+        <Stack.Screen
+          name="MedicalBookingScreen"
+          component={MedicalBookingScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
