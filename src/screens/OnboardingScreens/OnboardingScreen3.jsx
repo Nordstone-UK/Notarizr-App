@@ -2,8 +2,10 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
+import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function OnboardingScreen3() {
+export default function OnboardingScreen3({navigation}, props) {
   return (
     <View style={styles.container}>
       <Image
@@ -14,9 +16,12 @@ export default function OnboardingScreen3() {
       <Text style={styles.textSubheading}>
         Our app can provide you the Mobile and Online services
       </Text>
-      <MainButton
+      <GradientButton
         Title="Get Started"
-        colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+        viewStyle={props.viewStyle}
+        GradiStyles={props.GradiStyles}
+        onPress={() => navigation.navigate('LoginScreen')}
       />
     </View>
   );

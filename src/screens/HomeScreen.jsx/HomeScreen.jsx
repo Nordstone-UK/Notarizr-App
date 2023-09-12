@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  ScrollView,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -9,7 +16,7 @@ import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 
-export default function HomeScreen() {
+export default function HomeScreen({navigation}) {
   return (
     <View style={styles.container}>
       <HomeScreenHeader />
@@ -30,12 +37,24 @@ export default function HomeScreen() {
           </View>
           <View style={styles.CategoryPictures}>
             <View style={styles.PictureBar}>
-              <Image source={require('../../../assets/legalDocIcon.png')} />
-              <Image source={require('../../../assets/estateDocIcon.png')} />
+              <TouchableOpacity
+                onPress={() => navigation.navigate('LegalDocScreen')}>
+                <Image source={require('../../../assets/legalDocIcon.png')} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Image source={require('../../../assets/estateDocIcon.png')} />
+              </TouchableOpacity>
             </View>
             <View style={styles.PictureBar}>
-              <Image source={require('../../../assets/medicalDocIcon.png')} />
-              <Image source={require('../../../assets/businessDocIcon.png')} />
+              <TouchableOpacity
+                onPress={() => navigation.navigate('MainBookingScreen')}>
+                <Image source={require('../../../assets/medicalDocIcon.png')} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Image
+                  source={require('../../../assets/businessDocIcon.png')}
+                />
+              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.CategoryBar}>

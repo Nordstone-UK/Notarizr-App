@@ -13,8 +13,10 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
+import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function SignUpScreen() {
+export default function SignUpScreen(props) {
   const [ColorChange, setColorChange] = useState();
   const FocusColorChaneg = () => {
     setColorChange(!ColorChange);
@@ -47,16 +49,23 @@ export default function SignUpScreen() {
             LabelTextInput={'Password'}
             secureTextEntry={true}
           />
-          <MainButton
-            colors={['#D3D5DA', '#D3D5DA']}
-            Title="Signup"
-            width={{width: widthToDp(80)}}
-          />
+          <View
+            style={{
+              marginTop: heightToDp(30),
+            }}>
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              viewStyle={props.viewStyle}
+              GradiStyles={props.GradiStyles}
+              Title="Signup"
+              width={{width: widthToDp(80)}}
+            />
+          </View>
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
-              marginTop: heightToDp(30),
+              marginTop: heightToDp(10),
             }}>
             <Text>Already have an account? </Text>
             <TouchableOpacity>

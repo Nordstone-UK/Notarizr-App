@@ -13,8 +13,10 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
+import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function LoginScreen() {
+export default function LoginScreen({navigation}, props) {
   const [ColorChange, setColorChange] = useState();
   const FocusColorChaneg = () => {
     setColorChange(!ColorChange);
@@ -45,20 +47,25 @@ export default function LoginScreen() {
             rightImageSource={require('../../../assets/eyeIcon.png')}
             placeholder={'Enter your password'}
             LabelTextInput={'Password'}
+            secureTextEntry={true}
           />
-          <MainButton
-            colors={['#D3D5DA', '#D3D5DA']}
-            Title="Login"
-            width={{width: widthToDp(80)}}
-          />
+          <View style={{marginTop: heightToDp(30)}}>
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              Title="Login"
+              viewStyle={props.viewStyle}
+              GradiStyles={props.GradiStyles}
+            />
+          </View>
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
-              marginTop: heightToDp(30),
+              marginTop: heightToDp(10),
             }}>
             <Text>Don’t have an account? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SignupAsScreen')}>
               <Text style={{color: '#FF7A28'}}>Sign up</Text>
             </TouchableOpacity>
           </View>

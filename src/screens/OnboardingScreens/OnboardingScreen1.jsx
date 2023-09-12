@@ -4,7 +4,10 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import React from 'react';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
-export default function OnboardingScreen1() {
+import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
+
+export default function OnboardingScreen1({navigation}, props) {
   return (
     <View style={styles.container}>
       <Image
@@ -15,9 +18,12 @@ export default function OnboardingScreen1() {
       <Text style={styles.textSubheading}>
         Our app can provide you the Mobile and Online services
       </Text>
-      <MainButton
+      <GradientButton
         Title="Next"
-        colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+        viewStyle={props.viewStyle}
+        GradiStyles={props.GradiStyles}
+        onPress={() => navigation.navigate('OnboardingScreen2')}
       />
       <SkipButton Title="Skip" />
     </View>
@@ -25,6 +31,7 @@ export default function OnboardingScreen1() {
 }
 
 const styles = StyleSheet.create({
+  container: {},
   imagestyle: {
     width: '80%',
     resizeMode: 'contain',

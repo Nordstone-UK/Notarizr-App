@@ -14,8 +14,10 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
+import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function SignUpDetailScreen() {
+export default function SignUpDetailScreen({navigation}, props) {
   return (
     <View style={styles.container}>
       <CompanyHeader
@@ -54,10 +56,12 @@ export default function SignUpDetailScreen() {
             placeholder={'Enter your city'}
             LabelTextInput={'City'}
           />
-          <MainButton
-            colors={['#D3D5DA', '#D3D5DA']}
+          <GradientButton
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            viewStyle={props.viewStyle}
+            GradiStyles={props.GradiStyles}
             Title="Continue"
-            width={{width: widthToDp(80)}}
+            onPress={() => navigation.navigate('ProfilePictureScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

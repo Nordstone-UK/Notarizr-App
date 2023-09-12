@@ -68,6 +68,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginVertical: widthToDp(3),
     marginHorizontal: widthToDp(5),
-    alignSelf: 'center',
   },
 });

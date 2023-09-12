@@ -11,7 +11,7 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 
-export default function LegalDocScreen() {
+export default function LegalDocScreen({navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader

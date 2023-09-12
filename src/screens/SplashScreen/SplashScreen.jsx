@@ -3,22 +3,21 @@ import React from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function CompletionScreen(props) {
+export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
         source={require('../../../assets/Group.png')}
         style={styles.groupimage}>
         <View style={styles.completeIcon}>
-          {props.iconImage && (
-            <Image source={props.iconImage} style={styles.icon} />
-          )}
-          {/* Add an Icon path on this tag */}
-          {props.Title && <Text style={styles.text}>{props.Title}</Text>}
-          {/* Add an text on this tag */}
-          {props.subHeading && (
-            <Text style={styles.subheading}>{props.subHeading}</Text>
-          )}
+          <Image
+            source={require('../../../assets/mainLogo.png')}
+            style={styles.icon}
+          />
+
+          <Text style={styles.text}>NOTARIZR</Text>
+
+          <Text style={styles.subheading}>THE OPAL GORUP</Text>
         </View>
         <Image
           source={require('../../../assets/complete.png')}
@@ -34,7 +33,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(15),
+    marginTop: heightToDp(30),
   },
   groupimage: {
     height: '100%',

@@ -3,7 +3,7 @@ import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {widthToDp} from '../../utils/Responsive';
 
-export default function MainButton(props) {
+export default function GradientButton(props) {
   return (
     <View>
       <LinearGradient
@@ -26,8 +26,9 @@ const styles = StyleSheet.create({
     marginTop: '10%',
     borderRadius: 10,
     alignSelf: 'center',
+    width: '90%',
   },
-  buttonToucableOpacity: {},
+
   buttonText: {
     padding: '5%',
     color: '#fff',

@@ -18,7 +18,8 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Colors from '../../themes/Colors';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
 import ProfilePicture from '../../../assets/profilePicture.png';
-export default function ProfilePictureScreen() {
+import GradientButton from '../../components/MainGradientButton/GradientButton';
+export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState('picture');
 
   const requestCameraPermission = async () => {
@@ -151,11 +152,13 @@ export default function ProfilePictureScreen() {
             styles={{color: Colors.Orange}}
           />
         )}
-        <MainButton
+        <GradientButton
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Continue"
-          width={{width: widthToDp(80)}}
-          onPress={() => chooseFile}
+          onPress={
+            (() => chooseFile, navigation.navigate('RegisterCompletionScreen'))
+          }
+          // onPress={() =>}
         />
         <SkipButton Title="Skip" />
       </BottomSheetStyle>

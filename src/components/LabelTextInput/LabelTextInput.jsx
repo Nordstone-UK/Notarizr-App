@@ -19,7 +19,7 @@ export default function LabelTextInput(props) {
   const handleFocus = () => {
     setIsFocused(true);
   };
-
+  const [secureText, setSecreText] = useState(props.secureTextEntry);
   const handleBlur = () => {
     if (isFocused) {
       setIsFocused(false);
@@ -37,14 +37,19 @@ export default function LabelTextInput(props) {
           onBlur={handleBlur}
           style={[styles.input, props.InputStyles]}
           keyboardType={props.keyboardType || 'default'}
-          secureTextEntry={props.secureTextEntry || false}
+          secureTextEntry={secureText || false}
           placeholder={props.placeholder}
           placeholderTextColor={
             Colors.DisableColor || props.placeholderTextColor
           }
         />
         {props.rightImageSource && (
-          <Image source={props.rightImageSource} style={styles.icon} />
+          <TouchableOpacity
+            onPress={() => {
+              setSecreText(!secureText);
+            }}>
+            <Image source={props.rightImageSource} style={styles.icon} />
+          </TouchableOpacity>
         )}
       </View>
       {isFocused && props.LabelTextInput ? (

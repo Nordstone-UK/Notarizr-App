@@ -1,7 +1,7 @@
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import {heightToDp} from '../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function SignupButton(props) {
   return (
@@ -16,7 +16,7 @@ export default function SignupButton(props) {
             <Text style={[styles.buttonText, props.TextStyle]}>
               {props.Title}
             </Text>
-            <View style={styles.TextView}></View>
+            <View style={styles.TextView} />
           </View>
         </TouchableOpacity>
         <Image source={props.picture} style={styles.image} />
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   TextView: {
-    marginLeft: '5%',
+    marginLeft: widthToDp(5),
     borderBottomWidth: 5,
     borderBottomColor: '#FF7A28',
     width: '15%',

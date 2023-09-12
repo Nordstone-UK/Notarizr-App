@@ -1,24 +1,37 @@
 import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function CompletionScreen(props) {
+export default function RegisterCompletionScreen({navigation}) {
+  useEffect(() => {
+    // Delay in milliseconds (e.g., 3000ms = 3 seconds)
+    const delay = 3000;
+
+    const timer = setTimeout(() => {
+      // Navigate to SecondScreen after the specified delay
+      navigation.navigate('HomeScreen');
+    }, delay);
+
+    // Clear the timer when the component unmounts
+    return () => clearTimeout(timer);
+  }, [navigation]);
   return (
     <View style={styles.container}>
       <ImageBackground
         source={require('../../../assets/Group.png')}
         style={styles.groupimage}>
         <View style={styles.completeIcon}>
-          {props.iconImage && (
-            <Image source={props.iconImage} style={styles.icon} />
-          )}
-          {/* Add an Icon path on this tag */}
-          {props.Title && <Text style={styles.text}>{props.Title}</Text>}
-          {/* Add an text on this tag */}
-          {props.subHeading && (
-            <Text style={styles.subheading}>{props.subHeading}</Text>
-          )}
+          <Image
+            source={require('../../../assets/completedIcon.png')}
+            style={styles.icon}
+          />
+
+          <Text style={styles.text}>
+            Congratulations, you have completed your registration!
+          </Text>
+
+          {/* <Text style={styles.subheading}>THE OPAL GORUP</Text> */}
         </View>
         <Image
           source={require('../../../assets/complete.png')}
@@ -34,7 +47,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(15),
+    marginTop: heightToDp(30),
   },
   groupimage: {
     height: '100%',
@@ -44,19 +57,13 @@ const styles = StyleSheet.create({
     marginVertical: heightToDp(2),
   },
   text: {
-    marginHorizontal: widthToDp(22),
+    marginHorizontal: widthToDp(21),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: 35,
+    fontSize: 25,
     fontWeight: '700',
   },
-  subheading: {
-    marginHorizontal: widthToDp(22),
-    textAlign: 'center',
-    color: Colors.TextColor,
-    fontSize: 18,
-    fontWeight: '600',
-  },
+
   complete: {
     alignSelf: 'flex-end',
     position: 'absolute',

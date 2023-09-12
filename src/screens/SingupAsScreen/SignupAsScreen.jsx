@@ -6,8 +6,9 @@ import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function SignupAsScreen() {
+export default function SignupAsScreen({navigation}, props) {
   const [Client, setClient] = useState(false);
   const handleClient = () => {
     setClient(true);
@@ -22,7 +23,7 @@ export default function SignupAsScreen() {
       <BottomSheetStyle>
         <SignupButton
           Title="SignUp as Client"
-          color={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           TextStyle={{color: '#fff'}}
           picture={require('../../../assets/clientPic.png')}
           handleFunction={handleClient}
@@ -36,9 +37,12 @@ export default function SignupAsScreen() {
         />
         <View style={styles.buttonConatiner}>
           {Client ? (
-            <MainButton
-              color={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              viewStyle={props.viewStyle}
+              GradiStyles={props.GradiStyles}
               Title="Get Started"
+              onPress={() => navigation.navigate('SignUpDetailScreen')}
             />
           ) : null}
         </View>
