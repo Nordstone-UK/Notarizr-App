@@ -5,8 +5,10 @@ import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LinearGradient from 'react-native-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 
-export default function AgentReviewScreen() {
+export default function AgentReviewScreen(props) {
   const name = 'Advocate Mary Smith';
   const [firstWord, secondWord] = separateStringAfterFirstWord(name);
   function separateStringAfterFirstWord(inputString) {
@@ -20,15 +22,16 @@ export default function AgentReviewScreen() {
       return [inputString, ''];
     }
   }
-  const OrangeGradient = string => {
+  const GradientText = props => {
     return (
-      <LinearGradient
-        style={styles.locationStyle}
-        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 0}}>
-        <Text style={styles.placestyle}>{string}</Text>
-      </LinearGradient>
+      <MaskedView maskElement={<Text {...props} />}>
+        <LinearGradient
+          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}>
+          <Text {...props} style={[props.style, {opacity: 0}]} />
+        </LinearGradient>
+      </MaskedView>
     );
   };
   return (
@@ -41,8 +44,16 @@ export default function AgentReviewScreen() {
       <View style={styles.nameContainer}>
         <Text style={styles.name}>{firstWord}</Text>
         <Text style={styles.name}>{secondWord}</Text>
-        {OrangeGradient('5.0')}
+        <GradientText style={styles.placestyle}>5.0</GradientText>
+        <Image
+          source={require('../../../assets/orangeStar.png')}
+          style={styles.star}
+        />
       </View>
+      <View style={{marginTop: heightToDp(2)}} />
+      <BottomSheetStyle>
+        <Text>Descri[</Text>
+      </BottomSheetStyle>
     </View>
   );
 }
@@ -57,6 +68,7 @@ const styles = StyleSheet.create({
   },
   nameContainer: {
     marginVertical: heightToDp(2),
+    alignSelf: 'center',
   },
   name: {
     alignSelf: 'center',
@@ -65,13 +77,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   placestyle: {
-    color: Colors.white,
+    // color: Colors.white,
     fontSize: widthToDp(7),
+    fontWeight: '900',
     alignSelf: 'center',
   },
   locationStyle: {
-    borderRadius: 20,
-    paddingHorizontal: widthToDp(2),
-    marginHorizontal: widthToDp(0.5),
+    // borderRadius: 20,
+    // paddingHorizontal: widthToDp(2),
+    // marginHorizontal: widthToDp(0.5),
+    backgroundColor: 'transparent',
+  },
+  star: {
+    alignSelf: 'center',
+    marginVertical: heightToDp(2),
   },
 });
