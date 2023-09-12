@@ -25,7 +25,10 @@ export default function OnboardingScreen1({navigation}, props) {
         GradiStyles={props.GradiStyles}
         onPress={() => navigation.navigate('OnboardingScreen2')}
       />
-      <SkipButton Title="Skip" />
+      <SkipButton
+        Title="Skip"
+        onPress={() => navigation.navigate('OnboardingScreen3')}
+      />
     </View>
   );
 }

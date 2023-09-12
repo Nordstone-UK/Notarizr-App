@@ -55,6 +55,7 @@ export default function LoginScreen({navigation}, props) {
               Title="Login"
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
+              onPress={() => navigation.navigate('HomeScreen')}
             />
           </View>
           <View
