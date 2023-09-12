@@ -14,13 +14,14 @@ import ProfilePictureScreen from '../LogIn&SignupScreens/ProfilePictureScreen';
 import SignUpDetailScreen from '../LogIn&SignupScreens/SignUpDetailScreen';
 import MainBookingScreen from '../MainBookingScreen/MainBookingScreen';
 import RegisterCompletionScreen from '../LogIn&SignupScreens/RegisterCompletionScreen';
+import AgentReviewScreen from '../AgentReviewScreen/AgentReviewScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="OnboardingScreen1">
-        <Stack.Screen
+        {/* <Stack.Screen
           name="OnboardingScreen1"
           component={OnboardingScreen1}
           options={{headerShown: false}}
@@ -81,6 +82,11 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
+        /> */}
+        <Stack.Screen
+          name="AgentReviewScreen"
+          component={AgentReviewScreen}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     </NavigationContainer>
