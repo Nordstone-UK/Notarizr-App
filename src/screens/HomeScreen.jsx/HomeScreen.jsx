@@ -42,7 +42,23 @@ export default function HomeScreen() {
             <Text style={styles.Heading}>Active Services</Text>
             <Text style={styles.subheading}>View all</Text>
           </View>
-          <AgentCard />
+          <AgentCard
+            image={require('../../../assets/agentLocation.png')}
+            bottomRightText="$400"
+            bottomLeftText="Total"
+            agentName={'Advocate Parimal M. Trivedi'}
+            agentAddress={'Shop 28, jigara Kalakand Road'}
+            OrangeText={'At Office'}
+            Review={false}
+          />
+          <AgentCard
+            image={require('../../../assets/agentLocation.png')}
+            bottomRightText="$400"
+            bottomLeftText="Total"
+            agentName={'Advocate Parimal M. Trivedi'}
+            agentAddress={'Shop 28, jigara Kalakand Road'}
+            Review={false}
+          />
         </ScrollView>
       </BottomSheetStyle>
     </View>

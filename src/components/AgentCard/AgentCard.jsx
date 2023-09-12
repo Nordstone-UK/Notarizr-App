@@ -17,23 +17,40 @@ export default function AgentCard(props) {
       </LinearGradient>
     );
   };
-  const address = 'Shop 28, jigara Kalanad Road';
+  const address = props?.agentAddress;
+  const name = props?.agentName;
+
   const [firstPart, secondPart] = splitStringBefore4thWord(address);
+  const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
+
   function splitStringBefore4thWord(inputString) {
-    // Split the string by space
+    if (inputString) {
+      const words = inputString.split(' ');
+
+      // Check if there are at least 4 words
+      if (words.length >= 4) {
+        // Join the first three words with space
+        const firstPart = words.slice(0, 3).join(' ');
+
+        // Join the remaining words with space
+        const secondPart = words.slice(3).join(' ');
+
+        return [firstPart, secondPart];
+      } else {
+        // If there are fewer than 4 words, return the original string as the first part
+        return [inputString, ''];
+      }
+    } // Split the string by space
+  }
+  function separateStringAfterFirstWord(inputString) {
     const words = inputString.split(' ');
 
-    // Check if there are at least 4 words
-    if (words.length >= 4) {
-      // Join the first three words with space
-      const firstPart = words.slice(0, 3).join(' ');
-
-      // Join the remaining words with space
-      const secondPart = words.slice(3).join(' ');
-
-      return [firstPart, secondPart];
+    if (words.length > 1) {
+      const firstWord = words[0];
+      const restOfTheString = words.slice(1).join(' ');
+      return [firstWord, restOfTheString];
     } else {
-      // If there are fewer than 4 words, return the original string as the first part
+      // If there is only one word, return it as the first part and an empty string as the second part.
       return [inputString, ''];
     }
   }
@@ -41,21 +58,27 @@ export default function AgentCard(props) {
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
         <View style={{paddingHorizontal: widthToDp(2)}}>
-          <AgentCardPicture />
+          <AgentCardPicture Review={props.Review} />
         </View>
         <View
           style={{
             paddingVertical: heightToDp(2),
             paddingHorizontal: widthToDp(2),
           }}>
-          <Text style={styles.nameHeading}>Advocate Parimal M. Trivedi</Text>
+          <View
+            style={{
+              paddingVertical: heightToDp(2),
+            }}>
+            <Text style={styles.nameHeading}>{NameFirstPart}</Text>
+            <Text style={styles.nameHeading}>{NameSecondPart}</Text>
+          </View>
           <View
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
             }}>
-            <Image source={require('../../../assets/locationIcon.png')} />
-            {OrangeGradient('At Office')}
+            <Image source={props.image} />
+            {props?.OrangeText && OrangeGradient(props?.OrangeText)}
             <View
               style={{
                 width: widthToDp(40),
@@ -80,8 +103,12 @@ export default function AgentCard(props) {
               paddingTop: heightToDp(5),
               marginRight: widthToDp(2),
             }}>
-            <Text style={styles.totalStyles}>Total</Text>
-            <Text style={styles.paymentStyle}>$400</Text>
+            <Text style={[styles.totalStyles, props.leftSideStyles]}>
+              {props.bottomLeftText}
+            </Text>
+            <Text style={[styles.paymentStyle, props.rightSideStyles]}>
+              {props.bottomRightText}
+            </Text>
           </View>
         </View>
       </View>
@@ -104,9 +131,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   nameHeading: {
-    fontSize: widthToDp(5),
-    maxWidth: widthToDp(40),
-    paddingVertical: heightToDp(2),
+    fontSize: widthToDp(4.5),
     color: Colors.TextColor,
     fontWeight: '700',
   },
