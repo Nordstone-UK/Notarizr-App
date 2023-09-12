@@ -49,7 +49,7 @@ export default function LoginScreen({navigation}, props) {
             LabelTextInput={'Password'}
             secureTextEntry={true}
           />
-          <View style={{marginTop: heightToDp(30)}}>
+          <View>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Login"
@@ -67,7 +67,7 @@ export default function LoginScreen({navigation}, props) {
             <Text>Don’t have an account? </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('SignupAsScreen')}>
-              <Text style={{color: '#FF7A28'}}>Sign up</Text>
+              <Text style={{color: Colors.Orange}}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -78,7 +78,7 @@ export default function LoginScreen({navigation}, props) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: '#FFF2DC',
   },
   searchSection: {

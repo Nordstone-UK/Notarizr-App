@@ -62,6 +62,7 @@ export default function MedicalBookingScreen() {
               />
               <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
             </View>
+            <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   },
   preference: {
     marginLeft: widthToDp(4),
-    marginVertical: widthToDp(4),
+    marginVertical: widthToDp(1),
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
   },

@@ -93,7 +93,7 @@ export default function AgentCard(props) {
                 styles.address,
                 props.Review
                   ? {marginLeft: widthToDp(6)}
-                  : {marginLeft: widthToDp(8)},
+                  : {marginLeft: widthToDp(7)},
               ]}>
               {secondPart}
             </Text>

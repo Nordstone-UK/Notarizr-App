@@ -42,7 +42,7 @@ export default function SignupAsScreen({navigation}, props) {
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
               Title="Get Started"
-              onPress={() => navigation.navigate('SignUpDetailScreen')}
+              onPress={() => navigation.navigate('SignUpScreen')}
             />
           ) : null}
         </View>
@@ -53,7 +53,7 @@ export default function SignupAsScreen({navigation}, props) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: '#FFF2DC',
   },
   buttonConatiner: {

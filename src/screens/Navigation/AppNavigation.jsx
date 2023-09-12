@@ -19,13 +19,16 @@ import AgentBookCompletion from '../CompletionScreen/AgentBookCompletion';
 import AllBookingScreen from '../AllBookingScreen/AllBookingScreen';
 import MedicalBookingScreen from '../AllBookingScreen/MedicalBookingScreen';
 import ChatScreen from '../ChatScreens/ChatScreen';
+import PaymentScreen from '../PaymentScreen/PaymentScreen';
+import PaymentCompletionScreen from '../CompletionScreen/PaymentCompletionScreen';
+import SignUpScreen from '../LogIn&SignupScreens/SignUpScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="OnboardingScreen1">
-        {/* <Stack.Screen
+        <Stack.Screen
           name="OnboardingScreen1"
           component={OnboardingScreen1}
           options={{headerShown: false}}
@@ -51,6 +54,12 @@ export default function AppNavigation() {
           options={{headerShown: false}}
         />
         <Stack.Screen
+          name="SignUpScreen"
+          component={SignUpScreen}
+          options={{headerShown: false}}
+        />
+
+        <Stack.Screen
           name="ProfilePictureScreen"
           component={ProfilePictureScreen}
           options={{headerShown: false}}
@@ -65,7 +74,6 @@ export default function AppNavigation() {
           component={HomeScreen}
           options={{headerShown: false}}
         />
-
         <Stack.Screen
           name="LegalDocScreen"
           component={LegalDocScreen}
@@ -86,7 +94,7 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
-        /> */}
+        />
         {/* <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
@@ -107,11 +115,21 @@ export default function AppNavigation() {
           component={MedicalBookingScreen}
           options={{headerShown: false}}
         /> */}
-        <Stack.Screen
+        {/* <Stack.Screen
           name="ChatScreen"
           component={ChatScreen}
           options={{headerShown: false}}
-        />
+        /> */}
+        {/* <Stack.Screen
+          name="PaymentScreen"
+          component={PaymentScreen}
+          options={{headerShown: false}}
+        /> */}
+        {/* <Stack.Screen
+          name="PaymentCompletionScreen"
+          component={PaymentCompletionScreen}
+          options={{headerShown: false}}
+        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
