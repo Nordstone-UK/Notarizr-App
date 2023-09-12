@@ -18,6 +18,7 @@ import AgentReviewScreen from '../AgentReviewScreen/AgentReviewScreen';
 import AgentBookCompletion from '../CompletionScreen/AgentBookCompletion';
 import AllBookingScreen from '../AllBookingScreen/AllBookingScreen';
 import MedicalBookingScreen from '../AllBookingScreen/MedicalBookingScreen';
+import ChatScreen from '../ChatScreens/ChatScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
@@ -101,9 +102,14 @@ export default function AppNavigation() {
           component={AllBookingScreen}
           options={{headerShown: false}}
         /> */}
-        <Stack.Screen
+        {/* <Stack.Screen
           name="MedicalBookingScreen"
           component={MedicalBookingScreen}
+          options={{headerShown: false}}
+        /> */}
+        <Stack.Screen
+          name="ChatScreen"
+          component={ChatScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

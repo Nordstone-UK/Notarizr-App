@@ -71,18 +71,22 @@ export default function MedicalBookingScreen() {
               Title="Chat"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                paddingHorizontal: widthToDp(5),
-                paddingVertical: widthToDp(2),
-                fontSize: widthToDp(3),
+                paddingHorizontal: widthToDp(6),
+              }}
+              styles={{
+                paddingHorizontal: widthToDp(10),
+                fontSize: widthToDp(5),
               }}
             />
             <MainButton
               Title="Track"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                paddingHorizontal: widthToDp(3),
-                paddingVertical: widthToDp(1),
-                fontSize: widthToDp(3),
+                paddingHorizontal: widthToDp(6),
+              }}
+              styles={{
+                paddingHorizontal: widthToDp(10),
+                fontSize: widthToDp(5),
               }}
             />
           </View>
@@ -184,12 +188,13 @@ const styles = StyleSheet.create({
   addressView: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: widthToDp(3),
+    marginLeft: widthToDp(4),
   },
   buttonFlex: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+    marginBottom: heightToDp(2),
   },
   button: {
     // height: 100,
