@@ -1,5 +1,5 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
@@ -8,8 +8,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import SplashScreen from 'react-native-splash-screen';
 
 export default function AgentReviewScreen(props) {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
   const name = 'Advocate Mary Smith';
   const [firstWord, secondWord] = separateStringAfterFirstWord(name);
   function separateStringAfterFirstWord(inputString) {
