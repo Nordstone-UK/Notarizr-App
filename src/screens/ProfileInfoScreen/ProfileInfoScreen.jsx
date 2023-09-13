@@ -12,6 +12,7 @@ export default function ProfileInfoScreen() {
         source={require('../../../assets/Mask.png')}
         style={styles.picture}
       />
+      <Text style={styles.textheading}>Lamthao</Text>
       <BottomSheetStyle>
         <View style={styles.iconContainer}>
           <Image
@@ -62,5 +63,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginHorizontal: widthToDp(2),
+  },
+  textheading: {
+    fontSize: widthToDp(6),
+    alignSelf: 'center',
+    color: Colors.TextColor,
+    fontFamily: 'Manrope-Bold',
   },
 });

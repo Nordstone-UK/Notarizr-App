@@ -27,6 +27,7 @@ import WaitingRoomScreen from '../CallRoomScreen/WaitingRoomScreen';
 import FinalBookingScreen from '../FinalBookingScreen/FinalBookingScreen';
 import ProfileInfoScreen from '../ProfileInfoScreen/ProfileInfoScreen';
 import ProfileDetailEditScreen from '../ProfileDetailEditScreen/ProfileDetailEditScreen';
+import PasswordEditScreen from '../PasswordEditScreen/PasswordEditScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
@@ -145,10 +146,15 @@ export default function AppNavigation() {
           name="ProfileInfoScreen"
           component={ProfileInfoScreen}
           options={{headerShown: false}}
-        />  */}
+        />  
         <Stack.Screen
           name="ProfileDetailEditScreen"
           component={ProfileDetailEditScreen}
+          options={{headerShown: false}}
+        />*/}
+        <Stack.Screen
+          name="PasswordEditScreen"
+          component={PasswordEditScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
