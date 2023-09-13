@@ -28,6 +28,7 @@ import FinalBookingScreen from '../FinalBookingScreen/FinalBookingScreen';
 import ProfileInfoScreen from '../ProfileInfoScreen/ProfileInfoScreen';
 import ProfileDetailEditScreen from '../ProfileDetailEditScreen/ProfileDetailEditScreen';
 import PasswordEditScreen from '../PasswordEditScreen/PasswordEditScreen';
+import PaymentUpdateScreen from '../PaymentUpdateScreen/PaymentUpdateScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
@@ -125,7 +126,7 @@ export default function AppNavigation() {
           name="PaymentScreen"
           component={PaymentScreen}
           options={{headerShown: false}}
-        />* <Stack.Screen
+        /> <Stack.Screen
           name="PaymentCompletionScreen"
           component={PaymentCompletionScreen}
           options={{headerShown: false}}
@@ -151,10 +152,17 @@ export default function AppNavigation() {
           name="ProfileDetailEditScreen"
           component={ProfileDetailEditScreen}
           options={{headerShown: false}}
-        />*/}
+        />
+
         <Stack.Screen
           name="PasswordEditScreen"
           component={PasswordEditScreen}
+          options={{headerShown: false}}
+        />*/}
+
+        <Stack.Screen
+          name="PaymentUpdateScreen"
+          component={PaymentUpdateScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
