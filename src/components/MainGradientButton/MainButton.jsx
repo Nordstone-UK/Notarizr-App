@@ -32,5 +32,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 25,
     textAlign: 'center',
+    fontFamily: 'Manrope-Regular',
   },
 });

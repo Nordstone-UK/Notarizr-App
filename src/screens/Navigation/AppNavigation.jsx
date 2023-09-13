@@ -24,6 +24,7 @@ import PaymentCompletionScreen from '../CompletionScreen/PaymentCompletionScreen
 import SignUpScreen from '../LogIn&SignupScreens/SignUpScreen';
 import RejectedByAgentScreen from '../CompletionScreen/RejectedByAgentScreen';
 import WaitingRoomScreen from '../CallRoomScreen/WaitingRoomScreen';
+import FinalBookingScreen from '../FinalBookingScreen/FinalBookingScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
@@ -137,9 +138,14 @@ export default function AppNavigation() {
           component={RejectedByAgentScreen}
           options={{headerShown: false}}
         /> */}
-        <Stack.Screen
+        {/* <Stack.Screen
           name="WaitingRoomScreen"
           component={WaitingRoomScreen}
+          options={{headerShown: false}}
+        /> */}
+        <Stack.Screen
+          name="FinalBookingScreen"
+          component={FinalBookingScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

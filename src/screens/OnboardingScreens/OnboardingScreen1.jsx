@@ -50,9 +50,7 @@ const styles = StyleSheet.create({
     marginHorizontal: widthToDp(5),
     textAlign: 'center',
     fontSize: widthToDp(8),
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
+    fontFamily: 'Manrope-Bold',
   },
   textSubheading: {
     color: '#000',
