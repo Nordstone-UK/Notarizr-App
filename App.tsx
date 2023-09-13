@@ -7,21 +7,10 @@
 
 import React from 'react';
 
-import {SafeAreaView, View} from 'react-native';
-import OnboardingScreen1 from './src/screens/OnboardingScreens/OnboardingScreen1';
-import OnboardingScreen2 from './src/screens/OnboardingScreens/OnboardingScreen2';
-import OnboardingScreen3 from './src/screens/OnboardingScreens/OnboardingScreen3';
-import SignupAsScreen from './src/screens/SingupAsScreen/SignupAsScreen';
-import LoginScreen from './src/screens/LogIn&SignupScreens/LoginScreen';
+import AppNavigation from './src/screens/Navigation/AppNavigation';
 
 function App(): JSX.Element {
-  return (
-    <SafeAreaView>
-      <LoginScreen />
-    </SafeAreaView>
-  );
+  return <AppNavigation />;
 }
-
-// const styles = StyleSheet.create();
 
 export default App;

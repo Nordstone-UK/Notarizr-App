@@ -4,7 +4,9 @@ import React from 'react';
 export default function SkipButton(props) {
   return (
     <View>
-      <TouchableOpacity style={styles.buttonToucableOpacity}>
+      <TouchableOpacity
+        style={styles.buttonToucableOpacity}
+        onPress={props.onPress}>
         <Text style={styles.buttonText}>{props.Title}</Text>
       </TouchableOpacity>
     </View>

@@ -4,7 +4,12 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import React from 'react';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
-export default function OnboardingScreen1() {
+import Colors from '../../themes/Colors';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
+
+export default function OnboardingScreen1({navigation}, props) {
   return (
     <View style={styles.container}>
       <Image
@@ -15,40 +20,47 @@ export default function OnboardingScreen1() {
       <Text style={styles.textSubheading}>
         Our app can provide you the Mobile and Online services
       </Text>
-      <MainButton
+      <GradientButton
         Title="Next"
-        colors={['rgb(255,222,89)', 'rgba(255,145,77,1)']}
+        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+        viewStyle={props.viewStyle}
+        GradiStyles={{marginTop: widthToDp(5)}}
+        onPress={() => navigation.navigate('OnboardingScreen2')}
       />
-      <SkipButton Title="Skip" />
+      <SkipButton
+        Title="Skip"
+        onPress={() => navigation.navigate('OnboardingScreen3')}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   imagestyle: {
-    width: '80%',
+    width: widthToDp(80),
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: '15%',
+    marginTop: heightToDp(15),
   },
   textHeading: {
     color: '#000',
-    marginTop: 30,
-    marginHorizontal: 15,
+    marginTop: heightToDp(5),
+    marginHorizontal: widthToDp(5),
     textAlign: 'center',
-    fontSize: 30,
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
+    fontSize: widthToDp(8),
+    fontFamily: 'Manrope-Bold',
   },
   textSubheading: {
     color: '#000',
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: widthToDp(5.5),
     fontStyle: 'normal',
     fontWeight: '500',
     fontFamily: 'Manrope',
-    marginTop: 30,
-    marginHorizontal: 40,
+    marginTop: widthToDp(5),
+    marginHorizontal: widthToDp(8),
   },
 });
