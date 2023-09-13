@@ -23,7 +23,6 @@ export default function MainButton(props) {
 
 const styles = StyleSheet.create({
   gradientstyles: {
-    marginTop: '10%',
     borderRadius: 10,
     alignSelf: 'center',
   },

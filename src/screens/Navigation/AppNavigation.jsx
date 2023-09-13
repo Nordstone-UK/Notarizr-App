@@ -22,13 +22,15 @@ import ChatScreen from '../ChatScreens/ChatScreen';
 import PaymentScreen from '../PaymentScreen/PaymentScreen';
 import PaymentCompletionScreen from '../CompletionScreen/PaymentCompletionScreen';
 import SignUpScreen from '../LogIn&SignupScreens/SignUpScreen';
+import RejectedByAgentScreen from '../CompletionScreen/RejectedByAgentScreen';
+import WaitingRoomScreen from '../CallRoomScreen/WaitingRoomScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="OnboardingScreen1">
-        <Stack.Screen
+        {/* <Stack.Screen
           name="OnboardingScreen1"
           component={OnboardingScreen1}
           options={{headerShown: false}}
@@ -94,7 +96,7 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
-        />
+        /> */}
         {/* <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
@@ -130,6 +132,16 @@ export default function AppNavigation() {
           component={PaymentCompletionScreen}
           options={{headerShown: false}}
         /> */}
+        {/* <Stack.Screen
+          name="RejectedByAgentScreen"
+          component={RejectedByAgentScreen}
+          options={{headerShown: false}}
+        /> */}
+        <Stack.Screen
+          name="WaitingRoomScreen"
+          component={WaitingRoomScreen}
+          options={{headerShown: false}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
