@@ -25,17 +25,14 @@ import SignUpScreen from '../LogIn&SignupScreens/SignUpScreen';
 import RejectedByAgentScreen from '../CompletionScreen/RejectedByAgentScreen';
 import WaitingRoomScreen from '../CallRoomScreen/WaitingRoomScreen';
 import FinalBookingScreen from '../FinalBookingScreen/FinalBookingScreen';
+import ProfileInfoScreen from '../ProfileInfoScreen/ProfileInfoScreen';
+import ProfileDetailEditScreen from '../ProfileDetailEditScreen/ProfileDetailEditScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="OnboardingScreen1">
-        <Stack.Screen
-          name="FinalBookingScreen"
-          component={SignUpDetailScreen}
-          options={{headerShown: false}}
-        />
         {/* <Stack.Screen
           name="OnboardingScreen1"
           component={OnboardingScreen1}
@@ -102,58 +99,58 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
-        />  */}
-        {/* <Stack.Screen
+        />  
+         <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        />  <Stack.Screen
           name="AgentBookCompletion"
           component={AgentBookCompletion}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        />  <Stack.Screen
           name="AllBookingScreen"
           component={AllBookingScreen}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        /> <Stack.Screen
           name="MedicalBookingScreen"
           component={MedicalBookingScreen}
           options={{headerShown: false}}
-        /> */}
-        <Stack.Screen
+        /> <Stack.Screen
           name="ChatScreen"
           component={ChatScreen}
           options={{headerShown: false}}
-        />{' '}
-        */}
-        {/* <Stack.Screen
+        />  <Stack.Screen
           name="PaymentScreen"
           component={PaymentScreen}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        />* <Stack.Screen
           name="PaymentCompletionScreen"
           component={PaymentCompletionScreen}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        />  <Stack.Screen
           name="RejectedByAgentScreen"
           component={RejectedByAgentScreen}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        />  <Stack.Screen
           name="WaitingRoomScreen"
           component={WaitingRoomScreen}
           options={{headerShown: false}}
-        /> */}
-        {/* <Stack.Screen
+        />  <Stack.Screen
           name="FinalBookingScreen"
           component={FinalBookingScreen}
           options={{headerShown: false}}
-        /> */}
+        /> 
+         <Stack.Screen
+          name="ProfileInfoScreen"
+          component={ProfileInfoScreen}
+          options={{headerShown: false}}
+        />  */}
+        <Stack.Screen
+          name="ProfileDetailEditScreen"
+          component={ProfileDetailEditScreen}
+          options={{headerShown: false}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

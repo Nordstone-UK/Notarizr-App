@@ -26,9 +26,8 @@ const styles = StyleSheet.create({
   },
   textHeading: {
     color: '#000',
-    fontSize: 27,
+    fontSize: widthToDp(7),
     fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
+    fontFamily: 'Manrope-Bold',
   },
 });
