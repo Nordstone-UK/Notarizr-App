@@ -7,6 +7,7 @@ import SkipButton from '../../components/MainGradientButton/SkipButton';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function OnboardingScreen1({navigation}, props) {
   return (
@@ -23,7 +24,7 @@ export default function OnboardingScreen1({navigation}, props) {
         Title="Next"
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
         viewStyle={props.viewStyle}
-        GradiStyles={props.GradiStyles}
+        GradiStyles={{marginTop: widthToDp(5)}}
         onPress={() => navigation.navigate('OnboardingScreen2')}
       />
       <SkipButton

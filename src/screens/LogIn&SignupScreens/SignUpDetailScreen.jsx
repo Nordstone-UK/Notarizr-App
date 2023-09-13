@@ -56,13 +56,18 @@ export default function SignUpDetailScreen({navigation}, props) {
             placeholder={'Enter your city'}
             LabelTextInput={'City'}
           />
-          <GradientButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            viewStyle={props.viewStyle}
-            GradiStyles={props.GradiStyles}
-            Title="Continue"
-            onPress={() => navigation.navigate('ProfilePictureScreen')}
-          />
+          <View
+            style={{
+              marginTop: heightToDp(10),
+            }}>
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              viewStyle={props.viewStyle}
+              GradiStyles={props.GradiStyles}
+              Title="Continue"
+              onPress={() => navigation.navigate('ProfilePictureScreen')}
+            />
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </View>

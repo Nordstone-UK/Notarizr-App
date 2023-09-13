@@ -31,6 +31,11 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="OnboardingScreen1">
+        <Stack.Screen
+          name="FinalBookingScreen"
+          component={SignUpDetailScreen}
+          options={{headerShown: false}}
+        />
         {/* <Stack.Screen
           name="OnboardingScreen1"
           component={OnboardingScreen1}
@@ -148,11 +153,6 @@ export default function AppNavigation() {
           component={FinalBookingScreen}
           options={{headerShown: false}}
         /> */}
-        <Stack.Screen
-          name="FinalBookingScreen"
-          component={FinalBookingScreen}
-          options={{headerShown: false}}
-        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -21,7 +21,7 @@ export default function OnboardingScreen2({navigation}, props) {
         Title="Next"
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
         viewStyle={props.viewStyle}
-        GradiStyles={props.GradiStyles}
+        GradiStyles={{marginTop: widthToDp(5)}}
         onPress={() => navigation.navigate('OnboardingScreen3')}
       />
       <SkipButton

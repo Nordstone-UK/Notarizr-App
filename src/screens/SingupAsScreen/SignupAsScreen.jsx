@@ -39,8 +39,7 @@ export default function SignupAsScreen({navigation}, props) {
           {Client ? (
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              viewStyle={props.viewStyle}
-              GradiStyles={props.GradiStyles}
+              // GradiStyles={{marginTop: widthToDp(5)}}
               Title="Get Started"
               onPress={() => navigation.navigate('SignUpScreen')}
             />
@@ -57,6 +56,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF2DC',
   },
   buttonConatiner: {
-    marginTop: widthToDp(25),
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginVertical: widthToDp(5),
   },
 });

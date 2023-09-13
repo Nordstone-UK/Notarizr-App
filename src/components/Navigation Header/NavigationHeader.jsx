@@ -56,9 +56,9 @@ const styles = StyleSheet.create({
   },
   naveheader: {
     fontSize: widthToDp(7),
-    fontWeight: '700',
     color: Colors.TextColor,
     marginLeft: widthToDp(3),
+    fontFamily: 'Manrope-Bold',
   },
   profilePic: {
     marginLeft: widthToDp(2),

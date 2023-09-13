@@ -104,7 +104,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontSize: widthToDp(7),
     color: Colors.TextColor,
-    fontWeight: '600',
+    // fontWeight: '600',
+    fontFamily: 'Manrope-Bold',
   },
   placestyle: {
     // color: Colors.white,
@@ -117,11 +118,13 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     marginLeft: widthToDp(3),
     marginBottom: heightToDp(2),
+    fontFamily: 'Manrope-Regular',
   },
   preference: {
     marginLeft: widthToDp(3),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
+    fontFamily: 'Manrope-Regular',
   },
   star: {
     alignSelf: 'center',
@@ -140,6 +143,9 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(3),
   },
   button: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginVertical: widthToDp(5),
     // height: 100,
   },
 });

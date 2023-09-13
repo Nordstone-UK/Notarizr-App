@@ -49,7 +49,10 @@ export default function SignUpScreen({navigation}, props) {
             LabelTextInput={'Password'}
             secureTextEntry={true}
           />
-          <View>
+          <View
+            style={{
+              marginTop: heightToDp(10),
+            }}>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               viewStyle={props.viewStyle}

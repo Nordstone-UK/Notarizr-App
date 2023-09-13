@@ -155,9 +155,7 @@ export default function ProfilePictureScreen({navigation}) {
         <GradientButton
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Continue"
-          onPress={
-            (() => chooseFile, navigation.navigate('RegisterCompletionScreen'))
-          }
+          onPress={() => navigation.navigate('RegisterCompletionScreen')}
           // onPress={() =>}
         />
         <SkipButton Title="Skip" />

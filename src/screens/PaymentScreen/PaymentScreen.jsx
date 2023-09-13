@@ -95,7 +95,7 @@ export default function PaymentScreen() {
           </View>
           <View
             style={{
-              marginBottom: heightToDp(2),
+              marginVertical: heightToDp(5),
             }}>
             <GradientButton
               Title="Complete Payment"
@@ -117,21 +117,22 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontSize: widthToDp(5),
     marginHorizontal: widthToDp(5),
+    fontFamily: 'Manrope-Regular',
   },
   insideHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(5),
     width: widthToDp(60),
+    fontFamily: 'Manrope-Bold',
   },
   paymentOptions: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(5),
+    fontFamily: 'Manrope-Bold',
   },
   cardContainer: {
     flexDirection: 'row',
@@ -149,6 +150,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4),
     marginHorizontal: widthToDp(4),
     color: Colors.DullTextColor,
+    fontFamily: 'Manrope-Regular',
   },
   addIcon: {
     width: widthToDp(4.5),
