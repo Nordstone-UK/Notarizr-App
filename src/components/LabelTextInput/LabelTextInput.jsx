@@ -53,7 +53,12 @@ export default function LabelTextInput(props) {
         )}
       </View>
       {isFocused && props.LabelTextInput ? (
-        <Text style={[styles.label, isFocused && styles.labelFocused]}>
+        <Text
+          style={[
+            styles.label,
+            isFocused && styles.labelFocused,
+            props.labelStyle,
+          ]}>
           {props.LabelTextInput || null}
         </Text>
       ) : null}

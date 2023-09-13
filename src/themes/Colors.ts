@@ -9,10 +9,12 @@ const Colors = {
   Black: '#000',
   TextColor: '#121826',
   DullTextColor: '#6C727F',
+  LineColor: '#3D3B3B',
   CardProcessColor: '#6184FF',
   Pink: '#FFA0F5',
   LightBlue: '#86BCE2',
   DarkBlue: '#8695E2',
+  DullWhite: '#FAFAFA',
 };
 
 export default Colors;

@@ -14,19 +14,20 @@ export default function NavigationHeader(props) {
         style={styles.touchContainer}>
         <Image source={require('../../../assets/backIcon.png')} />
       </TouchableOpacity>
-      <Image
-        source={require('../../../assets/userPic.png')}
-        style={styles.profilePic}
-      />
+      {props.ProfilePic && (
+        <Image source={props.ProfilePic} style={styles.profilePic} />
+      )}
       <View style={styles.Flexcontainer}>
         <Text style={styles.naveheader}>{props?.Title}</Text>
-        {props.midImg && (
-          <Image
-            source={props.midImg}
-            style={{marginHorizontal: widthToDp(5)}}
-          />
-        )}
-        {props.lastImg && <Image source={props.lastImg} />}
+        <View style={styles.iconContainer}>
+          {props.midImg && (
+            <Image
+              source={props.midImg}
+              style={{marginRight: widthToDp(8), marginLeft: widthToDp(5)}}
+            />
+          )}
+          {props.lastImg && <Image source={props.lastImg} />}
+        </View>
       </View>
     </View>
   );
@@ -46,6 +47,12 @@ const styles = StyleSheet.create({
   Flexcontainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginHorizontal: widthToDp(3),
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: widthToDp(5),
   },
   naveheader: {
     fontSize: widthToDp(7),

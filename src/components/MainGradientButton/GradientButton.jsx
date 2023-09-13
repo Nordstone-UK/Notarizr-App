@@ -23,7 +23,6 @@ export default function GradientButton(props) {
 
 const styles = StyleSheet.create({
   gradientstyles: {
-    marginTop: '10%',
     borderRadius: 10,
     alignSelf: 'center',
     width: '90%',
@@ -32,7 +31,8 @@ const styles = StyleSheet.create({
   buttonText: {
     padding: '5%',
     color: '#fff',
-    fontSize: 25,
+    fontSize: widthToDp(6),
     textAlign: 'center',
+    fontFamily: 'Manrope-Regular',
   },
 });

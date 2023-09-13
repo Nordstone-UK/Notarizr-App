@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {widthToDp} from '../../utils/Responsive';
@@ -15,13 +22,8 @@ export default function ChatScreen() {
       />
       <View style={styles.bottonSheet}>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your message"
-            value={newMessage}
-            onChangeText={text => setNewMessage(text)}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleSendMessage}>
+          <TextInput style={styles.input} placeholder="Enter your message" />
+          <TouchableOpacity style={styles.button}>
             <Image
               source={require('../../../assets/send.png')}
               style={styles.icon}
@@ -36,20 +38,24 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.PinkBackground,
+    flex: 1,
   },
   bottonSheet: {
-    height: '100%',
     marginTop: widthToDp(2),
     backgroundColor: '#fff',
     borderRadius: 20,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   inputContainer: {
-    backgroundColor: 'silver',
+    width: widthToDp(90),
+    backgroundColor: Colors.DullWhite,
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
-    bottom: 10,
     borderRadius: 10,
+    alignSelf: 'center',
+    marginBottom: widthToDp(5),
   },
   input: {
     flex: 1,
@@ -58,7 +64,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: '#37A0A0',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 5,

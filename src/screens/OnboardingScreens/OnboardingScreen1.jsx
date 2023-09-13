@@ -6,6 +6,7 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function OnboardingScreen1({navigation}, props) {
   return (
@@ -34,31 +35,31 @@ export default function OnboardingScreen1({navigation}, props) {
 }
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1,
+  },
   imagestyle: {
-    width: '80%',
+    width: widthToDp(80),
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: '15%',
+    marginTop: heightToDp(15),
   },
   textHeading: {
     color: '#000',
-    marginTop: 30,
-    marginHorizontal: 15,
+    marginTop: heightToDp(5),
+    marginHorizontal: widthToDp(5),
     textAlign: 'center',
-    fontSize: 30,
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
+    fontSize: widthToDp(8),
+    fontFamily: 'Manrope-Bold',
   },
   textSubheading: {
     color: '#000',
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: widthToDp(5.5),
     fontStyle: 'normal',
     fontWeight: '500',
     fontFamily: 'Manrope',
-    marginTop: 30,
-    marginHorizontal: 40,
+    marginTop: widthToDp(5),
+    marginHorizontal: widthToDp(8),
   },
 });

@@ -16,7 +16,7 @@ import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function SignUpScreen(props) {
+export default function SignUpScreen({navigation}, props) {
   const [ColorChange, setColorChange] = useState();
   const FocusColorChaneg = () => {
     setColorChange(!ColorChange);
@@ -49,16 +49,14 @@ export default function SignUpScreen(props) {
             LabelTextInput={'Password'}
             secureTextEntry={true}
           />
-          <View
-            style={{
-              marginTop: heightToDp(30),
-            }}>
+          <View>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
               Title="Signup"
               width={{width: widthToDp(80)}}
+              onPress={() => navigation.navigate('SignUpDetailScreen')}
             />
           </View>
           <View
@@ -68,8 +66,9 @@ export default function SignUpScreen(props) {
               marginTop: heightToDp(10),
             }}>
             <Text>Already have an account? </Text>
-            <TouchableOpacity>
-              <Text style={{color: '#FF7A28'}}>Sign in</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('LoginScreen')}>
+              <Text style={{color: Colors.Orange}}>Sign in</Text>
             </TouchableOpacity>
           </View>
         </View>

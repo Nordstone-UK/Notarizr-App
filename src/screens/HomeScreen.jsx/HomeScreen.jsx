@@ -76,6 +76,7 @@ export default function HomeScreen({navigation}) {
             bottomLeftText="Total"
             agentName={'Advocate Parimal M. Trivedi'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
+            OrangeText={'At Office'}
             Review={false}
           />
         </ScrollView>
@@ -86,7 +87,7 @@ export default function HomeScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   Heading: {
