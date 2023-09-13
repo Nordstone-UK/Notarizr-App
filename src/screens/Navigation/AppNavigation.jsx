@@ -87,6 +87,13 @@ export default function AppNavigation() {
             headerShown: false,
           }}
         />  */}
+        <Stack.Screen
+          name="AgentReviewScreen"
+          component={AgentReviewScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
