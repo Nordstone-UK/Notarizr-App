@@ -1,4 +1,11 @@
-import {StyleSheet, Text, Image, View, Platform} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  Image,
+  View,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 import React from 'react';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
@@ -58,7 +65,7 @@ export default function AgentCard(props) {
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
         <View style={{paddingHorizontal: widthToDp(2)}}>
-          <AgentCardPicture Review={props.Review || false} />
+          <AgentCardPicture Review={props.Review || false} task={props.task} />
         </View>
         <View
           style={{
@@ -67,15 +74,24 @@ export default function AgentCard(props) {
           }}>
           <View
             style={{
-              paddingVertical: heightToDp(2),
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              width: widthToDp(55),
             }}>
-            <Text style={styles.nameHeading}>{NameFirstPart}</Text>
-            <Text style={styles.nameHeading}>{NameSecondPart}</Text>
+            <View
+              style={{
+                paddingVertical: heightToDp(2),
+              }}>
+              <Text style={styles.nameHeading}>{NameFirstPart}</Text>
+              <Text style={styles.nameHeading}>{NameSecondPart}</Text>
+            </View>
+            <TouchableOpacity>
+              <Image source={require('../../../assets/option.png')} />
+            </TouchableOpacity>
           </View>
           <View
             style={{
               flexDirection: 'row',
-              flexWrap: 'wrap',
             }}>
             <Image source={props.image} />
             {props?.OrangeText && OrangeGradient(props?.OrangeText)}
@@ -115,9 +131,10 @@ export default function AgentCard(props) {
                 props.rightSideStyles,
                 props.Review
                   ? {
-                      fontWeight: '400',
+                      fontSize: widthToDp(4),
+                      fontFamily: 'Poppins-Regular',
                     }
-                  : {fontWeight: '800'},
+                  : {fontFamily: 'Poppins-Bold', fontSize: widthToDp(5)},
               ]}>
               {props.bottomRightText}
             </Text>
@@ -143,9 +160,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   nameHeading: {
-    fontSize: widthToDp(4.5),
+    fontSize: widthToDp(4),
     color: Colors.TextColor,
-    fontWeight: '700',
+    fontFamily: 'Poppins-Bold',
   },
   dateContainer: {
     position: 'absolute',
@@ -177,11 +194,13 @@ const styles = StyleSheet.create({
   },
   address: {
     color: Colors.TextColor,
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Poppins-Regular',
   },
   placestyle: {
     color: Colors.white,
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Poppins-Regular',
   },
   locationStyle: {
     borderRadius: 20,
@@ -200,10 +219,10 @@ const styles = StyleSheet.create({
   totalStyles: {
     color: Colors.TextColor,
     fontSize: widthToDp(5),
+    fontFamily: 'Poppins-Regular',
   },
   paymentStyle: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
     marginRight: widthToDp(10),
   },
 });

@@ -1,16 +1,33 @@
 import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-
-export default function AgentTimeCard() {
+import SplashScreen from 'react-native-splash-screen';
+export default function AgentTimeCard(props) {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
   return (
     <View
       style={{
         marginTop: widthToDp(10),
       }}>
-      <Text style={styles.ImageProces}>On Process</Text>
+      <View
+        style={[
+          styles.ImageProces,
+          props.task === 'On Process' && {
+            backgroundColor: Colors.CardProcessColor,
+          },
+          props.task === 'Completed' && {
+            backgroundColor: Colors.Green,
+          },
+          props.task === 'Rejected' && {
+            backgroundColor: Colors.Red,
+          },
+        ]}>
+        <Text style={styles.text}>{props.task}</Text>
+      </View>
       <LinearGradient
         style={styles.dateContainer}
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -20,7 +37,7 @@ export default function AgentTimeCard() {
         <Text
           style={[
             styles.dateStyle,
-            {fontWeight: '800', fontSize: widthToDp(6)},
+            {fontFamily: 'Poppins-Bold', fontSize: widthToDp(6)},
           ]}>
           22
         </Text>
@@ -32,25 +49,25 @@ export default function AgentTimeCard() {
 
 const styles = StyleSheet.create({
   dateContainer: {
-    paddingHorizontal: widthToDp(7.8),
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     alignItems: 'center',
   },
   ImageProces: {
-    color: '#fff',
-    backgroundColor: Colors.CardProcessColor,
-    fontWeight: '700',
-    fontSize: widthToDp(4),
     paddingHorizontal: widthToDp(2.7),
     paddingVertical: widthToDp(1),
     marginTop: heightToDp(10),
   },
+  text: {
+    alignSelf: 'center',
+    color: '#fff',
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: widthToDp(3.5),
+  },
 
   dateStyle: {
     color: Colors.white,
-    fontWeight: '700',
     fontSize: widthToDp(4),
-    marginVertical: heightToDp(0.5),
+    fontFamily: 'Poppins-SemiBold',
   },
 });

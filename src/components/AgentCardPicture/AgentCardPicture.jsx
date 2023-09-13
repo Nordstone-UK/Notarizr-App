@@ -12,7 +12,11 @@ export default function AgentCardPicture(props) {
       <ImageBackground
         source={require('../../../assets/agentCardPic.png')}
         style={styles.cardImage}>
-        {props.Review ? <AgentReviewCard /> : <AgentTimeCard />}
+        {props.Review ? (
+          <AgentReviewCard />
+        ) : (
+          <AgentTimeCard task={props.task} />
+        )}
       </ImageBackground>
     </View>
   );

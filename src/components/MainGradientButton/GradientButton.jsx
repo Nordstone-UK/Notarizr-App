@@ -33,6 +33,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: widthToDp(6),
     textAlign: 'center',
-    fontFamily: 'Manrope-Regular',
+    fontFamily: 'Manrope-Bold',
   },
 });

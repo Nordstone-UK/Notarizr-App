@@ -15,6 +15,8 @@ const Colors = {
   LightBlue: '#86BCE2',
   DarkBlue: '#8695E2',
   DullWhite: '#FAFAFA',
+  Green: '#00AB1B',
+  Red: '#FF4545',
 };
 
 export default Colors;
