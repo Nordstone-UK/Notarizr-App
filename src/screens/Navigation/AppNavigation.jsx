@@ -98,11 +98,11 @@ export default function AppNavigation() {
             headerShown: false,
           }}
         />  */}
-        <Stack.Screen
+        {/* <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
           options={{headerShown: false}}
-        />
+        /> */}
         {/* <Stack.Screen
           name="AgentBookCompletion"
           component={AgentBookCompletion}
@@ -120,7 +120,7 @@ export default function AppNavigation() {
         /> */}
         <Stack.Screen
           name="ChatScreen"
-          component={ChatScreen}
+          component={AgentReviewScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
