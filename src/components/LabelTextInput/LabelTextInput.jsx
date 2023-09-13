@@ -28,7 +28,12 @@ export default function LabelTextInput(props) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.inputContainer, isFocused && styles.InputFocused]}>
+      <View
+        style={[
+          styles.inputContainer,
+          isFocused && styles.InputFocused,
+          styles.AdjustWidth,
+        ]}>
         {props.leftImageSoucre && (
           <Image source={props.leftImageSoucre} style={styles.iconLeft} />
         )}

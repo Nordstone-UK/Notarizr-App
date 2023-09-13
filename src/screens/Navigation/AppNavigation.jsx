@@ -29,6 +29,7 @@ import ProfileInfoScreen from '../ProfileInfoScreen/ProfileInfoScreen';
 import ProfileDetailEditScreen from '../ProfileDetailEditScreen/ProfileDetailEditScreen';
 import PasswordEditScreen from '../PasswordEditScreen/PasswordEditScreen';
 import PaymentUpdateScreen from '../PaymentUpdateScreen/PaymentUpdateScreen';
+import AddCardScreen from '../AddCardScreen/AddCardScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigation() {
@@ -158,11 +159,17 @@ export default function AppNavigation() {
           name="PasswordEditScreen"
           component={PasswordEditScreen}
           options={{headerShown: false}}
-        />*/}
+        />
 
         <Stack.Screen
           name="PaymentUpdateScreen"
           component={PaymentUpdateScreen}
+          options={{headerShown: false}}
+        />*/}
+
+        <Stack.Screen
+          name="AddCardScreen"
+          component={AddCardScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
