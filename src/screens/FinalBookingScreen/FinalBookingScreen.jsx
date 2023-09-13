@@ -4,6 +4,8 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
+import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 
 export default function FinalBookingScreen() {
   return (
@@ -24,12 +26,45 @@ export default function FinalBookingScreen() {
             <Text style={styles.icontext}>Processed</Text>
           </View>
         </View>
-        <View style={styles.topFlexContainer}>
+        <View style={styles.nameContainer}>
           <Image
             source={require('../../../assets/agentReview.png')}
             style={styles.iconProfile}
           />
+          <Text style={styles.agentName}>Advocate Mary Smith</Text>
         </View>
+        <View style={styles.sheetContainer}>
+          <Text style={styles.insideHeading}>Booking Preferences</Text>
+          <View style={styles.addressView}>
+            <Image
+              source={require('../../../assets/locationIcon.png')}
+              style={styles.locationImage}
+            />
+            <Text style={styles.detail}>
+              Legal building, James street, New York
+            </Text>
+          </View>
+          <View style={styles.addressView}>
+            <Image
+              source={require('../../../assets/calenderIcon.png')}
+              style={styles.locationImage}
+            />
+            <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
+          </View>
+          <Text style={styles.preference}>Notes:</Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences.
+          </Text>
+        </View>
+        <View style={styles.btnView}>
+          <GradientButton
+            Title="Make Payment"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          />
+        </View>
+        {/* <View style={styles.review}>
+          <ReviewPopup />
+        </View> */}
       </BottomSheetStyle>
     </View>
   );
@@ -56,6 +91,13 @@ const styles = StyleSheet.create({
     marginHorizontal: widthToDp(5),
     marginVertical: widthToDp(3),
   },
+  nameContainer: {
+    flexDirection: 'row',
+    // justifyContent: 'space-between',
+    marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(3),
+    alignItems: 'center',
+  },
   iconFlex: {
     flexDirection: 'row',
   },
@@ -67,6 +109,11 @@ const styles = StyleSheet.create({
   agent: {
     fontSize: widthToDp(4.5),
     fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+  },
+  agentName: {
+    fontSize: widthToDp(4.5),
+    fontFamily: 'Manrope-SemiBold',
     color: Colors.TextColor,
   },
   icontext: {
@@ -81,7 +128,40 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(1),
   },
   iconProfile: {
-    width: widthToDp(2),
-    height: heightToDp(2),
+    width: widthToDp(15),
+    height: heightToDp(15),
+    marginRight: widthToDp(5),
+  },
+  insideHeading: {
+    color: Colors.TextColor,
+    fontSize: widthToDp(6),
+    fontWeight: '700',
+    marginVertical: widthToDp(2),
+    marginHorizontal: widthToDp(5),
+  },
+  addressView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: widthToDp(4),
+  },
+  locationImage: {
+    tintColor: Colors.DullTextColor,
+  },
+  detail: {
+    marginLeft: widthToDp(2),
+    marginVertical: widthToDp(2),
+    fontSize: widthToDp(4),
+    color: Colors.DullTextColor,
+  },
+  preference: {
+    marginLeft: widthToDp(4),
+    marginVertical: widthToDp(1),
+    fontSize: widthToDp(4),
+    color: Colors.DullTextColor,
+  },
+  btnView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginVertical: widthToDp(5),
   },
 });

@@ -143,6 +143,11 @@ export default function AppNavigation() {
           component={WaitingRoomScreen}
           options={{headerShown: false}}
         /> */}
+        {/* <Stack.Screen
+          name="FinalBookingScreen"
+          component={FinalBookingScreen}
+          options={{headerShown: false}}
+        /> */}
         <Stack.Screen
           name="FinalBookingScreen"
           component={FinalBookingScreen}
