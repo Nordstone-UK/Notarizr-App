@@ -44,12 +44,14 @@ export default function AllBookingScreen({navigation}) {
               styles={
                 isFocused === 'Active'
                   ? {
-                      padding: widthToDp(1.5),
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
                     }
                   : {
                       color: Colors.TextColor,
-                      padding: widthToDp(1.5),
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
                     }
               }
@@ -65,12 +67,14 @@ export default function AllBookingScreen({navigation}) {
               styles={
                 isFocused === 'Complete'
                   ? {
-                      padding: widthToDp(1.5),
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
                     }
                   : {
                       color: Colors.TextColor,
-                      padding: widthToDp(1.5),
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
                     }
               }
@@ -86,34 +90,80 @@ export default function AllBookingScreen({navigation}) {
               styles={
                 isFocused === 'Rejected'
                   ? {
-                      padding: widthToDp(1.5),
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
                     }
                   : {
                       color: Colors.TextColor,
-                      padding: widthToDp(1.5),
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
                     }
               }
               onPress={() => setIsFocused('Rejected')}
             />
           </View>
-          <AgentCard
-            image={require('../../../assets/agentLocation.png')}
-            bottomRightText="30 minutes"
-            bottomLeftText="0.5 Miles"
-            agentName={'Advocate Parimal M. Trivedi'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            Review={true}
-          />
-          <AgentCard
-            image={require('../../../assets/agentLocation.png')}
-            bottomRightText="0.5 Miles"
-            bottomLeftText="Total"
-            agentName={'Advocate Parimal M. Trivedi'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            Review={true}
-          />
+          {isFocused === 'Active' && (
+            <AgentCard
+              image={require('../../../assets/agentLocation.png')}
+              bottomRightText="$400"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="On Process"
+            />
+          )}
+          {isFocused === 'Active' && (
+            <AgentCard
+              image={require('../../../assets/agentLocation.png')}
+              bottomRightText="45 minutes"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="On Process"
+            />
+          )}
+          {isFocused === 'Complete' && (
+            <AgentCard
+              image={require('../../../assets/agentLocation.png')}
+              bottomRightText="$400"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Completed"
+            />
+          )}
+          {isFocused === 'Complete' && (
+            <AgentCard
+              image={require('../../../assets/agentLocation.png')}
+              bottomRightText="45 minutes"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Completed"
+            />
+          )}
+          {isFocused === 'Rejected' && (
+            <AgentCard
+              image={require('../../../assets/agentLocation.png')}
+              bottomRightText="$400"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Rejected"
+            />
+          )}
+          {isFocused === 'Rejected' && (
+            <AgentCard
+              image={require('../../../assets/agentLocation.png')}
+              bottomRightText="45 minutes"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Rejected"
+            />
+          )}
         </ScrollView>
       </BottomSheetStyle>
     </View>

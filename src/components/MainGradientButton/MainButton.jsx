@@ -30,8 +30,8 @@ const styles = StyleSheet.create({
   buttonText: {
     padding: '5%',
     color: '#fff',
-    fontSize: 25,
+    fontSize: widthToDp(3),
     textAlign: 'center',
-    fontFamily: 'Manrope-Regular',
+    fontFamily: 'Manrope-Bold',
   },
 });

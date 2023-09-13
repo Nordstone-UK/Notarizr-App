@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 
   dateStyle: {
     color: Colors.white,
-    fontWeight: '700',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: widthToDp(4),
     marginVertical: heightToDp(0.5),
   },

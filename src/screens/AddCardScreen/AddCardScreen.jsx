@@ -19,6 +19,8 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {hairlineWidth} from 'react-native-extended-stylesheet';
+import InputCardDetail from '../../components/InputCardDetail/InputCardDetail';
+import {beginEvent} from 'react-native/Libraries/Performance/Systrace';
 
 export default function AddCardScreen({navigation}, props) {
   useEffect(() => {
@@ -36,21 +38,39 @@ export default function AddCardScreen({navigation}, props) {
       </Text> */}
 
       <BottomSheetStyle>
-        <View style={{marginVertical: heightToDp(5)}}>
+        <ScrollView style={{marginVertical: heightToDp(5)}}>
           <Text style={styles.textheading}>Add your New Card</Text>
-          <LabelTextInput
-            // leftImageSoucre={require('../../../assets/lockIcon.png')}
-            // rightImageSource={require('../../../assets/eyeIcon.png')}
-            placeholder={'Enter your card number'}
+          <InputCardDetail
             LabelTextInput={'Card Number'}
-            AdjustWidth={{width: widthToDp(0)}}
+            AdjustWidth={{width: widthToDp(90)}}
+            keyboardType={'numeric'}
+            InputStyles={{width: widthToDp(80)}}
           />
+          <View
+            style={{
+              // marginVertical: heightToDp(5),
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+            }}>
+            <InputCardDetail
+              LabelTextInput={'Validaty Date'}
+              AdjustWidth={{width: widthToDp(30)}}
+              keyboardType={'numeric'}
+              InputStyles={{width: widthToDp(25)}}
+            />
+            <InputCardDetail
+              LabelTextInput={'CVV'}
+              AdjustWidth={{width: widthToDp(30)}}
+              keyboardType={'numeric'}
+              InputStyles={{width: widthToDp(25)}}
+            />
+          </View>
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            Title="Add Card"
+            Title="Save Card"
             //   onPress={() => navigation.navigate('ProfilePictureScreen')}
           />
-        </View>
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );
