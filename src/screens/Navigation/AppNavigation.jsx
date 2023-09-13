@@ -102,7 +102,7 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
-        /> */}
+        />  */}
         {/* <Stack.Screen
           name="AgentReviewScreen"
           component={AgentReviewScreen}
@@ -123,11 +123,12 @@ export default function AppNavigation() {
           component={MedicalBookingScreen}
           options={{headerShown: false}}
         /> */}
-        {/* <Stack.Screen
+        <Stack.Screen
           name="ChatScreen"
           component={ChatScreen}
           options={{headerShown: false}}
-        /> */}
+        />{' '}
+        */}
         {/* <Stack.Screen
           name="PaymentScreen"
           component={PaymentScreen}
