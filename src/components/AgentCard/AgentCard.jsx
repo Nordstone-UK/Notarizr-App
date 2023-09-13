@@ -58,7 +58,7 @@ export default function AgentCard(props) {
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
         <View style={{paddingHorizontal: widthToDp(2)}}>
-          <AgentCardPicture Review={props.Review} />
+          <AgentCardPicture Review={props.Review || false} />
         </View>
         <View
           style={{
@@ -82,16 +82,19 @@ export default function AgentCard(props) {
             <View
               style={{
                 width: widthToDp(40),
+                marginLeft: widthToDp(1),
               }}>
               <Text style={styles.address}>{firstPart}</Text>
             </View>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-            }}>
-            <Text style={[styles.address, {marginLeft: widthToDp(8)}]}>
+          <View>
+            <Text
+              style={[
+                styles.address,
+                props.Review
+                  ? {marginLeft: widthToDp(6)}
+                  : {marginLeft: widthToDp(8)},
+              ]}>
               {secondPart}
             </Text>
           </View>
@@ -106,7 +109,16 @@ export default function AgentCard(props) {
             <Text style={[styles.totalStyles, props.leftSideStyles]}>
               {props.bottomLeftText}
             </Text>
-            <Text style={[styles.paymentStyle, props.rightSideStyles]}>
+            <Text
+              style={[
+                styles.paymentStyle,
+                props.rightSideStyles,
+                props.Review
+                  ? {
+                      fontWeight: '400',
+                    }
+                  : {fontWeight: '800'},
+              ]}>
               {props.bottomRightText}
             </Text>
           </View>
@@ -166,7 +178,6 @@ const styles = StyleSheet.create({
   address: {
     color: Colors.TextColor,
     fontSize: widthToDp(4),
-    // width: widthToDp(40),
   },
   placestyle: {
     color: Colors.white,
@@ -193,7 +204,6 @@ const styles = StyleSheet.create({
   paymentStyle: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '800',
     marginRight: widthToDp(10),
   },
 });

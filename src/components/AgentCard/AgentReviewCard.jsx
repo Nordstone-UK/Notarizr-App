@@ -16,7 +16,10 @@ export default function AgentReviewCard() {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
         <Text style={styles.dateStyle}>5.0</Text>
-        <Image source={require('../../../assets/reviewStars.png')} />
+        <Image
+          source={require('../../../assets/reviewStars.png')}
+          style={{marginVertical: heightToDp(3)}}
+        />
         <Text style={styles.dateStyle}>Rating</Text>
       </LinearGradient>
     </View>

@@ -14,6 +14,10 @@ export default function NavigationHeader(props) {
         style={styles.touchContainer}>
         <Image source={require('../../../assets/backIcon.png')} />
       </TouchableOpacity>
+      <Image
+        source={require('../../../assets/userPic.png')}
+        style={styles.profilePic}
+      />
       <View style={styles.Flexcontainer}>
         <Text style={styles.naveheader}>{props?.Title}</Text>
         {props.midImg && (
@@ -37,19 +41,19 @@ const styles = StyleSheet.create({
   },
   touchContainer: {
     flexDirection: 'row',
-
     alignItems: 'center',
   },
   Flexcontainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-end',
   },
   naveheader: {
     fontSize: widthToDp(7),
     fontWeight: '700',
     color: Colors.TextColor,
-    marginLeft: widthToDp(5),
-    marginRight: widthToDp(10),
+    marginLeft: widthToDp(3),
+  },
+  profilePic: {
+    marginLeft: widthToDp(2),
   },
 });
