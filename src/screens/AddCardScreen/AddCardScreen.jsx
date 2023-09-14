@@ -21,15 +21,22 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {hairlineWidth} from 'react-native-extended-stylesheet';
 import InputCardDetail from '../../components/InputCardDetail/InputCardDetail';
 import {beginEvent} from 'react-native/Libraries/Performance/Systrace';
+import {
+  CreditCardInput,
+  LiteCreditCardInput,
+} from 'react-native-credit-card-input';
 
 export default function AddCardScreen({navigation}, props) {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
+
+  _onFocus = field => console.log('focusing', field);
+  _onChange = form => console.log(JSON.stringify(form, null, ' '));
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Add Card" />
-      <Image
+      {/* <Image
         source={require('../../../assets/Card.png')}
         style={styles.CardIcons}
       />
@@ -38,8 +45,52 @@ export default function AddCardScreen({navigation}, props) {
       </Text> */}
 
       <BottomSheetStyle>
-        <ScrollView style={{marginVertical: heightToDp(5)}}>
-          <Text style={styles.textheading}>Add your New Card</Text>
+        <View style={{marginVertical: heightToDp(5)}}>
+          <View>
+            <CreditCardInput
+              autoFocus
+              requireCVC={true}
+              requirePostalCode={true}
+            />
+          </View>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            marginBottom: widthToDp(5),
+          }}>
+          <GradientButton
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            Title="Save Card"
+            onPress={() => navigation.navigate('PaymentUpdateScreen')}
+          />
+        </View>
+      </BottomSheetStyle>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF2DC',
+  },
+  CardIcons: {
+    alignSelf: 'center',
+    marginBottom: heightToDp(8),
+  },
+  textheading: {
+    fontSize: widthToDp(6),
+    color: Colors.TextColor,
+    fontFamily: 'Manrope-Bold',
+    marginLeft: widthToDp(5),
+    marginBottom: heightToDp(3),
+  },
+});
+
+{
+  /* <Text style={styles.textheading}>Add your New Card</Text>
           <InputCardDetail
             LabelTextInput={'Card Number'}
             AdjustWidth={{width: widthToDp(90)}}
@@ -63,32 +114,5 @@ export default function AddCardScreen({navigation}, props) {
               keyboardType={'numeric'}
               InputStyles={{width: widthToDp(25)}}
             />
-          </View>
-          <GradientButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            Title="Save Card"
-            onPress={() => navigation.navigate('PaymentUpdateScreen')}
-          />
-        </ScrollView>
-      </BottomSheetStyle>
-    </View>
-  );
+          </View> */
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF2DC',
-  },
-  CardIcons: {
-    alignSelf: 'center',
-    marginBottom: heightToDp(8),
-  },
-  textheading: {
-    fontSize: widthToDp(6),
-    color: Colors.TextColor,
-    fontFamily: 'Manrope-Bold',
-    marginLeft: widthToDp(5),
-    marginBottom: heightToDp(3),
-  },
-});

@@ -75,7 +75,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="LocalNotaryDateScreen"
+        initialRouteName="AddCardScreen"
         screenOptions={{
           headerShown: false,
         }}>
