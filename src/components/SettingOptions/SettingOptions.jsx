@@ -5,7 +5,7 @@ import Colors from '../../themes/Colors';
 
 export default function SettingOptions(props) {
   return (
-    <TouchableOpacity style={styles.optionContainer}>
+    <TouchableOpacity style={styles.optionContainer} onPress={props.onPress}>
       <View style={styles.iconsetting}>
         <Image source={props.icon} style={styles.icon} />
         <Text style={styles.settingText}>{props.Title}</Text>

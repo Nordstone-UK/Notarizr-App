@@ -8,7 +8,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import AddressCard from '../../components/AddressCard/AddressCard';
 
-export default function AddressDetails() {
+export default function AddressDetails({navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Address" />
@@ -24,6 +24,7 @@ export default function AddressDetails() {
             Title="Add Address"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             GradiStyles={{borderRadius: 15}}
+            onPress={() => navigation.navigate('NewAddressScreen')}
           />
         </View>
       </BottomSheetStyle>

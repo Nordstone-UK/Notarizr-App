@@ -70,7 +70,7 @@ export default function AgentCard(props) {
         <View
           style={{
             paddingVertical: heightToDp(2),
-            paddingHorizontal: widthToDp(2),
+            // paddingHorizontal: widthToDp(2),
           }}>
           <View
             style={{
@@ -122,7 +122,17 @@ export default function AgentCard(props) {
               paddingTop: heightToDp(5),
               marginRight: widthToDp(2),
             }}>
-            <Text style={[styles.totalStyles, props.leftSideStyles]}>
+            <Text
+              style={[
+                styles.totalStyles,
+                props.leftSideStyles,
+                props.Review
+                  ? {
+                      fontSize: widthToDp(4.5),
+                      fontFamily: 'Poppins-Regular',
+                    }
+                  : {fontFamily: 'Poppins-Bold', fontSize: widthToDp(5)},
+              ]}>
               {props.bottomLeftText}
             </Text>
             <Text
@@ -131,7 +141,7 @@ export default function AgentCard(props) {
                 props.rightSideStyles,
                 props.Review
                   ? {
-                      fontSize: widthToDp(4),
+                      fontSize: widthToDp(4.5),
                       fontFamily: 'Poppins-Regular',
                     }
                   : {fontFamily: 'Poppins-Bold', fontSize: widthToDp(5)},
@@ -147,13 +157,14 @@ export default function AgentCard(props) {
 
 const styles = StyleSheet.create({
   cardContainer: {
+    backgroundColor: Colors.white,
     borderColor: '#1212',
     borderWidth: 2,
     borderRadius: 10,
     marginVertical: widthToDp(2),
     paddingTop: heightToDp(2),
     paddingBottom: heightToDp(4),
-    marginHorizontal: heightToDp(2),
+    marginHorizontal: heightToDp(5),
     shadowColor: '#171717',
     shadowOffset: {width: -2, height: 4},
     shadowOpacity: 0.2,
@@ -164,34 +175,7 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontFamily: 'Poppins-Bold',
   },
-  dateContainer: {
-    position: 'absolute',
-    bottom: heightToDp(-2),
-    paddingHorizontal: widthToDp(6.5),
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    marginLeft: widthToDp(1.5),
-    alignItems: 'center',
-  },
-  ImageProces: {
-    color: '#fff',
-    backgroundColor: Colors.CardProcessColor,
-    fontWeight: '700',
-    fontSize: widthToDp(4),
-    paddingHorizontal: widthToDp(2.7),
-    position: 'absolute',
-    marginLeft: widthToDp(1.5),
-    bottom: heightToDp(19),
-  },
-  cardImage: {
-    margin: widthToDp(1.5),
-    width: widthToDp(26),
-  },
-  dateStyle: {
-    color: Colors.white,
-    fontWeight: '600',
-    fontSize: widthToDp(5),
-  },
+
   address: {
     color: Colors.TextColor,
     fontSize: widthToDp(3.5),
@@ -211,8 +195,8 @@ const styles = StyleSheet.create({
   orangeline: {
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: widthToDp(70),
-    right: widthToDp(10),
+    width: '110%',
+    right: widthToDp(5),
     zIndex: -1,
     paddingVertical: heightToDp(2),
   },
@@ -223,6 +207,6 @@ const styles = StyleSheet.create({
   },
   paymentStyle: {
     color: Colors.TextColor,
-    marginRight: widthToDp(10),
+    // marginRight: widthToDp(10),
   },
 });

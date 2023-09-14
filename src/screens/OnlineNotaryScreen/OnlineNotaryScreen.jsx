@@ -4,10 +4,10 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import Colors from '../../themes/Colors';
 
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 
-export default function MainBookingScreen({navigation}) {
+export default function OnlineNotaryScreen({navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -24,21 +24,15 @@ export default function MainBookingScreen({navigation}) {
           </Text>
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.Pink}}
-            Title="Mobile Notary"
+            Title="Available Agents"
             Image={require('../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('MapScreen')}
+            onPress={() => navigation.navigate('NearbyLoadingScreen')}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
-            Title="Remote Online Notary"
+            Title="Sessions"
             Image={require('../../../assets/service2Pic.png')}
             onPress={() => navigation.navigate('OnlineNotaryScreen')}
-          />
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.DarkBlue}}
-            Title="Local Notary"
-            Image={require('../../../assets/service3Pic.png')}
-            onPress={() => navigation.navigate('ChatScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

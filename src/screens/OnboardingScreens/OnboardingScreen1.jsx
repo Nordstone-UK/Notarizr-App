@@ -1,15 +1,19 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import SplashScreen from 'react-native-splash-screen';
 
 export default function OnboardingScreen1({navigation}, props) {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
   return (
     <View style={styles.container}>
       <Image

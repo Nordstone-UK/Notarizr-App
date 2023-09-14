@@ -68,7 +68,7 @@ export default function HomeScreen({navigation}) {
             agentName={'Advocate Parimal M. Trivedi'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
             OrangeText={'At Office'}
-            Review={false}
+            task="On Process"
           />
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
@@ -77,7 +77,7 @@ export default function HomeScreen({navigation}) {
             agentName={'Advocate Parimal M. Trivedi'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
             OrangeText={'At Office'}
-            Review={false}
+            task="Completed"
           />
         </ScrollView>
       </BottomSheetStyle>

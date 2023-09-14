@@ -69,7 +69,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Save Details"
-              onPress={() => navigation.navigate('ProfilePictureScreen')}
+              onPress={() => navigation.navigate('ProfileInfoScreen')}
             />
           </View>
         </ScrollView>

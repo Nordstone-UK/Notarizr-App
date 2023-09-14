@@ -62,9 +62,6 @@ export default function FinalBookingScreen() {
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           />
         </View>
-        {/* <View style={styles.review}>
-          <ReviewPopup />
-        </View> */}
       </BottomSheetStyle>
     </View>
   );
