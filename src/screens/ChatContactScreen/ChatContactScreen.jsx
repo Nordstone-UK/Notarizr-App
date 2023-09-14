@@ -5,7 +5,7 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import Colors from '../../themes/Colors';
 import ChatContacts from '../../components/ChatContacts/ChatContacts';
 
-export default function ChatContactScreen() {
+export default function ChatContactScreen({navigation}) {
   return (
     <View style={styles.container}>
       <HomeScreenHeader Title="Find all your messages with our agents here" />
@@ -14,14 +14,17 @@ export default function ChatContactScreen() {
           <ChatContacts
             image={require('../../../assets/agentPic.png')}
             name="Advocate Jane Juel"
+            onPress={() => navigation.navigate('ChatScreen')}
           />
           <ChatContacts
             image={require('../../../assets/profileIcon.png')}
             name="Brandon Roger"
+            onPress={() => navigation.navigate('ChatScreen')}
           />
           <ChatContacts
             image={require('../../../assets/agentReview.png')}
             name="Advocate Mary Smith"
+            onPress={() => navigation.navigate('ChatScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

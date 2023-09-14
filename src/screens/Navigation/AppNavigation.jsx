@@ -9,7 +9,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import HomeScreen from '../HomeScreen.jsx/HomeScreen';
 import LegalDocScreen from '../LegalDocumentsScren/LegalDocScreen';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import ProfilePictureScreen from '../LogIn&SignupScreens/ProfilePictureScreen';
 import SignUpDetailScreen from '../LogIn&SignupScreens/SignUpDetailScreen';
 import MainBookingScreen from '../MainBookingScreen/MainBookingScreen';
@@ -35,58 +34,66 @@ import NewAddressScreen from '../NewAddressScreen/NewAddressScreen';
 import SettingScreen from '../SettingScreen/settingScreen';
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Ionicons from '../../components/Ionicons/Ionicons';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
+import OnlineNotaryScreen from '../OnlineNotaryScreen/OnlineNotaryScreen';
+import NearbyLoadingScreen from '../NearbyLoadingScreen/NearbyLoadingScreen';
+import mapScreen from '../../../MapScreen';
+import MapScreen from '../../../MapScreen';
+import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
+import SessionScreen from '../SessionDisplayScreen/SessionScreen';
+import OnlineSessionDetail from '../OnlineSessionDetail/OnlineSessionDetail';
+import LocalNotaryBookingScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryBookingScreen';
+import LocalNotaryAgentReview from '../LocalNotaryBookingScreen.jsx/LocalNotaryAgentReview';
+import LocalNotaryMapScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryMapScreen';
+import LocalNotaryDateScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryDateScreen';
+
+const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+function TabNavigation() {
+  return (
+    <Tab.Navigator
+      screenOptions={({route}) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {height: heightToDp(17)},
+        tabBarIcon: ({focused}) => {
+          return <Ionicons focused={focused} name={route.name} />;
+        },
+      })}>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="AllBookingScreen" component={AllBookingScreen} />
+      <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
+      <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
+    </Tab.Navigator>
+  );
+}
 
 export default function AppNavigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="OnboardingScreen1">
-        {/* <Stack.Screen
-          name="OnboardingScreen1"
-          component={OnboardingScreen1}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="OnboardingScreen2"
-          component={OnboardingScreen2}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="OnboardingScreen3"
-          component={OnboardingScreen3}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="SignupAsScreen"
-          component={SignupAsScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="LoginScreen"
-          component={LoginScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="SignUpScreen"
-          component={SignUpScreen}
-          options={{headerShown: false}}
-        />
-
+      <Stack.Navigator
+        initialRouteName="LocalNotaryDateScreen"
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="OnboardingScreen1" component={OnboardingScreen1} />
+        <Stack.Screen name="OnboardingScreen2" component={OnboardingScreen2} />
+        <Stack.Screen name="OnboardingScreen3" component={OnboardingScreen3} />
+        <Stack.Screen name="SignupAsScreen" component={SignupAsScreen} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
         <Stack.Screen
           name="ProfilePictureScreen"
           component={ProfilePictureScreen}
-          options={{headerShown: false}}
         />
         <Stack.Screen
           name="SignUpDetailScreen"
           component={SignUpDetailScreen}
-          options={{headerShown: false}}
         />
-        <Stack.Screen
-          name="HomeScreen"
-          component={HomeScreen}
-          options={{headerShown: false}}
-        />
+        <Stack.Screen name="HomeScreen" component={TabNavigation} />
         <Stack.Screen
           name="LegalDocScreen"
           component={LegalDocScreen}
@@ -107,105 +114,80 @@ export default function AppNavigation() {
           options={{
             headerShown: false,
           }}
-        />  
-         <Stack.Screen
-          name="AgentReviewScreen"
-          component={AgentReviewScreen}
-          options={{headerShown: false}}
-        />  <Stack.Screen
+        />
+        <Stack.Screen name="AgentReviewScreen" component={AgentReviewScreen} />
+        <Stack.Screen
           name="AgentBookCompletion"
           component={AgentBookCompletion}
-          options={{headerShown: false}}
-        />  <Stack.Screen
-          name="AllBookingScreen"
-          component={AllBookingScreen}
-          options={{headerShown: false}}
-        /> <Stack.Screen
+        />
+        <Stack.Screen
+          name="OnlineNotaryScreen"
+          component={OnlineNotaryScreen}
+        />
+        <Stack.Screen
           name="MedicalBookingScreen"
           component={MedicalBookingScreen}
-          options={{headerShown: false}}
-        /> <Stack.Screen
-          name="ChatScreen"
-          component={ChatScreen}
-          options={{headerShown: false}}
-        />  <Stack.Screen
-          name="PaymentScreen"
-          component={PaymentScreen}
-          options={{headerShown: false}}
-        /> <Stack.Screen
+        />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
+        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
+        <Stack.Screen
           name="PaymentCompletionScreen"
           component={PaymentCompletionScreen}
-          options={{headerShown: false}}
-        />  <Stack.Screen
+        />
+        <Stack.Screen
           name="RejectedByAgentScreen"
           component={RejectedByAgentScreen}
-          options={{headerShown: false}}
-        />  <Stack.Screen
-          name="WaitingRoomScreen"
-          component={WaitingRoomScreen}
-          options={{headerShown: false}}
-        />  <Stack.Screen
+        />
+        <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
+        <Stack.Screen
           name="FinalBookingScreen"
           component={FinalBookingScreen}
-          options={{headerShown: false}}
-        /> 
-         <Stack.Screen
-          name="ProfileInfoScreen"
-          component={ProfileInfoScreen}
-          options={{headerShown: false}}
-        />  
+        />
+        <Stack.Screen
+          name="OnlineSessionDetail"
+          component={OnlineSessionDetail}
+        />
         <Stack.Screen
           name="ProfileDetailEditScreen"
           component={ProfileDetailEditScreen}
-          options={{headerShown: false}}
         />
-
         <Stack.Screen
           name="PasswordEditScreen"
           component={PasswordEditScreen}
-          options={{headerShown: false}}
         />
-
         <Stack.Screen
           name="PaymentUpdateScreen"
           component={PaymentUpdateScreen}
-          options={{headerShown: false}}
         />
-
+        <Stack.Screen name="AddCardScreen" component={AddCardScreen} />
+        <Stack.Screen name="AddressDetails" component={AddressDetails} />
+        <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
+        <Stack.Screen name="SettingScreen" component={SettingScreen} />
         <Stack.Screen
-          name="AddCardScreen"
-          component={AddCardScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="AddressDetails"
-          component={AddressDetails}
-          options={{headerShown: false}}
-        /> 
-        <Stack.Screen
-          name="NewAddressScreen"
-          component={NewAddressScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="SettingScreen"
-          component={SettingScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="ChatContactScreen"
-          component={ChatContactScreen}
-          options={{headerShown: false}}
+          name="NearbyLoadingScreen"
+          component={NearbyLoadingScreen}
         />
         <Stack.Screen
           name="BookingPreferenceScreen"
           component={BookingPreferenceScreen}
-          options={{headerShown: false}}
-        />*/}
+        />
+        <Stack.Screen name="MapScreen" component={MapScreen} />
+        <Stack.Screen name="SessionScreen" component={SessionScreen} />
         <Stack.Screen
-          name="BookingPreferenceScreen"
-          component={AllBookingScreen}
-          options={{headerShown: false}}
+          name="LocalNotaryBookingScreen"
+          component={LocalNotaryBookingScreen}
+        />
+        <Stack.Screen
+          name="LocalNotaryAgentReview"
+          component={LocalNotaryAgentReview}
+        />
+        <Stack.Screen
+          name="LocalNotaryMapScreen"
+          component={LocalNotaryMapScreen}
+        />
+        <Stack.Screen
+          name="LocalNotaryDateScreen"
+          component={LocalNotaryDateScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

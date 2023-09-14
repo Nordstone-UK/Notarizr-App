@@ -48,7 +48,6 @@ export default function AddCardScreen({navigation}, props) {
           />
           <View
             style={{
-              // marginVertical: heightToDp(5),
               flexDirection: 'row',
               justifyContent: 'space-around',
             }}>
@@ -68,7 +67,7 @@ export default function AddCardScreen({navigation}, props) {
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Save Card"
-            //   onPress={() => navigation.navigate('ProfilePictureScreen')}
+            onPress={() => navigation.navigate('PaymentUpdateScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

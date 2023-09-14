@@ -16,14 +16,23 @@ export default function AgentTimeCard(props) {
       <View
         style={[
           styles.ImageProces,
+          props.task && {
+            backgroundColor: Colors.CardProcessColor,
+          },
           props.task === 'On Process' && {
             backgroundColor: Colors.CardProcessColor,
+          },
+          props.task === 'Online' && {
+            backgroundColor: Colors.DarkPink,
           },
           props.task === 'Completed' && {
             backgroundColor: Colors.Green,
           },
           props.task === 'Rejected' && {
             backgroundColor: Colors.Red,
+          },
+          props.task === 'Pending' && {
+            backgroundColor: Colors.Orange,
           },
         ]}>
         <Text style={styles.text}>{props.task}</Text>
@@ -49,8 +58,8 @@ export default function AgentTimeCard(props) {
 
 const styles = StyleSheet.create({
   dateContainer: {
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
     alignItems: 'center',
   },
   ImageProces: {

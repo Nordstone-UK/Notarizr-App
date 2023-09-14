@@ -38,6 +38,7 @@ export default function MedicalBookingScreen() {
           </View>
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
+            source={require('../../../assets/agentCardPic.png')}
             bottomRightText="30 minutes"
             bottomLeftText="0.5 Miles"
             agentName={'Advocate Parimal M. Trivedi'}
@@ -137,13 +138,13 @@ const styles = StyleSheet.create({
   },
   insideText: {
     marginHorizontal: widthToDp(3),
-    fontSize: widthToDp(5),
+    fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontWeight: '400',
   },
   greenIcon: {
-    width: widthToDp(7),
-    height: heightToDp(7),
+    width: widthToDp(5),
+    height: heightToDp(5),
   },
   nameContainer: {
     marginVertical: heightToDp(2),

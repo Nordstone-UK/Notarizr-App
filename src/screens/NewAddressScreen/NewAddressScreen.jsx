@@ -56,12 +56,12 @@ export default function NewAddressScreen({navigation}, props) {
           />
           <View
             style={{
-              marginTop: heightToDp(10),
+              marginVertical: heightToDp(10),
             }}>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Login"
-              onPress={() => navigation.navigate('HomeScreen')}
+              Title="Save Address"
+              onPress={() => navigation.navigate('AddressDetails')}
             />
           </View>
         </ScrollView>

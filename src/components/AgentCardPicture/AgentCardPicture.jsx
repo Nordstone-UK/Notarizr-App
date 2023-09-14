@@ -9,9 +9,7 @@ import AgentReviewCard from '../AgentCard/AgentReviewCard';
 export default function AgentCardPicture(props) {
   return (
     <View>
-      <ImageBackground
-        source={require('../../../assets/agentCardPic.png')}
-        style={styles.cardImage}>
+      <ImageBackground source={props.source} style={styles.cardImage}>
         {props.Review ? (
           <AgentReviewCard />
         ) : (

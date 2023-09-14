@@ -8,7 +8,7 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
-export default function PasswordEditScreen() {
+export default function PasswordEditScreen({navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Change Password" />
@@ -34,6 +34,7 @@ export default function PasswordEditScreen() {
               Title="Update Password"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{borderRadius: 15}}
+              onPress={() => navigation.navigate('ProfileInfoScreen')}
             />
           </View>
         </View>

@@ -15,6 +15,7 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
+import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 
 export default function AllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('Active');
@@ -49,7 +50,7 @@ export default function AllBookingScreen({navigation}) {
                       fontSize: widthToDp(5),
                     }
                   : {
-                      color: Colors.TextColor,
+                      color: Colors.DullTextColor,
                       paddingHorizontal: widthToDp(2),
                       paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
@@ -105,11 +106,12 @@ export default function AllBookingScreen({navigation}) {
             />
           </View>
           {isFocused === 'Active' && (
-            <AgentCard
+            <AcceptAgentCard
               image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
               bottomLeftText="0.5 Miles"
-              agentName={'Advocate Parimal M. Trivedi'}
+              agentName={'Bunny Joel'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="On Process"
             />
@@ -117,16 +119,18 @@ export default function AllBookingScreen({navigation}) {
           {isFocused === 'Active' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="45 minutes"
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="On Process"
+              task="Pending"
             />
           )}
           {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}
@@ -137,6 +141,7 @@ export default function AllBookingScreen({navigation}) {
           {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="45 minutes"
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}
@@ -147,6 +152,7 @@ export default function AllBookingScreen({navigation}) {
           {isFocused === 'Rejected' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}
@@ -157,6 +163,7 @@ export default function AllBookingScreen({navigation}) {
           {isFocused === 'Rejected' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="45 minutes"
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}

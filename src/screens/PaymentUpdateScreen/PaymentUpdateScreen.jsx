@@ -46,7 +46,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Add Card"
-            //   onPress={() => navigation.navigate('ProfilePictureScreen')}
+            onPress={() => navigation.navigate('AddCardScreen')}
           />
         </View>
       </BottomSheetStyle>

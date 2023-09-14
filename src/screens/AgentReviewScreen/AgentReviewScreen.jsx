@@ -10,7 +10,7 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 
-export default function AgentReviewScreen(props) {
+export default function AgentReviewScreen({navigation}, props) {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
@@ -54,10 +54,38 @@ export default function AgentReviewScreen(props) {
           source={require('../../../assets/orangeStar.png')}
           style={styles.star}
         />
+        <Text style={styles.rating}>Rating</Text>
       </View>
       <View style={{marginTop: heightToDp(2)}} />
       <BottomSheetStyle>
-        <Text>Description</Text>
+        <View style={styles.sheetContainer}>
+          <Text style={styles.heading}>Description</Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences.
+          </Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences.
+          </Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences.
+          </Text>
+          <View style={styles.addressView}>
+            <Image
+              source={require('../../../assets/locationIcon.png')}
+              style={styles.locationImage}
+            />
+            <Text style={styles.detail}>
+              Legal building, James street, New York
+            </Text>
+          </View>
+        </View>
+        <View style={styles.button}>
+          <GradientButton
+            Title="Book Now"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            onPress={() => navigation.navigate('AgentBookCompletion')}
+          />
+        </View>
       </BottomSheetStyle>
     </View>
   );
@@ -89,10 +117,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   heading: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     color: Colors.TextColor,
     marginLeft: widthToDp(3),
-    marginBottom: heightToDp(2),
+    fontFamily: 'Manrope-Bold',
+  },
+  rating: {
+    alignSelf: 'center',
+    marginLeft: widthToDp(3),
+    fontSize: widthToDp(4),
+    color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
   },
   preference: {
@@ -115,7 +149,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: heightToDp(8),
-    marginLeft: widthToDp(3),
+    marginLeft: widthToDp(4),
+  },
+  detail: {
+    marginLeft: widthToDp(2),
+    marginVertical: widthToDp(2),
+    fontSize: widthToDp(4),
+    fontFamily: 'Manrope-Regular',
+    color: Colors.DullTextColor,
   },
   button: {
     flex: 1,

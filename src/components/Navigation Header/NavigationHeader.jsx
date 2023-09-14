@@ -17,7 +17,14 @@ export default function NavigationHeader(props) {
       {props.ProfilePic && (
         <Image source={props.ProfilePic} style={styles.profilePic} />
       )}
-      <View style={styles.Flexcontainer}>
+      <View
+        style={[
+          styles.Flexcontainer,
+          props.ProfilePic && {
+            marginLeft: widthToDp(1.5),
+            justifyContent: 'space-around',
+          },
+        ]}>
         <Text style={styles.naveheader}>{props?.Title}</Text>
         <View style={styles.iconContainer}>
           {props.midImg && (
@@ -46,18 +53,18 @@ const styles = StyleSheet.create({
   },
   Flexcontainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: widthToDp(3),
+    width: '85%',
+    marginLeft: widthToDp(5),
   },
   iconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: widthToDp(5),
   },
   naveheader: {
-    fontSize: widthToDp(7),
+    fontSize: widthToDp(5),
     color: Colors.TextColor,
-    marginLeft: widthToDp(3),
     fontFamily: 'Manrope-Bold',
   },
   profilePic: {

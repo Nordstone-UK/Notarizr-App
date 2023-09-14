@@ -2,7 +2,7 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import MainButton from '../MainGradientButton/MainButton';
 import Colors from '../../themes/Colors';
-import {width, widthToDp} from '../../utils/Responsive';
+import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 
 export default function TypesofServiceButton(props) {
   return (
@@ -13,12 +13,16 @@ export default function TypesofServiceButton(props) {
             width: widthToDp(40),
           }}>
           <Text style={styles.heading}>{props?.Title}</Text>
-          <MainButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            Title="Continue"
-            TextStyle={{color: '#fff'}}
-            styles={{padding: widthToDp(2), fontSize: widthToDp(4)}}
-          />
+
+          <View style={{alignSelf: 'flex-start', marginTop: heightToDp(2)}}>
+            <MainButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              Title="Continue"
+              TextStyle={{color: '#fff'}}
+              styles={{padding: widthToDp(2), fontSize: widthToDp(4)}}
+              onPress={props.onPress}
+            />
+          </View>
         </View>
         <Image source={props.Image} style={styles.Image} />
       </View>
@@ -28,23 +32,24 @@ export default function TypesofServiceButton(props) {
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: Colors.Pink,
+    width: widthToDp(90),
+    height: heightToDp(40),
     marginHorizontal: widthToDp(5),
     marginVertical: widthToDp(2),
     paddingHorizontal: widthToDp(5),
-    paddingVertical: widthToDp(10),
+    paddingVertical: widthToDp(5),
     borderRadius: 10,
   },
   heading: {
     color: Colors.white,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
   Image: {
-    position: 'absolute',
-    // alignSelf: 'flex-end',
-    right: widthToDp(-5),
-    bottom: widthToDp(-10),
+    width: widthToDp(10),
+    height: heightToDp(30),
+
     resizeMode: 'contain',
+    flex: 1,
   },
 });

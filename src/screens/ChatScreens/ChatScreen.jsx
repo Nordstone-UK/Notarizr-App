@@ -11,12 +11,12 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
-export default function ChatScreen() {
+export default function ChatScreen(props) {
   return (
     <View style={styles.container}>
       <NavigationHeader
         Title="Brandon Roger"
-        ProfilePic={require('../../../assets/userPic.png')}
+        ProfilePic={require('../../../assets/profileIcon.png')}
         midImg={require('../../../assets/videoCallIcon.png')}
         lastImg={require('../../../assets/voiceCallIcon.png')}
       />

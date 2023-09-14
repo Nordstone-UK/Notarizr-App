@@ -1,14 +1,19 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
-export default function ChatContacts(props) {
+export default function ChatContacts(props, {routes}) {
+  // console.log(routes);
+  // const name = useNav
+
+  // const {name} = route;
+
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={props.onPress}>
       <Image source={props.image} style={styles.image} />
       <Text style={styles.text}>{props.name}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
