@@ -25,11 +25,10 @@ export default function LegalDocumentCard(props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderColor: Colors.DisableColor,
+    backgroundColor: Colors.white,
     margin: widthToDp(2),
     borderRadius: 10,
-    borderWidth: 2,
-    // justifyContent: 'space-between',
+    elevation: 15,
     alignItems: 'center',
     padding: widthToDp(3),
   },
