@@ -16,6 +16,9 @@ export default function AgentTimeCard(props) {
       <View
         style={[
           styles.ImageProces,
+          props.task && {
+            backgroundColor: Colors.CardProcessColor,
+          },
           props.task === 'On Process' && {
             backgroundColor: Colors.CardProcessColor,
           },
@@ -27,6 +30,9 @@ export default function AgentTimeCard(props) {
           },
           props.task === 'Rejected' && {
             backgroundColor: Colors.Red,
+          },
+          props.task === 'Pending' && {
+            backgroundColor: Colors.Orange,
           },
         ]}>
         <Text style={styles.text}>{props.task}</Text>

@@ -35,7 +35,6 @@ import SettingScreen from '../SettingScreen/settingScreen';
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import BookScreen from '../../../BookScreen';
 import Ionicons from '../../components/Ionicons/Ionicons';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import OnlineNotaryScreen from '../OnlineNotaryScreen/OnlineNotaryScreen';
@@ -45,6 +44,10 @@ import MapScreen from '../../../MapScreen';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import SessionScreen from '../SessionDisplayScreen/SessionScreen';
 import OnlineSessionDetail from '../OnlineSessionDetail/OnlineSessionDetail';
+import LocalNotaryBookingScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryBookingScreen';
+import LocalNotaryAgentReview from '../LocalNotaryBookingScreen.jsx/LocalNotaryAgentReview';
+import LocalNotaryMapScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryMapScreen';
+import LocalNotaryDateScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryDateScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,7 +65,6 @@ function TabNavigation() {
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="AllBookingScreen" component={AllBookingScreen} />
-      <Tab.Screen name="BookScreen" component={BookScreen} />
       <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
       <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
     </Tab.Navigator>
@@ -73,7 +75,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="HomeScreen"
+        initialRouteName="LocalNotaryDateScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -114,38 +116,29 @@ export default function AppNavigation() {
           }}
         />
         <Stack.Screen name="AgentReviewScreen" component={AgentReviewScreen} />
-
         <Stack.Screen
           name="AgentBookCompletion"
           component={AgentBookCompletion}
         />
-
         <Stack.Screen
           name="OnlineNotaryScreen"
           component={OnlineNotaryScreen}
         />
-
         <Stack.Screen
           name="MedicalBookingScreen"
           component={MedicalBookingScreen}
         />
-
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
-
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
-
         <Stack.Screen
           name="PaymentCompletionScreen"
           component={PaymentCompletionScreen}
         />
-
         <Stack.Screen
           name="RejectedByAgentScreen"
           component={RejectedByAgentScreen}
         />
-
         <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
-
         <Stack.Screen
           name="FinalBookingScreen"
           component={FinalBookingScreen}
@@ -180,6 +173,22 @@ export default function AppNavigation() {
         />
         <Stack.Screen name="MapScreen" component={MapScreen} />
         <Stack.Screen name="SessionScreen" component={SessionScreen} />
+        <Stack.Screen
+          name="LocalNotaryBookingScreen"
+          component={LocalNotaryBookingScreen}
+        />
+        <Stack.Screen
+          name="LocalNotaryAgentReview"
+          component={LocalNotaryAgentReview}
+        />
+        <Stack.Screen
+          name="LocalNotaryMapScreen"
+          component={LocalNotaryMapScreen}
+        />
+        <Stack.Screen
+          name="LocalNotaryDateScreen"
+          component={LocalNotaryDateScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

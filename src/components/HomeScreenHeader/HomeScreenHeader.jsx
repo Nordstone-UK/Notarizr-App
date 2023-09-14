@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: widthToDp(7),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),
   },

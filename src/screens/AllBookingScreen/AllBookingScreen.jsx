@@ -50,7 +50,7 @@ export default function AllBookingScreen({navigation}) {
                       fontSize: widthToDp(5),
                     }
                   : {
-                      color: Colors.TextColor,
+                      color: Colors.DullTextColor,
                       paddingHorizontal: widthToDp(2),
                       paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
@@ -108,12 +108,12 @@ export default function AllBookingScreen({navigation}) {
           {isFocused === 'Active' && (
             <AcceptAgentCard
               image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/maleAgentPic.png')}
+              source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
               bottomLeftText="0.5 Miles"
               agentName={'Bunny Joel'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Online"
+              task="On Process"
             />
           )}
           {isFocused === 'Active' && (
@@ -124,7 +124,7 @@ export default function AllBookingScreen({navigation}) {
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="On Process"
+              task="Pending"
             />
           )}
           {isFocused === 'Complete' && (

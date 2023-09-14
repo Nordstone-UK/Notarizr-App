@@ -7,20 +7,14 @@ import {
   View,
 } from 'react-native';
 import React from 'react';
-import AgentCard from './src/components/AgentCard/AgentCard';
-import {widthToDp} from './src/utils/Responsive';
-import NavigationHeader from './src/components/Navigation Header/NavigationHeader';
+import AgentCard from '../../components/AgentCard/AgentCard';
 
-export default function MapScreen({navigation}) {
+export default function LocalNotaryMapScreen({navigation}) {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('./assets/map.png')}
+        source={require('../../../assets/map.png')}
         style={styles.container}>
-        <NavigationHeader
-          Title="Nearby"
-          lastImg={require('./assets/Search.png')}
-        />
         <View
           style={{
             flex: 1,
@@ -32,10 +26,10 @@ export default function MapScreen({navigation}) {
               horizontal={true}
               contentContainerStyle={styles.contentContainerStyle}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('AgentReviewScreen')}>
+                onPress={() => navigation.navigate('LocalNotaryAgentReview')}>
                 <AgentCard
-                  image={require('./assets/agentLocation.png')}
-                  source={require('./assets/agentCardPic.png')}
+                  image={require('../../../assets/agentLocation.png')}
+                  source={require('../../../assets/agentCardPic.png')}
                   bottomRightText="30 Minutes"
                   bottomLeftText="0.5 Miles"
                   agentName={'Advocate Parimal M. Trivedi'}
@@ -46,10 +40,10 @@ export default function MapScreen({navigation}) {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('AgentReviewScreen')}>
+                onPress={() => navigation.navigate('LocalNotaryAgentReview')}>
                 <AgentCard
-                  image={require('./assets/agentLocation.png')}
-                  source={require('./assets/agentCardPic.png')}
+                  image={require('../../../assets/agentLocation.png')}
+                  source={require('../../../assets/agentCardPic.png')}
                   bottomRightText="30 Minutes"
                   bottomLeftText="0.5 Miles"
                   agentName={'Advocate Parimal M. Trivedi'}

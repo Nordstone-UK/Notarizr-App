@@ -32,6 +32,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: widthToDp(3),
     textAlign: 'center',
-    fontFamily: 'Manrope-Bold',
+    fontFamily: 'Manrope-SemiBold',
   },
 });
