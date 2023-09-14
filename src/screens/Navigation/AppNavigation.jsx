@@ -42,6 +42,9 @@ import OnlineNotaryScreen from '../OnlineNotaryScreen/OnlineNotaryScreen';
 import NearbyLoadingScreen from '../NearbyLoadingScreen/NearbyLoadingScreen';
 import mapScreen from '../../../MapScreen';
 import MapScreen from '../../../MapScreen';
+import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
+import SessionScreen from '../SessionDisplayScreen/SessionScreen';
+import OnlineSessionDetail from '../OnlineSessionDetail/OnlineSessionDetail';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -147,7 +150,10 @@ export default function AppNavigation() {
           name="FinalBookingScreen"
           component={FinalBookingScreen}
         />
-        {/* <Stack.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} /> */}
+        <Stack.Screen
+          name="OnlineSessionDetail"
+          component={OnlineSessionDetail}
+        />
         <Stack.Screen
           name="ProfileDetailEditScreen"
           component={ProfileDetailEditScreen}
@@ -173,6 +179,7 @@ export default function AppNavigation() {
           component={BookingPreferenceScreen}
         />
         <Stack.Screen name="MapScreen" component={MapScreen} />
+        <Stack.Screen name="SessionScreen" component={SessionScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

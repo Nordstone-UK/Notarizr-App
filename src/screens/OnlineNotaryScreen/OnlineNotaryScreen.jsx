@@ -32,7 +32,7 @@ export default function OnlineNotaryScreen({navigation}) {
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Sessions"
             Image={require('../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('OnlineNotaryScreen')}
+            onPress={() => navigation.navigate('SessionScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

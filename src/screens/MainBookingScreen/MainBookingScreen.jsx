@@ -38,7 +38,7 @@ export default function MainBookingScreen({navigation}) {
             backgroundColor={{backgroundColor: Colors.DarkBlue}}
             Title="Local Notary"
             Image={require('../../../assets/service3Pic.png')}
-            onPress={() => navigation.navigate('ChatScreen')}
+            onPress={() => navigation.navigate('MapScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

@@ -30,6 +30,7 @@ export default function MapScreen({navigation}) {
                 onPress={() => navigation.navigate('AgentReviewScreen')}>
                 <AgentCard
                   image={require('./assets/agentLocation.png')}
+                  source={require('./assets/agentCardPic.png')}
                   bottomRightText="30 Minutes"
                   bottomLeftText="0.5 Miles"
                   agentName={'Advocate Parimal M. Trivedi'}
@@ -43,6 +44,7 @@ export default function MapScreen({navigation}) {
                 onPress={() => navigation.navigate('AgentReviewScreen')}>
                 <AgentCard
                   image={require('./assets/agentLocation.png')}
+                  source={require('./assets/agentCardPic.png')}
                   bottomRightText="30 Minutes"
                   bottomLeftText="0.5 Miles"
                   agentName={'Advocate Parimal M. Trivedi'}

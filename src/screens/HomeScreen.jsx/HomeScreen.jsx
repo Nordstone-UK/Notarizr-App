@@ -63,6 +63,7 @@ export default function HomeScreen({navigation}) {
           </View>
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
+            source={require('../../../assets/agentCardPic.png')}
             bottomRightText="$400"
             bottomLeftText="Total"
             agentName={'Advocate Parimal M. Trivedi'}
@@ -72,6 +73,7 @@ export default function HomeScreen({navigation}) {
           />
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
+            source={require('../../../assets/agentCardPic.png')}
             bottomRightText="$400"
             bottomLeftText="Total"
             agentName={'Advocate Parimal M. Trivedi'}

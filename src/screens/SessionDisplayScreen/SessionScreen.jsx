@@ -17,24 +17,46 @@ import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 
-export default function AllBookingScreen({navigation}) {
-  const [isFocused, setIsFocused] = useState('Active');
+export default function SessionScreen({navigation}) {
+  const [isFocused, setIsFocused] = useState('All');
 
   return (
     <View style={styles.container}>
       <HomeScreenHeader Title="Find all your bookings with our agents here" />
       <BottomSheetStyle>
         <ScrollView
-          scrollEnabled={true}
+          //   scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <View
             style={{
               flexDirection: 'row',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              alignContent: 'center',
-              marginBottom: widthToDp(2),
+              justifyContent: 'space-between',
+              width: '100%',
             }}>
+            <MainButton
+              Title="All"
+              colors={
+                isFocused === 'All'
+                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                  : [Colors.DisableColor, Colors.DisableColor]
+              }
+              styles={[
+                {minWidth: '20%'},
+                isFocused === 'All'
+                  ? {
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
+                      fontSize: widthToDp(5),
+                    }
+                  : {
+                      color: Colors.TextColor,
+                      paddingHorizontal: widthToDp(2),
+                      paddingVertical: widthToDp(1),
+                      fontSize: widthToDp(5),
+                    },
+              ]}
+              onPress={() => setIsFocused('All')}
+            />
             <MainButton
               Title="Active"
               colors={
@@ -42,7 +64,8 @@ export default function AllBookingScreen({navigation}) {
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                   : [Colors.DisableColor, Colors.DisableColor]
               }
-              styles={
+              styles={[
+                {minWidth: '20%'},
                 isFocused === 'Active'
                   ? {
                       paddingHorizontal: widthToDp(2),
@@ -54,8 +77,8 @@ export default function AllBookingScreen({navigation}) {
                       paddingHorizontal: widthToDp(2),
                       paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
-                    }
-              }
+                    },
+              ]}
               onPress={() => setIsFocused('Active')}
             />
             <MainButton
@@ -65,7 +88,8 @@ export default function AllBookingScreen({navigation}) {
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                   : [Colors.DisableColor, Colors.DisableColor]
               }
-              styles={
+              styles={[
+                {minWidth: '20%'},
                 isFocused === 'Complete'
                   ? {
                       paddingHorizontal: widthToDp(2),
@@ -77,8 +101,8 @@ export default function AllBookingScreen({navigation}) {
                       paddingHorizontal: widthToDp(2),
                       paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
-                    }
-              }
+                    },
+              ]}
               onPress={() => setIsFocused('Complete')}
             />
             <MainButton
@@ -88,7 +112,8 @@ export default function AllBookingScreen({navigation}) {
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                   : [Colors.DisableColor, Colors.DisableColor]
               }
-              styles={
+              styles={[
+                {minWidth: '20%'},
                 isFocused === 'Rejected'
                   ? {
                       paddingHorizontal: widthToDp(2),
@@ -100,76 +125,39 @@ export default function AllBookingScreen({navigation}) {
                       paddingHorizontal: widthToDp(2),
                       paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),
-                    }
-              }
+                    },
+              ]}
               onPress={() => setIsFocused('Rejected')}
             />
           </View>
-          {isFocused === 'Active' && (
-            <AcceptAgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/maleAgentPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="0.5 Miles"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Online"
-            />
+
+          {(isFocused === 'Active' || isFocused === 'All') && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('OnlineSessionDetail')}>
+              <AcceptAgentCard
+                image={require('../../../assets/agentLocation.png')}
+                source={require('../../../assets/maleAgentPic.png')}
+                bottomRightText="$400"
+                agentName={'Bunny Joel'}
+                agentAddress={'Shop 28, jigara Kalakand Road'}
+                task="Online"
+                Button={true}
+              />
+            </TouchableOpacity>
           )}
-          {isFocused === 'Active' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="45 minutes"
-              bottomLeftText="0.5 Miles"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="On Process"
-            />
-          )}
-          {isFocused === 'Complete' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="0.5 Miles"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Completed"
-            />
-          )}
-          {isFocused === 'Complete' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="45 minutes"
-              bottomLeftText="0.5 Miles"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Completed"
-            />
-          )}
-          {isFocused === 'Rejected' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="0.5 Miles"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Rejected"
-            />
-          )}
-          {isFocused === 'Rejected' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="45 minutes"
-              bottomLeftText="0.5 Miles"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Rejected"
-            />
+          {(isFocused === 'Active' || isFocused === 'All') && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('OnlineSessionDetail')}>
+              <AcceptAgentCard
+                image={require('../../../assets/agentLocation.png')}
+                source={require('../../../assets/maleAgentPic.png')}
+                bottomRightText="$350"
+                agentName={'Bunny Joel'}
+                agentAddress={'Shop 28, jigara Kalakand Road'}
+                task="Online"
+                Button={true}
+              />
+            </TouchableOpacity>
           )}
         </ScrollView>
       </BottomSheetStyle>

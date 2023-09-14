@@ -11,8 +11,9 @@ import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LinearGradient from 'react-native-linear-gradient';
 import AgentCardPicture from '../AgentCardPicture/AgentCardPicture';
+import MainButton from '../MainGradientButton/MainButton';
 
-export default function AgentCard(props) {
+export default function AcceptAgentCard(props) {
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -86,8 +87,7 @@ export default function AgentCard(props) {
               style={{
                 paddingVertical: heightToDp(2),
               }}>
-              <Text style={styles.nameHeading}>{NameFirstPart}</Text>
-              <Text style={styles.nameHeading}>{NameSecondPart}</Text>
+              <Text style={styles.nameHeading}>{props?.agentName}</Text>
             </View>
             <TouchableOpacity>
               <Image source={require('../../../assets/option.png')} />
@@ -118,19 +118,12 @@ export default function AgentCard(props) {
               {secondPart}
             </Text>
           </View>
-          <View
-            style={[
-              styles.orangeline,
-              !props.Review && {
-                width: '93%',
-              },
-            ]}
-          />
+          <View style={styles.orangeline} />
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              paddingTop: heightToDp(5),
+              paddingTop: heightToDp(8),
               marginRight: widthToDp(2),
             }}>
             <Text
@@ -144,25 +137,18 @@ export default function AgentCard(props) {
                     }
                   : {fontFamily: 'Poppins-Bold', fontSize: widthToDp(5)},
               ]}>
-              {props.bottomLeftText}
-            </Text>
-            <Text
-              style={[
-                styles.paymentStyle,
-                props.rightSideStyles,
-                props.Review
-                  ? {
-                      fontSize: widthToDp(4.5),
-                      fontFamily: 'Poppins-Regular',
-                    }
-                  : {
-                      fontFamily: 'Poppins-Bold',
-                      fontSize: widthToDp(5),
-                      marginRight: widthToDp(10),
-                    },
-              ]}>
               {props.bottomRightText}
             </Text>
+            {props.Button ? (
+              <MainButton
+                Title="Accept"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                styles={{
+                  paddingHorizontal: widthToDp(4),
+                  paddingVertical: widthToDp(2),
+                }}
+              />
+            ) : null}
           </View>
         </View>
       </View>

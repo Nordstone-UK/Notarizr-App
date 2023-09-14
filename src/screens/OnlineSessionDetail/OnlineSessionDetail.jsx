@@ -15,11 +15,17 @@ import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
+import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
+import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
 
-export default function MedicalBookingScreen() {
+export default function OnlineSessionDetail({navigation}) {
   return (
     <View style={styles.container}>
-      <NavigationHeader Title="Booking" />
+      <NavigationHeader
+        Title="Booking"
+        midImg={require('../../../assets/chatNavIcon.png')}
+        lastImg={require('../../../assets/videoCallIcon.png')}
+      />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
@@ -30,66 +36,58 @@ export default function MedicalBookingScreen() {
             <Text style={styles.insideHeading}>Selected agent</Text>
             <View style={styles.iconContainer}>
               <Image
-                source={require('../../../assets/greenIcon.png')}
+                source={require('../../../assets/pending.png')}
                 style={styles.greenIcon}
               />
-              <Text style={styles.insideText}>Avaialable</Text>
+              <Text style={styles.insideText}>Pending</Text>
             </View>
           </View>
-          <AgentCard
+          <AcceptAgentCard
             image={require('../../../assets/agentLocation.png')}
-            source={require('../../../assets/agentCardPic.png')}
-            bottomRightText="30 minutes"
-            bottomLeftText="0.5 Miles"
-            agentName={'Advocate Parimal M. Trivedi'}
+            source={require('../../../assets/maleAgentPic.png')}
+            bottomRightText="$400"
+            bottomLeftText="Tota"
+            agentName={'Bunny Joel'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
-            Review={true}
+            task="Online"
           />
+
+          <Text style={styles.insideHeading}>Booking Preferences</Text>
           <View style={styles.sheetContainer}>
-            <Text style={styles.insideHeading}>Booking Preferences</Text>
-            <View style={styles.addressView}>
-              <Image
-                source={require('../../../assets/locationIcon.png')}
-                style={styles.locationImage}
-              />
-              <Text style={styles.detail}>
-                Legal building, James street, New York
-              </Text>
-            </View>
-            <View style={styles.addressView}>
-              <Image
-                source={require('../../../assets/calenderIcon.png')}
-                style={styles.locationImage}
-              />
-              <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
-            </View>
-            <Text style={styles.preference}>Notes:</Text>
+            <Text style={styles.preferenceHeading}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
           </View>
+
+          <DocumentComponent image={require('../../../assets/Pdf.png')} />
+          <DocumentComponent image={require('../../../assets/doc.png')} />
           <View style={styles.buttonFlex}>
             <MainButton
-              Title="Chat"
+              Title="Accept"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                paddingHorizontal: widthToDp(6),
+                paddingHorizontal: widthToDp(2),
               }}
               styles={{
                 paddingHorizontal: widthToDp(10),
+                paddingVertical: widthToDp(2.5),
                 fontSize: widthToDp(5),
               }}
+              onPress={() => navigation.navigate('AgentBookCompletion')}
             />
             <MainButton
-              Title="Track"
+              Title="Reject"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                paddingHorizontal: widthToDp(6),
+                paddingHorizontal: widthToDp(2),
               }}
               styles={{
                 paddingHorizontal: widthToDp(10),
+                paddingVertical: widthToDp(2.5),
                 fontSize: widthToDp(5),
               }}
+              onPress={() => navigation.navigate('SessionScreen')}
             />
           </View>
         </ScrollView>
@@ -167,8 +165,14 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(3),
     marginBottom: heightToDp(2),
   },
+  preferenceHeading: {
+    marginLeft: widthToDp(5),
+    marginVertical: widthToDp(1),
+    fontSize: widthToDp(4.5),
+    color: Colors.DullTextColor,
+  },
   preference: {
-    marginLeft: widthToDp(4),
+    marginLeft: widthToDp(5),
     marginVertical: widthToDp(1),
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
@@ -183,7 +187,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginVertical: heightToDp(2),
   },
-  sheetContainer: {},
+  sheetContainer: {
+    marginVertical: heightToDp(2),
+  },
   locationImage: {
     tintColor: Colors.DullTextColor,
   },
