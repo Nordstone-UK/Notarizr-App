@@ -156,9 +156,11 @@ export default function ProfilePictureScreen({navigation}) {
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Continue"
           onPress={() => navigation.navigate('RegisterCompletionScreen')}
-          // onPress={() =>}
         />
-        <SkipButton Title="Skip" />
+        <SkipButton
+          Title="Skip"
+          onPress={() => navigation.navigate('RegisterCompletionScreen')}
+        />
       </BottomSheetStyle>
     </View>
   );
@@ -166,7 +168,7 @@ export default function ProfilePictureScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: '#FFF2DC',
   },
   textRemove: {
@@ -174,12 +176,12 @@ const styles = StyleSheet.create({
     top: heightToDp(2),
     right: widthToDp(5),
     color: Colors.Orange,
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
   textEdit: {
     textAlign: 'center',
     color: Colors.Orange,
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     marginBottom: heightToDp(5),
   },
   profileImage: {

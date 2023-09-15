@@ -74,7 +74,7 @@ export default function OnlineSessionDetail({navigation}) {
                 paddingVertical: widthToDp(2.5),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => navigation.navigate('AgentBookCompletion')}
+              onPress={() => navigation.navigate('CompletionScreen')}
             />
             <MainButton
               Title="Reject"
@@ -98,18 +98,18 @@ export default function OnlineSessionDetail({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   lightHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(5),
-    fontWeight: '500',
+    fontFamily: 'Manrope-SemiBold',
   },
   Heading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
   headingContainer: {
     marginLeft: widthToDp(4),
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   insideHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(5),
   },
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontSize: widthToDp(7),
     color: Colors.TextColor,
-    fontWeight: '600',
+    fontFamily: 'Manrope-SemiBold',
   },
   placestyle: {
     fontSize: widthToDp(7),
@@ -203,8 +203,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     marginBottom: heightToDp(2),
-  },
-  button: {
-    // height: 100,
   },
 });

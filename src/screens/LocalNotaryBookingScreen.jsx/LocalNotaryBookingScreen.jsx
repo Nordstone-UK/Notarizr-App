@@ -107,18 +107,18 @@ export default function LocalNotaryBookingScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   lightHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(5),
-    fontWeight: '500',
+    fontFamily: 'Manrope-SemiBold',
   },
   Heading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
   headingContainer: {
     marginLeft: widthToDp(4),
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   insideHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(5),
   },
@@ -147,33 +147,13 @@ const styles = StyleSheet.create({
     marginHorizontal: widthToDp(3),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
-    fontWeight: '400',
+    fontFamily: 'Manrope-Regular',
   },
   greenIcon: {
     width: widthToDp(5),
     height: heightToDp(5),
   },
-  nameContainer: {
-    marginVertical: heightToDp(2),
-    alignSelf: 'center',
-  },
-  name: {
-    alignSelf: 'center',
-    fontSize: widthToDp(7),
-    color: Colors.TextColor,
-    fontWeight: '600',
-  },
-  placestyle: {
-    fontSize: widthToDp(7),
-    fontWeight: '900',
-    alignSelf: 'center',
-  },
-  heading: {
-    fontSize: widthToDp(6),
-    color: Colors.TextColor,
-    marginLeft: widthToDp(3),
-    marginBottom: heightToDp(2),
-  },
+
   preference: {
     marginLeft: widthToDp(4),
     marginVertical: widthToDp(1),
@@ -186,10 +166,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
   },
-  star: {
-    alignSelf: 'center',
-    marginVertical: heightToDp(2),
-  },
+
   sheetContainer: {},
   locationImage: {
     tintColor: Colors.DullTextColor,

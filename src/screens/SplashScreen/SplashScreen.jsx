@@ -30,13 +30,14 @@ export default function SplashScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
     marginTop: heightToDp(30),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',

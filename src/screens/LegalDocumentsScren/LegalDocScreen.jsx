@@ -10,7 +10,7 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 
-export default function LegalDocScreen({navigation}) {
+export default function LegalDocScreen({route, navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader
@@ -22,11 +22,48 @@ export default function LegalDocScreen({navigation}) {
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
-          <LegalDocumentCard Title="Legal Document 1" />
-          <LegalDocumentCard Title="Legal Document 2" Price="$550" />
-          <LegalDocumentCard Title="Legal Document 3" Price="$600" />
-          <LegalDocumentCard Title="Legal Document 4" />
-          <LegalDocumentCard Title="Legal Document 5" />
+          <LegalDocumentCard
+            Title="Legal Document 1"
+            onPress={() =>
+              navigation.navigate('MainBookingScreen', {
+                name: 'Legal Documents',
+              })
+            }
+          />
+          <LegalDocumentCard
+            Title="Legal Document 2"
+            Price="$550"
+            onPress={() =>
+              navigation.navigate('MainBookingScreen', {
+                name: 'Legal Documents',
+              })
+            }
+          />
+          <LegalDocumentCard
+            Title="Legal Document 3"
+            Price="$600"
+            onPress={() =>
+              navigation.navigate('MainBookingScreen', {
+                name: 'Legal Documents',
+              })
+            }
+          />
+          <LegalDocumentCard
+            Title="Legal Document 4"
+            onPress={() =>
+              navigation.navigate('MainBookingScreen', {
+                name: 'Legal Documents',
+              })
+            }
+          />
+          <LegalDocumentCard
+            Title="Legal Document 5"
+            onPress={() =>
+              navigation.navigate('MainBookingScreen', {
+                name: 'Legal Documents',
+              })
+            }
+          />
         </ScrollView>
       </BottomSheetStyle>
     </View>

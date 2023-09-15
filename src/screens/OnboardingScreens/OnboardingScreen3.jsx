@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
@@ -8,7 +8,7 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function OnboardingScreen3({navigation}, props) {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Image
         source={require('../../../assets/screen3.png')}
         style={styles.imagestyle}
@@ -24,7 +24,7 @@ export default function OnboardingScreen3({navigation}, props) {
         GradiStyles={{marginTop: widthToDp(5)}}
         onPress={() => navigation.navigate('LoginScreen')}
       />
-    </View>
+    </ScrollView>
   );
 }
 

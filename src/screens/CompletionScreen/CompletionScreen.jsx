@@ -1,24 +1,32 @@
 import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function CompletionScreen(props) {
+export default function CompletionScreen({navigation}) {
+  useEffect(() => {
+    const delay = 3000;
+
+    const timer = setTimeout(() => {
+      navigation.navigate('SessionScreen');
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
   return (
     <View style={styles.container}>
       <ImageBackground
         source={require('../../../assets/Group.png')}
         style={styles.groupimage}>
         <View style={styles.completeIcon}>
-          {props.iconImage && (
-            <Image source={props.iconImage} style={styles.icon} />
-          )}
-          {/* Add an Icon path on this tag */}
-          {props.Title && <Text style={styles.text}>{props.Title}</Text>}
-          {/* Add an text on this tag */}
-          {props.subHeading && (
-            <Text style={styles.subheading}>{props.subHeading}</Text>
-          )}
+          <Image
+            source={require('../../../assets/completedIcon.png')}
+            style={styles.icon}
+          />
+
+          <Text style={styles.text}>
+            Congratulations,{'\n'} you have booked an agent!
+          </Text>
         </View>
         <Image
           source={require('../../../assets/complete.png')}
@@ -31,35 +39,35 @@ export default function CompletionScreen(props) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(15),
+    marginTop: heightToDp(25),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
+    width: widthToDp(50),
+    height: widthToDp(50),
+    resizeMode: 'contain',
   },
   text: {
-    marginHorizontal: widthToDp(22),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: 35,
-    fontWeight: '700',
+    fontSize: widthToDp(7),
+    fontFamily: 'Manrope-Bold',
   },
-  subheading: {
-    marginHorizontal: widthToDp(22),
-    textAlign: 'center',
-    color: Colors.TextColor,
-    fontSize: 18,
-    fontWeight: '600',
-  },
+
   complete: {
     alignSelf: 'flex-end',
+    width: widthToDp(75),
+    height: widthToDp(75),
+    resizeMode: 'contain',
     position: 'absolute',
-    top: heightToDp(120),
+    bottom: 0,
   },
 });

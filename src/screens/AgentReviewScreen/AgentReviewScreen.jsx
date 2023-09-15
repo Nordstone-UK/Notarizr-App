@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
@@ -42,58 +42,60 @@ export default function AgentReviewScreen({navigation}, props) {
   return (
     <View style={styles.contianer}>
       <NavigationHeader Title="Agent Review" />
-      <Image
-        source={require('../../../assets/agentReview.png')}
-        style={styles.picture}
-      />
-      <View style={styles.nameContainer}>
-        <Text style={styles.name}>{firstWord}</Text>
-        <Text style={styles.name}>{secondWord}</Text>
-        <GradientText style={styles.placestyle}>5.0</GradientText>
+      <ScrollView>
         <Image
-          source={require('../../../assets/orangeStar.png')}
-          style={styles.star}
+          source={require('../../../assets/agentReview.png')}
+          style={styles.picture}
         />
-        <Text style={styles.rating}>Rating</Text>
-      </View>
-      <View style={{marginTop: heightToDp(2)}} />
-      <BottomSheetStyle>
-        <View style={styles.sheetContainer}>
-          <Text style={styles.heading}>Description</Text>
-          <Text style={styles.preference}>
-            Please provide us with your booking preferences.
-          </Text>
-          <Text style={styles.preference}>
-            Please provide us with your booking preferences.
-          </Text>
-          <Text style={styles.preference}>
-            Please provide us with your booking preferences.
-          </Text>
-          <View style={styles.addressView}>
-            <Image
-              source={require('../../../assets/locationIcon.png')}
-              style={styles.locationImage}
-            />
-            <Text style={styles.detail}>
-              Legal building, James street, New York
-            </Text>
-          </View>
-        </View>
-        <View style={styles.button}>
-          <GradientButton
-            Title="Book Now"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() => navigation.navigate('AgentBookCompletion')}
+        <View style={styles.nameContainer}>
+          <Text style={styles.name}>{firstWord}</Text>
+          <Text style={styles.name}>{secondWord}</Text>
+          <GradientText style={styles.placestyle}>5.0</GradientText>
+          <Image
+            source={require('../../../assets/orangeStar.png')}
+            style={styles.star}
           />
+          <Text style={styles.rating}>Rating</Text>
         </View>
-      </BottomSheetStyle>
+        <View style={{marginTop: heightToDp(2)}} />
+        <BottomSheetStyle>
+          <View style={styles.sheetContainer}>
+            <Text style={styles.heading}>Description</Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences.
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences.
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences.
+            </Text>
+            <View style={styles.addressView}>
+              <Image
+                source={require('../../../assets/locationIcon.png')}
+                style={styles.locationImage}
+              />
+              <Text style={styles.detail}>
+                Legal building, James street, New York
+              </Text>
+            </View>
+          </View>
+          <View style={styles.button}>
+            <GradientButton
+              Title="Book Now"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              onPress={() => navigation.navigate('AgentBookCompletion')}
+            />
+          </View>
+        </BottomSheetStyle>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   contianer: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   picture: {
@@ -107,11 +109,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontSize: widthToDp(7),
     color: Colors.TextColor,
-    // fontWeight: '600',
+
     fontFamily: 'Manrope-Bold',
   },
   placestyle: {
-    // color: Colors.white,
     fontSize: widthToDp(7),
     fontWeight: '900',
     alignSelf: 'center',
@@ -124,7 +125,6 @@ const styles = StyleSheet.create({
   },
   rating: {
     alignSelf: 'center',
-    marginLeft: widthToDp(3),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
@@ -162,6 +162,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     marginVertical: widthToDp(5),
-    // height: 100,
   },
 });

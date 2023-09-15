@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
 export default function ChatScreen(props) {
@@ -52,14 +52,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.DullWhite,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    borderRadius: 10,
+    borderRadius: 15,
     alignSelf: 'center',
     marginBottom: widthToDp(5),
   },
   input: {
     flex: 1,
-    height: 40,
+    height: heightToDp(15),
     marginRight: 10,
     paddingHorizontal: 10,
   },

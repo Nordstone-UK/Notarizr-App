@@ -15,6 +15,7 @@ import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
+import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 
 export default function MedicalBookingScreen() {
   return (
@@ -36,14 +37,13 @@ export default function MedicalBookingScreen() {
               <Text style={styles.insideText}>Avaialable</Text>
             </View>
           </View>
-          <AgentCard
+          <AgentReviewCard
             image={require('../../../assets/agentLocation.png')}
             source={require('../../../assets/agentCardPic.png')}
             bottomRightText="30 minutes"
             bottomLeftText="0.5 Miles"
             agentName={'Advocate Parimal M. Trivedi'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
-            Review={true}
           />
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
@@ -100,7 +100,7 @@ export default function MedicalBookingScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   lightHeading: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   Heading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
   headingContainer: {
     marginLeft: widthToDp(4),
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   insideHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(5),
   },
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     marginHorizontal: widthToDp(3),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
-    fontWeight: '400',
+    fontFamily: 'Manrope-Regular',
   },
   greenIcon: {
     width: widthToDp(5),
@@ -150,23 +150,7 @@ const styles = StyleSheet.create({
     marginVertical: heightToDp(2),
     alignSelf: 'center',
   },
-  name: {
-    alignSelf: 'center',
-    fontSize: widthToDp(7),
-    color: Colors.TextColor,
-    fontWeight: '600',
-  },
-  placestyle: {
-    fontSize: widthToDp(7),
-    fontWeight: '900',
-    alignSelf: 'center',
-  },
-  heading: {
-    fontSize: widthToDp(6),
-    color: Colors.TextColor,
-    marginLeft: widthToDp(3),
-    marginBottom: heightToDp(2),
-  },
+
   preference: {
     marginLeft: widthToDp(4),
     marginVertical: widthToDp(1),
@@ -179,10 +163,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
   },
-  star: {
-    alignSelf: 'center',
-    marginVertical: heightToDp(2),
-  },
+
   sheetContainer: {},
   locationImage: {
     tintColor: Colors.DullTextColor,
@@ -197,8 +178,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     marginBottom: heightToDp(2),
-  },
-  button: {
-    // height: 100,
   },
 });

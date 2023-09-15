@@ -27,8 +27,6 @@ export default function AgentBookCompletion({navigation}) {
           <Text style={styles.text}>
             Congratulations,{'\n'} you have booked an agent!
           </Text>
-
-          {/* <Text style={styles.subheading}>THE OPAL GORUP</Text> */}
         </View>
         <Image
           source={require('../../../assets/complete.png')}
@@ -41,28 +39,35 @@ export default function AgentBookCompletion({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(30),
+    marginTop: heightToDp(25),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
+    width: widthToDp(50),
+    height: widthToDp(50),
+    resizeMode: 'contain',
   },
   text: {
-    // marginHorizontal: widthToDp(18),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: 25,
-    fontWeight: '700',
+    fontSize: widthToDp(7),
+    fontFamily: 'Manrope-Bold',
   },
 
   complete: {
     alignSelf: 'flex-end',
+    width: widthToDp(75),
+    height: widthToDp(75),
+    resizeMode: 'contain',
     position: 'absolute',
     bottom: 0,
   },
