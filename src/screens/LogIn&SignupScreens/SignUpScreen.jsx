@@ -68,7 +68,12 @@ export default function SignUpScreen({navigation}, props) {
               justifyContent: 'center',
               marginTop: heightToDp(10),
             }}>
-            <Text>Already have an account? </Text>
+            <Text
+              style={{
+                color: Colors.DullTextColor,
+              }}>
+              Already have an account?{' '}
+            </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('LoginScreen')}>
               <Text style={{color: Colors.Orange}}>Sign in</Text>

@@ -25,11 +25,10 @@ export default function LegalDocumentCard(props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderColor: Colors.DisableColor,
+    backgroundColor: Colors.white,
+    elevation: 20,
     margin: widthToDp(2),
     borderRadius: 10,
-    borderWidth: 2,
-    // justifyContent: 'space-between',
     alignItems: 'center',
     padding: widthToDp(3),
   },
@@ -40,13 +39,13 @@ const styles = StyleSheet.create({
   textstyle: {
     fontSize: widthToDp(5),
     color: Colors.TextColor,
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),
   },
   pricestyles: {
     fontSize: widthToDp(5),
     color: Colors.TextColor,
-    fontWeight: '700',
-    marginLeft: widthToDp(10),
+    fontFamily: 'Manrope-Bold',
+    marginLeft: widthToDp(8),
   },
 });

@@ -22,18 +22,18 @@ import LinearGradient from 'react-native-linear-gradient';
 export default function LocalNotaryDateScreen({navigation}) {
   const dateInfo = [];
   const months = [
-    'January',
-    'February',
-    'March',
-    'April',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
     'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   const timeSlots = {
     slot1: '08:00-08:30',
@@ -189,7 +189,7 @@ export default function LocalNotaryDateScreen({navigation}) {
                             ? styles.textWhite
                             : styles.text
                         }>
-                        {dateObj.month}
+                        {currentMonth}
                       </Text>
                       <Text
                         style={
@@ -217,17 +217,17 @@ export default function LocalNotaryDateScreen({navigation}) {
           <Text style={styles.insideText}>Morning</Text>
           <View style={styles.dateContainer}>
             {Object.entries(timeSlots).map(([slotName, slotTime]) => (
-              <View key={slotName} style={styles.slot}>
-                <Text>{slotTime}</Text>
-              </View>
+              <TouchableOpacity key={slotName} style={styles.slot}>
+                <Text style={styles.timeText}>{slotTime}</Text>
+              </TouchableOpacity>
             ))}
           </View>
           <Text style={styles.insideText}>Afternoon</Text>
           <View style={styles.dateContainer}>
             {Object.entries(timeSlots2).map(([slotName, slotTime]) => (
-              <View key={slotName} style={styles.slot}>
-                <Text>{slotTime}</Text>
-              </View>
+              <TouchableOpacity key={slotName} style={styles.slot}>
+                <Text style={styles.timeText}>{slotTime}</Text>
+              </TouchableOpacity>
             ))}
           </View>
           <View style={styles.buttonFlex}>
@@ -274,6 +274,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginHorizontal: widthToDp(5),
     marginVertical: widthToDp(5),
+  },
+  timeText: {
+    color: Colors.TextColor,
   },
   slot: {
     borderWidth: 1,
