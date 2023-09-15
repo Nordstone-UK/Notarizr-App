@@ -49,6 +49,7 @@ import LocalNotaryMapScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryMap
 import LocalNotaryDateScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryDateScreen';
 import RealEstateDocScreen from '../LegalDocumentsScren/RealEstateDocScreen';
 import BusinessDocScreen from '../LegalDocumentsScren/BusinessDocScreen';
+import CompletionScreen from '../CompletionScreen/CompletionScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -76,7 +77,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="HomeScreen"
+        initialRouteName="OnboardingScreen1"
         screenOptions={{
           headerShown: false,
         }}>
@@ -204,6 +205,7 @@ export default function AppNavigation() {
           name="LocalNotaryDateScreen"
           component={LocalNotaryDateScreen}
         />
+        <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

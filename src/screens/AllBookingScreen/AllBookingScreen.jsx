@@ -59,7 +59,7 @@ export default function AllBookingScreen({navigation}) {
               onPress={() => setIsFocused('Active')}
             />
             <MainButton
-              Title="Complete"
+              Title="Completed"
               colors={
                 isFocused === 'Complete'
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]

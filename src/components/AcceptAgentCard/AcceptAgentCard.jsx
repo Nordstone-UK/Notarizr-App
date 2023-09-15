@@ -118,7 +118,7 @@ export default function AcceptAgentCard(props) {
                   paddingHorizontal: widthToDp(4),
                   paddingVertical: widthToDp(2),
                 }}
-                onPress={() => navigation.navigate('AgentBookCompletion')}
+                onPress={() => navigation.navigate('CompletionScreen')}
               />
             ) : null}
           </View>

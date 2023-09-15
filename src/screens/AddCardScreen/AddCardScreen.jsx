@@ -9,18 +9,15 @@ import {
   ScrollView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
+
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {hairlineWidth} from 'react-native-extended-stylesheet';
-import InputCardDetail from '../../components/InputCardDetail/InputCardDetail';
-import {beginEvent} from 'react-native/Libraries/Performance/Systrace';
+
 import {
   CreditCardInput,
   LiteCreditCardInput,
@@ -36,36 +33,31 @@ export default function AddCardScreen({navigation}, props) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Add Card" />
-      {/* <Image
-        source={require('../../../assets/Card.png')}
-        style={styles.CardIcons}
-      />
-      {/* <Text style={styles.textheading}>
-        Please find all our added cards here
-      </Text> */}
 
       <BottomSheetStyle>
-        <View style={{marginVertical: heightToDp(5)}}>
-          <View>
-            <CreditCardInput
-              autoFocus
-              requireCVC={true}
-              requirePostalCode={true}
+        <ScrollView>
+          <View style={{marginVertical: heightToDp(5)}}>
+            <View>
+              <CreditCardInput
+                autoFocus
+                requireCVC={true}
+                requirePostalCode={true}
+              />
+            </View>
+          </View>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'flex-end',
+              marginBottom: widthToDp(5),
+            }}>
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              Title="Save Card"
+              onPress={() => navigation.navigate('PaymentUpdateScreen')}
             />
           </View>
-        </View>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            marginBottom: widthToDp(5),
-          }}>
-          <GradientButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            Title="Save Card"
-            onPress={() => navigation.navigate('PaymentUpdateScreen')}
-          />
-        </View>
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );

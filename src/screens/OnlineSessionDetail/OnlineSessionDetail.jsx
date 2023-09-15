@@ -74,7 +74,7 @@ export default function OnlineSessionDetail({navigation}) {
                 paddingVertical: widthToDp(2.5),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => navigation.navigate('AgentBookCompletion')}
+              onPress={() => navigation.navigate('CompletionScreen')}
             />
             <MainButton
               Title="Reject"

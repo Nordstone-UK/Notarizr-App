@@ -4,18 +4,15 @@ import Colors from '../../themes/Colors';
 import {ITEM_WIDTH, heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function RegisterCompletionScreen({navigation}) {
-  // useEffect(() => {
-  //   // Delay in milliseconds (e.g., 3000ms = 3 seconds)
-  //   const delay = 3000;
+  useEffect(() => {
+    const delay = 3000;
 
-  //   const timer = setTimeout(() => {
-  //     // Navigate to SecondScreen after the specified delay
-  //     navigation.navigate('HomeScreen');
-  //   }, delay);
+    const timer = setTimeout(() => {
+      navigation.navigate('HomeScreen');
+    }, delay);
 
-  //   // Clear the timer when the component unmounts
-  //   return () => clearTimeout(timer);
-  // }, [navigation]);
+    return () => clearTimeout(timer);
+  }, [navigation]);
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -28,7 +25,7 @@ export default function RegisterCompletionScreen({navigation}) {
           />
 
           <Text style={styles.text}>
-            Congratulations, you have completed your registration!
+            Congratulations,{'\n'} you have completed your registration!
           </Text>
 
           {/* <Text style={styles.subheading}>THE OPAL GORUP</Text> */}
@@ -48,7 +45,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(30),
+    marginTop: heightToDp(25),
   },
   groupimage: {
     flex: 1,
@@ -56,17 +53,22 @@ const styles = StyleSheet.create({
   icon: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
+    width: widthToDp(50),
+    height: widthToDp(50),
+    resizeMode: 'contain',
   },
   text: {
-    marginHorizontal: widthToDp(15),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(7),
     fontFamily: 'Manrope-Bold',
   },
 
   complete: {
     alignSelf: 'flex-end',
+    width: widthToDp(75),
+    height: widthToDp(75),
+    resizeMode: 'contain',
     position: 'absolute',
     bottom: 0,
   },

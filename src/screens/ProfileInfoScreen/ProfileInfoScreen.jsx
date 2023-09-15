@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import React from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -14,43 +21,45 @@ export default function ProfileInfoScreen({navigation}) {
       />
       <Text style={styles.textheading}>Lamthao</Text>
       <BottomSheetStyle>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ProfileDetailEditScreen')}>
-            <Image
-              source={require('../../../assets/editIcon.png')}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SettingScreen')}>
-            <Image
-              source={require('../../../assets/settingIcon.png')}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
+        <ScrollView>
+          <View style={styles.iconContainer}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ProfileDetailEditScreen')}>
+              <Image
+                source={require('../../../assets/editIcon.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SettingScreen')}>
+              <Image
+                source={require('../../../assets/settingIcon.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          </View>
 
-        <SettingOptions
-          icon={require('../../../assets/settingProfile.png')}
-          Title="Profile Details"
-          onPress={() => navigation.navigate('ProfileDetailEditScreen')}
-        />
-        <SettingOptions
-          icon={require('../../../assets/passwordLock.png')}
-          Title="Change Password"
-          onPress={() => navigation.navigate('PasswordEditScreen')}
-        />
-        <SettingOptions
-          icon={require('../../../assets/greenLocation.png')}
-          Title="Address"
-          onPress={() => navigation.navigate('AddressDetails')}
-        />
-        <SettingOptions
-          icon={require('../../../assets/blueCard.png')}
-          Title="Payment Method"
-          onPress={() => navigation.navigate('PaymentUpdateScreen')}
-        />
+          <SettingOptions
+            icon={require('../../../assets/settingProfile.png')}
+            Title="Profile Details"
+            onPress={() => navigation.navigate('ProfileDetailEditScreen')}
+          />
+          <SettingOptions
+            icon={require('../../../assets/passwordLock.png')}
+            Title="Change Password"
+            onPress={() => navigation.navigate('PasswordEditScreen')}
+          />
+          <SettingOptions
+            icon={require('../../../assets/greenLocation.png')}
+            Title="Address"
+            onPress={() => navigation.navigate('AddressDetails')}
+          />
+          <SettingOptions
+            icon={require('../../../assets/blueCard.png')}
+            Title="Payment Method"
+            onPress={() => navigation.navigate('PaymentUpdateScreen')}
+          />
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );
