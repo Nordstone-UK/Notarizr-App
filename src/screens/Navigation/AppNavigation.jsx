@@ -50,6 +50,10 @@ import LocalNotaryDateScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryDa
 import RealEstateDocScreen from '../LegalDocumentsScren/RealEstateDocScreen';
 import BusinessDocScreen from '../LegalDocumentsScren/BusinessDocScreen';
 import CompletionScreen from '../CompletionScreen/CompletionScreen';
+import AgentHomeScreen from '../AgentScreens/AgentHomeScreen/AgentHomeScreen';
+import AgentCompletedBooking from '../AgentScreens/AgentBookingDetails/AgentCompletedBooking';
+import AgentAllBookingScreen from '../AgentScreens/AgentAllBookingScreen/AgentAllBookingScreen';
+import ClientBookingScreen from '../AgentScreens/ClientBookingScreen/ClientBookingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -77,7 +81,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="OnboardingScreen1"
+        initialRouteName="AgentAllBookingScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -206,6 +210,19 @@ export default function AppNavigation() {
           component={LocalNotaryDateScreen}
         />
         <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
+        <Stack.Screen name="AgentHomeScreen" component={AgentHomeScreen} />
+        <Stack.Screen
+          name="ClientBookingScreen"
+          component={ClientBookingScreen}
+        />
+        <Stack.Screen
+          name="AgentAllBookingScreen"
+          component={AgentAllBookingScreen}
+        />
+        <Stack.Screen
+          name="AgentCompletedBooking"
+          component={AgentCompletedBooking}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -18,6 +18,8 @@ const Colors = {
   Green: '#00AB1B',
   Red: '#FF4545',
   DarkPink: '#F045FF',
+  GreenSwitch: '#11CE00',
+  ClientCard: '#454DFF',
 };
 
 export default Colors;

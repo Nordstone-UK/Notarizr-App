@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
-export default function AgentTimeCard(props) {
+export default function ClientTimeCard(props) {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
@@ -12,16 +12,17 @@ export default function AgentTimeCard(props) {
     <View
       style={{
         flex: 1,
+        marginTop: heightToDp(5),
         justifyContent: 'flex-end',
       }}>
       <View
         style={[
           styles.ImageProces,
           props.task && {
-            backgroundColor: Colors.CardProcessColor,
+            backgroundColor: Colors.ClientCard,
           },
-          props.task === 'On Process' && {
-            backgroundColor: Colors.CardProcessColor,
+          props.task === 'Mobile' && {
+            backgroundColor: Colors.ClientCard,
           },
           props.task === 'Online' && {
             backgroundColor: Colors.DarkPink,
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
     alignItems: 'center',
-    padding: widthToDp(2),
+    padding: widthToDp(1.5),
   },
   ImageProces: {
     paddingVertical: widthToDp(1),
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: widthToDp(3.5),
     fontFamily: 'Poppins-SemiBold',
-    marginVertical: heightToDp(-1),
+    marginVertical: heightToDp(-1.5),
     textAlign: 'center',
   },
 });
