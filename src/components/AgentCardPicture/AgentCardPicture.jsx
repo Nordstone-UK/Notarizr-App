@@ -5,16 +5,11 @@ import Colors from '../../themes/Colors';
 
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import AgentTimeCard from '../AgentCard/AgentTimeCard';
-import AgentReviewCard from '../AgentCard/AgentReviewCard';
 export default function AgentCardPicture(props) {
   return (
-    <View>
+    <View style={{flex: 1}}>
       <ImageBackground source={props.source} style={styles.cardImage}>
-        {props.Review ? (
-          <AgentReviewCard />
-        ) : (
-          <AgentTimeCard task={props.task} />
-        )}
+        <AgentTimeCard task={props.task} />
       </ImageBackground>
     </View>
   );
@@ -22,8 +17,9 @@ export default function AgentCardPicture(props) {
 
 const styles = StyleSheet.create({
   cardImage: {
-    margin: widthToDp(1.5),
-    width: widthToDp(26),
+    margin: widthToDp(2),
+    width: widthToDp(30),
+    height: '105%',
     borderRadius: 6,
     overflow: 'hidden',
   },

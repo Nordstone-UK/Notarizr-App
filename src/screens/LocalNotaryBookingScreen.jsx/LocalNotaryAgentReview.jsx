@@ -93,7 +93,7 @@ export default function LocalNotaryAgentReview({navigation}, props) {
 
 const styles = StyleSheet.create({
   contianer: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   picture: {
@@ -107,11 +107,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontSize: widthToDp(7),
     color: Colors.TextColor,
-    // fontWeight: '600',
     fontFamily: 'Manrope-Bold',
   },
   placestyle: {
-    // color: Colors.white,
     fontSize: widthToDp(7),
     fontWeight: '900',
     alignSelf: 'center',
@@ -162,6 +160,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     marginVertical: widthToDp(5),
-    // height: 100,
   },
 });

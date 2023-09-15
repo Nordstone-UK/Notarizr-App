@@ -39,7 +39,6 @@ import Ionicons from '../../components/Ionicons/Ionicons';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import OnlineNotaryScreen from '../OnlineNotaryScreen/OnlineNotaryScreen';
 import NearbyLoadingScreen from '../NearbyLoadingScreen/NearbyLoadingScreen';
-import mapScreen from '../../../MapScreen';
 import MapScreen from '../../../MapScreen';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import SessionScreen from '../SessionDisplayScreen/SessionScreen';
@@ -48,6 +47,8 @@ import LocalNotaryBookingScreen from '../LocalNotaryBookingScreen.jsx/LocalNotar
 import LocalNotaryAgentReview from '../LocalNotaryBookingScreen.jsx/LocalNotaryAgentReview';
 import LocalNotaryMapScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryMapScreen';
 import LocalNotaryDateScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryDateScreen';
+import RealEstateDocScreen from '../LegalDocumentsScren/RealEstateDocScreen';
+import BusinessDocScreen from '../LegalDocumentsScren/BusinessDocScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -75,7 +76,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="LocalNotaryDateScreen"
+        initialRouteName="HomeScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -97,6 +98,20 @@ export default function AppNavigation() {
         <Stack.Screen
           name="LegalDocScreen"
           component={LegalDocScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="RealEstateDocScreen"
+          component={RealEstateDocScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="BusinessDocScreen"
+          component={BusinessDocScreen}
           options={{
             headerShown: false,
           }}

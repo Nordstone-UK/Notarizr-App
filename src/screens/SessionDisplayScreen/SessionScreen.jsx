@@ -167,36 +167,10 @@ export default function SessionScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
-  },
-  Heading: {
-    fontSize: widthToDp(6.5),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    paddingLeft: widthToDp(2),
   },
   contentContainer: {
     paddingVertical: heightToDp(5),
-  },
-  subheading: {
-    fontSize: widthToDp(4),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-    paddingRight: widthToDp(2),
-  },
-  CategoryBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
-  },
-  PictureBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
-  },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
   },
 });

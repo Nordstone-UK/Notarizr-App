@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import AgentCard from '../../components/AgentCard/AgentCard';
+import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 
 export default function LocalNotaryMapScreen({navigation}) {
   return (
@@ -27,7 +28,7 @@ export default function LocalNotaryMapScreen({navigation}) {
               contentContainerStyle={styles.contentContainerStyle}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('LocalNotaryAgentReview')}>
-                <AgentCard
+                <AgentReviewCard
                   image={require('../../../assets/agentLocation.png')}
                   source={require('../../../assets/agentCardPic.png')}
                   bottomRightText="30 Minutes"
@@ -35,20 +36,18 @@ export default function LocalNotaryMapScreen({navigation}) {
                   agentName={'Advocate Parimal M. Trivedi'}
                   agentAddress={'Shop 28, jigara Kalakand Road'}
                   task="On Process"
-                  Review={true}
                 />
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('LocalNotaryAgentReview')}>
-                <AgentCard
+                <AgentReviewCard
                   image={require('../../../assets/agentLocation.png')}
                   source={require('../../../assets/agentCardPic.png')}
                   bottomRightText="30 Minutes"
                   bottomLeftText="0.5 Miles"
                   agentName={'Advocate Parimal M. Trivedi'}
                   agentAddress={'Shop 28, jigara Kalakand Road'}
-                  Review={true}
                 />
               </TouchableOpacity>
             </ScrollView>

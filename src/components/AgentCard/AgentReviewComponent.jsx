@@ -4,11 +4,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function AgentReviewCard() {
+export default function AgentReviewComponent() {
   return (
     <View
       style={{
-        marginTop: widthToDp(30),
+        flex: 1,
+        justifyContent: 'flex-end',
       }}>
       <LinearGradient
         style={styles.dateContainer}
@@ -18,9 +19,9 @@ export default function AgentReviewCard() {
         <Text style={styles.dateStyle}>5.0</Text>
         <Image
           source={require('../../../assets/reviewStars.png')}
-          style={{marginVertical: heightToDp(3)}}
+          style={styles.star}
         />
-        <Text style={styles.dateStyle}>Rating</Text>
+        <Text style={styles.rating}>Rating</Text>
       </LinearGradient>
     </View>
   );
@@ -32,11 +33,17 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10,
     alignItems: 'center',
   },
-
+  star: {
+    width: widthToDp(20),
+  },
   dateStyle: {
     color: Colors.white,
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: widthToDp(4),
-    marginVertical: heightToDp(0.5),
+    fontFamily: 'Poppins-Bold',
+    fontSize: widthToDp(7),
+  },
+  rating: {
+    color: Colors.white,
+    fontFamily: 'Poppins-Light',
+    fontSize: widthToDp(3.5),
   },
 });

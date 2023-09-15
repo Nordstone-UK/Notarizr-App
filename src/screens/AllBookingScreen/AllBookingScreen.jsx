@@ -106,25 +106,27 @@ export default function AllBookingScreen({navigation}) {
             />
           </View>
           {isFocused === 'Active' && (
-            <AcceptAgentCard
+            <AgentCard
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
-              bottomLeftText="0.5 Miles"
-              agentName={'Bunny Joel'}
+              bottomLeftText="Total"
+              agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="On Process"
+              OrangeText={'At Office'}
             />
           )}
           {isFocused === 'Active' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="45 minutes"
-              bottomLeftText="0.5 Miles"
+              bottomRightText="$300"
+              bottomLeftText="Total"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Pending"
+              OrangeText={'At Office'}
             />
           )}
           {isFocused === 'Complete' && (
@@ -132,7 +134,7 @@ export default function AllBookingScreen({navigation}) {
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
-              bottomLeftText="0.5 Miles"
+              bottomLeftText="Total"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Completed"
@@ -142,8 +144,8 @@ export default function AllBookingScreen({navigation}) {
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="45 minutes"
-              bottomLeftText="0.5 Miles"
+              bottomRightText="$400"
+              bottomLeftText="Total"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Completed"
@@ -154,7 +156,7 @@ export default function AllBookingScreen({navigation}) {
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
               bottomRightText="$400"
-              bottomLeftText="0.5 Miles"
+              bottomLeftText="Total"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Rejected"
@@ -164,8 +166,8 @@ export default function AllBookingScreen({navigation}) {
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="45 minutes"
-              bottomLeftText="0.5 Miles"
+              bottomRightText="$400"
+              bottomLeftText="Total"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Rejected"
@@ -179,12 +181,12 @@ export default function AllBookingScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   Heading: {
     fontSize: widthToDp(6.5),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     paddingLeft: widthToDp(2),
   },
@@ -193,7 +195,7 @@ const styles = StyleSheet.create({
   },
   subheading: {
     fontSize: widthToDp(4),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     alignSelf: 'center',
     paddingRight: widthToDp(2),

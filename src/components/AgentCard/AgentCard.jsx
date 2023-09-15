@@ -64,28 +64,22 @@ export default function AgentCard(props) {
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
-        <View style={{paddingHorizontal: widthToDp(2)}}>
-          <AgentCardPicture
-            Review={props.Review || false}
-            task={props.task}
-            source={props.source}
-          />
+        <View>
+          <AgentCardPicture task={props.task} source={props.source} />
         </View>
         <View
           style={{
-            paddingVertical: heightToDp(2),
-            // paddingHorizontal: widthToDp(2),
+            width: widthToDp(50),
+            marginTop: heightToDp(2),
           }}>
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              width: widthToDp(55),
+              marginTop: heightToDp(2),
+              width: '110%',
             }}>
-            <View
-              style={{
-                paddingVertical: heightToDp(2),
-              }}>
+            <View>
               <Text style={styles.nameHeading}>{NameFirstPart}</Text>
               <Text style={styles.nameHeading}>{NameSecondPart}</Text>
             </View>
@@ -101,48 +95,29 @@ export default function AgentCard(props) {
             {props?.OrangeText && OrangeGradient(props?.OrangeText)}
             <View
               style={{
-                width: widthToDp(40),
                 marginLeft: widthToDp(1),
               }}>
               <Text style={styles.address}>{firstPart}</Text>
             </View>
           </View>
           <View>
-            <Text
-              style={[
-                styles.address,
-                props.Review
-                  ? {marginLeft: widthToDp(6)}
-                  : {marginLeft: widthToDp(7)},
-              ]}>
+            <Text style={[styles.address, {marginLeft: widthToDp(7)}]}>
               {secondPart}
             </Text>
           </View>
-          <View
-            style={[
-              styles.orangeline,
-              !props.Review && {
-                width: '93%',
-              },
-            ]}
-          />
+          <View style={[styles.orangeline]} />
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
               paddingTop: heightToDp(5),
-              marginRight: widthToDp(2),
             }}>
             <Text
               style={[
                 styles.totalStyles,
                 props.leftSideStyles,
-                props.Review
-                  ? {
-                      fontSize: widthToDp(4.5),
-                      fontFamily: 'Poppins-Regular',
-                    }
-                  : {fontFamily: 'Poppins-Bold', fontSize: widthToDp(5)},
+
+                {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
               ]}>
               {props.bottomLeftText}
             </Text>
@@ -150,16 +125,10 @@ export default function AgentCard(props) {
               style={[
                 styles.paymentStyle,
                 props.rightSideStyles,
-                props.Review
-                  ? {
-                      fontSize: widthToDp(4.5),
-                      fontFamily: 'Poppins-Regular',
-                    }
-                  : {
-                      fontFamily: 'Poppins-Bold',
-                      fontSize: widthToDp(5),
-                      marginRight: widthToDp(10),
-                    },
+                {
+                  fontFamily: 'Poppins-Bold',
+                  fontSize: widthToDp(4.5),
+                },
               ]}>
               {props.bottomRightText}
             </Text>
@@ -173,24 +142,17 @@ export default function AgentCard(props) {
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: Colors.white,
-    borderColor: '#1212',
-    borderWidth: 2,
+    elevation: 30,
     borderRadius: 10,
-    marginVertical: widthToDp(2),
-    paddingTop: heightToDp(2),
-    paddingBottom: heightToDp(4),
+    paddingBottom: heightToDp(6),
+    marginVertical: heightToDp(2),
     marginHorizontal: heightToDp(5),
-    shadowColor: '#171717',
-    shadowOffset: {width: -2, height: 4},
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
   },
   nameHeading: {
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Poppins-Bold',
   },
-
   address: {
     color: Colors.TextColor,
     fontSize: widthToDp(3.5),
@@ -210,8 +172,8 @@ const styles = StyleSheet.create({
   orangeline: {
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: '110%',
-    right: widthToDp(5),
+    width: '130%',
+    right: widthToDp(9),
     zIndex: -1,
     paddingVertical: heightToDp(2),
   },
@@ -222,6 +184,5 @@ const styles = StyleSheet.create({
   },
   paymentStyle: {
     color: Colors.TextColor,
-    // marginRight: widthToDp(10),
   },
 });

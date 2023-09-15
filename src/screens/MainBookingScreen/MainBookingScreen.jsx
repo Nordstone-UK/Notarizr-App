@@ -7,13 +7,15 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 
-export default function MainBookingScreen({navigation}) {
+export default function MainBookingScreen({route, navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>Medical documents</Text>
+        <Text style={styles.Heading}>
+          {route?.params?.name || 'Medical Documents'}
+        </Text>
       </View>
       <BottomSheetStyle>
         <ScrollView
@@ -48,18 +50,18 @@ export default function MainBookingScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   lightHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(5),
-    fontWeight: '500',
+    fontFamily: 'Manrope-Regular',
   },
   Heading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
   headingContainer: {
     marginLeft: widthToDp(4),
@@ -68,7 +70,7 @@ const styles = StyleSheet.create({
   insideHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(3),
     marginHorizontal: widthToDp(5),
   },

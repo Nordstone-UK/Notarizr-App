@@ -10,11 +10,11 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 
-export default function LegalDocScreen({route, navigation}) {
+export default function BusinessDocScreen({route, navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader
-        Title="Legal Document"
+        Title="Business Document"
         lastImg={require('../../../assets/bellIcon.png')}
         midImg={require('../../../assets/Search.png')}
       />
@@ -23,44 +23,44 @@ export default function LegalDocScreen({route, navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <LegalDocumentCard
-            Title="Legal Document 1"
+            Title="Business Document 1"
             onPress={() =>
               navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
+                name: 'Business Documents',
               })
             }
           />
           <LegalDocumentCard
-            Title="Legal Document 2"
+            Title="Business Document 2"
             Price="$550"
             onPress={() =>
               navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
+                name: 'Business Documents',
               })
             }
           />
           <LegalDocumentCard
-            Title="Legal Document 3"
+            Title="Business Document 3"
             Price="$600"
             onPress={() =>
               navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
+                name: 'Business Documents',
               })
             }
           />
           <LegalDocumentCard
-            Title="Legal Document 4"
+            Title="Business Document 4"
             onPress={() =>
               navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
+                name: 'Business Documents',
               })
             }
           />
           <LegalDocumentCard
-            Title="Legal Document 5"
+            Title="Business Document 5"
             onPress={() =>
               navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
+                name: 'Business Documents',
               })
             }
           />

@@ -15,8 +15,15 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
+import {Linking} from 'react-native';
 
 export default function HomeScreen({navigation}) {
+  const openLinkInBrowser = () => {
+    const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
+    Linking.openURL(url).catch(err =>
+      console.error('An error occurred: ', err),
+    );
+  };
   return (
     <View style={styles.container}>
       <HomeScreenHeader Title="One Click and Select our services." />
@@ -27,10 +34,12 @@ export default function HomeScreen({navigation}) {
           <Text style={styles.Heading}>
             Know how Notarizr helps you in notarizing your documents
           </Text>
-          <Image
-            source={require('../../../assets/videoIcon.png')}
-            style={{alignSelf: 'center', marginTop: heightToDp(3)}}
-          />
+          <TouchableOpacity onPress={openLinkInBrowser}>
+            <Image
+              source={require('../../../assets/videoIcon.png')}
+              style={{alignSelf: 'center', marginTop: heightToDp(3)}}
+            />
+          </TouchableOpacity>
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Categories</Text>
             <Text style={styles.subheading}>View all</Text>
@@ -41,16 +50,22 @@ export default function HomeScreen({navigation}) {
                 onPress={() => navigation.navigate('LegalDocScreen')}>
                 <Image source={require('../../../assets/legalDocIcon.png')} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('RealEstateDocScreen')}>
                 <Image source={require('../../../assets/estateDocIcon.png')} />
               </TouchableOpacity>
             </View>
             <View style={styles.PictureBar}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('MainBookingScreen')}>
+                onPress={() =>
+                  navigation.navigate('MainBookingScreen', {
+                    name: 'Medical Documents',
+                  })
+                }>
                 <Image source={require('../../../assets/medicalDocIcon.png')} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('BusinessDocScreen')}>
                 <Image
                   source={require('../../../assets/businessDocIcon.png')}
                 />

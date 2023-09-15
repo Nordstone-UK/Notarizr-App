@@ -74,30 +74,45 @@ export default function LocalNotaryDateScreen({navigation}) {
     dateInfo.push(dateObject);
   }
 
-  // Helper function to calculate the day of the week (0 = Sun, 1 = Mon, ..., 6 = Sat)
   function calculateDayOfWeek(year, month, day) {
     const date = new Date(year, month - 1, day);
     return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
   }
   const [isFocused, setIsFocused] = useState('');
 
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(0); // Initial month index is January (0)
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const handlePrevMonth = () => {
     // Handle moving to the previous month
-    if (currentMonthIndex > 0) {
-      setCurrentMonthIndex(currentMonthIndex - 1);
+    let newIndex = currentMonthIndex - 1;
+    let newYear = currentYear;
+
+    if (newIndex < 0) {
+      newIndex = 11; // December
+      newYear -= 1;
     }
+
+    setCurrentMonthIndex(newIndex);
+    setCurrentYear(newYear);
   };
 
   const handleNextMonth = () => {
     // Handle moving to the next month
-    if (currentMonthIndex < months.length - 1) {
-      setCurrentMonthIndex(currentMonthIndex + 1);
+    let newIndex = currentMonthIndex + 1;
+    let newYear = currentYear;
+
+    if (newIndex > 11) {
+      newIndex = 0; // January
+      newYear += 1;
     }
+
+    setCurrentMonthIndex(newIndex);
+    setCurrentYear(newYear);
   };
 
   const currentMonth = months[currentMonthIndex];
+
   return (
     <View style={styles.container}>
       <View>
@@ -134,12 +149,13 @@ export default function LocalNotaryDateScreen({navigation}) {
               backgroundColor: Colors.white,
               elevation: 20,
               borderRadius: 10,
+              marginHorizontal: widthToDp(2),
             }}>
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'space-between',
               }}>
               <TouchableOpacity onPress={handlePrevMonth}>
                 <Image
@@ -147,7 +163,9 @@ export default function LocalNotaryDateScreen({navigation}) {
                   style={styles.month}
                 />
               </TouchableOpacity>
-              <Text style={styles.monthHead}>{currentMonth}</Text>
+              <Text style={styles.monthHead}>
+                {currentMonth} {currentYear}
+              </Text>
               <TouchableOpacity onPress={handleNextMonth}>
                 <Image
                   source={require('../../../assets/monthRight.png')}
@@ -266,7 +284,7 @@ export default function LocalNotaryDateScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   dateContainer: {

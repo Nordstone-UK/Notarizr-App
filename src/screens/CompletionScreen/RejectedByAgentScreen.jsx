@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(30),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: Colors.TextColor,
     fontSize: 25,
-    fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
   },
 
   buttonContainer: {

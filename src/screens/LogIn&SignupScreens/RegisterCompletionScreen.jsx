@@ -1,21 +1,21 @@
 import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {ITEM_WIDTH, heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function RegisterCompletionScreen({navigation}) {
-  useEffect(() => {
-    // Delay in milliseconds (e.g., 3000ms = 3 seconds)
-    const delay = 3000;
+  // useEffect(() => {
+  //   // Delay in milliseconds (e.g., 3000ms = 3 seconds)
+  //   const delay = 3000;
 
-    const timer = setTimeout(() => {
-      // Navigate to SecondScreen after the specified delay
-      navigation.navigate('HomeScreen');
-    }, delay);
+  //   const timer = setTimeout(() => {
+  //     // Navigate to SecondScreen after the specified delay
+  //     navigation.navigate('HomeScreen');
+  //   }, delay);
 
-    // Clear the timer when the component unmounts
-    return () => clearTimeout(timer);
-  }, [navigation]);
+  //   // Clear the timer when the component unmounts
+  //   return () => clearTimeout(timer);
+  // }, [navigation]);
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -44,24 +44,25 @@ export default function RegisterCompletionScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
     marginTop: heightToDp(30),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
   },
   text: {
-    marginHorizontal: widthToDp(21),
+    marginHorizontal: widthToDp(15),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: 25,
-    fontWeight: '700',
+    fontSize: widthToDp(6),
+    fontFamily: 'Manrope-Bold',
   },
 
   complete: {

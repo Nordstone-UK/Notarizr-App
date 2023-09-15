@@ -5,17 +5,15 @@ import {
   View,
   Platform,
   TouchableOpacity,
+  ImageBackground,
 } from 'react-native';
 import React from 'react';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LinearGradient from 'react-native-linear-gradient';
-import AgentCardPicture from '../AgentCardPicture/AgentCardPicture';
-import MainButton from '../MainGradientButton/MainButton';
-import {useNavigation} from '@react-navigation/native';
+import AgentReviewComponent from '../AgentCard/AgentReviewComponent';
 
-export default function AcceptAgentCard(props) {
-  const navigation = useNavigation();
+export default function AgentReviewCard(props) {
   const address = props?.agentAddress;
   const name = props?.agentName;
 
@@ -55,72 +53,83 @@ export default function AcceptAgentCard(props) {
   }
   return (
     <View style={styles.cardContainer}>
-      <View style={{flexDirection: 'row', marginVertical: heightToDp(2)}}>
+      <View style={{flexDirection: 'row'}}>
         <View>
-          <AgentCardPicture task={props.task} source={props.source} />
-        </View>
-        <View
-          style={{
-            width: widthToDp(50),
-            marginTop: heightToDp(2),
-          }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: heightToDp(2),
-              width: '110%',
-            }}>
-            <View>
-              <Text style={styles.nameHeading}>{props?.agentName}</Text>
-            </View>
-            <TouchableOpacity>
-              <Image source={require('../../../assets/option.png')} />
-            </TouchableOpacity>
+          <View style={{flex: 1}}>
+            <ImageBackground source={props.source} style={styles.cardImage}>
+              <AgentReviewComponent />
+            </ImageBackground>
           </View>
+        </View>
+        <View>
           <View
             style={{
-              flexDirection: 'row',
+              width: widthToDp(50),
+              marginHorizontal: widthToDp(6),
+              marginTop: heightToDp(2),
             }}>
-            <Image source={props.image} />
             <View
               style={{
-                marginLeft: widthToDp(1),
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginTop: heightToDp(2),
+                width: '110%',
               }}>
-              <Text style={styles.address}>{firstPart}</Text>
+              <View>
+                <Text style={styles.nameHeading}>{NameFirstPart}</Text>
+                <Text style={styles.nameHeading}>{NameSecondPart}</Text>
+              </View>
+              <TouchableOpacity>
+                <Image source={require('../../../assets/option.png')} />
+              </TouchableOpacity>
             </View>
-          </View>
-          <View>
-            <Text style={[styles.address, {marginLeft: widthToDp(7)}]}>
-              {secondPart}
-            </Text>
-          </View>
-          <View style={styles.orangeline} />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingTop: heightToDp(5),
-            }}>
-            <Text
-              style={[
-                styles.totalStyles,
-                props.leftSideStyles,
-                {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
-              ]}>
-              {props.bottomRightText}
-            </Text>
-            {props.Button ? (
-              <MainButton
-                Title="Accept"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                styles={{
-                  paddingHorizontal: widthToDp(4),
-                  paddingVertical: widthToDp(2),
-                }}
-                onPress={() => navigation.navigate('AgentBookCompletion')}
-              />
-            ) : null}
+            <View
+              style={{
+                flexDirection: 'row',
+              }}>
+              <Image source={props.image} />
+              <View
+                style={{
+                  marginLeft: widthToDp(1),
+                }}>
+                <Text style={styles.address}>{firstPart}</Text>
+              </View>
+            </View>
+            <View>
+              <Text style={[styles.address, {marginLeft: widthToDp(6)}]}>
+                {secondPart}
+              </Text>
+            </View>
+            <View style={[styles.orangeline, props.orangeLine]} />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                paddingTop: heightToDp(5),
+              }}>
+              <Text
+                style={[
+                  styles.totalStyles,
+                  props.leftSideStyles,
+                  {
+                    fontSize: widthToDp(4.5),
+                    fontFamily: 'Manrope-Regular',
+                  },
+                ]}>
+                {props.bottomLeftText}
+              </Text>
+              <Text
+                style={[
+                  styles.paymentStyle,
+                  props.rightSideStyles,
+                  {
+                    fontSize: widthToDp(4.5),
+                    fontFamily: 'Manrope-Regular',
+                  },
+                ]}>
+                {props.bottomRightText}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -133,44 +142,36 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     elevation: 30,
     borderRadius: 10,
-    marginVertical: widthToDp(2),
     paddingBottom: heightToDp(6),
     marginHorizontal: heightToDp(5),
+  },
+  cardImage: {
+    margin: widthToDp(2),
+    width: '110%',
+    height: '105%',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   nameHeading: {
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Poppins-Bold',
   },
-
   address: {
     color: Colors.TextColor,
     fontSize: widthToDp(3.5),
     fontFamily: 'Poppins-Regular',
   },
-  placestyle: {
-    color: Colors.white,
-    fontSize: widthToDp(3.5),
-    fontFamily: 'Poppins-Regular',
-  },
-  locationStyle: {
-    borderRadius: 20,
-    paddingHorizontal: widthToDp(2),
-    marginHorizontal: widthToDp(0.5),
-    height: heightToDp(6),
-  },
   orangeline: {
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: '130%',
-    right: widthToDp(9),
+    width: '120%',
+    right: widthToDp(4),
     zIndex: -1,
     paddingVertical: heightToDp(2),
   },
   totalStyles: {
     color: Colors.TextColor,
-    fontSize: widthToDp(5),
-    fontFamily: 'Poppins-Regular',
   },
   paymentStyle: {
     color: Colors.TextColor,

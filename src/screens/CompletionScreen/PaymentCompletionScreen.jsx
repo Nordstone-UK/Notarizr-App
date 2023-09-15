@@ -31,8 +31,6 @@ export default function PaymentCompletionScreen(props) {
 
           <Text style={styles.text}>{firstMsg}</Text>
           <Text style={styles.text}>{secondMsg}</Text>
-
-          {/* <Text style={styles.subheading}>THE OPAL GORUP</Text> */}
         </View>
         <Image
           source={require('../../../assets/complete.png')}
@@ -45,13 +43,14 @@ export default function PaymentCompletionScreen(props) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
     marginTop: heightToDp(30),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',

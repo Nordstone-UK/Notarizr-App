@@ -41,20 +41,21 @@ export default function AgentBookCompletion({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
     marginTop: heightToDp(30),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
   },
   text: {
-    // marginHorizontal: widthToDp(18),
     textAlign: 'center',
     color: Colors.TextColor,
     fontSize: 25,

@@ -103,37 +103,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginTop: heightToDp(5),
   },
-  input: {
-    alignSelf: 'center',
-    paddingTop: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    paddingLeft: 0,
-    backgroundColor: '#fff',
-    color: '#424242',
-    marginLeft: widthToDp(3),
-    width: widthToDp(80),
-  },
-  icon: {
-    padding: widthToDp(2),
-    marginTop: widthToDp(3),
-  },
-  conta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1, // Add any additional styling you want for the container
-  },
-  input: {
-    flex: 1, // Take up all available space in the container
-    padding: 8, // Adjust padding as needed
-  },
-  image: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-    position: 'absolute',
-    right: 10, // Adjust the right position as needed
-  },
   textheading: {
     fontSize: widthToDp(6),
     alignSelf: 'center',

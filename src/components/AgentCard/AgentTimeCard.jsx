@@ -11,7 +11,8 @@ export default function AgentTimeCard(props) {
   return (
     <View
       style={{
-        marginTop: widthToDp(10),
+        flex: 1,
+        justifyContent: 'flex-end',
       }}>
       <View
         style={[
@@ -42,15 +43,17 @@ export default function AgentTimeCard(props) {
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
-        <Text style={styles.dateStyle}>12:30</Text>
-        <Text
-          style={[
-            styles.dateStyle,
-            {fontFamily: 'Poppins-Bold', fontSize: widthToDp(6)},
-          ]}>
-          22
-        </Text>
-        <Text style={styles.dateStyle}>Sep</Text>
+        <View>
+          <Text style={styles.dateStyle}>12:30</Text>
+          <Text
+            style={[
+              styles.dateStyle,
+              {fontFamily: 'Poppins-Bold', fontSize: widthToDp(7)},
+            ]}>
+            22
+          </Text>
+          <Text style={styles.dateStyle}>Sep</Text>
+        </View>
       </LinearGradient>
     </View>
   );
@@ -61,11 +64,10 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
     alignItems: 'center',
+    marginVertical: -5,
   },
   ImageProces: {
-    paddingHorizontal: widthToDp(2.7),
     paddingVertical: widthToDp(1),
-    marginTop: heightToDp(10),
   },
   text: {
     alignSelf: 'center',
@@ -76,7 +78,8 @@ const styles = StyleSheet.create({
 
   dateStyle: {
     color: Colors.white,
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(3.5),
     fontFamily: 'Poppins-SemiBold',
+    textAlign: 'center',
   },
 });

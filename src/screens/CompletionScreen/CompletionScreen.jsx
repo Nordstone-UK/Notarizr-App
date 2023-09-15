@@ -31,13 +31,15 @@ export default function CompletionScreen(props) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
     marginTop: heightToDp(15),
   },
   groupimage: {
-    height: '100%',
+    flex: 1,
   },
   icon: {
     alignSelf: 'center',
