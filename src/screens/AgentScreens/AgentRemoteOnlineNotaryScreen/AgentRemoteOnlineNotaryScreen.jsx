@@ -2,8 +2,8 @@ import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import TypesofServiceButton from '../../../components/TypesofServiceButton/TypesofServiceButton';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
+import Colors from '../../../themes/Colors';
 
 export default function AgentRemoteOnlineNotaryScreen({navigation}) {
   return (
