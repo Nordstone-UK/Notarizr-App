@@ -58,8 +58,14 @@ export default function LabelTextInput(props) {
           </TouchableOpacity>
         )}
       </View>
-      {isFocused && props.LabelTextInput ? (
-        <Text style={[isFocused && styles.labelFocused, props.labelStyle]}>
+      {(isFocused && props.LabelTextInput) || props.Label || false ? (
+        <Text
+          style={[
+            (isFocused && styles.labelFocused) ||
+              (props.Label && styles.labelFocused) ||
+              false,
+            props.labelStyle,
+          ]}>
           {props.LabelTextInput}
         </Text>
       ) : null}

@@ -65,6 +65,9 @@ import AgentMobileNotarySummaryScreen from '../AgentScreens/AgentMobileNotartScr
 import AgentSessionInviteScreen from '../AgentScreens/AgentSessionInviteScreen/AgentSessionInviteScreen';
 import AgentRemoteOnlineNotaryScreen from '../AgentScreens/AgentRemoteOnlineNotaryScreen/AgentRemoteOnlineNotaryScreen';
 import AgentAvailabilitySetupScreen from '../AgentScreens/AgentAvailabilitySetupScreen/AgentAvailabilitySetupScreen';
+import ProfilePreferenceCompletion from '../CompletionScreen/ProfilePreferenceCompletion';
+import ModalCheck from '../../../ModalCheck';
+import AgentServicePereference from '../AgentScreens/AgentServicePerference/AgentServicePerference';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -92,10 +95,11 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="AgentAvailabilitySetupScreen"
+        initialRouteName="AgentServicePereference"
         screenOptions={{
           headerShown: false,
         }}>
+        <Stack.Screen name="ModalCheck" component={ModalCheck} />
         <Stack.Screen name="OnboardingScreen1" component={OnboardingScreen1} />
         <Stack.Screen name="OnboardingScreen2" component={OnboardingScreen2} />
         <Stack.Screen name="OnboardingScreen3" component={OnboardingScreen3} />
@@ -277,6 +281,14 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentAvailabilitySetupScreen"
           component={AgentAvailabilitySetupScreen}
+        />
+        <Stack.Screen
+          name="ProfilePreferenceCompletion"
+          component={ProfilePreferenceCompletion}
+        />
+        <Stack.Screen
+          name="AgentServicePereference"
+          component={AgentServicePereference}
         />
       </Stack.Navigator>
     </NavigationContainer>
