@@ -4,9 +4,9 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
@@ -14,10 +14,34 @@ import DocumentComponent from '../../../components/DocumentComponent/DocumentCom
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import MainButton from '../../../components/MainGradientButton/MainButton';
+import moment from 'moment-timezone';
+import {Picker} from '@react-native-picker/picker';
+import DocumentPicker, {types} from 'react-native-document-picker';
+import GradientButton from '../../../components/MainGradientButton/GradientButton';
 
 export default function AgentSessionInviteScreen() {
   const [selected, setSelected] = useState('Allow user to choose');
   const [session, setSession] = useState('Let Signer Choose');
+  const [selectedTimezone, setSelectedTimezone] = useState(''); // Default value
+  const timezoneOptions = moment.tz.names();
+  const handleTimezoneSelect = timezone => {
+    setSelectedTimezone(timezone);
+  };
+
+  const [fileResponse, setFileResponse] = useState([]);
+
+  const handleDocumentSelection = useCallback(async () => {
+    try {
+      const response = await DocumentPicker.pick({
+        presentationStyle: 'fullScreen',
+        type: [types.pdf],
+        allowMultiSelection: true,
+      });
+      setFileResponse(response);
+    } catch (err) {
+      console.warn(err);
+    }
+  }, []);
   return (
     <View style={styles.container}>
       <AgentHomeHeader Switch={true} />
@@ -174,6 +198,48 @@ export default function AgentSessionInviteScreen() {
             placeholder="Enter here"
             leftImageSoucre={require('../../../../assets/calenderIcon.png')}
           />
+          <View style={styles.picker}>
+            <Picker
+              selectedValue={selectedTimezone}
+              onValueChange={handleTimezoneSelect}>
+              <Picker.Item
+                label="Select a timezone"
+                color={Colors.DullTextColor}
+              />
+              {timezoneOptions.map((timezone, index) => (
+                <Picker.Item
+                  key={index}
+                  label={timezone}
+                  value={timezone}
+                  color={Colors.DullTextColor}
+                />
+              ))}
+            </Picker>
+          </View>
+          <View style={styles.headingContainer}>
+            <Text style={styles.Heading}>Document</Text>
+            <TouchableOpacity
+              style={styles.dottedContianer}
+              onPress={handleDocumentSelection}>
+              <Image source={require('../../../../assets/upload.png')} />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  columnGap: widthToDp(2),
+                  alignItems: 'center',
+                }}>
+                <Text style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
+                  Upload
+                </Text>
+                <Image source={require('../../../../assets/uploadIcon.png')} />
+              </View>
+              <Text>Upload your File here...</Text>
+            </TouchableOpacity>
+          </View>
+          <GradientButton
+            Title="Send Invitation"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          />
         </ScrollView>
       </BottomSheetStyle>
     </View>
@@ -189,6 +255,13 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontSize: widthToDp(5),
     fontFamily: 'Manrope-SemiBold',
+  },
+  picker: {
+    borderWidth: 2,
+    borderColor: Colors.DisableColor,
+    width: widthToDp(90),
+    marginHorizontal: widthToDp(5),
+    borderRadius: 15,
   },
   Heading: {
     color: Colors.TextColor,
@@ -271,5 +344,16 @@ const styles = StyleSheet.create({
     width: widthToDp(90),
     alignSelf: 'center',
     marginVertical: widthToDp(5),
+  },
+  dottedContianer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    borderColor: Colors.DisableColor,
+    borderRadius: 5,
+    marginVertical: heightToDp(3),
+    paddingVertical: heightToDp(2),
+    width: widthToDp(80),
   },
 });
