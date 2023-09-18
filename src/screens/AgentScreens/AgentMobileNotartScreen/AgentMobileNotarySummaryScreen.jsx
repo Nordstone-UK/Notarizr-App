@@ -7,41 +7,61 @@ import {
   useColorScheme,
 } from 'react-native';
 import React, {useState} from 'react';
-
-import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import MainButton from '../../../components/MainGradientButton/MainButton';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import Colors from '../../../themes/Colors';
-import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
+import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
+import MainButton from '../../../components/MainGradientButton/MainButton';
+import GradientButton from '../../../components/MainGradientButton/GradientButton';
+import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
+import NavigationPaymentHeader from '../../../components/NavigationPaymentHeader/NavigationPaymentHeader';
 
-export default function ClientBookingScreen() {
+export default function AgentMobileNotarySummaryScreen() {
+  const [notes, setNotes] = useState(false);
   return (
     <View style={styles.container}>
-      <AgentHomeHeader Switch={true} />
+      <NavigationPaymentHeader
+        Title="Booking"
+        midImg={require('../../../../assets/greenIcon.png')}
+        Payment={true}
+      />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView scrollEnabled={true}>
+        <ScrollView
+          scrollEnabled={true}
+          contentContainerStyle={{paddingVertical: heightToDp(5)}}>
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>Client details</Text>
+            <View style={[styles.iconContainer, {width: widthToDp(35)}]}>
+              <Image
+                source={require('../../../../assets/greenIcon.png')}
+                style={{resizeMode: 'contain'}}
+              />
+
+              <Text style={styles.lightHeading}>Completed</Text>
+            </View>
           </View>
-          <ClientServiceCard
-            image={require('../../../../assets/agentLocation.png')}
-            source={require('../../../../assets/maleAgentPic.png')}
-            bottomLeftText="$400"
-            agentName={'Bunny Joel'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            task="Mobile"
-            OrangeText="At Home"
-            Work={true}
-            WorkStatus="Completed"
-          />
+          <View style={styles.flexContainer}>
+            <Image
+              source={require('../../../../assets/clientIcon.png')}
+              style={{resizeMode: 'contain'}}
+            />
+            <Text
+              style={[
+                styles.Heading,
+                {marginHorizontal: widthToDp(5), fontSize: widthToDp(4.5)},
+              ]}>
+              Bunny Joel
+            </Text>
+          </View>
           <View style={styles.sheetContainer}>
-            <Text style={styles.insideHeading}>Booking Preferences</Text>
+            <Text
+              style={[styles.insideHeading, {marginHorizontal: widthToDp(5)}]}>
+              Booking Preferences
+            </Text>
             <View style={styles.addressView}>
               <Image
                 source={require('../../../../assets/locationIcon.png')}
@@ -68,42 +88,23 @@ export default function ClientBookingScreen() {
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
+            <Text
+              style={[styles.insideHeading, {marginHorizontal: widthToDp(5)}]}>
+              Agent Summary
+            </Text>
+            <Text style={styles.preference}>Notes:</Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences
+            </Text>
           </View>
           <DocumentComponent image={require('../../../../assets/Pdf.png')} />
           <DocumentComponent image={require('../../../../assets/doc.png')} />
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'flex-end',
-            }}>
-            <View style={styles.buttonFlex}>
-              <MainButton
-                Title="Accept"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  paddingHorizontal: widthToDp(8),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(8),
-                  paddingVertical: widthToDp(3),
-                  fontSize: widthToDp(4),
-                }}
-              />
-              <MainButton
-                Title="Reject"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  paddingHorizontal: widthToDp(8),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(8),
-                  paddingVertical: widthToDp(3),
-
-                  fontSize: widthToDp(4),
-                }}
-              />
-            </View>
-          </View>
         </ScrollView>
       </BottomSheetStyle>
     </View>
@@ -134,7 +135,6 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
-    marginHorizontal: widthToDp(5),
   },
   insideContainer: {
     flex: 1,
@@ -142,9 +142,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: heightToDp(2),
+    marginHorizontal: widthToDp(5),
+  },
+  flexContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: heightToDp(2),
+    marginHorizontal: widthToDp(5),
   },
   iconContainer: {
     alignContent: 'center',
+    justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -158,7 +167,6 @@ const styles = StyleSheet.create({
     width: widthToDp(5),
     height: heightToDp(5),
   },
-
   preference: {
     marginLeft: widthToDp(4),
     marginVertical: widthToDp(1),
@@ -171,7 +179,6 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
   },
-
   sheetContainer: {},
   locationImage: {
     tintColor: Colors.DullTextColor,
@@ -181,11 +188,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: widthToDp(4),
   },
+  buttonBottom: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginBottom: heightToDp(5),
+  },
   buttonFlex: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    marginTop: heightToDp(2),
-    marginBottom: heightToDp(2),
+    justifyContent: 'space-between',
+    width: widthToDp(90),
+    alignSelf: 'center',
+    marginVertical: widthToDp(5),
   },
 });

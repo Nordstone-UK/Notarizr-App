@@ -4,7 +4,7 @@ import Colors from '../../themes/Colors';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import {useNavigation} from '@react-navigation/native';
 
-export default function NavigationHeader(props) {
+export default function NavigationPaymentHeader(props) {
   const navigation = useNavigation();
 
   return (
@@ -27,17 +27,22 @@ export default function NavigationHeader(props) {
         ]}>
         <Text style={styles.naveheader}>{props?.Title}</Text>
         <View style={styles.iconContainer}>
-          {props.midImg && (
+          {props.Payment || false ? (
             <Image
-              source={props.midImg}
-              style={{marginRight: widthToDp(8), marginLeft: widthToDp(5)}}
+              source={require('../../../assets/greenIcon.png')}
+              style={{marginRight: widthToDp(3)}}
+            />
+          ) : (
+            <Image
+              source={require('../../../assets/pending.png')}
+              style={{marginRight: widthToDp(3)}}
             />
           )}
-          {props.lastImg && (
-            <Image
-              source={props.lastImg}
-              style={{tintColor: Colors.TextColor}}
-            />
+
+          {props.Payment || false ? (
+            <Text style={styles.naveheader}>Payment Done</Text>
+          ) : (
+            <Text style={styles.naveheader}>Payment Pending</Text>
           )}
         </View>
       </View>

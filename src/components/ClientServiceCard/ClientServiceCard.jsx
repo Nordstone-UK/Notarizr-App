@@ -85,7 +85,7 @@ export default function ClientServiceCard(props) {
               flexDirection: 'row',
               justifyContent: 'space-between',
               marginTop: heightToDp(2),
-              width: '120%',
+              width: widthToDp(60),
             }}>
             <View>
               <Text style={styles.nameHeading}>{props?.agentName}</Text>
@@ -125,19 +125,18 @@ export default function ClientServiceCard(props) {
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                width: '110%',
+                width: widthToDp(55),
                 marginLeft: heightToDp(1),
               }}>
-              <Text style={styles.address}>0.5 Miles</Text>
-              <Text style={styles.address}>30 Minutes</Text>
+              <Text style={styles.distanceStyles}>0.5 Miles</Text>
+              <Text style={styles.distanceStyles}>30 Minutes</Text>
             </View>
           )}
           <View style={styles.orangeline} />
           <View
             style={{
               flexDirection: 'row',
-              width: '110%',
-
+              width: widthToDp(55),
               justifyContent: 'space-between',
               margin: heightToDp(2),
               marginTop: heightToDp(4),
@@ -165,7 +164,7 @@ export default function ClientServiceCard(props) {
                   )}
                   <Text
                     style={[
-                      styles.address,
+                      styles.distanceStyles,
                       {
                         fontSize: widthToDp(4.5),
                         marginHorizontal: widthToDp(2),
@@ -234,6 +233,11 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(3.5),
     fontFamily: 'Poppins-Regular',
   },
+  distanceStyles: {
+    color: Colors.TextColor,
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Manrope-Regular',
+  },
   placestyle: {
     color: Colors.white,
     fontSize: widthToDp(3.5),
@@ -248,7 +252,7 @@ const styles = StyleSheet.create({
   orangeline: {
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: '130%',
+    width: widthToDp(65),
     right: widthToDp(4),
     zIndex: -1,
     paddingVertical: heightToDp(1),

@@ -13,6 +13,7 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import Colors from '../../themes/Colors';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function LabelTextInput(props) {
   const [isFocused, setIsFocused] = useState(false);
@@ -32,7 +33,7 @@ export default function LabelTextInput(props) {
         style={[
           styles.inputContainer,
           isFocused && styles.InputFocused,
-          styles.AdjustWidth,
+          props.AdjustWidth,
         ]}>
         {props.leftImageSoucre && (
           <Image source={props.leftImageSoucre} style={styles.iconLeft} />
@@ -58,13 +59,8 @@ export default function LabelTextInput(props) {
         )}
       </View>
       {isFocused && props.LabelTextInput ? (
-        <Text
-          style={[
-            styles.label,
-            isFocused && styles.labelFocused,
-            props.labelStyle,
-          ]}>
-          {props.LabelTextInput || null}
+        <Text style={[isFocused && styles.labelFocused, props.labelStyle]}>
+          {props.LabelTextInput}
         </Text>
       ) : null}
     </View>
@@ -93,9 +89,6 @@ const styles = StyleSheet.create({
     tintColor: '#D3D5DA',
   },
 
-  label: {
-    fontSize: 16,
-  },
   labelFocused: {
     position: 'absolute',
     left: widthToDp(15),

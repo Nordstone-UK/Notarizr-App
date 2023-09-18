@@ -22,6 +22,7 @@ export default function AgentAllBookingScreen({navigation}) {
       <AgentHomeHeader
         Title="One Click and Select our services."
         SearchEnabled={true}
+        Switch={true}
       />
       <BottomSheetStyle>
         <ScrollView

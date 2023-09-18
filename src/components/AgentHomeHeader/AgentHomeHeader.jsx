@@ -18,13 +18,15 @@ export default function AgentHomeHeader(props) {
           <Text style={[styles.textHeading, props.HeaderStyle]}>
             Mary Smith
           </Text>
-          <Switch
-            trackColor={{false: '#767577', true: Colors.GreenSwitch}}
-            thumbColor={isEnabled ? Colors.white : '#f4f3f4'}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={toggleSwitch}
-            value={isEnabled}
-          />
+          {props?.Switch && (
+            <Switch
+              trackColor={{false: '#767577', true: Colors.GreenSwitch}}
+              thumbColor={isEnabled ? Colors.white : '#f4f3f4'}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={toggleSwitch}
+              value={isEnabled}
+            />
+          )}
         </View>
         <View style={styles.IconFlex}>
           <Image

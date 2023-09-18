@@ -24,7 +24,7 @@ export default function AgentHomeScreen({navigation}) {
   };
   return (
     <View style={styles.container}>
-      <AgentHomeHeader Title="Explore your opportunities here." />
+      <AgentHomeHeader Title="Explore your opportunities here." Switch={true} />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}

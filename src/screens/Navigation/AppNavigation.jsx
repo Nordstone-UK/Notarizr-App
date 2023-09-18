@@ -54,6 +54,15 @@ import AgentHomeScreen from '../AgentScreens/AgentHomeScreen/AgentHomeScreen';
 import AgentCompletedBooking from '../AgentScreens/AgentBookingDetails/AgentCompletedBooking';
 import AgentAllBookingScreen from '../AgentScreens/AgentAllBookingScreen/AgentAllBookingScreen';
 import ClientBookingScreen from '../AgentScreens/ClientBookingScreen/ClientBookingScreen';
+import AgentMainBookingScreen from '../AgentScreens/AgentMainBookingScreen/AgentMainBookingScreen';
+import AgentMainAvailabilityScreen from '../AgentScreens/AgentAvailabilityScreen/AgentAvailabilityScreen';
+import AgentLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentLocationScreen';
+import BookingAcceptedScreen from '../CompletionScreen/BookingAcceptedScreen';
+import AgentMobileNotaryStartScreen from '../AgentScreens/AgentMobileNotartScreen/AgentMobileNotaryStartScreen';
+import AgentMobileNotaryDocScreen from '../AgentScreens/AgentMobileNotartScreen/AgentMobileNotaryDocScreen';
+import AgentBookingComplete from '../CompletionScreen/AgentBookingComplete';
+import AgentMobileNotarySummaryScreen from '../AgentScreens/AgentMobileNotartScreen/AgentMobileNotarySummaryScreen';
+import AgentSessionInviteScreen from '../AgentScreens/AgentSessionInviteScreen/AgentSessionInviteScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -81,7 +90,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="AgentAllBookingScreen"
+        initialRouteName="AgentSessionInviteScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -212,6 +221,10 @@ export default function AppNavigation() {
         <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
         <Stack.Screen name="AgentHomeScreen" component={AgentHomeScreen} />
         <Stack.Screen
+          name="AgentMainBookingScreen"
+          component={AgentMainBookingScreen}
+        />
+        <Stack.Screen
           name="ClientBookingScreen"
           component={ClientBookingScreen}
         />
@@ -222,6 +235,38 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentCompletedBooking"
           component={AgentCompletedBooking}
+        />
+        <Stack.Screen
+          name="AgentMainAvailabilityScreen"
+          component={AgentMainAvailabilityScreen}
+        />
+        <Stack.Screen
+          name="AgentLocationScreen"
+          component={AgentLocationScreen}
+        />
+        <Stack.Screen
+          name="BookingAcceptedScreen"
+          component={BookingAcceptedScreen}
+        />
+        <Stack.Screen
+          name="AgentMobileNotaryStartScreen"
+          component={AgentMobileNotaryStartScreen}
+        />
+        <Stack.Screen
+          name="AgentMobileNotaryDocScreen"
+          component={AgentMobileNotaryDocScreen}
+        />
+        <Stack.Screen
+          name="AgentBookingComplete"
+          component={AgentBookingComplete}
+        />
+        <Stack.Screen
+          name="AgentMobileNotarySummaryScreen"
+          component={AgentMobileNotarySummaryScreen}
+        />
+        <Stack.Screen
+          name="AgentSessionInviteScreen"
+          component={AgentSessionInviteScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -16,7 +16,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: widthToDp(2),
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   bottonSheetBar: {
     borderRadius: 25,

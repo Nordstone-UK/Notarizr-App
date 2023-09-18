@@ -16,7 +16,11 @@ import ClientServiceCard from '../../../components/ClientServiceCard/ClientServi
 export default function AgentCompletedBooking({navigation}) {
   return (
     <View style={styles.container}>
-      <AgentHomeHeader Title="Booking Details" SearchEnabled={true} />
+      <AgentHomeHeader
+        Title="Booking Details"
+        SearchEnabled={true}
+        Switch={true}
+      />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
