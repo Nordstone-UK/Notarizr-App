@@ -64,6 +64,7 @@ import AgentBookingComplete from '../CompletionScreen/AgentBookingComplete';
 import AgentMobileNotarySummaryScreen from '../AgentScreens/AgentMobileNotartScreen/AgentMobileNotarySummaryScreen';
 import AgentSessionInviteScreen from '../AgentScreens/AgentSessionInviteScreen/AgentSessionInviteScreen';
 import AgentRemoteOnlineNotaryScreen from '../AgentScreens/AgentRemoteOnlineNotaryScreen/AgentRemoteOnlineNotaryScreen';
+import AgentAvailabilitySetupScreen from '../AgentScreens/AgentAvailabilitySetupScreen/AgentAvailabilitySetupScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -91,7 +92,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="AgentRemoteOnlineNotaryScreen"
+        initialRouteName="AgentAvailabilitySetupScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -272,6 +273,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentRemoteOnlineNotaryScreen"
           component={AgentRemoteOnlineNotaryScreen}
+        />
+        <Stack.Screen
+          name="AgentAvailabilitySetupScreen"
+          component={AgentAvailabilitySetupScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

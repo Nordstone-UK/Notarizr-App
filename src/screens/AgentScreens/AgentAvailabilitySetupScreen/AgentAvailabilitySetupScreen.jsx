@@ -1,12 +1,11 @@
 import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import TypesofServiceButton from '../../../components/TypesofServiceButton/TypesofServiceButton';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import Colors from '../../../themes/Colors';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 
-export default function AgentRemoteOnlineNotaryScreen({navigation}) {
+export default function AgentAvailabilitySetupScreen({navigation}) {
   return (
     <View style={styles.container}>
       <AgentHomeHeader Switch={true} />
@@ -19,20 +18,8 @@ export default function AgentRemoteOnlineNotaryScreen({navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <Text style={styles.insideHeading}>
-            Please choose the mode of service you wish to avail
+            Please provide us with your availability
           </Text>
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.Pink}}
-            Title="Create a session"
-            Image={require('../../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('NearbyLoadingScreen')}
-          />
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.LightBlue}}
-            Title="Enter Availability"
-            Image={require('../../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('SessionScreen')}
-          />
         </ScrollView>
       </BottomSheetStyle>
     </View>
