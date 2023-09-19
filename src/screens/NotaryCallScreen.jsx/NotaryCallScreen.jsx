@@ -11,10 +11,24 @@ import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {Slider} from '@miblanchard/react-native-slider';
+import {Picker} from '@react-native-picker/picker';
 
 export default function NotaryCallScreen() {
-  const [selected, setSelected] = useState('waiting room');
+  const [selected, setSelected] = useState('notary room');
   const [screen, setscreen] = useState(true);
+  const [value, setValue] = useState(50);
+  const [selectedDocument, setSelectDocument] = useState('');
+  const handleTimezoneSelect = doc => {
+    setSelectDocument(doc);
+  };
+  const displayValue = () => {
+    return (
+      <Text style={[styles.sessionDesc, {color: Colors.Orange}]}>
+        {Math.floor(value)}%
+      </Text>
+    );
+  };
   return (
     <View style={styles.container}>
       <View style={styles.NavbarContainer}>
@@ -109,8 +123,53 @@ export default function NotaryCallScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.textSession}>Session Starting soon...</Text>
+        <View
+          style={[
+            styles.flexContainer,
+            {
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginHorizontal: widthToDp(5),
+            },
+          ]}>
+          <Text style={styles.sessionDesc}>0%</Text>
 
+          <View style={styles.slideContainer}>
+            <Slider
+              value={value}
+              onValueChange={value => setValue(value)}
+              animateTransitions={true}
+              maximumValue={100}
+              minimumValue={20}
+              thumbStyle={{backgroundColor: Colors.OrangeGradientStart}}
+              thumbImage={require('../../../assets/thumb.png')}
+              trackStyle={{height: heightToDp(3), borderRadius: 5}}
+              minimumTrackStyle={{backgroundColor: Colors.Orange}}
+              maximumTrackStyle={{backgroundColor: Colors.DisableColor}}
+              trackClickable={true}
+              renderBelowThumbComponent={displayValue}
+            />
+          </View>
+          <Text style={styles.sessionDesc}>100%</Text>
+        </View>
+        <Text style={styles.textSession}>Document</Text>
+        <View style={styles.picker}>
+          <Picker
+            selectedValue={selectedDocument}
+            onValueChange={handleTimezoneSelect}>
+            <Picker.Item
+              label="Select a document"
+              color={Colors.DullTextColor}
+            />
+            <Picker.Item label="Document 1" color={Colors.DullTextColor} />
+            <Picker.Item label="Document 2" color={Colors.DullTextColor} />
+            <Picker.Item label="Document 3" color={Colors.DullTextColor} />
+          </Picker>
+        </View>
+        <Image
+          source={require('../../../assets/image.png')}
+          style={{alignSelf: 'center'}}
+        />
         <View style={styles.btnContainer}>
           <GradientButton
             Title="Leave Room"
@@ -151,6 +210,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
   },
+  picker: {
+    borderWidth: 2,
+    borderColor: Colors.DisableColor,
+    width: widthToDp(90),
+    marginHorizontal: widthToDp(5),
+    borderRadius: 15,
+  },
   NavTextContainer: {
     marginLeft: widthToDp(5),
   },
@@ -179,20 +245,15 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   textSession: {
-    color: Colors.Orange,
-    alignSelf: 'center',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(5),
     marginTop: heightToDp(10),
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
   },
   sessionDesc: {
-    color: Colors.DullTextColor,
-    alignSelf: 'center',
-    textAlign: 'center',
-    marginTop: heightToDp(5),
-    fontSize: widthToDp(3.5),
-    width: widthToDp(80),
-    fontFamily: 'Manrope-Regular',
+    color: Colors.TextColor,
+    fontFamily: 'Manrope-Bold',
   },
   btnContainer: {
     marginVertical: widthToDp(5),
@@ -204,5 +265,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     marginVertical: heightToDp(5),
+  },
+  slideContainer: {
+    flex: 1,
+    marginHorizontal: widthToDp(5),
+    alignItems: 'stretch',
+    justifyContent: 'center',
   },
 });
