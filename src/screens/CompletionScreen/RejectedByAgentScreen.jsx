@@ -4,7 +4,7 @@ import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function RejectedByAgentScreen(props) {
+export default function RejectedByAgentScreen({navigation}, props) {
   return (
     <View style={styles.container}>
       <View style={styles.completeIcon}>
@@ -21,6 +21,7 @@ export default function RejectedByAgentScreen(props) {
         <GradientButton
           Title="Create Booking"
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          onPress={() => navigation.navigate('HomeScreen')}
         />
       </View>
     </View>
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(30),
+    marginTop: heightToDp(20),
   },
   groupimage: {
     flex: 1,
@@ -46,13 +47,11 @@ const styles = StyleSheet.create({
     marginHorizontal: widthToDp(10),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: 25,
+    fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
   },
 
   buttonContainer: {
-    marginBottom: heightToDp(5),
-    flex: 1,
-    justifyContent: 'flex-end',
+    marginVertical: heightToDp(5),
   },
 });

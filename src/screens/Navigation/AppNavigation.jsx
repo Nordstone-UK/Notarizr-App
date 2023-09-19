@@ -72,6 +72,7 @@ import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificatio
 import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
 import CategoryDetailScreen from '../CategoryDetailScreen/CategoryDetailScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
+import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -146,6 +147,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="MedicalBookingScreen"
           component={MedicalBookingScreen}
+        />
+        <Stack.Screen
+          name="CancelledBookingScreen"
+          component={CancelledBookingScreen}
         />
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />

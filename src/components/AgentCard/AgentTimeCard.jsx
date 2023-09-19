@@ -20,7 +20,7 @@ export default function AgentTimeCard(props) {
           props.task && {
             backgroundColor: Colors.CardProcessColor,
           },
-          props.task === 'On Process' && {
+          props.task === 'In Process' && {
             backgroundColor: Colors.CardProcessColor,
           },
           props.task === 'Online' && {

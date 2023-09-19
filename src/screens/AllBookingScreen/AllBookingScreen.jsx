@@ -138,6 +138,30 @@ export default function AllBookingScreen({navigation}) {
               bottomLeftText="0.5 Miles"
               agentName={'Advocate Parimal M. Trivedi'}
               agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Pending"
+              onPress={() =>
+                navigation.navigate('CancelledBookingScreen', {
+                  buttonText: 'Choose Another Agent',
+                  Status: 'Cancelled',
+                })
+              }
+            />
+          )}
+          {isFocused === 'Active' && (
+            <AgentReviewCard
+              image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
+              bottomRightText="30 minutes"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Pending"
+              onPress={() =>
+                navigation.navigate('CancelledBookingScreen', {
+                  buttonText: 'Cancel Booking',
+                  Status: 'Pending',
+                })
+              }
             />
           )}
 

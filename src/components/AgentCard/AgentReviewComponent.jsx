@@ -4,13 +4,38 @@ import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function AgentReviewComponent() {
+export default function AgentReviewComponent(props) {
   return (
     <View
       style={{
         flex: 1,
         justifyContent: 'flex-end',
       }}>
+      <View
+        style={[
+          styles.ImageProces,
+          props.task && {
+            backgroundColor: Colors.CardProcessColor,
+          },
+          props.task === 'In Process' && {
+            backgroundColor: Colors.CardProcessColor,
+          },
+          props.task === 'Online' && {
+            backgroundColor: Colors.DarkPink,
+          },
+          props.task === 'Completed' && {
+            backgroundColor: Colors.Green,
+          },
+          props.task === 'Rejected' && {
+            backgroundColor: Colors.Red,
+          },
+          props.task === 'Pending' && {
+            backgroundColor: Colors.Orange,
+          },
+        ]}>
+        <Text style={styles.text}>{props.task}</Text>
+      </View>
+
       <LinearGradient
         style={styles.dateContainer}
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -44,6 +69,15 @@ const styles = StyleSheet.create({
   rating: {
     color: Colors.white,
     fontFamily: 'Poppins-Light',
+    fontSize: widthToDp(3.5),
+  },
+  ImageProces: {
+    paddingVertical: widthToDp(1),
+  },
+  text: {
+    alignSelf: 'center',
+    color: '#fff',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: widthToDp(3.5),
   },
 });

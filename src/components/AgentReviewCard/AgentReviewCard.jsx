@@ -56,7 +56,7 @@ export default function AgentReviewCard(props) {
         <View>
           <View style={{flex: 1}}>
             <ImageBackground source={props.source} style={styles.cardImage}>
-              <AgentReviewComponent />
+              <AgentReviewComponent task={props.task} />
             </ImageBackground>
           </View>
         </View>
@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingBottom: heightToDp(6),
     marginHorizontal: heightToDp(5),
+    marginVertical: heightToDp(2),
   },
   cardImage: {
     margin: widthToDp(2),
