@@ -100,7 +100,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="HomeScreen"
+        initialRouteName="AgentMainAvailabilityScreen"
         screenOptions={{
           headerShown: false,
         }}>

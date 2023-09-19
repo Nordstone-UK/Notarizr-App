@@ -8,8 +8,11 @@ import Colors from '../../../themes/Colors';
 import MainBookingScreen from '../../MainBookingScreen/MainBookingScreen';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
+import {Calendar} from 'react-native-calendars';
 
 export default function AgentMainAvailabilityScreen({route, navigation}) {
+  const [selected, setSelected] = useState('');
+
   return (
     <View style={styles.container}>
       <AgentHomeHeader />
@@ -23,6 +26,23 @@ export default function AgentMainAvailabilityScreen({route, navigation}) {
           <Text style={styles.insideHeading}>
             Please provide us with your availability
           </Text>
+          <Calendar
+            onDayPress={day => {
+              setSelected(day.dateString);
+            }}
+            markedDates={{
+              [selected]: {
+                selected: true,
+                disableTouchEvent: true,
+                selectedDotColor: 'orange',
+              },
+            }}
+            theme={{
+              selectedDayBackgroundColor: Colors.Orange,
+              todayTextColor: Colors.Orange,
+              textSectionTitleColor: '#000',
+            }}
+          />
           <View style={styles.buttonFlex}>
             <LabelTextInput
               leftImageSoucre={require('../../../../assets/clockIcon.png')}
@@ -30,13 +50,18 @@ export default function AgentMainAvailabilityScreen({route, navigation}) {
               InputStyles={{
                 padding: widthToDp(2),
               }}
+              Label={true}
               keyboardType={'numeric'}
-              AdjustWidth={{width: widthToDp(40)}}
+              AdjustWidth={{
+                width: widthToDp(40),
+                borderColor: Colors.DisableColor,
+              }}
               labelStyle={{
                 position: 'absolute',
                 left: widthToDp(5),
                 top: widthToDp(-3),
                 fontSize: widthToDp(3.5),
+                color: Colors.TextColor,
               }}
             />
             <LabelTextInput
@@ -45,46 +70,51 @@ export default function AgentMainAvailabilityScreen({route, navigation}) {
               InputStyles={{
                 padding: widthToDp(2),
               }}
-              AdjustWidth={{width: widthToDp(40)}}
+              Label={true}
+              AdjustWidth={{
+                width: widthToDp(40),
+                borderColor: Colors.DisableColor,
+              }}
               labelStyle={{
                 position: 'absolute',
                 left: widthToDp(5),
                 top: widthToDp(-3),
                 fontSize: widthToDp(3.5),
+                color: Colors.TextColor,
               }}
             />
+          </View>
+          <View style={styles.bottomFlex}>
+            <View style={styles.buttonFlex}>
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Back"
+                styles={{
+                  padding: heightToDp(1),
+                  fontSize: widthToDp(4),
+                }}
+                GradiStyles={{
+                  paddingHorizontal: widthToDp(12),
+                  paddingVertical: heightToDp(1.5),
+                  borderRadius: 5,
+                }}
+              />
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Next"
+                styles={{
+                  padding: heightToDp(1),
+                  fontSize: widthToDp(4),
+                }}
+                GradiStyles={{
+                  paddingHorizontal: widthToDp(12),
+                  paddingVertical: heightToDp(1.5),
+                  borderRadius: 5,
+                }}
+              />
+            </View>
           </View>
         </ScrollView>
-        <View style={styles.bottomFlex}>
-          <View style={styles.buttonFlex}>
-            <MainButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Back"
-              styles={{
-                padding: heightToDp(1),
-                fontSize: widthToDp(4),
-              }}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(12),
-                paddingVertical: heightToDp(1.5),
-                borderRadius: 5,
-              }}
-            />
-            <MainButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Next"
-              styles={{
-                padding: heightToDp(1),
-                fontSize: widthToDp(4),
-              }}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(12),
-                paddingVertical: heightToDp(1.5),
-                borderRadius: 5,
-              }}
-            />
-          </View>
-        </View>
       </BottomSheetStyle>
     </View>
   );
@@ -121,8 +151,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   bottomFlex: {
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
-    marginBottom: heightToDp(5),
+    marginVertical: heightToDp(5),
   },
 });
