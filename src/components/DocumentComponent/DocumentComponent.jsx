@@ -8,7 +8,7 @@ export default function DocumentComponent(props) {
     <View style={styles.container}>
       <View style={styles.contain}>
         <Image source={props.image} />
-        <Text style={styles.text}>Medical Component</Text>
+        <Text style={styles.text}>{props.Title || 'Medical Component'}</Text>
       </View>
       <Image source={require('../../../assets/trash.png')} />
     </View>

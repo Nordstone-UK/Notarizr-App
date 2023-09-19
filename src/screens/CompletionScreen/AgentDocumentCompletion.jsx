@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function AgentBookingComplete({navigation}) {
+export default function AgentDocumentCompletion({navigation}) {
   //   useEffect(() => {
   //     const delay = 3000;
 
@@ -25,7 +25,8 @@ export default function AgentBookingComplete({navigation}) {
           />
 
           <Text style={styles.text}>
-            Congratulations,{'\n'} the booking is complete
+            Congratulations,{'\n'} for creating your account, we will review
+            your documents and update your registration status
           </Text>
         </View>
         <Image
@@ -43,14 +44,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(25),
+    marginTop: heightToDp(20),
   },
   groupimage: {
     flex: 1,
   },
   icon: {
     alignSelf: 'center',
-    marginVertical: heightToDp(2),
     width: widthToDp(50),
     height: widthToDp(50),
     resizeMode: 'contain',
@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
   text: {
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: widthToDp(7),
+    fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
   },
 
   complete: {
+    // borderWidth: 1,
     alignSelf: 'flex-end',
-    width: widthToDp(75),
-    height: widthToDp(75),
+    width: widthToDp(70),
     resizeMode: 'contain',
     flex: 1,
     justifyContent: 'flex-end',

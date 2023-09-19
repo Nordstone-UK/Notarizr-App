@@ -66,9 +66,9 @@ const styles = StyleSheet.create({
   complete: {
     alignSelf: 'flex-end',
     width: widthToDp(75),
-    height: widthToDp(75),
     resizeMode: 'contain',
-    position: 'absolute',
-    bottom: 0,
+    height: widthToDp(75),
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 });

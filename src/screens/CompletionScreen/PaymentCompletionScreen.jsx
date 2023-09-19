@@ -66,7 +66,10 @@ const styles = StyleSheet.create({
 
   complete: {
     alignSelf: 'flex-end',
-    position: 'absolute',
-    bottom: 0,
+    width: widthToDp(75),
+    resizeMode: 'contain',
+    height: widthToDp(75),
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 });

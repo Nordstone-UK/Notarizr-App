@@ -38,27 +38,28 @@ export default function ProfileInfoScreen({navigation}) {
               />
             </TouchableOpacity>
           </View>
-
-          <SettingOptions
-            icon={require('../../../assets/settingProfile.png')}
-            Title="Profile Details"
-            onPress={() => navigation.navigate('ProfileDetailEditScreen')}
-          />
-          <SettingOptions
-            icon={require('../../../assets/passwordLock.png')}
-            Title="Change Password"
-            onPress={() => navigation.navigate('PasswordEditScreen')}
-          />
-          <SettingOptions
-            icon={require('../../../assets/greenLocation.png')}
-            Title="Address"
-            onPress={() => navigation.navigate('AddressDetails')}
-          />
-          <SettingOptions
-            icon={require('../../../assets/blueCard.png')}
-            Title="Payment Method"
-            onPress={() => navigation.navigate('PaymentUpdateScreen')}
-          />
+          <View style={{marginBottom: heightToDp(2)}}>
+            <SettingOptions
+              icon={require('../../../assets/settingProfile.png')}
+              Title="Profile Details"
+              onPress={() => navigation.navigate('ProfileDetailEditScreen')}
+            />
+            <SettingOptions
+              icon={require('../../../assets/passwordLock.png')}
+              Title="Change Password"
+              onPress={() => navigation.navigate('PasswordEditScreen')}
+            />
+            <SettingOptions
+              icon={require('../../../assets/greenLocation.png')}
+              Title="Address"
+              onPress={() => navigation.navigate('AddressDetails')}
+            />
+            <SettingOptions
+              icon={require('../../../assets/blueCard.png')}
+              Title="Payment Method"
+              onPress={() => navigation.navigate('PaymentUpdateScreen')}
+            />
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </View>

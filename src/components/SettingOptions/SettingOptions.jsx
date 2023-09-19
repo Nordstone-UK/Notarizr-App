@@ -1,6 +1,6 @@
 import {StyleSheet, Image, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
-import {widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
 export default function SettingOptions(props) {
@@ -25,7 +25,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginHorizontal: widthToDp(5),
     padding: widthToDp(5),
+    borderRadius: 10,
     backgroundColor: Colors.DullWhite,
+    marginVertical: heightToDp(2),
   },
   iconsetting: {
     flexDirection: 'row',

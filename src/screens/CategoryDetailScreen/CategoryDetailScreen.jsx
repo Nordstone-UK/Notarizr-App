@@ -16,36 +16,36 @@ import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import {Linking} from 'react-native';
+import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
-export default function HomeScreen({navigation}) {
-  const openLinkInBrowser = () => {
-    const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
-    Linking.openURL(url).catch(err =>
-      console.error('An error occurred: ', err),
-    );
-  };
+export default function CategoryDetailScreen({navigation}) {
   return (
     <View style={styles.container}>
-      <HomeScreenHeader Title="One Click and Select our services." />
+      <NavigationHeader
+        Title="Categories"
+        midImg={require('../../../assets/Search.png')}
+        lastImg={require('../../../assets/bellIcon.png')}
+      />
+
+      <View style={{marginHorizontal: widthToDp(3)}}>
+        <Text style={styles.Heading}>
+          Find all the services offered by Notarizr
+        </Text>
+        <LabelTextInput
+          leftImageSoucre={require('../../../assets/Search.png')}
+          placeholder={'Search'}
+          InputStyles={{
+            padding: widthToDp(2),
+          }}
+        />
+      </View>
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.Heading}>
-            Know how Notarizr helps you in notarizing your documents
-          </Text>
-          <TouchableOpacity onPress={openLinkInBrowser}>
-            <Image
-              source={require('../../../assets/videoIcon.png')}
-              style={{alignSelf: 'center', marginTop: heightToDp(3)}}
-            />
-          </TouchableOpacity>
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Categories</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CategoryDetailScreen')}>
-              <Text style={styles.subheading}>View all</Text>
-            </TouchableOpacity>
           </View>
           <View style={styles.CategoryPictures}>
             <View style={styles.PictureBar}>
@@ -75,30 +75,6 @@ export default function HomeScreen({navigation}) {
               </TouchableOpacity>
             </View>
           </View>
-          <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>Active Services</Text>
-            <Text style={styles.subheading}>View all</Text>
-          </View>
-          <AgentCard
-            image={require('../../../assets/agentLocation.png')}
-            source={require('../../../assets/agentCardPic.png')}
-            bottomRightText="$400"
-            bottomLeftText="Total"
-            agentName={'Advocate Parimal M. Trivedi'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            OrangeText={'At Office'}
-            task="On Process"
-          />
-          <AgentCard
-            image={require('../../../assets/agentLocation.png')}
-            source={require('../../../assets/agentCardPic.png')}
-            bottomRightText="$400"
-            bottomLeftText="Total"
-            agentName={'Advocate Parimal M. Trivedi'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            OrangeText={'At Office'}
-            task="Completed"
-          />
         </ScrollView>
       </BottomSheetStyle>
     </View>
@@ -130,6 +106,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: heightToDp(3),
+    marginHorizontal: widthToDp(5),
   },
   PictureBar: {
     flexDirection: 'row',

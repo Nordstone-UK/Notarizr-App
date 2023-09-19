@@ -68,6 +68,10 @@ import AgentAvailabilitySetupScreen from '../AgentScreens/AgentAvailabilitySetup
 import ProfilePreferenceCompletion from '../CompletionScreen/ProfilePreferenceCompletion';
 import ModalCheck from '../../../ModalCheck';
 import AgentServicePereference from '../AgentScreens/AgentServicePerference/AgentServicePerference';
+import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificationScreen';
+import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
+import CategoryDetailScreen from '../CategoryDetailScreen/CategoryDetailScreen';
+import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -95,7 +99,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="AgentServicePereference"
+        initialRouteName="AgentDocumentCompletion"
         screenOptions={{
           headerShown: false,
         }}>
@@ -115,40 +119,20 @@ export default function AppNavigation() {
           component={SignUpDetailScreen}
         />
         <Stack.Screen name="HomeScreen" component={TabNavigation} />
+        <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
         <Stack.Screen
-          name="LegalDocScreen"
-          component={LegalDocScreen}
-          options={{
-            headerShown: false,
-          }}
+          name="CategoryDetailScreen"
+          component={CategoryDetailScreen}
         />
         <Stack.Screen
           name="RealEstateDocScreen"
           component={RealEstateDocScreen}
-          options={{
-            headerShown: false,
-          }}
         />
-        <Stack.Screen
-          name="BusinessDocScreen"
-          component={BusinessDocScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="MainBookingScreen"
-          component={MainBookingScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen name="BusinessDocScreen" component={BusinessDocScreen} />
+        <Stack.Screen name="MainBookingScreen" component={MainBookingScreen} />
         <Stack.Screen
           name="RegisterCompletionScreen"
           component={RegisterCompletionScreen}
-          options={{
-            headerShown: false,
-          }}
         />
         <Stack.Screen name="AgentReviewScreen" component={AgentReviewScreen} />
         <Stack.Screen
@@ -289,6 +273,18 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentServicePereference"
           component={AgentServicePereference}
+        />
+        <Stack.Screen
+          name="AgentVerificationScreen"
+          component={AgentVerificationScreen}
+        />
+        <Stack.Screen
+          name="AgentLocalNotaryEndScreen"
+          component={AgentLocalNotaryEndScreen}
+        />
+        <Stack.Screen
+          name="AgentDocumentCompletion"
+          component={AgentDocumentCompletion}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     width: widthToDp(75),
     height: widthToDp(75),
     resizeMode: 'contain',
-    position: 'absolute',
-    bottom: 0,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 });

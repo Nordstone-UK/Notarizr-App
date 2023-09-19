@@ -74,5 +74,7 @@ const styles = StyleSheet.create({
   },
   profilePic: {
     marginLeft: widthToDp(2),
+    width: widthToDp(10),
+    height: heightToDp(10),
   },
 });

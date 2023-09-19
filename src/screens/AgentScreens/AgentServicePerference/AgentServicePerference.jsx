@@ -11,50 +11,91 @@ import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHea
 import Colors from '../../../themes/Colors';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
+import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 
 export default function AgentServicePereference({navigation}) {
+  const [stringArray, setStringArray] = useState([]);
+
+  const toggleStringInArray = name => {
+    const index = stringArray.indexOf(name);
+
+    if (index === -1) {
+      // If the string is not in the array, add it
+      setStringArray([...stringArray, name]);
+    } else {
+      // If the string is in the array, remove it
+      const updatedArray = stringArray.filter((item, i) => i !== index);
+      setStringArray(updatedArray);
+    }
+    // console.log(stringArray);
+  };
   return (
     <View style={styles.container}>
-      <HomeScreenHeader Title="One Click and Select our services." />
+      <AgentHomeHeader Switch={true} Title="Profile Setup" />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>Categories</Text>
-            <Text style={styles.subheading}>View all</Text>
+            <Text style={styles.Heading}>
+              Please select your preferred services
+            </Text>
           </View>
           <View style={styles.CategoryPictures}>
             <View style={styles.PictureBar}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('LegalDocScreen')}>
+                style={styles.pictureCheck}
+                onPress={() => toggleStringInArray('legal')}>
                 <Image
                   source={require('../../../../assets/legalDocIcon.png')}
                 />
+                {stringArray.includes('legal') && (
+                  <Image
+                    source={require('../../../../assets/checkIcon.png')}
+                    style={styles.checkIcon}
+                  />
+                )}
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('RealEstateDocScreen')}>
+                style={styles.pictureCheck}
+                onPress={() => toggleStringInArray('realestate')}>
                 <Image
                   source={require('../../../../assets/estateDocIcon.png')}
                 />
+                {stringArray.includes('realestate') && (
+                  <Image
+                    source={require('../../../../assets/checkIcon.png')}
+                    style={styles.checkIcon}
+                  />
+                )}
               </TouchableOpacity>
             </View>
             <View style={styles.PictureBar}>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('MainBookingScreen', {
-                    name: 'Medical Documents',
-                  })
-                }>
+                style={styles.pictureCheck}
+                onPress={() => toggleStringInArray('medical')}>
                 <Image
                   source={require('../../../../assets/medicalDocIcon.png')}
                 />
+                {stringArray.includes('medical') && (
+                  <Image
+                    source={require('../../../../assets/checkIcon.png')}
+                    style={styles.checkIcon}
+                  />
+                )}
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('BusinessDocScreen')}>
+                style={styles.pictureCheck}
+                onPress={() => toggleStringInArray('business')}>
                 <Image
                   source={require('../../../../assets/businessDocIcon.png')}
                 />
+                {stringArray.includes('business') && (
+                  <Image
+                    source={require('../../../../assets/checkIcon.png')}
+                    style={styles.checkIcon}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -89,6 +130,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: heightToDp(3),
+    marginHorizontal: widthToDp(5),
   },
   PictureBar: {
     flexDirection: 'row',
@@ -97,5 +139,13 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  pictureCheck: {
+    position: 'relative',
+  },
+  checkIcon: {
+    position: 'absolute',
+    right: widthToDp(2),
+    top: widthToDp(2),
   },
 });

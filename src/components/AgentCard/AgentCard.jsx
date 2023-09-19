@@ -77,7 +77,7 @@ export default function AgentCard(props) {
               flexDirection: 'row',
               justifyContent: 'space-between',
               marginTop: heightToDp(2),
-              width: '110%',
+              width: widthToDp(55),
             }}>
             <View>
               <Text style={styles.nameHeading}>{NameFirstPart}</Text>
@@ -90,18 +90,19 @@ export default function AgentCard(props) {
           <View
             style={{
               flexDirection: 'row',
+              width: widthToDp(50),
             }}>
-            <Image source={props.image} />
+            <Image source={props.image} style={{marginRight: widthToDp(0.5)}} />
             {props?.OrangeText && OrangeGradient(props?.OrangeText)}
             <View
               style={{
-                marginLeft: widthToDp(1),
+                marginLeft: widthToDp(0.5),
               }}>
               <Text style={styles.address}>{firstPart}</Text>
             </View>
           </View>
           <View>
-            <Text style={[styles.address, {marginLeft: widthToDp(7)}]}>
+            <Text style={[styles.address, {marginLeft: widthToDp(6)}]}>
               {secondPart}
             </Text>
           </View>
@@ -165,9 +166,8 @@ const styles = StyleSheet.create({
   },
   locationStyle: {
     borderRadius: 20,
-    paddingHorizontal: widthToDp(2),
-    marginHorizontal: widthToDp(0.5),
-    height: heightToDp(6),
+    paddingHorizontal: widthToDp(1.5),
+    // marginHorizontal: widthToDp(0.5),
   },
   orangeline: {
     borderBottomWidth: 1,

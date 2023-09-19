@@ -10,7 +10,7 @@ export default function TypesofServiceButton(props) {
       <View style={{flexDirection: 'row'}}>
         <View
           style={{
-            width: widthToDp(40),
+            width: widthToDp(45),
           }}>
           <Text style={styles.heading}>{props?.Title}</Text>
 

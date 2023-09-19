@@ -73,7 +73,7 @@ export default function AgentReviewCard(props) {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 marginTop: heightToDp(2),
-                width: '110%',
+                width: widthToDp(55),
               }}>
               <View>
                 <Text style={styles.nameHeading}>{NameFirstPart}</Text>
