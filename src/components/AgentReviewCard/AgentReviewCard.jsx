@@ -47,12 +47,11 @@ export default function AgentReviewCard(props) {
       const restOfTheString = words.slice(1).join(' ');
       return [firstWord, restOfTheString];
     } else {
-      // If there is only one word, return it as the first part and an empty string as the second part.
       return [inputString, ''];
     }
   }
   return (
-    <View style={styles.cardContainer}>
+    <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
       <View style={{flexDirection: 'row'}}>
         <View>
           <View style={{flex: 1}}>
@@ -65,15 +64,14 @@ export default function AgentReviewCard(props) {
           <View
             style={{
               width: widthToDp(50),
-              marginHorizontal: widthToDp(6),
+              marginLeft: widthToDp(6),
+              width: widthToDp(60),
               marginTop: heightToDp(2),
             }}>
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                marginTop: heightToDp(2),
-                width: widthToDp(55),
               }}>
               <View>
                 <Text style={styles.nameHeading}>{NameFirstPart}</Text>
@@ -105,6 +103,7 @@ export default function AgentReviewCard(props) {
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
+                marginHorizontal: widthToDp(2),
                 paddingTop: heightToDp(5),
               }}>
               <Text
@@ -133,7 +132,7 @@ export default function AgentReviewCard(props) {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -165,9 +164,9 @@ const styles = StyleSheet.create({
   orangeline: {
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: '120%',
-    right: widthToDp(4),
-    zIndex: -1,
+    width: widthToDp(65),
+    right: widthToDp(5),
+    zIndex: -2,
     paddingVertical: heightToDp(2),
   },
   totalStyles: {

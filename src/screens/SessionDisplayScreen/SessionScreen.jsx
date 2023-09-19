@@ -25,112 +25,118 @@ export default function SessionScreen({navigation}) {
       <HomeScreenHeader Title="Find all your bookings with our agents here" />
       <BottomSheetStyle>
         <ScrollView
-          //   scrollEnabled={true}
-          contentContainerStyle={styles.contentContainer}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              width: '100%',
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsHorizontalScrollIndicator={false}
+            horizontal={true}
+            contentContainerStyle={{
+              paddingHorizontal: widthToDp(3),
             }}>
-            <MainButton
-              Title="All"
-              colors={
-                isFocused === 'All'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={[
-                {minWidth: '20%'},
-                isFocused === 'All'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    },
-              ]}
-              onPress={() => setIsFocused('All')}
-            />
-            <MainButton
-              Title="Active"
-              colors={
-                isFocused === 'Active'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={[
-                {minWidth: '20%'},
-                isFocused === 'Active'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    },
-              ]}
-              onPress={() => setIsFocused('Active')}
-            />
-            <MainButton
-              Title="Completed"
-              colors={
-                isFocused === 'Complete'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={[
-                {minWidth: '20%'},
-                isFocused === 'Complete'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    },
-              ]}
-              onPress={() => setIsFocused('Complete')}
-            />
-            <MainButton
-              Title="Rejected"
-              colors={
-                isFocused === 'Rejected'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={[
-                {minWidth: '20%'},
-                isFocused === 'Rejected'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    },
-              ]}
-              onPress={() => setIsFocused('Rejected')}
-            />
-          </View>
-
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                columnGap: widthToDp(3),
+              }}>
+              <MainButton
+                Title="All"
+                colors={
+                  isFocused === 'All'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={[
+                  {minWidth: widthToDp(20)},
+                  isFocused === 'All'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      },
+                ]}
+                onPress={() => setIsFocused('All')}
+              />
+              <MainButton
+                Title="Active"
+                colors={
+                  isFocused === 'Active'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={[
+                  {minWidth: widthToDp(20)},
+                  isFocused === 'Active'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      },
+                ]}
+                onPress={() => setIsFocused('Active')}
+              />
+              <MainButton
+                Title="Completed"
+                colors={
+                  isFocused === 'Complete'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={[
+                  {minWidth: widthToDp(20)},
+                  isFocused === 'Complete'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      },
+                ]}
+                onPress={() => setIsFocused('Complete')}
+              />
+              <MainButton
+                Title="Rejected"
+                colors={
+                  isFocused === 'Rejected'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={[
+                  {minWidth: widthToDp(20)},
+                  isFocused === 'Rejected'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      },
+                ]}
+                onPress={() => setIsFocused('Rejected')}
+              />
+            </View>
+          </ScrollView>
           {(isFocused === 'Active' || isFocused === 'All') && (
             <TouchableOpacity
               onPress={() => navigation.navigate('OnlineSessionDetail')}>

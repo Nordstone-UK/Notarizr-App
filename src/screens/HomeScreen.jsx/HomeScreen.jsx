@@ -98,6 +98,7 @@ export default function HomeScreen({navigation}) {
             agentAddress={'Shop 28, jigara Kalakand Road'}
             OrangeText={'At Office'}
             task="Completed"
+            onPress={() => navigation.navigate('MedicalBookingScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

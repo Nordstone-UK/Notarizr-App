@@ -16,6 +16,7 @@ import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
+import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 
 export default function AllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('Active');
@@ -129,6 +130,17 @@ export default function AllBookingScreen({navigation}) {
               OrangeText={'At Office'}
             />
           )}
+          {isFocused === 'Active' && (
+            <AgentReviewCard
+              image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
+              bottomRightText="30 minutes"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+            />
+          )}
+
           {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}

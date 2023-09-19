@@ -99,7 +99,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="AgentDocumentCompletion"
+        initialRouteName="HomeScreen"
         screenOptions={{
           headerShown: false,
         }}>

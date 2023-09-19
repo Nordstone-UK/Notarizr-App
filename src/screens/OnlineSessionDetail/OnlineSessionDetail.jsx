@@ -31,7 +31,7 @@ export default function OnlineSessionDetail({navigation}) {
         <Text style={styles.Heading}>Medical documents</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView scrollEnabled={true}>
+        <ScrollView scrollEnabled={true} showsVerticalScrollIndicator={false}>
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>Selected agent</Text>
             <View style={styles.iconContainer}>
