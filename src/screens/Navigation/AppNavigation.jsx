@@ -73,6 +73,7 @@ import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen
 import CategoryDetailScreen from '../CategoryDetailScreen/CategoryDetailScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
+import NotaryCallScreen from '../NotaryCallScreen.jsx/NotaryCallScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -100,7 +101,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="AgentMainAvailabilityScreen"
+        initialRouteName="NotaryCallScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -144,6 +145,7 @@ export default function AppNavigation() {
           name="OnlineNotaryScreen"
           component={OnlineNotaryScreen}
         />
+        <Stack.Screen name="NotaryCallScreen" component={NotaryCallScreen} />
         <Stack.Screen
           name="MedicalBookingScreen"
           component={MedicalBookingScreen}
