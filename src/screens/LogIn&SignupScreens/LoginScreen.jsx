@@ -30,7 +30,6 @@ export default function LoginScreen({navigation}, props) {
     navigation.navigate({
       name: 'HomeScreen',
       key: 'HomeScreen', // Provide a unique key to reset the stack
-      params: {}, // Optional parameters
     });
   };
   return (
