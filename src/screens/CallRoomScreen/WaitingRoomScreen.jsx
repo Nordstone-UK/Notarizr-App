@@ -1,13 +1,20 @@
 import {Button, Image, StyleSheet, Text, View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 
-export default function WaitingRoomScreen() {
+export default function WaitingRoomScreen({navigation}) {
   const [selected, setSelected] = useState('waiting room');
   const [screen, setscreen] = useState(true);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setscreen(false);
+    }, 5000);
+    return () => clearTimeout(timeoutId);
+  }, []);
   return (
     <View style={styles.container}>
       <View style={styles.NavbarContainer}>
@@ -104,7 +111,7 @@ export default function WaitingRoomScreen() {
             <View style={styles.btn}>
               <GradientButton
                 Title="Session not Started"
-                colors={[Colors.DisableButtonColor, Colors.DisableButtonColor]}
+                colors={[Colors.DisableColor, Colors.DisableColor]}
                 styles={{fontSize: widthToDp(5), fontWeight: '700'}}
                 onPress={() => setscreen(!screen)}
               />
@@ -138,7 +145,7 @@ export default function WaitingRoomScreen() {
             <GradientButton
               Title="Join your session now"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => setscreen(!screen)}
+              onPress={() => navigation.navigate('NotaryCallScreen')}
             />
           </View>
         </View>

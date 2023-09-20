@@ -27,13 +27,13 @@ export default function AgentMainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"
             Image={require('../../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('MapScreen')}
+            onPress={() => navigation.navigate('AgentMainAvailabilityScreen')}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Remote Online Notary"
             Image={require('../../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('OnlineNotaryScreen')}
+            onPress={() => navigation.navigate('AgentRemoteOnlineNotaryScreen')}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.DarkBlue}}

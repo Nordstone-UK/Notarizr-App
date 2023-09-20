@@ -12,6 +12,7 @@ import Colors from '../../../themes/Colors';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
+import MainButton from '../../../components/MainGradientButton/MainButton';
 
 export default function AgentServicePereference({navigation}) {
   const [stringArray, setStringArray] = useState([]);
@@ -100,6 +101,40 @@ export default function AgentServicePereference({navigation}) {
             </View>
           </View>
         </ScrollView>
+        <View style={styles.bottomButton}>
+          <View style={styles.flexInput}>
+            <MainButton
+              Title="Back"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                paddingHorizontal: widthToDp(15),
+                paddingVertical: heightToDp(3),
+                borderRadius: 5,
+              }}
+              styles={{
+                paddingHorizontal: widthToDp(0),
+                paddingVertical: heightToDp(0),
+                fontSize: widthToDp(4),
+              }}
+              onPress={() => navigation.goBack()}
+            />
+            <MainButton
+              Title="Next"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                paddingHorizontal: widthToDp(15),
+                paddingVertical: heightToDp(3),
+                borderRadius: 5,
+              }}
+              styles={{
+                paddingHorizontal: widthToDp(0),
+                paddingVertical: heightToDp(0),
+                fontSize: widthToDp(4),
+              }}
+              onPress={() => navigation.navigate('AgentRONLocationScreen')}
+            />
+          </View>
+        </View>
       </BottomSheetStyle>
     </View>
   );
@@ -147,5 +182,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: widthToDp(2),
     top: widthToDp(2),
+  },
+  flexInput: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: widthToDp(4),
+  },
+  bottomButton: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    marginBottom: heightToDp(5),
   },
 });

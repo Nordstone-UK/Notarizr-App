@@ -55,7 +55,7 @@ import AgentCompletedBooking from '../AgentScreens/AgentBookingDetails/AgentComp
 import AgentAllBookingScreen from '../AgentScreens/AgentAllBookingScreen/AgentAllBookingScreen';
 import ClientBookingScreen from '../AgentScreens/ClientBookingScreen/ClientBookingScreen';
 import AgentMainBookingScreen from '../AgentScreens/AgentMainBookingScreen/AgentMainBookingScreen';
-import AgentMainAvailabilityScreen from '../AgentScreens/AgentAvailabilityScreen/AgentAvailabilityScreen';
+import AgentMainAvailabilityScreen from '../AgentScreens/AgentAvailabilityScreen/AgentMainAvailabilityScreen';
 import AgentLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentLocationScreen';
 import BookingAcceptedScreen from '../CompletionScreen/BookingAcceptedScreen';
 import AgentMobileNotaryStartScreen from '../AgentScreens/AgentMobileNotartScreen/AgentMobileNotaryStartScreen';
@@ -78,6 +78,7 @@ import {useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
 import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
+import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationSelect';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -262,10 +263,10 @@ export default function AppNavigation() {
           name="AgentAllBookingScreen"
           component={AgentAllBookingScreen}
         /> */}
-        {/* <Stack.Screen
-          name="AgentCompletedBooking"
-          component={AgentCompletedBooking}
-        /> */}
+        <Stack.Screen
+          name="AgentRONLocationScreen"
+          component={AgentRONLocationScreen}
+        />
         <Stack.Screen
           name="AgentMainAvailabilityScreen"
           component={AgentMainAvailabilityScreen}

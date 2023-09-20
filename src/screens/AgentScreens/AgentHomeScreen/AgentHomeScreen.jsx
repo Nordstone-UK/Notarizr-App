@@ -14,6 +14,7 @@ import Colors from '../../../themes/Colors';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
+import GradientButton from '../../../components/MainGradientButton/GradientButton';
 
 export default function AgentHomeScreen({navigation}) {
   const openLinkInBrowser = () => {
@@ -38,6 +39,13 @@ export default function AgentHomeScreen({navigation}) {
               style={{alignSelf: 'center', marginTop: heightToDp(3)}}
             />
           </TouchableOpacity>
+          <View>
+            <GradientButton
+              Title="Setup Your Profile"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              onPress={() => navigation.navigate('AgentMainBookingScreen')}
+            />
+          </View>
           <View style={styles.flexContainer}>
             <Text style={styles.Heading}>Service requests</Text>
             <Text style={styles.subheaing}>View All</Text>

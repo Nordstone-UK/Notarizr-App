@@ -10,7 +10,7 @@ import MainButton from '../../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 
-export default function AgentLocationScreen({navigation}) {
+export default function AgentRONLocationScreen({navigation}) {
   const [Location, setLocation] = useState('Florida');
   return (
     <View style={styles.container}>
@@ -108,7 +108,7 @@ export default function AgentLocationScreen({navigation}) {
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Complete"
-            onPress={() => navigation.navigate('BookScreen')}
+            onPress={() => navigation.navigate('ProfilePreferenceCompletion')}
           />
         </View>
       </BottomSheetStyle>

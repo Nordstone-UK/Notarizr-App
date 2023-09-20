@@ -14,7 +14,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {Slider} from '@miblanchard/react-native-slider';
 import {Picker} from '@react-native-picker/picker';
 
-export default function NotaryCallScreen() {
+export default function NotaryCallScreen({navigation}) {
   const [selected, setSelected] = useState('notary room');
   const [screen, setscreen] = useState(true);
   const [value, setValue] = useState(50);
@@ -172,9 +172,10 @@ export default function NotaryCallScreen() {
         />
         <View style={styles.btnContainer}>
           <GradientButton
-            Title="Leave Room"
+            Title="Complete Session"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             styles={{fontSize: widthToDp(5)}}
+            onPress={() => navigation.navigate('AgentBookingComplete')}
           />
         </View>
       </ScrollView>

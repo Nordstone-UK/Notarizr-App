@@ -19,7 +19,7 @@ import {Picker} from '@react-native-picker/picker';
 import DocumentPicker, {types} from 'react-native-document-picker';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 
-export default function AgentSessionInviteScreen() {
+export default function AgentSessionInviteScreen({navigation}) {
   const [selected, setSelected] = useState('Allow user to choose');
   const [session, setSession] = useState('Let Signer Choose');
   const [selectedTimezone, setSelectedTimezone] = useState(''); // Default value
@@ -54,7 +54,11 @@ export default function AgentSessionInviteScreen() {
           contentContainerStyle={{paddingVertical: heightToDp(5)}}>
           <LabelTextInput
             LabelTextInput="Client Name"
-            placeholder="Client Name"
+            placeholder="Enter Name here"
+            Label={true}
+            labelStyle={{
+              color: Colors.TextColor,
+            }}
           />
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Observers</Text>
@@ -196,6 +200,10 @@ export default function AgentSessionInviteScreen() {
           <LabelTextInput
             LabelTextInput="Date & Time"
             placeholder="Enter here"
+            Label={true}
+            labelStyle={{
+              color: Colors.TextColor,
+            }}
             leftImageSoucre={require('../../../../assets/calenderIcon.png')}
           />
           <View style={styles.picker}>
@@ -239,6 +247,7 @@ export default function AgentSessionInviteScreen() {
           <GradientButton
             Title="Send Invitation"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            onPress={() => navigation.navigate('WaitingRoomScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>
@@ -261,6 +270,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.DisableColor,
     width: widthToDp(90),
     marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(5),
     borderRadius: 15,
   },
   Heading: {
@@ -270,7 +280,8 @@ const styles = StyleSheet.create({
   },
   headingContainer: {
     marginLeft: widthToDp(5),
-    marginBottom: heightToDp(2),
+    marginVertical: widthToDp(5),
+    // marginBottom: heightToDp(2),
   },
   insideHeading: {
     color: Colors.TextColor,

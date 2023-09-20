@@ -258,6 +258,7 @@ export default function AgentAvailabilitySetupScreen({navigation}) {
                   paddingVertical: heightToDp(0),
                   fontSize: widthToDp(4),
                 }}
+                onPress={() => navigation.goBack()}
               />
               <MainButton
                 Title="Next"
@@ -272,6 +273,7 @@ export default function AgentAvailabilitySetupScreen({navigation}) {
                   paddingVertical: heightToDp(0),
                   fontSize: widthToDp(4),
                 }}
+                onPress={() => navigation.navigate('AgentServicePereference')}
               />
             </View>
           </View>

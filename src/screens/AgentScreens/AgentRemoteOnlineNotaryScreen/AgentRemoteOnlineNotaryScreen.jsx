@@ -25,13 +25,13 @@ export default function AgentRemoteOnlineNotaryScreen({navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Create a session"
             Image={require('../../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('NearbyLoadingScreen')}
+            onPress={() => navigation.navigate('AgentSessionInviteScreen')}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Enter Availability"
             Image={require('../../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('SessionScreen')}
+            onPress={() => navigation.navigate('AgentAvailabilitySetupScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

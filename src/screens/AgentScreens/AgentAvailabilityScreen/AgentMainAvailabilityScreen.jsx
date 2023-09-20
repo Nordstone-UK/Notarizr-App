@@ -10,7 +10,7 @@ import MainButton from '../../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {Calendar} from 'react-native-calendars';
 
-export default function AgentMainAvailabilityScreen({route, navigation}) {
+export default function AgentMainAvailabilityScreen({navigation}) {
   const [selected, setSelected] = useState('');
 
   return (
@@ -98,6 +98,7 @@ export default function AgentMainAvailabilityScreen({route, navigation}) {
                   paddingVertical: heightToDp(1.5),
                   borderRadius: 5,
                 }}
+                onPress={() => navigation.goBack()}
               />
               <MainButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -111,6 +112,7 @@ export default function AgentMainAvailabilityScreen({route, navigation}) {
                   paddingVertical: heightToDp(1.5),
                   borderRadius: 5,
                 }}
+                onPress={() => navigation.navigate('AgentLocationScreen')}
               />
             </View>
           </View>

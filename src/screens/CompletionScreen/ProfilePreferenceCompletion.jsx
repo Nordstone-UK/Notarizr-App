@@ -4,15 +4,15 @@ import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function ProfilePreferenceCompletion({navigation}) {
-  //   useEffect(() => {
-  //     const delay = 3000;
+  useEffect(() => {
+    const delay = 3000;
 
-  //     const timer = setTimeout(() => {
-  //       navigation.navigate('SessionScreen');
-  //     }, delay);
+    const timer = setTimeout(() => {
+      navigation.navigate('AllBookingScreen');
+    }, delay);
 
-  //     return () => clearTimeout(timer);
-  //   }, [navigation]);
+    return () => clearTimeout(timer);
+  }, [navigation]);
   return (
     <View style={styles.container}>
       <ImageBackground
