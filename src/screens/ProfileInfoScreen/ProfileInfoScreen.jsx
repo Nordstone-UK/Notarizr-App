@@ -11,20 +11,32 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 import SettingOptions from '../../components/SettingOptions/SettingOptions';
+import {useSelector} from 'react-redux';
 
 export default function ProfileInfoScreen({navigation}) {
+  const userType = useSelector(state => state.user.user);
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../../assets/Mask.png')}
+        source={
+          userType === 'client'
+            ? require('../../../assets/Mask.png')
+            : require('../../../assets/agentReview.png')
+        }
         style={styles.picture}
       />
-      <Text style={styles.textheading}>Lamthao</Text>
+      <Text style={styles.textheading}>
+        {userType === 'client' ? 'Lamthao' : 'Mary Smith'}
+      </Text>
       <BottomSheetStyle>
         <ScrollView>
           <View style={styles.iconContainer}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('ProfileDetailEditScreen')}>
+              onPress={
+                userType === 'client'
+                  ? () => navigation.navigate('ProfileDetailEditScreen')
+                  : () => navigation.navigate('AgentProfileEditScreen')
+              }>
               <Image
                 source={require('../../../assets/editIcon.png')}
                 style={styles.icon}

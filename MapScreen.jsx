@@ -62,18 +62,15 @@ export default function MapScreen({navigation}) {
               horizontal
               data={data}
               renderItem={({item}) => (
-                <TouchableOpacity
-                  style={styles.cardContainer}
-                  onPress={() => navigation.navigate('AgentReviewScreen')}>
-                  <AgentReviewCard
-                    image={item.image}
-                    source={item.source}
-                    bottomRightText={item.bottomRightText}
-                    bottomLeftText={item.bottomLeftText}
-                    agentName={item.agentName}
-                    agentAddress={item.agentAddress}
-                  />
-                </TouchableOpacity>
+                <AgentReviewCard
+                  image={item.image}
+                  source={item.source}
+                  bottomRightText={item.bottomRightText}
+                  bottomLeftText={item.bottomLeftText}
+                  agentName={item.agentName}
+                  agentAddress={item.agentAddress}
+                  onPress={() => navigation.navigate('AgentReviewScreen')}
+                />
               )}
               keyExtractor={item => item.key}
             />

@@ -45,12 +45,13 @@ export default function AgentHomeScreen({navigation}) {
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             source={require('../../../../assets/maleAgentPic.png')}
-            bottomRightText="$400"
+            bottomLeftText="$400"
             agentName={'Bunny Joel'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
             task="Mobile"
             OrangeText="At Home"
             Button={true}
+            onPress={() => navigation.navigate('ClientDetailsScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

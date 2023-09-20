@@ -138,32 +138,28 @@ export default function SessionScreen({navigation}) {
             </View>
           </ScrollView>
           {(isFocused === 'Active' || isFocused === 'All') && (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('OnlineSessionDetail')}>
-              <AcceptAgentCard
-                image={require('../../../assets/agentLocation.png')}
-                source={require('../../../assets/maleAgentPic.png')}
-                bottomRightText="$400"
-                agentName={'Bunny Joel'}
-                agentAddress={'Shop 28, jigara Kalakand Road'}
-                task="Online"
-                Button={true}
-              />
-            </TouchableOpacity>
+            <AcceptAgentCard
+              image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/maleAgentPic.png')}
+              bottomRightText="$400"
+              agentName={'Bunny Joel'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Online"
+              Button={true}
+              onPress={() => navigation.navigate('OnlineSessionDetail')}
+            />
           )}
           {(isFocused === 'Active' || isFocused === 'All') && (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('OnlineSessionDetail')}>
-              <AcceptAgentCard
-                image={require('../../../assets/agentLocation.png')}
-                source={require('../../../assets/maleAgentPic.png')}
-                bottomRightText="$350"
-                agentName={'Bunny Joel'}
-                agentAddress={'Shop 28, jigara Kalakand Road'}
-                task="Online"
-                Button={true}
-              />
-            </TouchableOpacity>
+            <AcceptAgentCard
+              image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/maleAgentPic.png')}
+              bottomRightText="$350"
+              agentName={'Bunny Joel'}
+              agentAddress={'Shop 28, jigara Kalakand Road'}
+              task="Online"
+              Button={true}
+              onPress={() => navigation.navigate('OnlineSessionDetail')}
+            />
           )}
         </ScrollView>
       </BottomSheetStyle>

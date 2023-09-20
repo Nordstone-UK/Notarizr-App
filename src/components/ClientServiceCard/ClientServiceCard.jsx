@@ -66,7 +66,7 @@ export default function ClientServiceCard(props) {
     }
   }
   return (
-    <View style={styles.cardContainer}>
+    <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
       <View style={{flexDirection: 'row', marginVertical: heightToDp(2)}}>
         <View>
           <View style={{flex: 1}}>
@@ -196,7 +196,7 @@ export default function ClientServiceCard(props) {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

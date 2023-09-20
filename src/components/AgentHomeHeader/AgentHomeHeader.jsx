@@ -39,7 +39,7 @@ export default function AgentHomeHeader(props) {
           />
         </View>
       </View>
-      {props?.Title && <Text style={styles.heading}>{props.Title}</Text>}
+      {props?.Title && <Text style={[styles.heading]}>{props.Title}</Text>}
       {props?.SearchEnabled && (
         <LabelTextInput
           leftImageSoucre={require('../../../assets/Search.png')}

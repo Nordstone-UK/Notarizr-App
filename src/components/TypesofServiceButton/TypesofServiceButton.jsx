@@ -16,10 +16,19 @@ export default function TypesofServiceButton(props) {
 
           <View style={{alignSelf: 'flex-start', marginTop: heightToDp(2)}}>
             <MainButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Continue"
+              colors={
+                props.colors || [
+                  Colors.OrangeGradientStart,
+                  Colors.OrangeGradientEnd,
+                ]
+              }
+              Title={props.buttonTitle || 'Continue'}
               TextStyle={{color: '#fff'}}
-              styles={{padding: widthToDp(2), fontSize: widthToDp(4)}}
+              styles={{
+                padding: widthToDp(2),
+                fontSize: widthToDp(4),
+                width: widthToDp(25),
+              }}
               onPress={props.onPress}
             />
           </View>

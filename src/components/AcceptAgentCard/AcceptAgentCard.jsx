@@ -54,7 +54,7 @@ export default function AcceptAgentCard(props) {
     }
   }
   return (
-    <View style={styles.cardContainer}>
+    <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
       <View style={{flexDirection: 'row', marginVertical: heightToDp(2)}}>
         <View>
           <AgentCardPicture task={props.task} source={props.source} />
@@ -124,7 +124,7 @@ export default function AcceptAgentCard(props) {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

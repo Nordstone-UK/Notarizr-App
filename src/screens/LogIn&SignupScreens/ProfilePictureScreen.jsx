@@ -19,8 +19,10 @@ import Colors from '../../themes/Colors';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
 import ProfilePicture from '../../../assets/profilePicture.png';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {useSelector} from 'react-redux';
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState('picture');
+  const userType = useSelector(state => state.user.user);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -155,11 +157,19 @@ export default function ProfilePictureScreen({navigation}) {
         <GradientButton
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Continue"
-          onPress={() => navigation.navigate('RegisterCompletionScreen')}
+          onPress={
+            userType !== 'agent'
+              ? () => navigation.navigate('RegisterCompletionScreen')
+              : () => navigation.navigate('AgentVerificationScreen')
+          }
         />
         <SkipButton
           Title="Skip"
-          onPress={() => navigation.navigate('RegisterCompletionScreen')}
+          onPress={
+            userType !== 'agent'
+              ? () => navigation.navigate('RegisterCompletionScreen')
+              : () => navigation.navigate('AgentVerificationScreen')
+          }
         />
       </BottomSheetStyle>
     </View>

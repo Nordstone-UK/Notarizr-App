@@ -83,7 +83,7 @@ export default function AgentVerificationScreen({navigation}, props) {
               Title="Continue"
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
-              //   onPress={() => navigation.navigate('HomeScreen')}
+              onPress={() => navigation.navigate('AgentDocumentCompletion')}
             />
           </View>
         </ScrollView>

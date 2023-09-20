@@ -18,8 +18,10 @@ import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import {useSelector} from 'react-redux';
 
 export default function ProfileDetailEditScreen({navigation}, props) {
+  const userType = useSelector(state => state.user.user);
   useEffect(() => {
     SplashScreen.hide();
   }, []);
@@ -28,7 +30,11 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       <NavigationHeader Title="Profile Details" />
       <View>
         <Image
-          source={require('../../../assets/Mask.png')}
+          source={
+            userType === 'client'
+              ? require('../../../assets/Mask.png')
+              : require('../../../assets/agentReview.png')
+          }
           style={styles.picture}
         />
         <Image
@@ -36,8 +42,12 @@ export default function ProfileDetailEditScreen({navigation}, props) {
           style={styles.camera}
         />
       </View>
-      <Text style={styles.textheading}>Lamthao</Text>
-      <Text style={styles.textsubheading}>lamthao@gmail.com</Text>
+      <Text style={styles.textheading}>
+        {userType === 'client' ? 'Lamthao' : 'Mary Smith'}
+      </Text>
+      <Text style={styles.textsubheading}>
+        {userType === 'client' ? 'lamthao@gmail.com' : 'marysmith@gmail.com'}
+      </Text>
       <BottomSheetStyle>
         <ScrollView style={{marginVertical: heightToDp(10)}}>
           <LabelTextInput
@@ -86,6 +96,8 @@ const styles = StyleSheet.create({
   picture: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
+    width: widthToDp(25),
+    height: heightToDp(25),
   },
   camera: {
     position: 'absolute',

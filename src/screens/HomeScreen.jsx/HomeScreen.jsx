@@ -6,11 +6,9 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
-import SignupButton from '../../components/SingupButton.jsx/SignupButton';
+import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import MainButton from '../../components/MainGradientButton/MainButton';
+
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
@@ -24,6 +22,7 @@ export default function HomeScreen({navigation}) {
       console.error('An error occurred: ', err),
     );
   };
+
   return (
     <View style={styles.container}>
       <HomeScreenHeader Title="One Click and Select our services." />

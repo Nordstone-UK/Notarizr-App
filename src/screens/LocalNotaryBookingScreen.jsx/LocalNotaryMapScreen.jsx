@@ -26,30 +26,25 @@ export default function LocalNotaryMapScreen({navigation}) {
             <ScrollView
               horizontal={true}
               contentContainerStyle={styles.contentContainerStyle}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('LocalNotaryAgentReview')}>
-                <AgentReviewCard
-                  image={require('../../../assets/agentLocation.png')}
-                  source={require('../../../assets/agentCardPic.png')}
-                  bottomRightText="30 Minutes"
-                  bottomLeftText="0.5 Miles"
-                  agentName={'Advocate Parimal M. Trivedi'}
-                  agentAddress={'Shop 28, jigara Kalakand Road'}
-                  task="On Process"
-                />
-              </TouchableOpacity>
+              <AgentReviewCard
+                image={require('../../../assets/agentLocation.png')}
+                source={require('../../../assets/agentCardPic.png')}
+                bottomRightText="30 Minutes"
+                bottomLeftText="0.5 Miles"
+                agentName={'Advocate Parimal M. Trivedi'}
+                agentAddress={'Shop 28, jigara Kalakand Road'}
+                onPress={() => navigation.navigate('LocalNotaryAgentReview')}
+              />
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate('LocalNotaryAgentReview')}>
-                <AgentReviewCard
-                  image={require('../../../assets/agentLocation.png')}
-                  source={require('../../../assets/agentCardPic.png')}
-                  bottomRightText="30 Minutes"
-                  bottomLeftText="0.5 Miles"
-                  agentName={'Advocate Parimal M. Trivedi'}
-                  agentAddress={'Shop 28, jigara Kalakand Road'}
-                />
-              </TouchableOpacity>
+              <AgentReviewCard
+                image={require('../../../assets/agentLocation.png')}
+                source={require('../../../assets/agentCardPic.png')}
+                onPress={() => navigation.navigate('LocalNotaryAgentReview')}
+                bottomRightText="30 Minutes"
+                bottomLeftText="0.5 Miles"
+                agentName={'Advocate Parimal M. Trivedi'}
+                agentAddress={'Shop 28, jigara Kalakand Road'}
+              />
             </ScrollView>
           </View>
         </View>

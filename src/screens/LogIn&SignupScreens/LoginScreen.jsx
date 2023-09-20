@@ -6,6 +6,7 @@ import {
   Animated,
   View,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -15,11 +16,22 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
-
+import {useDispatch} from 'react-redux';
+import {userType} from '../../features/user/userSlice';
 export default function LoginScreen({navigation}, props) {
   const [ColorChange, setColorChange] = useState();
   const FocusColorChaneg = () => {
     setColorChange(!ColorChange);
+  };
+  const dispatch = useDispatch();
+
+  const resetStack = () => {
+    dispatch(userType('client'));
+    navigation.navigate({
+      name: 'HomeScreen',
+      key: 'HomeScreen', // Provide a unique key to reset the stack
+      params: {}, // Optional parameters
+    });
   };
   return (
     <View style={styles.container}>
@@ -36,7 +48,7 @@ export default function LoginScreen({navigation}, props) {
       />
 
       <BottomSheetStyle>
-        <View style={{marginTop: heightToDp(5)}}>
+        <ScrollView style={{marginTop: heightToDp(5)}}>
           <LabelTextInput
             leftImageSoucre={require('../../../assets/emailIcon.png')}
             placeholder={'Enter your email address'}
@@ -58,14 +70,14 @@ export default function LoginScreen({navigation}, props) {
               Title="Login"
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
-              onPress={() => navigation.navigate('HomeScreen')}
+              onPress={() => resetStack()}
             />
           </View>
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
-              marginTop: heightToDp(10),
+              marginVertical: heightToDp(10),
             }}>
             <Text
               style={{
@@ -78,7 +90,7 @@ export default function LoginScreen({navigation}, props) {
               <Text style={{color: Colors.Orange}}>Sign up</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );

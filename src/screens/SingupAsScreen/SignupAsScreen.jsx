@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -7,11 +7,15 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {useDispatch} from 'react-redux';
+import {userType} from '../../features/user/userSlice';
 
 export default function SignupAsScreen({navigation}, props) {
-  const [Client, setClient] = useState(false);
-  const handleClient = () => {
-    setClient(true);
+  const [colored, setColored] = useState('client');
+  const dispatch = useDispatch();
+  const handlUserType = () => {
+    dispatch(userType(colored));
+    navigation.navigate('SignUpScreen');
   };
 
   return (
@@ -21,30 +25,37 @@ export default function SignupAsScreen({navigation}, props) {
         HeaderStyle={{marginHorizontal: widthToDp(5)}}
       />
       <BottomSheetStyle>
-        <SignupButton
-          Title="SignUp as Client"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          TextStyle={{color: '#fff'}}
-          picture={require('../../../assets/clientPic.png')}
-          handleFunction={handleClient}
-        />
-        <SignupButton
-          Title="SignUp as Agent"
-          colors={['#F5F6F7', '#fff']}
-          TextStyle={{color: '#000'}}
-          picture={require('../../../assets/agentPic.png')}
-          handleFunction={handleClient}
-        />
-        <View style={styles.buttonConatiner}>
-          {Client ? (
+        <ScrollView>
+          <SignupButton
+            Title="SignUp as Client"
+            colors={
+              colored === 'client'
+                ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                : ['#F5F6F7', '#fff']
+            }
+            TextStyle={colored === 'client' ? {color: '#fff'} : {color: '#000'}}
+            picture={require('../../../assets/clientPic.png')}
+            onPress={() => setColored('client')}
+          />
+          <SignupButton
+            Title="SignUp as Agent"
+            colors={
+              colored === 'agent'
+                ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                : ['#F5F6F7', '#fff']
+            }
+            TextStyle={colored === 'agent' ? {color: '#fff'} : {color: '#000'}}
+            picture={require('../../../assets/agentPic.png')}
+            onPress={() => setColored('agent')}
+          />
+          <View style={styles.buttonConatiner}>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              // GradiStyles={{marginTop: widthToDp(5)}}
               Title="Get Started"
-              onPress={() => navigation.navigate('SignUpScreen')}
+              onPress={() => handlUserType()}
             />
-          ) : null}
-        </View>
+          </View>
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );
@@ -56,8 +67,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF2DC',
   },
   buttonConatiner: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginVertical: widthToDp(5),
+    marginVertical: widthToDp(6),
   },
 });

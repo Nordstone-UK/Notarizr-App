@@ -5,23 +5,23 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function SignupButton(props) {
   return (
-    <View>
+    <TouchableOpacity onPress={props.onPress}>
       <LinearGradient
         colors={props.colors}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
         style={styles.gradientstyles}>
-        <TouchableOpacity onPress={props.handleFunction}>
+        <View>
           <View style={{paddingVertical: '10%'}}>
             <Text style={[styles.buttonText, props.TextStyle]}>
               {props.Title}
             </Text>
             <View style={styles.TextView} />
           </View>
-        </TouchableOpacity>
+        </View>
         <Image source={props.picture} style={styles.image} />
       </LinearGradient>
-    </View>
+    </TouchableOpacity>
   );
 }
 

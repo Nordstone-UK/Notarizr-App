@@ -74,12 +74,17 @@ import CategoryDetailScreen from '../CategoryDetailScreen/CategoryDetailScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
 import NotaryCallScreen from '../NotaryCallScreen.jsx/NotaryCallScreen';
+import {useSelector} from 'react-redux';
+import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
+import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
+import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-
 function TabNavigation() {
-  return (
+  const user = useSelector(state => state.user.user);
+
+  return user === 'agent' ? (
     <Tab.Navigator
       screenOptions={({route}) => ({
         headerShown: false,
@@ -89,7 +94,36 @@ function TabNavigation() {
           return <Ionicons focused={focused} name={route.name} />;
         },
       })}>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen
+        name="Home"
+        component={AgentHomeScreen}
+        options={{
+          key: 'HomeScreen',
+        }}
+      />
+      <Tab.Screen name="AllBookingScreen" component={AgentAllBookingScreen} />
+      <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
+      <Tab.Screen name="ChatContactScreen" component={AgentChatContactScreen} />
+      <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
+    </Tab.Navigator>
+  ) : (
+    <Tab.Navigator
+      screenOptions={({route}) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {height: heightToDp(17)},
+        tabBarIcon: ({focused}) => {
+          return <Ionicons focused={focused} name={route.name} />;
+        },
+      })}>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          // Handle the reset action for HomeScreen
+          key: 'HomeScreen',
+        }}
+      />
       <Tab.Screen name="AllBookingScreen" component={AllBookingScreen} />
       <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
       <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
@@ -101,11 +135,11 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="NotaryCallScreen"
+        initialRouteName="HomeScreen"
         screenOptions={{
           headerShown: false,
         }}>
-        <Stack.Screen name="ModalCheck" component={ModalCheck} />
+        <Stack.Screen name="HomeScreen" component={TabNavigation} />
         <Stack.Screen name="OnboardingScreen1" component={OnboardingScreen1} />
         <Stack.Screen name="OnboardingScreen2" component={OnboardingScreen2} />
         <Stack.Screen name="OnboardingScreen3" component={OnboardingScreen3} />
@@ -120,7 +154,6 @@ export default function AppNavigation() {
           name="SignUpDetailScreen"
           component={SignUpDetailScreen}
         />
-        <Stack.Screen name="HomeScreen" component={TabNavigation} />
         <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
         <Stack.Screen
           name="CategoryDetailScreen"
@@ -216,7 +249,7 @@ export default function AppNavigation() {
           component={LocalNotaryDateScreen}
         />
         <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
-        <Stack.Screen name="AgentHomeScreen" component={AgentHomeScreen} />
+        {/* <Stack.Screen name="AgentHomeScreen" component={AgentHomeScreen} /> */}
         <Stack.Screen
           name="AgentMainBookingScreen"
           component={AgentMainBookingScreen}
@@ -225,14 +258,14 @@ export default function AppNavigation() {
           name="ClientBookingScreen"
           component={ClientBookingScreen}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="AgentAllBookingScreen"
           component={AgentAllBookingScreen}
-        />
-        <Stack.Screen
+        /> */}
+        {/* <Stack.Screen
           name="AgentCompletedBooking"
           component={AgentCompletedBooking}
-        />
+        /> */}
         <Stack.Screen
           name="AgentMainAvailabilityScreen"
           component={AgentMainAvailabilityScreen}
@@ -292,6 +325,14 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentDocumentCompletion"
           component={AgentDocumentCompletion}
+        />
+        <Stack.Screen
+          name="AgentProfileEditScreen"
+          component={AgentProfileEditScreen}
+        />
+        <Stack.Screen
+          name="ClientDetailsScreen"
+          component={ClientDetailsScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>
