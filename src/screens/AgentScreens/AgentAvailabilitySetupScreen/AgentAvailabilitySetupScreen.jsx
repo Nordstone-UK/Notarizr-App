@@ -97,8 +97,7 @@ export default function AgentAvailabilitySetupScreen({navigation}) {
     <View style={styles.container}>
       <AgentHomeHeader Switch={true} />
       <View style={styles.headingContainer}>
-        <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>Medical documents</Text>
+        <Text style={styles.Heading}>Profile Setup</Text>
       </View>
       <BottomSheetStyle>
         <ScrollView
