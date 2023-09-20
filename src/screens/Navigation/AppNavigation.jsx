@@ -79,6 +79,8 @@ import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/Agent
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
 import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
 import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationSelect';
+import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
+import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -136,7 +138,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="HomeScreen"
+        initialRouteName="OnboardingScreen1"
         screenOptions={{
           headerShown: false,
         }}>
@@ -250,7 +252,10 @@ export default function AppNavigation() {
           component={LocalNotaryDateScreen}
         />
         <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
-        {/* <Stack.Screen name="AgentHomeScreen" component={AgentHomeScreen} /> */}
+        <Stack.Screen
+          name="AgentBookingClientDetail"
+          component={AgentBookingClientDetail}
+        />
         <Stack.Screen
           name="AgentMainBookingScreen"
           component={AgentMainBookingScreen}
@@ -259,10 +264,10 @@ export default function AppNavigation() {
           name="ClientBookingScreen"
           component={ClientBookingScreen}
         />
-        {/* <Stack.Screen
-          name="AgentAllBookingScreen"
-          component={AgentAllBookingScreen}
-        /> */}
+        <Stack.Screen
+          name="AgentLocalClientReviewScreen"
+          component={AgentLocalClientReviewScreen}
+        />
         <Stack.Screen
           name="AgentRONLocationScreen"
           component={AgentRONLocationScreen}

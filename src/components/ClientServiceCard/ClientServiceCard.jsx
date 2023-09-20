@@ -23,6 +23,7 @@ export default function ClientServiceCard(props) {
   const Work = props?.Work || false;
   const [firstPart, secondPart] = splitStringBefore4thWord(address);
   const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
+  const Button = props.Button;
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -149,50 +150,54 @@ export default function ClientServiceCard(props) {
               ]}>
               {props.bottomLeftText}
             </Text>
-            <View>
-              {Work ? (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-evenly',
-                  }}>
-                  {props?.Canceled || false ? (
-                    <Image source={require('../../../assets/pending.png')} />
-                  ) : (
-                    <Image source={require('../../../assets/greenIcon.png')} />
-                  )}
-                  <Text
-                    style={[
-                      styles.distanceStyles,
-                      {
-                        fontSize: widthToDp(4.5),
-                        marginHorizontal: widthToDp(2),
-                      },
-                    ]}>
-                    {props?.WorkStatus || (props?.Canceled && 'Canceled')}
-                  </Text>
-                </View>
-              ) : (
-                <MainButton
-                  Title="Accept"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{
-                    borderRadius: 5,
-                    paddingHorizontal: widthToDp(1),
-                  }}
-                  styles={{
-                    paddingHorizontal: widthToDp(4),
-                    paddingVertical: widthToDp(1),
-                    fontSize: widthToDp(4),
-                  }}
-                  onPress={() => navigation.navigate('CompletionScreen')}
-                />
-              )}
-            </View>
+            {Button && (
+              <View>
+                {Work ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-evenly',
+                    }}>
+                    {props?.Canceled || false ? (
+                      <Image source={require('../../../assets/pending.png')} />
+                    ) : (
+                      <Image
+                        source={require('../../../assets/greenIcon.png')}
+                      />
+                    )}
+                    <Text
+                      style={[
+                        styles.distanceStyles,
+                        {
+                          fontSize: widthToDp(4.5),
+                          marginHorizontal: widthToDp(2),
+                        },
+                      ]}>
+                      {props?.WorkStatus || (props?.Canceled && 'Canceled')}
+                    </Text>
+                  </View>
+                ) : (
+                  <MainButton
+                    Title="Accept"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      borderRadius: 5,
+                      paddingHorizontal: widthToDp(1),
+                    }}
+                    styles={{
+                      paddingHorizontal: widthToDp(4),
+                      paddingVertical: widthToDp(1),
+                      fontSize: widthToDp(4),
+                    }}
+                    onPress={() => navigation.navigate('CompletionScreen')}
+                  />
+                )}
+              </View>
+            )}
           </View>
         </View>
       </View>

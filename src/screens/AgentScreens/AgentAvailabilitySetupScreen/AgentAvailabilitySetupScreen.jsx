@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 
-export default function AgentAvailabilitySetupScreen({navigation}) {
+export default function AgentAvailabilitySetupScreen({route, navigation}) {
   const dateInfo = [];
   const months = [
     'Jan',
@@ -51,6 +51,8 @@ export default function AgentAvailabilitySetupScreen({navigation}) {
     const date = new Date(year, month - 1, day);
     return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
   }
+  console.log(route);
+
   const [isFocused, setIsFocused] = useState('');
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -272,7 +274,11 @@ export default function AgentAvailabilitySetupScreen({navigation}) {
                   paddingVertical: heightToDp(0),
                   fontSize: widthToDp(4),
                 }}
-                onPress={() => navigation.navigate('AgentServicePereference')}
+                onPress={
+                  route.params
+                    ? () => navigation.navigate('AgentLocalClientReviewScreen')
+                    : () => navigation.navigate('AgentServicePereference')
+                }
               />
             </View>
           </View>
@@ -281,7 +287,6 @@ export default function AgentAvailabilitySetupScreen({navigation}) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

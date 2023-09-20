@@ -115,6 +115,8 @@ export default function AgentAllBookingScreen({navigation}) {
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Mobile"
               OrangeText="At Home"
+              Button={true}
+              onPress={() => navigation.navigate('AgentBookingClientDetail')}
             />
           )}
           {isFocused === 'Active' && (

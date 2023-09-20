@@ -3,11 +3,14 @@ import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function BookingAcceptedScreen({navigation}) {
+export default function BookingAcceptedScreen({route, navigation}) {
   useEffect(() => {
     const delay = 3000;
 
     const timer = setTimeout(() => {
+      // route.params.service === 'local notary'
+      //   ? navigation.goBack()
+      //   :
       navigation.navigate('HomeScreen');
     }, delay);
 

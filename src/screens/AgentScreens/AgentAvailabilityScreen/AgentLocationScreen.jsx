@@ -108,7 +108,7 @@ export default function AgentLocationScreen({navigation}) {
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Complete"
-            onPress={() => navigation.navigate('BookScreen')}
+            onPress={() => navigation.navigate('AllBookingScreen')}
           />
         </View>
       </BottomSheetStyle>

@@ -39,7 +39,11 @@ export default function AgentMainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.DarkBlue}}
             Title="Local Notary"
             Image={require('../../../../assets/service3Pic.png')}
-            onPress={() => navigation.navigate('AgentAvailabilitySetupScreen')}
+            onPress={() =>
+              navigation.navigate('AgentAvailabilitySetupScreen', {
+                service: 'local notary',
+              })
+            }
           />
         </ScrollView>
       </BottomSheetStyle>

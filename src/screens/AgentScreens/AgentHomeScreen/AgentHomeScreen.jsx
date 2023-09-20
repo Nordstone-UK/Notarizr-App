@@ -39,7 +39,7 @@ export default function AgentHomeScreen({navigation}) {
               style={{alignSelf: 'center', marginTop: heightToDp(3)}}
             />
           </TouchableOpacity>
-          <View>
+          <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
               Title="Setup Your Profile"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -59,6 +59,7 @@ export default function AgentHomeScreen({navigation}) {
             task="Mobile"
             OrangeText="At Home"
             Button={true}
+            noButton={true}
             onPress={() => navigation.navigate('ClientDetailsScreen')}
           />
         </ScrollView>
