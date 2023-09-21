@@ -66,7 +66,6 @@ import AgentSessionInviteScreen from '../AgentScreens/AgentSessionInviteScreen/A
 import AgentRemoteOnlineNotaryScreen from '../AgentScreens/AgentRemoteOnlineNotaryScreen/AgentRemoteOnlineNotaryScreen';
 import AgentAvailabilitySetupScreen from '../AgentScreens/AgentAvailabilitySetupScreen/AgentAvailabilitySetupScreen';
 import ProfilePreferenceCompletion from '../CompletionScreen/ProfilePreferenceCompletion';
-import ModalCheck from '../../../ModalCheck';
 import AgentServicePereference from '../AgentScreens/AgentServicePerference/AgentServicePerference';
 import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificationScreen';
 import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
@@ -139,7 +138,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="HomeScreen"
+        initialRouteName="OnboardingScreen1"
         screenOptions={{
           headerShown: false,
         }}>

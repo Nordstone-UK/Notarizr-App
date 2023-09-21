@@ -16,6 +16,8 @@ import NavigationHeader from '../../../components/Navigation Header/NavigationHe
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
 
+import ModalCheck from '../../../components/ModalComponent/ModalCheck';
+
 export default function AgentMobileNotaryStartScreen({navigation}) {
   return (
     <View style={styles.container}>

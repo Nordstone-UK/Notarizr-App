@@ -15,8 +15,18 @@ import MainButton from '../../../components/MainGradientButton/MainButton';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
-
+import {useFocusEffect} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import ModalCheck from '../../../components/ModalComponent/ModalCheck';
 export default function AgentLocalClientReviewScreen({navigation}) {
+  const service = useSelector(state => state.service.service);
+  const [isVisible, setIsVisible] = useState(false);
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsVisible(service);
+    }, [service]),
+  );
+
   const [notary, setNotary] = useState(true);
   return (
     <View style={styles.container}>
@@ -117,6 +127,7 @@ export default function AgentLocalClientReviewScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
+      {isVisible && <ModalCheck modalVisible={isVisible} />}
     </View>
   );
 }

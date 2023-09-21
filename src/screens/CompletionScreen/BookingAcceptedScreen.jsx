@@ -2,16 +2,16 @@ import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {useDispatch} from 'react-redux';
+import {serviceCheck} from '../../features/service/serviceSlice';
 
 export default function BookingAcceptedScreen({route, navigation}) {
+  const dispatch = useDispatch();
   useEffect(() => {
     const delay = 3000;
-
+    dispatch(serviceCheck());
     const timer = setTimeout(() => {
-      // route.params.service === 'local notary'
-      //   ? navigation.goBack()
-      //   :
-      navigation.navigate('HomeScreen');
+      navigation.navigate('AgentLocalClientReviewScreen');
     }, delay);
 
     return () => clearTimeout(timer);

@@ -19,22 +19,16 @@ import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 import {useDispatch, useSelector} from 'react-redux';
 import {BottomSheet, Button, ListItem} from '@rneui/themed';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
-import {paymentCheck} from '../../features/review/reviewSlice';
 import {useFocusEffect} from '@react-navigation/native';
+import {paymentCheck} from '../../features/review/reviewSlice';
 
 export default function MedicalBookingScreen({navigation}) {
   const payment = useSelector(state => state.payment.payment);
   const [isVisible, setIsVisible] = useState(false);
   const dispatch = useDispatch();
-  // useEffect(() => {
-  //   setIsVisible(payment);
-  //   console.log('useEffect running');
-  // }, [navigation]);
-
   useFocusEffect(
     React.useCallback(() => {
       setIsVisible(payment);
-      console.log('useEffect running');
     }, [payment]),
   );
 

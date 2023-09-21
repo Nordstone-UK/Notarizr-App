@@ -9,12 +9,9 @@ import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {BottomSheet, Button, ListItem} from '@rneui/themed';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 
 export default function LegalDocScreen({route, navigation}) {
-  const [isVisible, setIsVisible] = useState(false);
-
   return (
     <View style={styles.container}>
       <NavigationHeader
@@ -69,9 +66,6 @@ export default function LegalDocScreen({route, navigation}) {
             }
           />
         </ScrollView>
-        <BottomSheet modalProps={{}} isVisible={isVisible}>
-          <ReviewPopup onPress={() => setIsVisible(false)} />
-        </BottomSheet>
       </BottomSheetStyle>
     </View>
   );
