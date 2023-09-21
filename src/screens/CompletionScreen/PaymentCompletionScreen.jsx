@@ -2,6 +2,8 @@ import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {useDispatch} from 'react-redux';
+import {paymentCheck} from '../../features/review/reviewSlice';
 
 export default function PaymentCompletionScreen({navigation}, props) {
   const message = 'Congratulations, your booking is completed!';
@@ -17,11 +19,14 @@ export default function PaymentCompletionScreen({navigation}, props) {
       return [inputString, ''];
     }
   }
-  useEffect(() => {
-    const delay = 3000;
+  const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(paymentCheck());
+
+    const delay = 3000;
     const timer = setTimeout(() => {
-      navigation.navigate('HomeScreen');
+      navigation.navigate('MedicalBookingScreen');
     }, delay);
 
     return () => clearTimeout(timer);

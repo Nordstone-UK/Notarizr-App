@@ -6,7 +6,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -16,8 +16,32 @@ import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofS
 import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
+import {useDispatch, useSelector} from 'react-redux';
+import {BottomSheet, Button, ListItem} from '@rneui/themed';
+import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
+import {paymentCheck} from '../../features/review/reviewSlice';
+import {useFocusEffect} from '@react-navigation/native';
 
 export default function MedicalBookingScreen({navigation}) {
+  const payment = useSelector(state => state.payment.payment);
+  const [isVisible, setIsVisible] = useState(false);
+  const dispatch = useDispatch();
+  // useEffect(() => {
+  //   setIsVisible(payment);
+  //   console.log('useEffect running');
+  // }, [navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsVisible(payment);
+      console.log('useEffect running');
+    }, [payment]),
+  );
+
+  const handleReduxPayment = () => {
+    setIsVisible(false);
+    dispatch(paymentCheck());
+  };
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -103,6 +127,11 @@ export default function MedicalBookingScreen({navigation}) {
             />
           </View>
         </ScrollView>
+        {isVisible ? (
+          <BottomSheet modalProps={{}} isVisible={isVisible}>
+            <ReviewPopup onPress={() => handleReduxPayment()} />
+          </BottomSheet>
+        ) : null}
       </BottomSheetStyle>
     </View>
   );
