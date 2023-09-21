@@ -8,7 +8,10 @@ export default function RegisterCompletionScreen({navigation}) {
     const delay = 3000;
 
     const timer = setTimeout(() => {
-      navigation.navigate('HomeScreen');
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeScreen'}],
+      });
     }, delay);
 
     return () => clearTimeout(timer);

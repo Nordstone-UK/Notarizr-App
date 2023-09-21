@@ -119,7 +119,12 @@ export default function ProfilePictureScreen({navigation}) {
       setImage(response?.assets[0]?.uri);
     });
   };
-
+  const resetStack = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'HomeScreen'}],
+    });
+  };
   return (
     <View style={styles.container}>
       <CompanyHeader
