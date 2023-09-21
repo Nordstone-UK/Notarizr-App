@@ -16,7 +16,7 @@ import GradientButton from '../../../components/MainGradientButton/GradientButto
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import NavigationPaymentHeader from '../../../components/NavigationPaymentHeader/NavigationPaymentHeader';
 
-export default function AgentLocalNotaryEndScreen() {
+export default function AgentLocalNotaryEndScreen({navigation}) {
   const [notes, setNotes] = useState(false);
   return (
     <View style={styles.container}>
@@ -108,6 +108,7 @@ export default function AgentLocalNotaryEndScreen() {
             <GradientButton
               Title="Request Payment"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              onPress={() => navigation.navigate('AgentBookingComplete')}
             />
           </View>
         </ScrollView>
