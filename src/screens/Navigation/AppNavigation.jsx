@@ -81,6 +81,7 @@ import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetai
 import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationSelect';
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
+import MapArrivalScreen from '../MapArrivalScreen/MapArrivalScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -138,7 +139,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="OnboardingScreen1"
+        initialRouteName="HomeScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -200,6 +201,8 @@ export default function AppNavigation() {
           name="RejectedByAgentScreen"
           component={RejectedByAgentScreen}
         />
+        <Stack.Screen name="MapArrivalScreen" component={MapArrivalScreen} />
+
         <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
         <Stack.Screen
           name="FinalBookingScreen"

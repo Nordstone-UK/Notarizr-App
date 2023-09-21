@@ -1,9 +1,9 @@
 import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function PaymentCompletionScreen(props) {
+export default function PaymentCompletionScreen({navigation}, props) {
   const message = 'Congratulations, your booking is completed!';
   const [firstMsg, secondMsg] = separateStringAfterFirstWord(message);
   function separateStringAfterFirstWord(inputString) {
@@ -14,10 +14,18 @@ export default function PaymentCompletionScreen(props) {
       const restOfTheString = words.slice(1).join(' ');
       return [firstWord, restOfTheString];
     } else {
-      // If there is only one word, return it as the first part and an empty string as the second part.
       return [inputString, ''];
     }
   }
+  useEffect(() => {
+    const delay = 3000;
+
+    const timer = setTimeout(() => {
+      navigation.navigate('HomeScreen');
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
   return (
     <View style={styles.container}>
       <ImageBackground

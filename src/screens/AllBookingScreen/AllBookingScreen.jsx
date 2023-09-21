@@ -164,7 +164,18 @@ export default function AllBookingScreen({navigation}) {
               }
             />
           )}
-
+          {isFocused === 'Active' && (
+            <AgentReviewCard
+              image={require('../../../assets/agentLocation.png')}
+              source={require('../../../assets/agentCardPic.png')}
+              bottomRightText="30 minutes"
+              bottomLeftText="0.5 Miles"
+              agentName={'Advocate Parimal M. Trivedi'}
+              agentAddress={'Legal building, James street,New York'}
+              OrangeText={'At Office'}
+              onPress={() => navigation.navigate('MedicalBookingScreen')}
+            />
+          )}
           {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}

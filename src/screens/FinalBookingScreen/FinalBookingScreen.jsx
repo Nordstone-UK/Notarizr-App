@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import Colors from '../../themes/Colors';
@@ -6,10 +6,11 @@ import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
+import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
 
-export default function FinalBookingScreen() {
+export default function FinalBookingScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -55,15 +56,24 @@ export default function FinalBookingScreen() {
           <Text style={styles.preference}>
             Please provide us with your booking preferences.
           </Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences.
+          </Text>
+          <Text style={styles.preference}>
+            Please provide us with your booking preferences.
+          </Text>
         </View>
+        <DocumentComponent image={require('../../../assets/Pdf.png')} />
+        <DocumentComponent image={require('../../../assets/doc.png')} />
         <View style={styles.btnView}>
           <GradientButton
             Title="Make Payment"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            onPress={() => navigation.navigate('PaymentScreen')}
           />
         </View>
       </BottomSheetStyle>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -157,8 +167,6 @@ const styles = StyleSheet.create({
     color: Colors.DullTextColor,
   },
   btnView: {
-    flex: 1,
-    justifyContent: 'flex-end',
     marginVertical: widthToDp(5),
   },
 });

@@ -27,9 +27,9 @@ export default function LoginScreen({navigation}, props) {
 
   const resetStack = () => {
     dispatch(userType('client'));
-    navigation.navigate({
-      name: 'HomeScreen',
-      key: 'HomeScreen', // Provide a unique key to reset the stack
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'HomeScreen'}],
     });
   };
   return (

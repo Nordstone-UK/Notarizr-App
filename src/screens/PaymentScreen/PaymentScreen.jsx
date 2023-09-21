@@ -14,7 +14,7 @@ import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
-export default function PaymentScreen() {
+export default function PaymentScreen({navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Payment Method" />
@@ -95,11 +95,12 @@ export default function PaymentScreen() {
           </View>
           <View
             style={{
-              marginVertical: heightToDp(5),
+              marginVertical: heightToDp(10),
             }}>
             <GradientButton
               Title="Complete Payment"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              onPress={() => navigation.navigate('PaymentCompletionScreen')}
             />
           </View>
         </ScrollView>
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     flexDirection: 'row',
     columnGap: widthToDp(5),
-    marginHorizontal: widthToDp(3),
+    paddingHorizontal: widthToDp(3),
     marginVertical: widthToDp(2),
   },
   addContainer: {

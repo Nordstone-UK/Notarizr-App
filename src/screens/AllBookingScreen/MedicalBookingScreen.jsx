@@ -17,7 +17,7 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 
-export default function MedicalBookingScreen() {
+export default function MedicalBookingScreen({navigation}) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -67,29 +67,39 @@ export default function MedicalBookingScreen() {
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences
+            </Text>
           </View>
           <View style={styles.buttonFlex}>
             <MainButton
               Title="Chat"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                paddingHorizontal: widthToDp(6),
+                width: widthToDp(40),
+                paddingVertical: widthToDp(2),
               }}
               styles={{
-                paddingHorizontal: widthToDp(10),
+                padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
+              onPress={() => navigation.navigate('ChatScreen')}
             />
             <MainButton
               Title="Track"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                paddingHorizontal: widthToDp(6),
+                width: widthToDp(40),
+                paddingVertical: widthToDp(2),
               }}
               styles={{
-                paddingHorizontal: widthToDp(10),
+                padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
+              onPress={() => navigation.navigate('MapArrivalScreen')}
             />
           </View>
         </ScrollView>
@@ -177,6 +187,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    marginBottom: heightToDp(2),
+    marginVertical: heightToDp(2),
   },
 });
