@@ -41,7 +41,7 @@ export default function AgentHomeScreen({navigation}) {
           </TouchableOpacity>
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
-              Title="Setup Your Profile"
+              Title="Select a service"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               onPress={() => navigation.navigate('AgentMainBookingScreen')}
             />
