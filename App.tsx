@@ -6,15 +6,20 @@
  */
 
 import React from 'react';
-
+import {ApolloClient, InMemoryCache, ApolloProvider, gql} from '@apollo/client';
 import AppNavigation from './src/screens/Navigation/AppNavigation';
 import {store} from './src/app/store';
 import {Provider} from 'react-redux';
+import init from './apollo/init';
+const client = init();
+
 function App(): JSX.Element {
   return (
-    <Provider store={store}>
-      <AppNavigation />
-    </Provider>
+    <ApolloProvider client={client}>
+      <Provider store={store}>
+        <AppNavigation />
+      </Provider>
+    </ApolloProvider>
   );
 }
 

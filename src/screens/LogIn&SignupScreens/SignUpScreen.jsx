@@ -15,12 +15,16 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {useDispatch, useSelector} from 'react-redux';
+import {emailSet} from '../../features/register/registerSlice';
 
 export default function SignUpScreen({navigation}, props) {
-  const [ColorChange, setColorChange] = useState();
-  const FocusColorChaneg = () => {
-    setColorChange(!ColorChange);
+  const dispatch = useDispatch();
+  const setEmailtoRedux = () => {
+    dispatch(emailSet(email));
+    navigation.navigate('SignUpDetailScreen');
   };
+
   return (
     <View style={styles.container}>
       <CompanyHeader
@@ -41,6 +45,7 @@ export default function SignUpScreen({navigation}, props) {
             leftImageSoucre={require('../../../assets/emailIcon.png')}
             placeholder={'Enter your email address'}
             LabelTextInput={'Email Address'}
+            onChangeText={text => setEmail(text)}
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/lockIcon.png')}
@@ -59,9 +64,10 @@ export default function SignUpScreen({navigation}, props) {
               GradiStyles={props.GradiStyles}
               Title="Signup"
               width={{width: widthToDp(80)}}
-              onPress={() => navigation.navigate('SignUpDetailScreen')}
+              onPress={() => setEmailtoRedux()}
             />
           </View>
+
           <View
             style={{
               flexDirection: 'row',

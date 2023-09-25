@@ -48,6 +48,7 @@ export default function LabelTextInput(props) {
           placeholderTextColor={
             Colors.DisableColor || props.placeholderTextColor
           }
+          onChangeText={props.onChangeText}
         />
         {props.rightImageSource && (
           <TouchableOpacity

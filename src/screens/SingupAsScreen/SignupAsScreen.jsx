@@ -9,13 +9,15 @@ import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch} from 'react-redux';
 import {userType} from '../../features/user/userSlice';
+import {accountTypeSet} from '../../features/register/registerSlice';
 
 export default function SignupAsScreen({navigation}, props) {
   const [colored, setColored] = useState('client');
   const dispatch = useDispatch();
   const handlUserType = () => {
+    dispatch(accountTypeSet(colored));
     dispatch(userType(colored));
-    navigation.navigate('SignUpScreen');
+    navigation.navigate('SignUpDetailScreen');
   };
 
   return (

@@ -1,4 +1,10 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {widthToDp} from '../../utils/Responsive';
@@ -12,7 +18,15 @@ export default function GradientButton(props) {
         end={{x: 1, y: 0}}
         style={[styles.gradientstyles, props.GradiStyles]}>
         <View style={[styles.buttonToucableOpacity, props.viewStyle]}>
-          <Text style={[styles.buttonText, props.styles]}>{props.Title}</Text>
+          {props.loading || false ? (
+            <ActivityIndicator
+              style={[styles.buttonText, props.styles]}
+              size="large"
+              color="#ffff"
+            />
+          ) : (
+            <Text style={[styles.buttonText, props.styles]}>{props.Title}</Text>
+          )}
         </View>
       </LinearGradient>
     </TouchableOpacity>

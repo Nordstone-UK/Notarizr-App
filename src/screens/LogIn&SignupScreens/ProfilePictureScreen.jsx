@@ -20,9 +20,14 @@ import SkipButton from '../../components/MainGradientButton/SkipButton';
 import ProfilePicture from '../../../assets/profilePicture.png';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useSelector} from 'react-redux';
+import {REGISTER_USER} from '../../../request/mutations/register.mutation';
+import {useMutation} from '@apollo/react-hooks';
+
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState('picture');
   const userType = useSelector(state => state.user.user);
+
+  const variables = useSelector(state => state.register);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -119,12 +124,22 @@ export default function ProfilePictureScreen({navigation}) {
       setImage(response?.assets[0]?.uri);
     });
   };
-  const resetStack = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'HomeScreen'}],
-    });
+  const [Register, {data, loading, errors}] = useMutation(REGISTER_USER);
+  const hanfleRegister = async () => {
+    console.log('Mutation sent');
+    try {
+      const {data, errors} = await Register({
+        variables,
+      });
+      console.log(data);
+      console.log(errors);
+    } catch (error) {
+      console.log('Mutation error:', error);
+    }
   };
+  if (errors) {
+    console.log('Mutation error:', errors);
+  }
   return (
     <View style={styles.container}>
       <CompanyHeader
@@ -162,10 +177,12 @@ export default function ProfilePictureScreen({navigation}) {
         <GradientButton
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Continue"
+          loading={loading}
           onPress={
-            userType !== 'agent'
-              ? () => navigation.navigate('RegisterCompletionScreen')
-              : () => navigation.navigate('AgentVerificationScreen')
+            () => hanfleRegister()
+            // userType !== 'agent'
+            //   ? () => navigation.navigate('RegisterCompletionScreen')
+            //   : () => navigation.navigate('AgentVerificationScreen')
           }
         />
         <SkipButton
@@ -176,6 +193,7 @@ export default function ProfilePictureScreen({navigation}) {
               : () => navigation.navigate('AgentVerificationScreen')
           }
         />
+        <Text>{errors?.message}</Text>
       </BottomSheetStyle>
     </View>
   );
