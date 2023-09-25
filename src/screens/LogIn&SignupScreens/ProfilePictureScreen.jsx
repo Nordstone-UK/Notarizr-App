@@ -124,22 +124,17 @@ export default function ProfilePictureScreen({navigation}) {
       setImage(response?.assets[0]?.uri);
     });
   };
-  const [Register, {data, loading, errors}] = useMutation(REGISTER_USER);
+  const [Register, {loading}] = useMutation(REGISTER_USER);
+  const [errorMessage, setErrorMessage] = useState('');
   const hanfleRegister = async () => {
-    console.log('Mutation sent');
-    try {
-      const {data, errors} = await Register({
-        variables,
-      });
-      console.log(data);
-      console.log(errors);
-    } catch (error) {
-      console.log('Mutation error:', error);
-    }
+    const {data, errors} = await Register({
+      variables,
+    });
+    console.log(data);
+    console.log('inside', errors);
+    setErrorMessage(JSON.stringify(errors[0]?.message));
   };
-  if (errors) {
-    console.log('Mutation error:', errors);
-  }
+
   return (
     <View style={styles.container}>
       <CompanyHeader
@@ -155,45 +150,54 @@ export default function ProfilePictureScreen({navigation}) {
       />
 
       <BottomSheetStyle>
-        <Text style={styles.textRemove}>Remove</Text>
-        {image ? (
-          <View>
-            <Image source={ProfilePicture} style={styles.profileImage} />
-            <Text style={styles.textEdit}>Edit Profile Image</Text>
-          </View>
-        ) : (
-          <MainButton
-            colors={['#fff', '#fff']}
-            Title="Upload Picture"
-            width={{width: widthToDp(80)}}
-            viewStyle={{
-              borderWidth: 2,
-              borderColor: Colors.Orange,
-              borderRadius: 10,
-            }}
-            styles={{color: Colors.Orange}}
+        <ScrollView>
+          <Text style={styles.textRemove}>Remove</Text>
+          {image ? (
+            <View>
+              <Image source={ProfilePicture} style={styles.profileImage} />
+              <Text style={styles.textEdit}>Edit Profile Image</Text>
+            </View>
+          ) : (
+            <MainButton
+              colors={['#fff', '#fff']}
+              Title="Upload Picture"
+              width={{width: widthToDp(80)}}
+              viewStyle={{
+                borderWidth: 2,
+                borderColor: Colors.Orange,
+                borderRadius: 10,
+              }}
+              styles={{color: Colors.Orange}}
+            />
+          )}
+          <Text
+            style={{
+              color: '#000',
+              fontSize: widthToDp(5),
+              alignSelf: 'center',
+            }}>
+            {errorMessage}
+          </Text>
+          <GradientButton
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            Title="Continue"
+            loading={loading}
+            onPress={
+              () => hanfleRegister()
+              // userType !== 'agent'
+              //   ? () => navigation.navigate('RegisterCompletionScreen')
+              //   : () => navigation.navigate('AgentVerificationScreen')
+            }
           />
-        )}
-        <GradientButton
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          Title="Continue"
-          loading={loading}
-          onPress={
-            () => hanfleRegister()
-            // userType !== 'agent'
-            //   ? () => navigation.navigate('RegisterCompletionScreen')
-            //   : () => navigation.navigate('AgentVerificationScreen')
-          }
-        />
-        <SkipButton
-          Title="Skip"
-          onPress={
-            userType !== 'agent'
-              ? () => navigation.navigate('RegisterCompletionScreen')
-              : () => navigation.navigate('AgentVerificationScreen')
-          }
-        />
-        <Text>{errors?.message}</Text>
+          <SkipButton
+            Title="Skip"
+            onPress={
+              userType !== 'agent'
+                ? () => navigation.navigate('RegisterCompletionScreen')
+                : () => navigation.navigate('AgentVerificationScreen')
+            }
+          />
+        </ScrollView>
       </BottomSheetStyle>
     </View>
   );

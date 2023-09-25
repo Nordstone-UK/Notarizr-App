@@ -13,14 +13,18 @@ const DEV_LIVE = 'http://35.171.240.48:8080/api/v1/app';
 
 const defaultOptions = {
   watchQuery: {
-    fetchPolicy: 'no-cache',
+    fetchPolicy: 'cache-and-network',
     errorPolicy: 'ignore',
   },
   query: {
-    fetchPolicy: 'no-cache',
+    fetchPolicy: 'network-only',
+    errorPolicy: 'all',
+  },
+  mutate: {
     errorPolicy: 'all',
   },
 };
+
 const init = () => {
   const httpLink = new HttpLink({
     uri: DEV_LIVE,
@@ -31,7 +35,7 @@ const init = () => {
   const authLink = setContext((_, {headers}) => {
     const token = AsyncStorage.getItem('token')
       ? AsyncStorage.getItem('token')
-      : ''; // Return the headers object with the Authorization header
+      : '';
     return {
       headers: {
         ...headers,
