@@ -22,6 +22,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {ceredentailSet} from '../../features/register/registerSlice';
 import {useLazyQuery, useQuery} from '@apollo/react-hooks';
 import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
+import {GET_EMAIL_OTP} from '../../../request/queries/getEmailOTP.query';
 
 export default function SignUpDetailScreen({navigation}, props) {
   const [fullName, setFullName] = useState('');
@@ -29,7 +30,7 @@ export default function SignUpDetailScreen({navigation}, props) {
   const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
   const [emailValid, setEmailValid] = useState();
-  const newUser = true;
+  const new_user = true;
 
   useEffect(() => {
     SplashScreen.hide();
@@ -49,7 +50,27 @@ export default function SignUpDetailScreen({navigation}, props) {
     navigation.navigate('EmailVerification');
   }
   const [isEmailValid, {loading}] = useLazyQuery(IS_EMAIL_VALID);
+  const [getEmailOtp, {loadingOTP}] = useLazyQuery(GET_EMAIL_OTP);
+  const handleEmailOTP = async () => {
+    return new Promise(() => {
+      try {
+        isEmailValid({
+          variables: {email, new_user},
+        }).then(response => {
+          console.log(response?.data);
 
+          if (response) {
+            Alert.alert('OTP not sent');
+          } else {
+            Alert.alert('OTP Sent');
+            separateFullName(fullName);
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  };
   const handleEmailValid = async () => {
     if (!email || !city || !number || !fullName) {
       Alert.alert('Please fill all the fields before submitting');
@@ -62,11 +83,11 @@ export default function SignUpDetailScreen({navigation}, props) {
             setEmailValid(response?.data?.isEmailValid?.emailTaken);
 
             if (emailValid) {
-              console.log('Email Taken');
+              // console.log('Email Taken');
               Alert.alert('This email is already taken');
             } else {
-              console.log('Email Valid');
-              separateFullName(fullName);
+              // console.log('Email Valid');
+              handleEmailOTP();
               setEmailValid(false);
             }
           });

@@ -21,6 +21,7 @@ const Colors = {
   GreenSwitch: '#11CE00',
   ClientCard: '#454DFF',
   InputTextColor: '#121826',
+  OTPSubHeadingColor: '#878787',
 };
 
 export default Colors;

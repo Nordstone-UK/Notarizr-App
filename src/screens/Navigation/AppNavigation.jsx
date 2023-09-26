@@ -139,7 +139,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="SignUpDetailScreen"
+        initialRouteName="ProfilePictureScreen"
         screenOptions={{
           headerShown: false,
         }}>
