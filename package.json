@@ -28,6 +28,8 @@
     "@rneui/themed": "^4.0.0-rc.8",
     "@twotalltotems/react-native-otp-input": "^1.3.11",
     "apollo-link-context": "^1.0.20",
+    "aws-sdk": "^2.1464.0",
+    "compressorjs": "^1.2.1",
     "graphql": "^16.8.1",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
@@ -46,6 +48,7 @@
     "react-native-screens": "^3.25.0",
     "react-native-splash-screen": "^3.3.0",
     "react-redux": "^8.1.2",
+    "rn-fetch-blob": "^0.12.0",
     "spacetime": "^7.4.7"
   },
   "devDependencies": {
