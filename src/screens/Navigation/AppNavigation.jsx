@@ -81,6 +81,7 @@ import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/Agen
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
 import MapArrivalScreen from '../MapArrivalScreen/MapArrivalScreen';
+import EmailVerification from '../LogIn&SignupScreens/EmailVerification';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -138,7 +139,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="OnboardingScreen1"
+        initialRouteName="SignUpDetailScreen"
         screenOptions={{
           headerShown: false,
         }}>
@@ -148,7 +149,7 @@ export default function AppNavigation() {
         <Stack.Screen name="OnboardingScreen3" component={OnboardingScreen3} />
         <Stack.Screen name="SignupAsScreen" component={SignupAsScreen} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
+        <Stack.Screen name="EmailVerification" component={EmailVerification} />
         <Stack.Screen
           name="ProfilePictureScreen"
           component={ProfilePictureScreen}

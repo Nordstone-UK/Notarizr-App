@@ -9,7 +9,6 @@ import {setContext} from 'apollo-link-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DEV_LIVE = 'http://35.171.240.48:8080/api/v1/app';
-// const DEV_LOCAL = 'http://localhost:8080/api/v1/app/';
 
 const defaultOptions = {
   watchQuery: {

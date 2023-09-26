@@ -63,7 +63,7 @@ export default function LabelTextInput(props) {
         <Text
           style={[
             (isFocused && styles.labelFocused) ||
-              (props.Label && styles.labelFocused) ||
+              (props.Label && styles.labelUnFocused) ||
               false,
             props.labelStyle,
           ]}>
@@ -103,6 +103,16 @@ const styles = StyleSheet.create({
     padding: 2,
     fontSize: 15,
     color: '#FF7A28',
+    zIndex: 3,
+    backgroundColor: '#fff',
+  },
+  labelUnFocused: {
+    position: 'absolute',
+    left: widthToDp(15),
+    top: widthToDp(-3),
+    padding: 2,
+    fontSize: 15,
+    color: Colors.InputTextColor,
     zIndex: 3,
     backgroundColor: '#fff',
   },

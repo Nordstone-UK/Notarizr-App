@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -19,13 +20,16 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import {useDispatch, useSelector} from 'react-redux';
 import {ceredentailSet} from '../../features/register/registerSlice';
+import {useLazyQuery, useQuery} from '@apollo/react-hooks';
+import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
 
 export default function SignUpDetailScreen({navigation}, props) {
   const [fullName, setFullName] = useState('');
   const [number, setNumber] = useState('');
-  const [date, setDate] = useState('');
   const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
+  const [emailValid, setEmailValid] = useState();
+  const newUser = true;
 
   useEffect(() => {
     SplashScreen.hide();
@@ -41,9 +45,38 @@ export default function SignUpDetailScreen({navigation}, props) {
       lastName = nameArray.pop();
       firstName = nameArray.join(' ');
     }
-    dispatch(ceredentailSet({firstName, lastName, number, date, city, email}));
-    navigation.navigate('ProfilePictureScreen');
+    dispatch(ceredentailSet({firstName, lastName, number, city, email}));
+    navigation.navigate('EmailVerification');
   }
+  const [isEmailValid, {loading}] = useLazyQuery(IS_EMAIL_VALID);
+
+  const handleEmailValid = async () => {
+    if (!email || !city || !number || !fullName) {
+      Alert.alert('Please fill all the fields before submitting');
+    } else {
+      return new Promise(() => {
+        try {
+          isEmailValid({
+            variables: {email},
+          }).then(response => {
+            setEmailValid(response?.data?.isEmailValid?.emailTaken);
+
+            if (emailValid) {
+              console.log('Email Taken');
+              Alert.alert('This email is already taken');
+            } else {
+              console.log('Email Valid');
+              separateFullName(fullName);
+              setEmailValid(false);
+            }
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
       <CompanyHeader
@@ -64,12 +97,16 @@ export default function SignUpDetailScreen({navigation}, props) {
             <LabelTextInput
               leftImageSoucre={require('../../../assets/emailIcon.png')}
               placeholder={'Enter your email address'}
-              LabelTextInput={'Email Address'}
+              LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
               onChangeText={text => setEmail(text)}
+              Label={true}
+              labelStyle={emailValid && {color: Colors.Red}}
+              AdjustWidth={emailValid && {borderColor: Colors.Red}}
             />
             <LabelTextInput
               leftImageSoucre={require('../../../assets/NameIcon.png')}
               placeholder={'Enter your full name'}
+              Label={true}
               LabelTextInput={'Full Name'}
               onChangeText={text => setFullName(text)}
             />
@@ -77,19 +114,13 @@ export default function SignUpDetailScreen({navigation}, props) {
               leftImageSoucre={require('../../../assets/phoneIcon.png')}
               placeholder={'Enter your phone number'}
               LabelTextInput={'Phone No.'}
+              Label={true}
               keyboardType="numeric"
               onChangeText={text => setNumber(text)}
             />
-            {/* 
-            <LabelTextInput
-              leftImageSoucre={require('../../../assets/calenderIcon.png')}
-              placeholder={'Enter your date of birth'}
-              LabelTextInput={'Date of Birth'}
-              keyboardType="numeric"
-              onChangeText={text => setDate(text)}
-            /> */}
             <LabelTextInput
               leftImageSoucre={require('../../../assets/locationIcon.png')}
+              Label={true}
               placeholder={'Enter your city'}
               LabelTextInput={'City'}
               onChangeText={text => setCity(text)}
@@ -101,7 +132,8 @@ export default function SignUpDetailScreen({navigation}, props) {
               <GradientButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 Title="Continue"
-                onPress={() => separateFullName(fullName)}
+                loading={loading}
+                onPress={() => handleEmailValid()}
               />
             </View>
           </ScrollView>

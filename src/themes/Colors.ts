@@ -20,6 +20,7 @@ const Colors = {
   DarkPink: '#F045FF',
   GreenSwitch: '#11CE00',
   ClientCard: '#454DFF',
+  InputTextColor: '#121826',
 };
 
 export default Colors;
