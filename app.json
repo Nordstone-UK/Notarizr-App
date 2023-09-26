@@ -1,4 +1,5 @@
 {
   "name": "Notarizr",
-  "displayName": "Notarizr"
+  "displayName": "Notarizr",
+  "plugins": ["react-native-compressor"]
 }

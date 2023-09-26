@@ -23,23 +23,21 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useSelector} from 'react-redux';
 import {REGISTER_USER} from '../../../request/mutations/register.mutation';
 import {useMutation} from '@apollo/react-hooks';
-import {PermissionsAndroid} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
-import {captureImage, chooseFile, uriToBlob} from '../../utils/ImagePicker';
-import useCompress from '../../hooks/useCompress';
-import RNFetchBlob from 'rn-fetch-blob'; // For file access (React Native)
+import {captureImage, chooseFile} from '../../utils/ImagePicker';
+import {compressImage} from '../../utils/ImageResizer';
+import {uploadDirectOnS3} from '../../utils/s3Helper';
 
 export default function ProfilePictureScreen({navigation}) {
-  const {compressImages} = useCompress();
-
   useEffect(() => {
     SplashScreen.hide();
   }, []);
   const [image, setImage] = useState();
+  const [imageUri, setImageUri] = useState(null);
   const [Register, {loading}] = useMutation(REGISTER_USER);
   const [errorMessage, setErrorMessage] = useState('');
   const variables = useSelector(state => state.register);
-  let uri;
+
   const showCameraGalleryAlert = () => {
     Alert.alert(
       'Choose an option',
@@ -55,14 +53,14 @@ export default function ProfilePictureScreen({navigation}) {
         {
           text: 'Gallery',
           onPress: async () => {
-            uri = await chooseFile('photo');
+            const uri = await chooseFile('photo');
             setImage(uri);
           },
         },
         {
           text: 'Camera',
           onPress: async () => {
-            uri = await captureImage('photo');
+            const uri = await captureImage('photo');
             setImage(uri);
           },
           style: 'cancel',
@@ -79,8 +77,31 @@ export default function ProfilePictureScreen({navigation}) {
     console.log('inside', errors);
     setErrorMessage(JSON.stringify(errors[0]?.message));
   };
+
   const handleCompression = async () => {
-    const compressedImage = await compressImages(uri);
+    try {
+      const compressedImage = await compressImage(image);
+      setImageUri(compressedImage);
+      console.log(compressedImage);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const uploadBlobToS3 = async () => {
+    const title = 'Profile Pictures';
+    const type = 'images';
+
+    try {
+      const uploadedLocation = await uploadDirectOnS3({
+        file: imageUri,
+        title: title,
+        type: type,
+      });
+
+      console.log('Blob uploaded successfully. Location:', uploadedLocation);
+    } catch (error) {
+      console.error('Error uploading blob to S3:', error);
+    }
   };
   return (
     <View style={styles.container}>
@@ -107,7 +128,7 @@ export default function ProfilePictureScreen({navigation}) {
               <Image source={{uri: image}} style={styles.profileImage} />
               <TouchableOpacity
                 onPress={
-                  () => handleCompression(image)
+                  () => handleCompression()
                   // Alert.alert('This feature is in development')
                 }>
                 <Text style={styles.textEdit}>Edit Profile Image</Text>
@@ -144,7 +165,7 @@ export default function ProfilePictureScreen({navigation}) {
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Continue"
             loading={loading}
-            // onPress={
+            onPress={() => uploadBlobToS3()}
             //   () => hanfleRegister()
             //   // userType !== 'agent'
             //   //   ? () => navigation.navigate('RegisterCompletionScreen')

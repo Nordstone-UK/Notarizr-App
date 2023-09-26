@@ -23,7 +23,7 @@ const uploadDirectOnS3 = async ({
     signatureVersion: signatureVersion,
   });
 
-  const keyName = `${type}/${title}/${file.name}`;
+  const keyName = `${type}/${title}/${file._data.name}`;
   const params = {
     Bucket: MUNROE_BUCKET_NAME,
     Key: keyName,
