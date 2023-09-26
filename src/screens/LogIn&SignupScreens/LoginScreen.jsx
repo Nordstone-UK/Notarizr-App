@@ -7,8 +7,9 @@ import {
   View,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -18,13 +19,39 @@ import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch} from 'react-redux';
 import {userType} from '../../features/user/userSlice';
+import SplashScreen from 'react-native-splash-screen';
+import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
+import {useLazyQuery} from '@apollo/client';
 export default function LoginScreen({navigation}, props) {
-  const [ColorChange, setColorChange] = useState();
-  const FocusColorChaneg = () => {
-    setColorChange(!ColorChange);
-  };
+  const [email, setEmail] = useState('');
+  const [number, setNumber] = useState('');
+  const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
   const dispatch = useDispatch();
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
 
+  const handleGetPhoneOtp = () => {
+    try {
+      getPhoneOtp({
+        variables: {email},
+      }).then(response => {
+        console.log(response?.data?.getPhoneOTP);
+        console.log(response?.data?.getPhoneOTP?.phoneNumber);
+        setNumber(response.data.getPhoneOTP.phoneNumber);
+        if (response?.data?.getPhoneOTP?.status !== '200') {
+          Alert.alert('OTP not sent');
+        } else {
+          Alert.alert('OTP Sent');
+          navigation.navigate('PhoneVerification', {
+            message: number,
+          });
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const resetStack = () => {
     dispatch(userType('client'));
     navigation.reset({
@@ -52,13 +79,10 @@ export default function LoginScreen({navigation}, props) {
             leftImageSoucre={require('../../../assets/emailIcon.png')}
             placeholder={'Enter your email address'}
             LabelTextInput={'Email Address'}
-          />
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/lockIcon.png')}
-            rightImageSource={require('../../../assets/eyeIcon.png')}
-            placeholder={'Enter your password'}
-            LabelTextInput={'Password'}
-            secureTextEntry={true}
+            onChangeText={text => setEmail(text)}
+            // Label={true}
+            // labelStyle={emailValid && {color: Colors.Red}}
+            // AdjustWidth={emailValid && {borderColor: Colors.Red}}
           />
           <View
             style={{
@@ -69,7 +93,8 @@ export default function LoginScreen({navigation}, props) {
               Title="Login"
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
-              onPress={() => resetStack()}
+              onPress={() => handleGetPhoneOtp()}
+              loading={loading}
             />
           </View>
           <View
