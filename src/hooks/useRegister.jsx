@@ -2,6 +2,8 @@ import {useMutation} from '@apollo/client';
 import {REGISTER_USER} from '../../request/mutations/register.mutation';
 import {compressImage} from '../utils/ImageResizer';
 import {uploadDirectOnS3} from '../utils/s3Helper';
+import DocumentPicker, {types} from 'react-native-document-picker';
+import React, {useCallback} from 'react';
 
 const useRegister = () => {
   const [register] = useMutation(REGISTER_USER);
@@ -31,6 +33,19 @@ const useRegister = () => {
     // console.log('uploadBlobToS3', url);
     return url;
   };
+  const uploadFilestoS3 = async (fileUri, agentName) => {
+    console.log('uploadBlobToS3', fileUri, agentName);
+
+    const title = 'Documents';
+    const type = agentName;
+    const url = await uploadDirectOnS3({
+      file: fileUri,
+      title: title,
+      type: type,
+    });
+    console.log('uploadBlobToS3', url);
+    return url;
+  };
 
   const handleRegister = async variables => {
     try {
@@ -41,8 +56,8 @@ const useRegister = () => {
       };
       console.log('Handle Request', request);
       const {data} = await register(request);
-      console.log('handle Register', data);
-      if (data?.register?.status === 201) {
+      console.log('After API', data);
+      if (data?.register?.status === '201') {
         console.log('Registered');
         return true;
       } else {
@@ -53,20 +68,24 @@ const useRegister = () => {
     }
   };
 
-  const uploadFiles = () => {};
+  const uploadFiles = useCallback(async () => {
+    try {
+      const response = await DocumentPicker.pickSingle({
+        presentationStyle: 'fullScreen',
+      });
+      return response.uri;
+    } catch (err) {
+      console.warn(err);
+    }
+  }, []);
 
-  return {handleCompression, uploadBlobToS3, handleRegister};
+  return {
+    handleCompression,
+    uploadBlobToS3,
+    handleRegister,
+    uploadFiles,
+    uploadFilestoS3,
+  };
 };
 
 export default useRegister;
-// const handleRegister = async () => {
-//   const imageBlob = await handleCompression();
-//   const url = await uploadBlobToS3(imageBlob);
-
-//   const params = {
-//     ...reduxVariables,
-//     profilePicture: url,
-//   };
-
-//   await register(params);
-// };

@@ -38,19 +38,7 @@ export default function ProfilePictureScreen({navigation}) {
   const [profilePicture, setProfilePicure] = useState('');
   const variables = useSelector(state => state.register);
   const dispatch = useDispatch();
-  // const handleRegister = async () => {
-  //   try {
-  //     const {data} = await Register({
-  //       variables,
-  //     });
-  //     console.log(data);
-  //     if (data) {
-  //       navigation.navigate('ProfilePictureScreen');
-  //     }
-  //   } catch (error) {
-  //     console.error('An error occurred:', error);
-  //   }
-  // };
+
   const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
 
   const showCameraGalleryAlert = () => {

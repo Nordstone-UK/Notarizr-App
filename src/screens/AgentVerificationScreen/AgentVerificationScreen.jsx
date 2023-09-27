@@ -7,8 +7,9 @@ import {
   View,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -17,17 +18,60 @@ import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
+import SplashScreen from 'react-native-splash-screen';
+import useRegister from '../../hooks/useRegister';
+import {useSelector} from 'react-redux';
 
 export default function AgentVerificationScreen({navigation}, props) {
-  //   const [ColorChange, setColorChange] = useState();
-  //   const FocusColorChaneg = () => {
-  //     setColorChange(!ColorChange);
-  //   };
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
+  const variables = useSelector(state => state.register);
+  const [photoID, setphotoID] = useState(null);
+  const [Certificate, setCertificate] = useState(null);
+  const {uploadFiles, handleCompression, uploadFilestoS3, handleRegister} =
+    useRegister();
+  const deletePhotoID = () => {
+    setphotoID(null);
+  };
+  const deleteCertificate = () => {
+    setCertificate(null);
+  };
+  const selectPhotoID = async () => {
+    const response = await uploadFiles();
+    console.log(response);
+    setphotoID(response);
+  };
+  const selectCertificate = async () => {
+    const response = await uploadFiles();
+    console.log(response);
+    setCertificate(response);
+  };
+  const submitRegister = async () => {
+    const photeBlob = await handleCompression(photoID);
+    const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
+    const CertificateBlob = await handleCompression(photoID);
+    const CertificateURL = await uploadFilestoS3(
+      CertificateBlob,
+      variables.firstName,
+    );
+    const params = {
+      ...variables,
+      certificateUrl: CertificateURL,
+      photoId: photoURL,
+    };
+
+    if (await handleRegister(params)) {
+      navigation.navigate('AgentDocumentCompletion');
+    } else {
+      Alert.alert('Problem while registering');
+    }
+  };
   return (
     <View style={styles.container}>
       <CompanyHeader
-        Header="Welcome Back to Notarizr"
-        subHeading="Hello there, sign in to continue!"
+        Header="Verification"
+        subHeading="Please verify your identity"
         HeaderStyle={{alignSelf: 'center'}}
         subHeadingStyle={{
           alignSelf: 'center',
@@ -50,29 +94,53 @@ export default function AgentVerificationScreen({navigation}, props) {
             style={{
               marginVertical: heightToDp(2),
             }}>
-            <MainButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Upload Documents"
-              GradiStyles={{
-                width: widthToDp(50),
-                paddingVertical: widthToDp(1.5),
-              }}
-              styles={{
-                paddingHorizontal: widthToDp(0),
-                paddingVertical: widthToDp(0),
-                fontSize: widthToDp(4),
-              }}
-            />
+            {photoID && Certificate ? null : photoID === null ? (
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Upload Photo ID"
+                GradiStyles={{
+                  width: widthToDp(50),
+                  paddingVertical: widthToDp(1.5),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => selectPhotoID()}
+              />
+            ) : (
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Upload Certificate"
+                GradiStyles={{
+                  width: widthToDp(50),
+                  paddingVertical: widthToDp(1.5),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => selectCertificate()}
+              />
+            )}
           </View>
           <View>
-            <DocumentComponent
-              Title="Picture ID"
-              image={require('../../../assets/Pdf.png')}
-            />
-            <DocumentComponent
-              Title="Notary Certificate ID"
-              image={require('../../../assets/doc.png')}
-            />
+            {photoID && (
+              <DocumentComponent
+                Title="Picture ID"
+                image={require('../../../assets/Pdf.png')}
+                onPress={() => deletePhotoID()}
+              />
+            )}
+            {Certificate && (
+              <DocumentComponent
+                Title="Notary Certificate ID"
+                image={require('../../../assets/doc.png')}
+                onPress={() => deleteCertificate()}
+              />
+            )}
           </View>
           <View
             style={{
@@ -83,7 +151,7 @@ export default function AgentVerificationScreen({navigation}, props) {
               Title="Continue"
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
-              onPress={() => navigation.navigate('AgentDocumentCompletion')}
+              onPress={() => submitRegister()}
             />
           </View>
         </ScrollView>

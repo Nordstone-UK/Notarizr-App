@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
@@ -10,7 +10,9 @@ export default function DocumentComponent(props) {
         <Image source={props.image} />
         <Text style={styles.text}>{props.Title || 'Medical Documents'}</Text>
       </View>
-      <Image source={require('../../../assets/trash.png')} />
+      <TouchableOpacity onPress={props.onPress}>
+        <Image source={require('../../../assets/trash.png')} />
+      </TouchableOpacity>
     </View>
   );
 }
