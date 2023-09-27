@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, Image} from 'react-native';
+import {StyleSheet, Text, View, Image, Alert} from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -10,29 +10,55 @@ import {ScrollView} from 'react-native';
 import {useLazyQuery} from '@apollo/client';
 import {VERIFY_EMAIL_OTP} from '../../../request/queries/verifyEmailOTP.query';
 import {RESEND_EMAIL_OTP} from '../../../request/queries/resendEmailOTP.query';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {VERIFY_PHONE_OTP} from '../../../request/queries/verifyPhoneOTP.query';
+import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
+import {ceredentailSet} from '../../features/register/registerSlice';
 
-export default function EmailVerification() {
+export default function EmailVerification({route, navigation}) {
+  const {ceredentials, message} = route.params;
+  console.log(ceredentials);
   const email = useSelector(state => state.register.email);
-  console.log(email);
   const [otp, setOTPcode] = useState('');
-  const [verifYOTP, {loadingVerify}] = useLazyQuery(VERIFY_EMAIL_OTP);
-  const [resendOTP, {loadingResend}] = useLazyQuery(RESEND_EMAIL_OTP);
+  const [verifYOTP, {loading: verifyLoading}] = useLazyQuery(VERIFY_PHONE_OTP);
+  const [getPhoneOtp, {loading: phoneLoading}] = useLazyQuery(GET_PHONE_OTP);
+  const dispatch = useDispatch();
   const handleOtpVerification = async () => {
     await verifYOTP({
       variables: {email, otp},
-    }).then(response => {
-      console.log(response);
-
-      //   if (emailValid) {
-      //     Alert.alert('OTP not sent');
-      //   } else {
-      //     Alert.alert('OTP Sent');
-      //     separateFullName(fullName);
-      //   }
+    })
+      .then(response => {
+        console.log(response?.data);
+        Alert.alert(response?.data?.verifyPhoneOTP?.message);
+        // dispatch(ceredentailSet({firstName, lastName, number, city, email}));
+        navigation.navigate('ProfilePictureScreen');
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
+  const resetStack = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'HomeScreen'}],
     });
   };
-  const handleResendOtp = () => {};
+  const handleResendOtp = () => {
+    try {
+      getPhoneOtp({
+        variables: {email},
+      }).then(response => {
+        console.log(response.data.getPhoneOTP.phoneNumber);
+        if (response?.data?.getPhoneOTP?.status !== '200') {
+          Alert.alert('OTP not sent');
+        } else {
+          Alert.alert('Resent OTP');
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <ScrollView style={styles.container}>
       <View style={styles.subContainer}>
@@ -46,19 +72,20 @@ export default function EmailVerification() {
           }}
           pinCount={4}
           onCodeChanged={code => {
-            setOTPcode(JSON.stringify(code));
+            setOTPcode(code);
           }}
           codeInputFieldStyle={styles.underlineStyleBase}
           codeInputHighlightStyle={styles.underlineStyleHighLighted}
           onCodeFilled={code => {
-            handleOtpVerification();
+            // handleOtpVerification();
             console.log(`Code is ${code}, you are good to go!`);
           }}
         />
         <Text style={styles.subheading}>
-          In order to verify your email addreses. We have sent an OTP on the
-          provided email address.
+          We have sent an OTP on this number:
         </Text>
+        <Text style={styles.subheading}>{message}</Text>
+
         <View style={{marginVertical: heightToDp(5)}}>
           <MainButton
             Title="Resend OTP"
@@ -67,19 +94,21 @@ export default function EmailVerification() {
               width: widthToDp(40),
               paddingVertical: heightToDp(2),
             }}
+            loading={phoneLoading}
             styles={{
               padding: 0,
               fontSize: widthToDp(4),
             }}
+            onPress={() => handleResendOtp()}
           />
         </View>
       </View>
       <View style={{marginVertical: heightToDp(5)}}>
         <GradientButton
           Title="Verify OTP"
-          loading={loadingVerify}
+          loading={verifyLoading}
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={() => handleResendOtp()}
+          onPress={() => handleOtpVerification()}
         />
       </View>
     </ScrollView>

@@ -19,60 +19,37 @@ import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import {useDispatch, useSelector} from 'react-redux';
-import {ceredentailSet} from '../../features/register/registerSlice';
-import {useLazyQuery, useQuery} from '@apollo/react-hooks';
+import {ceredentailSet, emailSet} from '../../features/register/registerSlice';
+import {useLazyQuery} from '@apollo/react-hooks';
 import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
-import {GET_EMAIL_OTP} from '../../../request/queries/getEmailOTP.query';
+import {Picker} from '@react-native-picker/picker';
 
 export default function SignUpDetailScreen({navigation}, props) {
-  const [fullName, setFullName] = useState('');
-  const [number, setNumber] = useState('');
-  const [city, setCity] = useState('');
+  const [firstName, setfirstName] = useState('');
+  const [lastName, setlastName] = useState('');
+  const [phoneNumber, setNumber] = useState('');
+  const [location, setlocation] = useState('');
   const [email, setEmail] = useState('');
   const [emailValid, setEmailValid] = useState();
-  const new_user = true;
-
+  const [gender, setgender] = useState('');
+  const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
+  const dispatch = useDispatch();
+  const handleGenderChange = value => {
+    setgender(value);
+  };
   useEffect(() => {
     SplashScreen.hide();
   }, []);
-  const dispatch = useDispatch();
-  function separateFullName(fullName) {
-    const nameArray = fullName.split(' ');
-    let firstName = '';
-    let lastName = '';
-    if (nameArray.length === 1) {
-      firstName = nameArray[0];
-    } else if (nameArray.length >= 2) {
-      lastName = nameArray.pop();
-      firstName = nameArray.join(' ');
-    }
-    dispatch(ceredentailSet({firstName, lastName, number, city, email}));
-    navigation.navigate('EmailVerification');
-  }
-  const [isEmailValid, {loading}] = useLazyQuery(IS_EMAIL_VALID);
-  const [getEmailOtp, {loadingOTP}] = useLazyQuery(GET_EMAIL_OTP);
-  const handleEmailOTP = async () => {
-    return new Promise(() => {
-      try {
-        isEmailValid({
-          variables: {email, new_user},
-        }).then(response => {
-          console.log(response?.data);
 
-          if (response) {
-            Alert.alert('OTP not sent');
-          } else {
-            Alert.alert('OTP Sent');
-            separateFullName(fullName);
-          }
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    });
-  };
   const handleEmailValid = async () => {
-    if (!email || !city || !number || !fullName) {
+    if (
+      !email ||
+      !location ||
+      !phoneNumber ||
+      !firstName ||
+      !lastName ||
+      !gender
+    ) {
       Alert.alert('Please fill all the fields before submitting');
     } else {
       return new Promise(() => {
@@ -82,13 +59,21 @@ export default function SignUpDetailScreen({navigation}, props) {
           }).then(response => {
             setEmailValid(response?.data?.isEmailValid?.emailTaken);
 
-            if (emailValid) {
-              // console.log('Email Taken');
+            if (response?.data?.isEmailValid?.emailTaken) {
               Alert.alert('This email is already taken');
             } else {
-              // console.log('Email Valid');
-              handleEmailOTP();
               setEmailValid(false);
+              dispatch(
+                ceredentailSet({
+                  firstName,
+                  lastName,
+                  location,
+                  gender,
+                  email,
+                  phoneNumber,
+                }),
+              );
+              navigation.navigate('ProfilePictureScreen');
             }
           });
         } catch (error) {
@@ -126,10 +111,17 @@ export default function SignUpDetailScreen({navigation}, props) {
             />
             <LabelTextInput
               leftImageSoucre={require('../../../assets/NameIcon.png')}
-              placeholder={'Enter your full name'}
+              placeholder={'Enter your first name'}
               Label={true}
-              LabelTextInput={'Full Name'}
-              onChangeText={text => setFullName(text)}
+              LabelTextInput={'First Name'}
+              onChangeText={text => setfirstName(text)}
+            />
+            <LabelTextInput
+              leftImageSoucre={require('../../../assets/NameIcon.png')}
+              placeholder={'Enter your last name'}
+              Label={true}
+              LabelTextInput={'Last Name'}
+              onChangeText={text => setlastName(text)}
             />
             <LabelTextInput
               leftImageSoucre={require('../../../assets/phoneIcon.png')}
@@ -144,8 +136,16 @@ export default function SignUpDetailScreen({navigation}, props) {
               Label={true}
               placeholder={'Enter your city'}
               LabelTextInput={'City'}
-              onChangeText={text => setCity(text)}
+              onChangeText={text => setlocation(text)}
             />
+            <View>
+              <Picker selectedValue={gender} onValueChange={handleGenderChange}>
+                <Picker.Item label="Select Gender" value="" />
+                <Picker.Item label="Male" value="male" />
+                <Picker.Item label="Female" value="female" />
+                <Picker.Item label="Other" value="other" />
+              </Picker>
+            </View>
             <View
               style={{
                 marginTop: heightToDp(10),
@@ -153,7 +153,7 @@ export default function SignUpDetailScreen({navigation}, props) {
               <GradientButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 Title="Continue"
-                loading={loading}
+                loading={validLoading}
                 onPress={() => handleEmailValid()}
               />
             </View>

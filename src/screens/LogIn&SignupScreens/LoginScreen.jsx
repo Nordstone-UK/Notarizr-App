@@ -22,6 +22,7 @@ import {userType} from '../../features/user/userSlice';
 import SplashScreen from 'react-native-splash-screen';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
+import {emailSet} from '../../features/register/registerSlice';
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
   const [number, setNumber] = useState('');
@@ -32,19 +33,18 @@ export default function LoginScreen({navigation}, props) {
   }, []);
 
   const handleGetPhoneOtp = () => {
+    dispatch(emailSet(email));
     try {
       getPhoneOtp({
         variables: {email},
       }).then(response => {
-        console.log(response?.data?.getPhoneOTP);
-        console.log(response?.data?.getPhoneOTP?.phoneNumber);
-        setNumber(response.data.getPhoneOTP.phoneNumber);
+        console.log(response.data.getPhoneOTP.phoneNumber);
         if (response?.data?.getPhoneOTP?.status !== '200') {
           Alert.alert('OTP not sent');
         } else {
           Alert.alert('OTP Sent');
           navigation.navigate('PhoneVerification', {
-            message: number,
+            message: response.data.getPhoneOTP.phoneNumber,
           });
         }
       });
@@ -52,13 +52,7 @@ export default function LoginScreen({navigation}, props) {
       console.log(error);
     }
   };
-  const resetStack = () => {
-    dispatch(userType('client'));
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'HomeScreen'}],
-    });
-  };
+
   return (
     <View style={styles.container}>
       <CompanyHeader

@@ -6,11 +6,11 @@ const initialState = {
   email: 'none',
   phoneNumber: 'none',
   gender: '',
-  dateOfBirth: 'none',
   profilePicture: 'none',
   certificateUrl: 'none',
   photoId: 'none',
   accountType: 'none',
+  location: 'none',
 };
 
 export const registerSlice = createSlice({
@@ -25,8 +25,14 @@ export const registerSlice = createSlice({
       state.email = action.payload.email;
       state.firstName = action.payload.firstName;
       state.lastName = action.payload.lastName;
-      state.phoneNumber = action.payload.number;
+      state.phoneNumber = action.payload.phoneNumber;
+      state.gender = action.payload.gender;
+      state.location = action.payload.location;
       console.log('Redux ', state);
+    },
+    profilePictureSet: (state, action) => {
+      state.profilePicture = action.payload;
+      console.log('Redux profilePciture', state);
     },
     accountTypeSet: (state, action) => {
       state.accountType = action.payload;
@@ -34,6 +40,7 @@ export const registerSlice = createSlice({
   },
 });
 
-export const {emailSet, ceredentailSet, accountTypeSet} = registerSlice.actions;
+export const {emailSet, ceredentailSet, profilePictureSet, accountTypeSet} =
+  registerSlice.actions;
 
 export default registerSlice.reducer;

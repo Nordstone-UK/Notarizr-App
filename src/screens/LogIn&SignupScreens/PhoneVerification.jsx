@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, Image} from 'react-native';
+import {StyleSheet, Text, View, Image, Alert} from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -12,27 +12,50 @@ import {VERIFY_EMAIL_OTP} from '../../../request/queries/verifyEmailOTP.query';
 import {RESEND_EMAIL_OTP} from '../../../request/queries/resendEmailOTP.query';
 import {useSelector} from 'react-redux';
 import {VERIFY_PHONE_OTP} from '../../../request/queries/verifyPhoneOTP.query';
+import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 
 export default function PhoneVerification({route, navigation}) {
-  //   const email = useSelector(state => state.register.email);
-  const email = 'abdul1@gmail.com';
+  const email = useSelector(state => state.register.email);
   const {message} = route.params;
-  console.log(route);
   const [otp, setOTPcode] = useState('');
-  const [verifYOTP, {loading}] = useLazyQuery(VERIFY_PHONE_OTP);
+  const [verifYOTP, {loading: verifyLoading}] = useLazyQuery(VERIFY_PHONE_OTP);
+  const [getPhoneOtp, {loading: phoneLoading}] = useLazyQuery(GET_PHONE_OTP);
+
   const handleOtpVerification = async () => {
     await verifYOTP({
       variables: {email, otp},
     })
       .then(response => {
         console.log(response?.data);
-        console.log(response?.data?.verifyPhoneOTP?.message);
+        Alert.alert(response?.data?.verifyPhoneOTP?.message);
+        resetStack();
       })
       .catch(error => {
         console.error(error);
       });
   };
-  const handleResendOtp = () => {};
+  const resetStack = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'HomeScreen'}],
+    });
+  };
+  const handleResendOtp = () => {
+    try {
+      getPhoneOtp({
+        variables: {email},
+      }).then(response => {
+        console.log(response.data.getPhoneOTP.phoneNumber);
+        if (response?.data?.getPhoneOTP?.status !== '200') {
+          Alert.alert('OTP not sent');
+        } else {
+          Alert.alert('Resent OTP');
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <ScrollView style={styles.container}>
       <View style={styles.subContainer}>
@@ -68,17 +91,19 @@ export default function PhoneVerification({route, navigation}) {
               width: widthToDp(40),
               paddingVertical: heightToDp(2),
             }}
+            loading={phoneLoading}
             styles={{
               padding: 0,
               fontSize: widthToDp(4),
             }}
+            onPress={() => handleResendOtp()}
           />
         </View>
       </View>
       <View style={{marginVertical: heightToDp(5)}}>
         <GradientButton
           Title="Verify OTP"
-          loading={loading}
+          loading={verifyLoading}
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           onPress={() => handleOtpVerification()}
         />

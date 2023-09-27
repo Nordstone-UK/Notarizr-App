@@ -6,24 +6,24 @@ export const REGISTER_USER = gql`
     $lastName: String!
     $email: String!
     $phoneNumber: String!
-    $accountType: String
-    $photoId: String
-    $certificateUrl: String
-    $profilePicture: String
-    $dateOfBirth: String
+    $location: String!
     $gender: String
+    $accountType: String
+    $profilePicture: String
+    $certificateUrl: String
+    $photoId: String
   ) {
     register(
       first_name: $firstName
       last_name: $lastName
       email: $email
       phone_number: $phoneNumber
-      account_type: $accountType
-      photoId: $photoId
-      certificate_url: $certificateUrl
-      profile_picture: $profilePicture
-      date_of_birth: $dateOfBirth
+      location: $location
       gender: $gender
+      account_type: $accountType
+      profile_picture: $profilePicture
+      certificate_url: $certificateUrl
+      photoId: $photoId
     ) {
       message
       status
