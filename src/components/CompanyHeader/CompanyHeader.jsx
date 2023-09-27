@@ -1,12 +1,12 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import {width, widthToDp} from '../../utils/Responsive';
+import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 
 export default function CompanyHeader(props) {
   return (
     <View>
       <Image
-        source={require('../../../assets/notarizrLogo.png')}
+        source={require('../../../assets/notarizrLogo1.png')}
         style={styles.imagestyles}
       />
       <Text style={[styles.textHeading, props.HeaderStyle]}>
@@ -21,8 +21,9 @@ const styles = StyleSheet.create({
   imagestyles: {
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: '15%',
-    marginBottom: '10%',
+    width: widthToDp(65),
+    height: heightToDp(20),
+    marginVertical: widthToDp(8),
   },
   textHeading: {
     color: '#000',

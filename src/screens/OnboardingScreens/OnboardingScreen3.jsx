@@ -8,7 +8,7 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function OnboardingScreen3({navigation}, props) {
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Image
         source={require('../../../assets/screen3.png')}
         style={styles.imagestyle}
@@ -21,41 +21,40 @@ export default function OnboardingScreen3({navigation}, props) {
         Title="Get Started"
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
         viewStyle={props.viewStyle}
-        GradiStyles={{marginTop: widthToDp(5)}}
         onPress={() => navigation.navigate('LoginScreen')}
       />
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignSelf: 'center',
+    justifyContent: 'center',
   },
   imagestyle: {
-    width: widthToDp(80),
-    resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: heightToDp(15),
+    width: widthToDp(100),
+    height: heightToDp(70),
+    resizeMode: 'contain',
+    marginLeft: widthToDp(5),
   },
   textHeading: {
     color: '#000',
-    marginTop: heightToDp(5),
-    marginHorizontal: heightToDp(5),
+    marginHorizontal: widthToDp(5),
     textAlign: 'center',
-    fontSize: heightToDp(8),
-    fontStyle: 'normal',
-    fontWeight: '700',
-    fontFamily: 'Manrope',
+    fontSize: widthToDp(8),
+    fontFamily: 'Manrope-Bold',
   },
   textSubheading: {
     color: '#000',
     textAlign: 'center',
-    fontSize: heightToDp(5.5),
+    fontSize: widthToDp(5.5),
     fontStyle: 'normal',
     fontWeight: '500',
     fontFamily: 'Manrope',
-    marginTop: heightToDp(5),
-    marginHorizontal: heightToDp(8),
+    marginVertical: widthToDp(3),
+    marginHorizontal: widthToDp(8),
   },
 });

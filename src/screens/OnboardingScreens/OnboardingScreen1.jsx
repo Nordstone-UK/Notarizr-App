@@ -15,7 +15,7 @@ export default function OnboardingScreen1({navigation}, props) {
     SplashScreen.hide();
   }, []);
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Image
         source={require('../../../assets/screen1.png')}
         style={styles.imagestyle}
@@ -28,30 +28,30 @@ export default function OnboardingScreen1({navigation}, props) {
         Title="Next"
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
         viewStyle={props.viewStyle}
-        GradiStyles={{marginTop: widthToDp(5)}}
         onPress={() => navigation.navigate('OnboardingScreen2')}
       />
       <SkipButton
         Title="Skip"
         onPress={() => navigation.navigate('OnboardingScreen3')}
       />
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignSelf: 'center',
+    justifyContent: 'center',
   },
   imagestyle: {
-    width: widthToDp(80),
-    resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: heightToDp(15),
+    width: widthToDp(100),
+    height: heightToDp(70),
+    resizeMode: 'contain',
   },
   textHeading: {
     color: '#000',
-    marginTop: heightToDp(5),
     marginHorizontal: widthToDp(5),
     textAlign: 'center',
     fontSize: widthToDp(8),
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     fontWeight: '500',
     fontFamily: 'Manrope',
-    marginTop: widthToDp(5),
+    marginVertical: widthToDp(3),
     marginHorizontal: widthToDp(8),
   },
 });
