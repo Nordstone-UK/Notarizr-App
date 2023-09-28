@@ -23,6 +23,7 @@ import {ceredentailSet, emailSet} from '../../features/register/registerSlice';
 import {useLazyQuery} from '@apollo/react-hooks';
 import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
 import {Picker} from '@react-native-picker/picker';
+import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 
 export default function SignUpDetailScreen({navigation}, props) {
   const [firstName, setfirstName] = useState('');
@@ -34,6 +35,7 @@ export default function SignUpDetailScreen({navigation}, props) {
   const [gender, setgender] = useState('');
   const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
   const dispatch = useDispatch();
+
   const handleGenderChange = value => {
     setgender(value);
   };
@@ -101,15 +103,6 @@ export default function SignUpDetailScreen({navigation}, props) {
         <BottomSheetStyle>
           <ScrollView style={{marginVertical: heightToDp(10)}}>
             <LabelTextInput
-              leftImageSoucre={require('../../../assets/emailIcon.png')}
-              placeholder={'Enter your email address'}
-              LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
-              onChangeText={text => setEmail(text)}
-              Label={true}
-              labelStyle={emailValid && {color: Colors.Red}}
-              AdjustWidth={emailValid && {borderColor: Colors.Red}}
-            />
-            <LabelTextInput
               leftImageSoucre={require('../../../assets/NameIcon.png')}
               placeholder={'Enter your first name'}
               Label={true}
@@ -124,13 +117,23 @@ export default function SignUpDetailScreen({navigation}, props) {
               onChangeText={text => setlastName(text)}
             />
             <LabelTextInput
-              leftImageSoucre={require('../../../assets/phoneIcon.png')}
-              placeholder={'Enter your phone number'}
-              LabelTextInput={'Phone No.'}
+              leftImageSoucre={require('../../../assets/emailIcon.png')}
+              placeholder={'Enter your email address'}
+              LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
+              onChangeText={text => setEmail(text)}
               Label={true}
-              keyboardType="numeric"
-              onChangeText={text => setNumber(text)}
+              labelStyle={emailValid && {color: Colors.Red}}
+              AdjustWidth={emailValid && {borderColor: Colors.Red}}
             />
+            <PhoneTextInput
+              onChange={e => {
+                setNumber(e);
+              }}
+              LabelTextInput="Phone Number"
+              Label={true}
+              placeholder={'XXXXXXXXXXX'}
+            />
+
             <LabelTextInput
               leftImageSoucre={require('../../../assets/locationIcon.png')}
               Label={true}
@@ -138,7 +141,7 @@ export default function SignUpDetailScreen({navigation}, props) {
               LabelTextInput={'City'}
               onChangeText={text => setlocation(text)}
             />
-            <View>
+            <View style={styles.GenderContainer}>
               <Picker selectedValue={gender} onValueChange={handleGenderChange}>
                 <Picker.Item label="Select Gender" value="" />
                 <Picker.Item label="Male" value="male" />
@@ -168,5 +171,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  GenderContainer: {
+    alignSelf: 'center',
+    marginTop: heightToDp(3),
+    paddingVertical: heightToDp(2),
+    borderWidth: 2,
+    borderRadius: 15,
+    borderColor: '#D3D5DA',
+    width: widthToDp(90),
   },
 });

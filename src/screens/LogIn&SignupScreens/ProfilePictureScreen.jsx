@@ -73,6 +73,8 @@ export default function ProfilePictureScreen({navigation}) {
     );
   };
   const submitRegister = async () => {
+    settempLoading(true);
+
     const imageBlob = await handleCompression(image);
     const url = await uploadBlobToS3(imageBlob);
     if (variables.accountType === 'client') {
@@ -82,20 +84,39 @@ export default function ProfilePictureScreen({navigation}) {
       };
 
       if (await handleRegister(params)) {
+        settempLoading(false);
         navigation.navigate('RegisterCompletionScreen');
       } else {
         Alert.alert('Problem while registering');
+        settempLoading(false);
       }
     } else {
+      settempLoading(false);
       dispatch(profilePictureSet(url));
       navigation.navigate('AgentVerificationScreen');
     }
   };
-  const skipPciture = () => {
+  const skipPciture = async () => {
     settempLoading(true);
-    setProfilePicure('');
-    useDispatch(profilePictureSet(profilePicture));
-    handleRegister();
+
+    if (variables.accountType === 'client') {
+      const params = {
+        ...variables,
+        profilePicture: profilePicture,
+      };
+
+      if (await handleRegister(params)) {
+        settempLoading(false);
+        navigation.navigate('RegisterCompletionScreen');
+      } else {
+        Alert.alert('Problem while registering');
+        settempLoading(false);
+      }
+    } else {
+      settempLoading(false);
+      dispatch(profilePictureSet(url));
+      navigation.navigate('AgentVerificationScreen');
+    }
   };
   const navigateToNextScreen = () => {};
   return (
