@@ -18,22 +18,20 @@ import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch} from 'react-redux';
-import {userType} from '../../features/user/userSlice';
 import SplashScreen from 'react-native-splash-screen';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
 import {emailSet} from '../../features/register/registerSlice';
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
-  const [number, setNumber] = useState('');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
-  const dispatch = useDispatch();
+  const dispath = useDispatch();
   useEffect(() => {
     SplashScreen.hide();
   }, []);
 
   const handleGetPhoneOtp = () => {
-    dispatch(emailSet(email));
+    dispath(emailSet(email));
     try {
       getPhoneOtp({
         variables: {email},

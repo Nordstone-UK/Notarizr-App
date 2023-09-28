@@ -9,7 +9,7 @@ const initialState = {
   profilePicture: 'none',
   certificateUrl: 'none',
   photoId: 'none',
-  accountType: 'none',
+  accountType: 'client',
   location: 'none',
 };
 
@@ -36,6 +36,7 @@ export const registerSlice = createSlice({
     },
     accountTypeSet: (state, action) => {
       state.accountType = action.payload;
+      console.log('Redux accountType', state.accountType);
     },
   },
 });

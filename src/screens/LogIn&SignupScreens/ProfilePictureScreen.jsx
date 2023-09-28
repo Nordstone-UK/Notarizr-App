@@ -114,11 +114,10 @@ export default function ProfilePictureScreen({navigation}) {
       }
     } else {
       settempLoading(false);
-      dispatch(profilePictureSet(url));
+      dispatch(profilePictureSet(profilePicture));
       navigation.navigate('AgentVerificationScreen');
     }
   };
-  const navigateToNextScreen = () => {};
   return (
     <View style={styles.container}>
       <CompanyHeader

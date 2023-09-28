@@ -8,10 +8,7 @@ export default function AgentDocumentCompletion({navigation}) {
     const delay = 3000;
 
     const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'HomeScreen'}],
-      });
+      navigation.navigate('AgentVerfiedScreen');
     }, delay);
 
     return () => clearTimeout(timer);

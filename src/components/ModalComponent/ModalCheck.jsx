@@ -38,75 +38,77 @@ export default function ModalCheck(props) {
   };
   return (
     <Modal animationType="slide" transparent={true} visible={modalVisible}>
-      <View style={styles.container}>
-        <Image source={require('../../../assets/question.png')} />
-        <Text style={styles.text}>Was the service done?</Text>
-        <MainButton
-          onPress={() => handleNavigation()}
-          Title="Yes"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          GradiStyles={{
-            marginBottom: heightToDp(2),
-            paddingVertical: heightToDp(3),
-            borderRadius: 5,
-            width: widthToDp(50),
-          }}
-          styles={{
-            padding: heightToDp(0),
-            fontSize: widthToDp(3.5),
-          }}
-        />
-        <MainButton
-          Title="No"
-          onPress={() => closeServiceModal()}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          GradiStyles={{
-            paddingHorizontal: widthToDp(0),
-            marginBottom: heightToDp(2),
-            paddingVertical: heightToDp(3),
-            width: widthToDp(50),
-            borderRadius: 5,
-          }}
-          styles={{
-            paddingHorizontal: widthToDp(0),
-            paddingVertical: heightToDp(0),
-            fontSize: widthToDp(3.5),
-          }}
-        />
-        <MainButton
-          Title="Client Cancelled"
-          onPress={() => closeServiceModal()}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          GradiStyles={{
-            paddingHorizontal: widthToDp(0),
-            paddingVertical: heightToDp(3),
-            marginBottom: heightToDp(2),
-            width: widthToDp(50),
-            borderRadius: 5,
-          }}
-          styles={{
-            paddingHorizontal: widthToDp(0),
-            paddingVertical: heightToDp(0),
-            fontSize: widthToDp(3.5),
-          }}
-        />
-        <MainButton
-          Title="Other"
-          onPress={() => closeServiceModal()}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          GradiStyles={{
-            paddingHorizontal: widthToDp(0),
-            paddingVertical: heightToDp(3),
-            marginBottom: heightToDp(2),
-            borderRadius: 5,
-            width: widthToDp(50),
-          }}
-          styles={{
-            paddingHorizontal: widthToDp(0),
-            paddingVertical: heightToDp(0),
-            fontSize: widthToDp(3.5),
-          }}
-        />
+      <View style={{flex: 1, justifyContent: 'center'}}>
+        <View style={styles.container}>
+          <Image source={require('../../../assets/question.png')} />
+          <Text style={styles.text}>Was the service done?</Text>
+          <MainButton
+            onPress={() => handleNavigation()}
+            Title="Yes"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            GradiStyles={{
+              marginBottom: heightToDp(2),
+              paddingVertical: heightToDp(3),
+              borderRadius: 5,
+              width: widthToDp(50),
+            }}
+            styles={{
+              padding: heightToDp(0),
+              fontSize: widthToDp(3.5),
+            }}
+          />
+          <MainButton
+            Title="No"
+            onPress={() => closeServiceModal()}
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            GradiStyles={{
+              paddingHorizontal: widthToDp(0),
+              marginBottom: heightToDp(2),
+              paddingVertical: heightToDp(3),
+              width: widthToDp(50),
+              borderRadius: 5,
+            }}
+            styles={{
+              paddingHorizontal: widthToDp(0),
+              paddingVertical: heightToDp(0),
+              fontSize: widthToDp(3.5),
+            }}
+          />
+          <MainButton
+            Title="Client Cancelled"
+            onPress={() => closeServiceModal()}
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            GradiStyles={{
+              paddingHorizontal: widthToDp(0),
+              paddingVertical: heightToDp(3),
+              marginBottom: heightToDp(2),
+              width: widthToDp(50),
+              borderRadius: 5,
+            }}
+            styles={{
+              paddingHorizontal: widthToDp(0),
+              paddingVertical: heightToDp(0),
+              fontSize: widthToDp(3.5),
+            }}
+          />
+          <MainButton
+            Title="Other"
+            onPress={() => closeServiceModal()}
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            GradiStyles={{
+              paddingHorizontal: widthToDp(0),
+              paddingVertical: heightToDp(3),
+              marginBottom: heightToDp(2),
+              borderRadius: 5,
+              width: widthToDp(50),
+            }}
+            styles={{
+              paddingHorizontal: widthToDp(0),
+              paddingVertical: heightToDp(0),
+              fontSize: widthToDp(3.5),
+            }}
+          />
+        </View>
       </View>
     </Modal>
   );
@@ -117,7 +119,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     marginHorizontal: widthToDp(15),
-    marginVertical: widthToDp(50),
     elevation: 30,
     paddingVertical: heightToDp(5),
     borderRadius: 10,

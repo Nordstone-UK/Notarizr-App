@@ -19,9 +19,20 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {useSelector} from 'react-redux';
+import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 
 export default function ProfileDetailEditScreen({navigation}, props) {
-  const userType = useSelector(state => state.user.user);
+  const [firstName, setfirstName] = useState('');
+  const [lastName, setlastName] = useState('');
+  const [phoneNumber, setNumber] = useState('');
+  const [location, setlocation] = useState('');
+  const [Email, setEmail] = useState('');
+  const [emailValid, setEmailValid] = useState();
+  const [gender, setgender] = useState('');
+  const accountType = useSelector(state => state.register.accountType);
+  const {first_name, profile_picture, last_name, email, phone_number} =
+    useSelector(state => state.user.user);
+
   useEffect(() => {
     SplashScreen.hide();
   }, []);
@@ -29,48 +40,58 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     <View style={styles.container}>
       <NavigationHeader Title="Profile Details" />
       <View>
-        <Image
-          source={
-            userType === 'client'
-              ? require('../../../assets/Mask.png')
-              : require('../../../assets/agentReview.png')
-          }
-          style={styles.picture}
-        />
-        <Image
-          source={require('../../../assets/cameraIcon.png')}
-          style={styles.camera}
-        />
+        <Image source={{uri: profile_picture}} style={styles.picture} />
+        <TouchableOpacity style={styles.camera}>
+          <Image source={require('../../../assets/cameraIcon.png')} />
+        </TouchableOpacity>
       </View>
       <Text style={styles.textheading}>
-        {userType === 'client' ? 'Lamthao' : 'Mary Smith'}
+        {first_name} {last_name}
       </Text>
-      <Text style={styles.textsubheading}>
-        {userType === 'client' ? 'lamthao@gmail.com' : 'marysmith@gmail.com'}
-      </Text>
+      <Text style={styles.textsubheading}>{email}</Text>
       <BottomSheetStyle>
-        <ScrollView style={{marginVertical: heightToDp(10)}}>
+        <ScrollView contentContainerStyle={{paddingBottom: heightToDp(10)}}>
           <LabelTextInput
             leftImageSoucre={require('../../../assets/NameIcon.png')}
-            placeholder={'Enter your full name'}
-            LabelTextInput={'Full Name'}
+            Label={true}
+            defaultValue={first_name}
+            LabelTextInput={'First Name'}
+            onChangeText={text => setfirstName(text)}
           />
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/phoneIcon.png')}
-            placeholder={'Enter your phone number'}
-            LabelTextInput={'Phone No.'}
-            keyboardType="numeric"
+            leftImageSoucre={require('../../../assets/NameIcon.png')}
+            placeholder={'Enter your last name'}
+            defaultValue={last_name}
+            Label={true}
+            LabelTextInput={'Last Name'}
+            onChangeText={text => setlastName(text)}
           />
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/calenderIcon.png')}
-            placeholder={'Enter your date of birth'}
-            LabelTextInput={'Date of Birth'}
-            keyboardType="numeric"
+            leftImageSoucre={require('../../../assets/emailIcon.png')}
+            placeholder={'Enter your email address'}
+            LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
+            onChangeText={text => setEmail(text)}
+            defaultValue={email}
+            Label={true}
+            labelStyle={emailValid && {color: Colors.Red}}
+            AdjustWidth={emailValid && {borderColor: Colors.Red}}
           />
+          <PhoneTextInput
+            onChange={e => {
+              setNumber(e);
+            }}
+            LabelTextInput="Phone Number"
+            Label={true}
+            placeholder={'XXXXXXXXXXX'}
+          />
+
           <LabelTextInput
             leftImageSoucre={require('../../../assets/locationIcon.png')}
+            Label={true}
             placeholder={'Enter your city'}
+            // defaultValue={first_name}
             LabelTextInput={'City'}
+            onChangeText={text => setlocation(text)}
           />
           <View
             style={{
@@ -95,14 +116,14 @@ const styles = StyleSheet.create({
   },
   picture: {
     alignSelf: 'center',
-    marginVertical: heightToDp(2),
     width: widthToDp(25),
     height: heightToDp(25),
+    borderRadius: 50,
   },
   camera: {
     position: 'absolute',
     left: widthToDp(55),
-    top: heightToDp(20),
+    top: heightToDp(18),
   },
   searchSection: {
     flexDirection: 'row',

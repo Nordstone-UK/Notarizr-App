@@ -45,6 +45,7 @@ export default function LabelTextInput(props) {
           keyboardType={props.keyboardType || 'default'}
           secureTextEntry={secureText || false}
           placeholder={props.placeholder}
+          defaultValue={props.defaultValue}
           placeholderTextColor={
             Colors.DisableColor || props.placeholderTextColor
           }

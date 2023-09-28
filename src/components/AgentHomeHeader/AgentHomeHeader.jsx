@@ -3,20 +3,21 @@ import React, {useState} from 'react';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
+import {useSelector} from 'react-redux';
 
 export default function AgentHomeHeader(props) {
   const [isEnabled, setIsEnabled] = useState(false);
+  const {profile_picture, first_name, last_name} = useSelector(
+    state => state.user.user,
+  );
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   return (
     <View>
       <View style={styles.namebar}>
         <View style={styles.nameFlex}>
-          <Image
-            source={require('../../../assets/agentReview.png')}
-            style={styles.imagestyles}
-          />
+          <Image source={{uri: profile_picture}} style={styles.imagestyles} />
           <Text style={[styles.textHeading, props.HeaderStyle]}>
-            Mary Smith
+            {first_name} {last_name}
           </Text>
           {props?.Switch && (
             <Switch
@@ -81,6 +82,7 @@ const styles = StyleSheet.create({
   imagestyles: {
     width: widthToDp(15),
     height: heightToDp(15),
+    borderRadius: 25,
   },
   heading: {
     fontSize: widthToDp(7),

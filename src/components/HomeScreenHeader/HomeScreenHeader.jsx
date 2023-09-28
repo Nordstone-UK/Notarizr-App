@@ -1,18 +1,24 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import {widthToDp} from '../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
+import {useSelector} from 'react-redux';
 
 export default function HomeScreenHeader(props) {
+  const {first_name, profile_picture} = useSelector(state => state.user.user);
+
   return (
     <View>
       <View style={styles.namebar}>
         <Image
-          source={require('../../../assets/clientPic.png')}
+          source={{uri: profile_picture}}
           style={styles.imagestyles}
+          onError={error => console.error('Image load error:', error)}
         />
-        <Text style={[styles.textHeading, props.HeaderStyle]}>Lamthao</Text>
+        <Text style={[styles.textHeading, props.HeaderStyle]}>
+          {first_name}
+        </Text>
       </View>
       <Text style={styles.heading}>{props.Title}</Text>
       <LabelTextInput
@@ -44,5 +50,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),
+  },
+  imagestyles: {
+    width: widthToDp(15),
+    height: heightToDp(15),
+    borderRadius: 10,
   },
 });

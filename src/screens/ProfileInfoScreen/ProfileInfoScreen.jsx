@@ -14,26 +14,18 @@ import SettingOptions from '../../components/SettingOptions/SettingOptions';
 import {useSelector} from 'react-redux';
 
 export default function ProfileInfoScreen({navigation}) {
-  const userType = useSelector(state => state.user.user);
+  const accountType = useSelector(state => state.register.accountType);
+  const {first_name, profile_picture} = useSelector(state => state.user.user);
   return (
     <View style={styles.container}>
-      <Image
-        source={
-          userType === 'client'
-            ? require('../../../assets/Mask.png')
-            : require('../../../assets/agentReview.png')
-        }
-        style={styles.picture}
-      />
-      <Text style={styles.textheading}>
-        {userType === 'client' ? 'Lamthao' : 'Mary Smith'}
-      </Text>
+      <Image source={{uri: profile_picture}} style={styles.picture} />
+      <Text style={styles.textheading}>{first_name}</Text>
       <BottomSheetStyle>
         <ScrollView>
           <View style={styles.iconContainer}>
             <TouchableOpacity
               onPress={
-                userType === 'client'
+                accountType === 'client'
                   ? () => navigation.navigate('ProfileDetailEditScreen')
                   : () => navigation.navigate('AgentProfileEditScreen')
               }>
@@ -85,7 +77,10 @@ const styles = StyleSheet.create({
   },
   picture: {
     alignSelf: 'center',
-    marginTop: heightToDp(25),
+    marginTop: heightToDp(5),
+    width: widthToDp(30),
+    height: heightToDp(30),
+    borderRadius: 100,
   },
   iconContainer: {
     flexDirection: 'row',
@@ -99,6 +94,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
-    marginVertical: heightToDp(5),
+    marginVertical: heightToDp(3),
   },
 });

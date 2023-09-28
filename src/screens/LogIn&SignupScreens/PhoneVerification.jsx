@@ -7,54 +7,32 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import MainBookingScreen from '../MainBookingScreen/MainBookingScreen';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {ScrollView} from 'react-native';
-import {useLazyQuery} from '@apollo/client';
-import {VERIFY_EMAIL_OTP} from '../../../request/queries/verifyEmailOTP.query';
-import {RESEND_EMAIL_OTP} from '../../../request/queries/resendEmailOTP.query';
 import {useSelector} from 'react-redux';
-import {VERIFY_PHONE_OTP} from '../../../request/queries/verifyPhoneOTP.query';
-import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
+import useLogin from '../../hooks/useLogin';
 
 export default function PhoneVerification({route, navigation}) {
   const email = useSelector(state => state.register.email);
+  console.log(email);
   const {message} = route.params;
   const [otp, setOTPcode] = useState('');
-  const [verifYOTP, {loading: verifyLoading}] = useLazyQuery(VERIFY_PHONE_OTP);
-  const [getPhoneOtp, {loading: phoneLoading}] = useLazyQuery(GET_PHONE_OTP);
+  const {handleOtpVerification, handleResendOtp} = useLogin();
+  const [loading, setLoading] = useState(false);
+  const [resendloading, setresendLoading] = useState(false);
 
-  const handleOtpVerification = async () => {
-    await verifYOTP({
-      variables: {email, otp},
-    })
-      .then(response => {
-        console.log(response?.data);
-        Alert.alert(response?.data?.verifyPhoneOTP?.message);
-        resetStack();
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  };
-  const resetStack = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'HomeScreen'}],
-    });
-  };
-  const handleResendOtp = () => {
-    try {
-      getPhoneOtp({
-        variables: {email},
-      }).then(response => {
-        console.log(response.data.getPhoneOTP.phoneNumber);
-        if (response?.data?.getPhoneOTP?.status !== '200') {
-          Alert.alert('OTP not sent');
-        } else {
-          Alert.alert('Resent OTP');
-        }
-      });
-    } catch (error) {
-      console.log(error);
+  const verifyOTP = async () => {
+    setLoading(true);
+    if (!otp) {
+      Alert.alert('Please enter OTP');
+      setLoading(false);
+    } else {
+      await handleOtpVerification(email, otp);
+      setLoading(false);
     }
+  };
+  const handleResend = async () => {
+    setresendLoading(true);
+    await handleResendOtp(email);
+    setresendLoading(false);
   };
   return (
     <ScrollView style={styles.container}>
@@ -73,10 +51,6 @@ export default function PhoneVerification({route, navigation}) {
           }}
           codeInputFieldStyle={styles.underlineStyleBase}
           codeInputHighlightStyle={styles.underlineStyleHighLighted}
-          onCodeFilled={code => {
-            // handleOtpVerification();
-            console.log(`Code is ${code}, you are good to go!`);
-          }}
         />
         <Text style={styles.subheading}>
           We have sent an OTP on this number:
@@ -91,21 +65,21 @@ export default function PhoneVerification({route, navigation}) {
               width: widthToDp(40),
               paddingVertical: heightToDp(2),
             }}
-            loading={phoneLoading}
+            loading={resendloading}
             styles={{
               padding: 0,
               fontSize: widthToDp(4),
             }}
-            onPress={() => handleResendOtp()}
+            onPress={() => handleResend()}
           />
         </View>
       </View>
       <View style={{marginVertical: heightToDp(5)}}>
         <GradientButton
           Title="Verify OTP"
-          loading={verifyLoading}
+          loading={loading}
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={() => handleOtpVerification()}
+          onPress={() => verifyOTP()}
         />
       </View>
     </ScrollView>

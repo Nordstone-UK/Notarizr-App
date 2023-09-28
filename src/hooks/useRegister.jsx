@@ -2,10 +2,12 @@ import {useMutation} from '@apollo/client';
 import {REGISTER_USER} from '../../request/mutations/register.mutation';
 import {compressImage} from '../utils/ImageResizer';
 import {uploadDirectOnS3} from '../utils/s3Helper';
-import DocumentPicker, {types} from 'react-native-document-picker';
+import DocumentPicker from 'react-native-document-picker';
 import React, {useCallback} from 'react';
+import useLogin from './useLogin';
 
 const useRegister = () => {
+  const {saveAccessTokenToStorage} = useLogin();
   const [register] = useMutation(REGISTER_USER);
 
   const handleCompression = async image => {
@@ -58,6 +60,7 @@ const useRegister = () => {
       const {data} = await register(request);
       console.log('After API', data);
       if (data?.register?.status === '201') {
+        saveAccessTokenToStorage(data?.register?.access_token);
         console.log('Registered');
         return true;
       } else {

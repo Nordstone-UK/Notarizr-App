@@ -23,6 +23,25 @@ const requestExternalWritePermission = async () => {
   if (Platform.OS === 'android') {
     try {
       const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        // {
+        //   title: 'External Storage Write Permission',
+        //   message: 'App needs write permission',
+        // },
+      );
+      // If WRITE_EXTERNAL_STORAGE Permission is granted
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      alert('Write permission err', err);
+    }
+    return false;
+  } else return true;
+};
+const requestMediaAccessPermission = async () => {
+  if (Platform.OS === 'android') {
+    try {
+      const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
         // {
         //   title: 'External Storage Write Permission',
@@ -50,8 +69,12 @@ export const captureImage = async type => {
     try {
       let isCameraPermitted = await requestCameraPermission();
       let isStoragePermitted = await requestExternalWritePermission();
+      let isMediaPermitted = await requestMediaAccessPermission();
 
-      if (isCameraPermitted && isStoragePermitted) {
+      if (
+        (isCameraPermitted && isStoragePermitted) ||
+        (isCameraPermitted && isMediaPermitted)
+      ) {
         launchCamera(options, response => {
           if (response.didCancel) {
             reject('User cancelled camera picker');
@@ -90,8 +113,12 @@ export const chooseFile = async type => {
     try {
       let isCameraPermitted = await requestCameraPermission();
       let isStoragePermitted = await requestExternalWritePermission();
+      let isMediaPermitted = await requestMediaAccessPermission();
 
-      if (isCameraPermitted && isStoragePermitted) {
+      if (
+        (isCameraPermitted && isStoragePermitted) ||
+        (isCameraPermitted && isMediaPermitted)
+      ) {
         launchImageLibrary(options, response => {
           if (response.didCancel) {
             reject('User cancelled camera picker');

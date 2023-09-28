@@ -83,13 +83,16 @@ import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/Ma
 import MapArrivalScreen from '../MapArrivalScreen/MapArrivalScreen';
 import EmailVerification from '../LogIn&SignupScreens/EmailVerification';
 import PhoneVerification from '../LogIn&SignupScreens/PhoneVerification';
+import AgentVerfiedScreen from '../CompletionScreen/AgentVerifiedScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user);
+  const accountType = useSelector(state => state.register.accountType);
+  // console.log('This is redux:', user);
 
-  return user === 'agent' ? (
+  return accountType === 'agent' ? (
     <Tab.Navigator
       screenOptions={({route}) => ({
         headerShown: false,
@@ -140,7 +143,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="SignUpDetailScreen"
+        initialRouteName="OnboardingScreen1"
         screenOptions={{
           headerShown: false,
         }}>
@@ -174,6 +177,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="RegisterCompletionScreen"
           component={RegisterCompletionScreen}
+        />
+        <Stack.Screen
+          name="AgentVerfiedScreen"
+          component={AgentVerfiedScreen}
         />
         <Stack.Screen name="AgentReviewScreen" component={AgentReviewScreen} />
         <Stack.Screen

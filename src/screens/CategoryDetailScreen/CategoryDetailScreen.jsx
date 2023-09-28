@@ -22,12 +22,7 @@ import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 export default function CategoryDetailScreen({navigation}) {
   return (
     <View style={styles.container}>
-      <NavigationHeader
-        Title="Categories"
-        midImg={require('../../../assets/Search.png')}
-        lastImg={require('../../../assets/bellIcon.png')}
-      />
-
+      <NavigationHeader Title="Categories" />
       <View style={{marginHorizontal: widthToDp(3)}}>
         <Text style={styles.Heading}>
           Find all the services offered by Notarizr

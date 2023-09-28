@@ -31,10 +31,10 @@ const init = () => {
       reactNative: {textStreaming: true},
     },
   });
-  const authLink = setContext((_, {headers}) => {
-    const token = AsyncStorage.getItem('token')
-      ? AsyncStorage.getItem('token')
-      : '';
+  const authLink = setContext(async (_, {headers}) => {
+    // Retrieve the token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+
     return {
       headers: {
         ...headers,
@@ -43,7 +43,7 @@ const init = () => {
     };
   });
 
-  const hLink = authLink.concat(httpLink);
+  const hLink = from([authLink, httpLink]);
 
   const init = new ApolloClient({
     link: hLink,
