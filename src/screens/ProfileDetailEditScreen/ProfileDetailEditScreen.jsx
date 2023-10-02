@@ -39,72 +39,74 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Profile Details" />
-      <View>
-        <Image source={{uri: profile_picture}} style={styles.picture} />
-        <TouchableOpacity style={styles.camera}>
-          <Image source={require('../../../assets/cameraIcon.png')} />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.textheading}>
-        {first_name} {last_name}
-      </Text>
-      <Text style={styles.textsubheading}>{email}</Text>
-      <BottomSheetStyle>
-        <ScrollView contentContainerStyle={{paddingBottom: heightToDp(10)}}>
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/NameIcon.png')}
-            Label={true}
-            defaultValue={first_name}
-            LabelTextInput={'First Name'}
-            onChangeText={text => setfirstName(text)}
-          />
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/NameIcon.png')}
-            placeholder={'Enter your last name'}
-            defaultValue={last_name}
-            Label={true}
-            LabelTextInput={'Last Name'}
-            onChangeText={text => setlastName(text)}
-          />
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/emailIcon.png')}
-            placeholder={'Enter your email address'}
-            LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
-            onChangeText={text => setEmail(text)}
-            defaultValue={email}
-            Label={true}
-            labelStyle={emailValid && {color: Colors.Red}}
-            AdjustWidth={emailValid && {borderColor: Colors.Red}}
-          />
-          <PhoneTextInput
-            onChange={e => {
-              setNumber(e);
-            }}
-            LabelTextInput="Phone Number"
-            Label={true}
-            placeholder={'XXXXXXXXXXX'}
-          />
-
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/locationIcon.png')}
-            Label={true}
-            placeholder={'Enter your city'}
-            // defaultValue={first_name}
-            LabelTextInput={'City'}
-            onChangeText={text => setlocation(text)}
-          />
-          <View
-            style={{
-              marginTop: heightToDp(10),
-            }}>
-            <GradientButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Save Details"
-              onPress={() => navigation.navigate('ProfileInfoScreen')}
+      <ScrollView contentContainerStyle={{paddingBottom: heightToDp(10)}}>
+        <View>
+          <Image source={{uri: profile_picture}} style={styles.picture} />
+          <TouchableOpacity style={styles.camera}>
+            <Image source={require('../../../assets/cameraIcon.png')} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.textheading}>
+          {first_name} {last_name}
+        </Text>
+        <Text style={styles.textsubheading}>{email}</Text>
+        <BottomSheetStyle>
+          <View>
+            <LabelTextInput
+              leftImageSoucre={require('../../../assets/NameIcon.png')}
+              Label={true}
+              defaultValue={first_name}
+              LabelTextInput={'First Name'}
+              onChangeText={text => setfirstName(text)}
             />
+            <LabelTextInput
+              leftImageSoucre={require('../../../assets/NameIcon.png')}
+              placeholder={'Enter your last name'}
+              defaultValue={last_name}
+              Label={true}
+              LabelTextInput={'Last Name'}
+              onChangeText={text => setlastName(text)}
+            />
+            <LabelTextInput
+              leftImageSoucre={require('../../../assets/emailIcon.png')}
+              placeholder={'Enter your email address'}
+              LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
+              onChangeText={text => setEmail(text)}
+              defaultValue={email}
+              Label={true}
+              labelStyle={emailValid && {color: Colors.Red}}
+              AdjustWidth={emailValid && {borderColor: Colors.Red}}
+            />
+            <PhoneTextInput
+              onChange={e => {
+                setNumber(e);
+              }}
+              LabelTextInput="Phone Number"
+              Label={true}
+              placeholder={'XXXXXXXXXXX'}
+            />
+
+            <LabelTextInput
+              leftImageSoucre={require('../../../assets/locationIcon.png')}
+              Label={true}
+              placeholder={'Enter your city'}
+              // defaultValue={first_name}
+              LabelTextInput={'City'}
+              onChangeText={text => setlocation(text)}
+            />
+            <View
+              style={{
+                marginTop: heightToDp(10),
+              }}>
+              <GradientButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Save Details"
+                onPress={() => navigation.navigate('ProfileInfoScreen')}
+              />
+            </View>
           </View>
-        </ScrollView>
-      </BottomSheetStyle>
+        </BottomSheetStyle>
+      </ScrollView>
     </View>
   );
 }

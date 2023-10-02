@@ -12,12 +12,12 @@ const DEV_LIVE = 'http://35.171.240.48:8080/api/v1/app';
 
 const defaultOptions = {
   watchQuery: {
-    fetchPolicy: 'cache-and-network',
     errorPolicy: 'ignore',
+    fetchPolicy: 'no-cache',
   },
   query: {
-    fetchPolicy: 'network-only',
     errorPolicy: 'all',
+    fetchPolicy: 'no-cache',
   },
   mutate: {
     errorPolicy: 'all',
@@ -32,7 +32,6 @@ const init = () => {
     },
   });
   const authLink = setContext(async (_, {headers}) => {
-    // Retrieve the token from AsyncStorage
     const token = await AsyncStorage.getItem('token');
 
     return {

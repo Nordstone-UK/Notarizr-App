@@ -3,7 +3,7 @@ import {GET_PHONE_OTP} from '../../request/queries/getPhoneOTP.query';
 import {VERIFY_PHONE_OTP} from '../../request/queries/verifyPhoneOTP.query';
 import {Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {FETCH_USER_INFO} from '../../request/queries/uesr.query';
+import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

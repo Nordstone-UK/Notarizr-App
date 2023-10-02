@@ -1,5 +1,5 @@
 import {useLazyQuery} from '@apollo/client';
-import {FETCH_USER_INFO} from '../../request/queries/uesr.query';
+import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import {useDispatch} from 'react-redux';
 import {saveUserInfo} from '../features/user/userSlice';
 
@@ -9,7 +9,7 @@ const useFetchUser = () => {
 
   const fetchUserInfo = async () => {
     await user().then(response => {
-      // console.log(response.data);
+      console.log('Data before', response);
       dispatch(saveUserInfo(response.data.user));
     });
   };

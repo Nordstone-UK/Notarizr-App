@@ -14,6 +14,8 @@ export const FETCH_USER_INFO = gql`
       chatPrivacy
       location
       subscriptionType
+      isVerified
+      account_type
     }
   }
 `;

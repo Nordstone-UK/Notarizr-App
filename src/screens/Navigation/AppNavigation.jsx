@@ -88,11 +88,9 @@ import AgentVerfiedScreen from '../CompletionScreen/AgentVerifiedScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
-  const user = useSelector(state => state.user.user);
-  const accountType = useSelector(state => state.register.accountType);
-  // console.log('This is redux:', user);
+  const user = useSelector(state => state.user.user.account_type);
 
-  return accountType === 'agent' ? (
+  return user === 'agent' ? (
     <Tab.Navigator
       screenOptions={({route}) => ({
         headerShown: false,

@@ -37,7 +37,9 @@ export default function LoginScreen({navigation}, props) {
         variables: {email},
       }).then(response => {
         console.log(response.data.getPhoneOTP.phoneNumber);
-        if (response?.data?.getPhoneOTP?.status !== '200') {
+        if (response?.data?.getPhoneOTP?.status === '403') {
+          Alert.alert('User Blocked');
+        } else if (response?.data?.getPhoneOTP?.status !== '200') {
           Alert.alert('OTP not sent');
         } else {
           Alert.alert('OTP Sent');
