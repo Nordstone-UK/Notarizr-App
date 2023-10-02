@@ -49,7 +49,7 @@ const PhoneTextInput = ({
         ref={phoneInput}
         defaultValue={value}
         placeholder={placeholder}
-        defaultCode="IN"
+        defaultCode="US"
         layout="first"
         onChangeFormattedText={text => {
           onChange(text);

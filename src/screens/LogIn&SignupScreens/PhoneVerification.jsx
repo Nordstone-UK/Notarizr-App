@@ -10,6 +10,8 @@ import {ScrollView} from 'react-native';
 import {useSelector} from 'react-redux';
 import useLogin from '../../hooks/useLogin';
 import SplashScreen from 'react-native-splash-screen';
+import Toast from 'react-native-toast-message';
+import CustomToast from '../../components/CustomToast/CustomToast';
 
 export default function PhoneVerification({route, navigation}) {
   const email = useSelector(state => state.register.email);
@@ -24,7 +26,11 @@ export default function PhoneVerification({route, navigation}) {
   const verifyOTP = async () => {
     setLoading(true);
     if (!otp) {
-      Alert.alert('Please enter OTP');
+      Toast.show({
+        type: 'warning',
+        text1: 'Warning!',
+        text2: 'Please enter OTP',
+      });
       setLoading(false);
     } else {
       await handleOtpVerification(email, otp);
@@ -67,21 +73,6 @@ export default function PhoneVerification({route, navigation}) {
 
         <View style={{marginVertical: heightToDp(5)}}>
           <MainButton
-            Title="Clear OTP"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              width: widthToDp(40),
-              paddingVertical: heightToDp(2),
-              marginTop: heightToDp(2),
-            }}
-            loading={resendloading}
-            styles={{
-              padding: 0,
-              fontSize: widthToDp(4),
-            }}
-            onPress={() => setOTPcode('')}
-          />
-          <MainButton
             Title="Resend OTP"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             GradiStyles={{
@@ -106,6 +97,7 @@ export default function PhoneVerification({route, navigation}) {
           onPress={() => verifyOTP()}
         />
       </View>
+      <CustomToast />
     </ScrollView>
   );
 }

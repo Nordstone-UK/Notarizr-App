@@ -21,7 +21,7 @@ export default function ProfileInfoScreen({navigation}) {
       <Image source={{uri: profile_picture}} style={styles.picture} />
       <Text style={styles.textheading}>{first_name}</Text>
       <BottomSheetStyle>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.iconContainer}>
             <TouchableOpacity
               onPress={

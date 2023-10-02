@@ -37,7 +37,7 @@ export default function CategoryDetailScreen({navigation}) {
       </View>
       <BottomSheetStyle>
         <ScrollView
-          scrollEnabled={true}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.contentContainer}>
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Categories</Text>
@@ -46,11 +46,25 @@ export default function CategoryDetailScreen({navigation}) {
             <View style={styles.PictureBar}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('LegalDocScreen')}>
-                <Image source={require('../../../assets/legalDocIcon.png')} />
+                <Image
+                  source={require('../../../assets/legalDocIcon.png')}
+                  style={{
+                    width: widthToDp(60),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('RealEstateDocScreen')}>
-                <Image source={require('../../../assets/estateDocIcon.png')} />
+                <Image
+                  source={require('../../../assets/estateDocIcon.png')}
+                  style={{
+                    width: widthToDp(30),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
+                />
               </TouchableOpacity>
             </View>
             <View style={styles.PictureBar}>
@@ -60,12 +74,24 @@ export default function CategoryDetailScreen({navigation}) {
                     name: 'Medical Documents',
                   })
                 }>
-                <Image source={require('../../../assets/medicalDocIcon.png')} />
+                <Image
+                  source={require('../../../assets/medicalDocIcon.png')}
+                  style={{
+                    width: widthToDp(30),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('BusinessDocScreen')}>
                 <Image
                   source={require('../../../assets/businessDocIcon.png')}
+                  style={{
+                    width: widthToDp(60),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
                 />
               </TouchableOpacity>
             </View>
@@ -87,9 +113,7 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     paddingLeft: widthToDp(2),
   },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
-  },
+
   subheading: {
     fontSize: widthToDp(4),
     fontWeight: '700',

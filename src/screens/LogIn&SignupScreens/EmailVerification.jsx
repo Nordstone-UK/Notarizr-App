@@ -29,7 +29,7 @@ export default function EmailVerification({route, navigation}) {
     })
       .then(response => {
         console.log(response?.data);
-        Alert.alert(response?.data?.verifyPhoneOTP?.message);
+        // Alert.alert(response?.data?.verifyPhoneOTP?.message);
         // dispatch(ceredentailSet({firstName, lastName, number, city, email}));
         navigation.navigate('ProfilePictureScreen');
       })

@@ -16,7 +16,6 @@ export default function SignupAsScreen({navigation}, props) {
   const dispatch = useDispatch();
   const handlUserType = () => {
     dispatch(accountTypeSet(colored));
-    // dispatch(userType(colored));
     navigation.navigate('SignUpDetailScreen');
   };
 
@@ -27,7 +26,7 @@ export default function SignupAsScreen({navigation}, props) {
         HeaderStyle={{marginHorizontal: widthToDp(5)}}
       />
       <BottomSheetStyle>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <SignupButton
             Title="SignUp as Client"
             colors={

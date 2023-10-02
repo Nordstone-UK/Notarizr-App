@@ -117,7 +117,11 @@ export default function ClientServiceCard(props) {
             <View style={styles.calenderStyles}>
               <Image
                 source={require('../../../assets/calenderIcon.png')}
-                style={{tintColor: Colors.DullTextColor}}
+                style={{
+                  tintColor: Colors.DullTextColor,
+                  width: widthToDp(5),
+                  height: heightToDp(5),
+                }}
               />
               <Text style={styles.address}>02/08/1995, 04:30 PM</Text>
             </View>

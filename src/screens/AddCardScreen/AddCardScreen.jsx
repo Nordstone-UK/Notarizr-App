@@ -35,7 +35,7 @@ export default function AddCardScreen({navigation}, props) {
       <NavigationHeader Title="Add Card" />
 
       <BottomSheetStyle>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <View style={{marginVertical: heightToDp(5)}}>
             <View>
               <CreditCardInput

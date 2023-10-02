@@ -39,7 +39,9 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Profile Details" />
-      <ScrollView contentContainerStyle={{paddingBottom: heightToDp(10)}}>
+      <ScrollView
+        contentContainerStyle={{paddingBottom: heightToDp(10)}}
+        showsVerticalScrollIndicator={false}>
         <View>
           <Image source={{uri: profile_picture}} style={styles.picture} />
           <TouchableOpacity style={styles.camera}>

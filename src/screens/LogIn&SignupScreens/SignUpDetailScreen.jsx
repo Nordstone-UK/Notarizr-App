@@ -24,6 +24,9 @@ import {useLazyQuery} from '@apollo/react-hooks';
 import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
 import {Picker} from '@react-native-picker/picker';
 import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
+import Toast from 'react-native-toast-message';
+import CustomToast from '../../components/CustomToast/CustomToast';
+import Geolocation from '@react-native-community/geolocation';
 
 export default function SignUpDetailScreen({navigation}, props) {
   const [firstName, setfirstName] = useState('');
@@ -41,6 +44,7 @@ export default function SignUpDetailScreen({navigation}, props) {
   };
   useEffect(() => {
     SplashScreen.hide();
+    // Geolocation.getCurrentPosition(info => console.log(info));
   }, []);
 
   const handleEmailValid = async () => {
@@ -52,7 +56,11 @@ export default function SignUpDetailScreen({navigation}, props) {
       !lastName ||
       !gender
     ) {
-      Alert.alert('Please fill all the fields before submitting');
+      Toast.show({
+        type: 'warning',
+        text1: 'Warning!',
+        text2: 'Please fill all the fields before submitting.',
+      });
     } else {
       return new Promise(() => {
         try {
@@ -86,7 +94,7 @@ export default function SignUpDetailScreen({navigation}, props) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <CompanyHeader
         Header="Profile Details"
         subHeading="Please provide us with your profile details"
@@ -101,7 +109,7 @@ export default function SignUpDetailScreen({navigation}, props) {
       />
       <View style={styles.container}>
         <BottomSheetStyle>
-          <ScrollView style={{marginVertical: heightToDp(10)}}>
+          <View style={{marginVertical: heightToDp(5)}}>
             <LabelTextInput
               leftImageSoucre={require('../../../assets/NameIcon.png')}
               placeholder={'Enter your first name'}
@@ -160,10 +168,11 @@ export default function SignUpDetailScreen({navigation}, props) {
                 onPress={() => handleEmailValid()}
               />
             </View>
-          </ScrollView>
+          </View>
         </BottomSheetStyle>
       </View>
-    </View>
+      <CustomToast />
+    </ScrollView>
   );
 }
 

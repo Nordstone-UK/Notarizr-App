@@ -22,10 +22,14 @@ import SplashScreen from 'react-native-splash-screen';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
 import {emailSet} from '../../features/register/registerSlice';
+import Toast from 'react-native-toast-message';
+import CustomToast from '../../components/CustomToast/CustomToast';
+
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
   const dispath = useDispatch();
+
   useEffect(() => {
     SplashScreen.hide();
   }, []);
@@ -36,13 +40,25 @@ export default function LoginScreen({navigation}, props) {
       getPhoneOtp({
         variables: {email},
       }).then(response => {
-        console.log(response.data.getPhoneOTP.phoneNumber);
+        console.log('dawdads', response.data.getPhoneOTP.phoneNumber);
         if (response?.data?.getPhoneOTP?.status === '403') {
-          Alert.alert('User Blocked');
+          Toast.show({
+            type: 'error',
+            text1: 'We are Sorry!',
+            text2: 'This User is Blocked',
+          });
         } else if (response?.data?.getPhoneOTP?.status !== '200') {
-          Alert.alert('OTP not sent');
+          Toast.show({
+            type: 'error',
+            text1: 'OTP not sent!',
+            text2: 'We encountered a problem please try again',
+          });
         } else {
-          Alert.alert('OTP Sent');
+          Toast.show({
+            type: 'success',
+            text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
+            text2: '',
+          });
           navigation.navigate('PhoneVerification', {
             message: response.data.getPhoneOTP.phoneNumber,
           });
@@ -55,61 +71,65 @@ export default function LoginScreen({navigation}, props) {
 
   return (
     <View style={styles.container}>
-      <CompanyHeader
-        Header="Welcome Back to Notarizr"
-        subHeading="Hello there, sign in to continue!"
-        HeaderStyle={{alignSelf: 'center'}}
-        subHeadingStyle={{
-          alignSelf: 'center',
-          fontSize: 17,
-          marginVertical: heightToDp(1.5),
-          color: '#121826',
-        }}
-      />
-
-      <BottomSheetStyle>
-        <ScrollView style={{marginTop: heightToDp(5)}}>
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/emailIcon.png')}
-            placeholder={'Enter your email address'}
-            LabelTextInput={'Email Address'}
-            onChangeText={text => setEmail(text)}
-            // Label={true}
-            // labelStyle={emailValid && {color: Colors.Red}}
-            // AdjustWidth={emailValid && {borderColor: Colors.Red}}
-          />
-          <View
-            style={{
-              marginTop: heightToDp(10),
-            }}>
-            <GradientButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Login"
-              viewStyle={props.viewStyle}
-              GradiStyles={props.GradiStyles}
-              onPress={() => handleGetPhoneOtp()}
-              loading={loading}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{backgroundColor: Colors.PinkBackground}}>
+        <CompanyHeader
+          Header="Welcome Back to Notarizr"
+          subHeading="Hello there, sign in to continue!"
+          HeaderStyle={{alignSelf: 'center'}}
+          subHeadingStyle={{
+            alignSelf: 'center',
+            fontSize: 17,
+            marginVertical: heightToDp(1.5),
+            color: '#121826',
+          }}
+        />
+        <BottomSheetStyle>
+          <View style={{marginTop: heightToDp(5)}}>
+            <LabelTextInput
+              leftImageSoucre={require('../../../assets/emailIcon.png')}
+              placeholder={'Enter your email address'}
+              LabelTextInput={'Email Address'}
+              onChangeText={text => setEmail(text)}
+              // Label={true}
+              // labelStyle={emailValid && {color: Colors.Red}}
+              // AdjustWidth={emailValid && {borderColor: Colors.Red}}
             />
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              marginVertical: heightToDp(10),
-            }}>
-            <Text
+            <View
               style={{
-                color: Colors.DullTextColor,
+                marginTop: heightToDp(10),
               }}>
-              Don’t have an account?{' '}
-            </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('SignupAsScreen')}>
-              <Text style={{color: Colors.Orange}}>Sign up</Text>
-            </TouchableOpacity>
+              <GradientButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Login"
+                viewStyle={props.viewStyle}
+                GradiStyles={props.GradiStyles}
+                onPress={() => handleGetPhoneOtp()}
+                loading={loading}
+              />
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                marginVertical: heightToDp(10),
+              }}>
+              <Text
+                style={{
+                  color: Colors.DullTextColor,
+                }}>
+                Don’t have an account?{' '}
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('SignupAsScreen')}>
+                <Text style={{color: Colors.Orange}}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </ScrollView>
-      </BottomSheetStyle>
+        </BottomSheetStyle>
+        <CustomToast />
+      </ScrollView>
     </View>
   );
 }
@@ -117,6 +137,6 @@ export default function LoginScreen({navigation}, props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF2DC',
+    backgroundColor: '#fff',
   },
 });

@@ -36,7 +36,13 @@ export default function AgentHomeScreen({navigation}) {
           <TouchableOpacity onPress={openLinkInBrowser}>
             <Image
               source={require('../../../../assets/videoIcon.png')}
-              style={{alignSelf: 'center', marginTop: heightToDp(3)}}
+              style={{
+                alignSelf: 'center',
+                marginTop: heightToDp(3),
+                width: widthToDp(90),
+                height: heightToDp(40),
+                borderRadius: 15,
+              }}
             />
           </TouchableOpacity>
           <View style={{marginVertical: heightToDp(5)}}>

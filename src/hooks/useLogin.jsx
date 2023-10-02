@@ -6,6 +6,7 @@ import {useNavigation} from '@react-navigation/native';
 import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 const useLogin = () => {
   const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP);
@@ -18,9 +19,14 @@ const useLogin = () => {
     })
       .then(response => {
         console.log(response?.data);
-        Alert.alert(response?.data?.verifyPhoneOTP?.message);
+        // Alert.alert(response?.data?.verifyPhoneOTP?.message);
         if (response?.data?.verifyPhoneOTP?.status !== '200') {
-          Alert.alert('Something went wrong.');
+          // Alert.alert('Something went wrong.');
+          Toast.show({
+            type: 'error',
+            text1: 'We are Sorry!',
+            text2: 'Something went wrong',
+          });
         } else {
           saveAccessTokenToStorage(response?.data?.verifyPhoneOTP?.accessToken);
           resetStack();
@@ -31,6 +37,10 @@ const useLogin = () => {
       });
   };
   const resetStack = async () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Login Successfull!',
+    });
     await fetchUserInfo();
     navigation.reset({
       index: 0,
@@ -46,9 +56,19 @@ const useLogin = () => {
 
         console.log(response.data.getPhoneOTP.phoneNumber);
         if (response?.data?.getPhoneOTP?.status !== '200') {
-          Alert.alert('OTP not sent');
+          // Alert.alert('OTP not sent');
+          Toast.show({
+            type: 'error',
+            text1: 'OTP not sent!',
+            text2: 'Please try again after some time.',
+          });
         } else {
-          Alert.alert('Resent OTP');
+          // Alert.alert('Resent OTP');
+          Toast.show({
+            type: 'success',
+            text1: 'OTP sent!',
+            text2: 'Please enter your OTP to verify.',
+          });
         }
       })
       .catch(error => {

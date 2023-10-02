@@ -141,7 +141,7 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="OnboardingScreen1"
+        initialRouteName="LoginScreen"
         screenOptions={{
           headerShown: false,
         }}>

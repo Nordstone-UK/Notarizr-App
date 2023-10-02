@@ -51,7 +51,7 @@ export default function AllBookingScreen({navigation}) {
                       fontSize: widthToDp(5),
                     }
                   : {
-                      color: Colors.DullTextColor,
+                      color: Colors.TextColor,
                       paddingHorizontal: widthToDp(2),
                       paddingVertical: widthToDp(1),
                       fontSize: widthToDp(5),

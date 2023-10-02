@@ -82,7 +82,9 @@ export default function AgentVerificationScreen({navigation}, props) {
       />
 
       <BottomSheetStyle>
-        <ScrollView style={{marginTop: heightToDp(5)}}>
+        <ScrollView
+          style={{marginTop: heightToDp(5)}}
+          showsVerticalScrollIndicator={false}>
           <Text style={styles.text}>
             Please upload the below documents to verify your identity
           </Text>

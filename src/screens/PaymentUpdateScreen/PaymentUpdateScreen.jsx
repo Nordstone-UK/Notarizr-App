@@ -32,7 +32,9 @@ export default function PaymentUpdateScreen({navigation}, props) {
       </Text>
 
       <BottomSheetStyle>
-        <ScrollView style={{marginTop: heightToDp(5)}}>
+        <ScrollView
+          style={{marginTop: heightToDp(5)}}
+          showsVerticalScrollIndicator={false}>
           <Image
             source={require('../../../assets/Card.png')}
             style={styles.CardIcons}

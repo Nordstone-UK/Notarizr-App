@@ -33,10 +33,16 @@ export default function HomeScreen({navigation}) {
           <Text style={styles.Heading}>
             Know how Notarizr helps you in notarizing your documents
           </Text>
-          <TouchableOpacity onPress={openLinkInBrowser}>
+          <TouchableOpacity onPress={openLinkInBrowser} style={{}}>
             <Image
               source={require('../../../assets/videoIcon.png')}
-              style={{alignSelf: 'center', marginTop: heightToDp(3)}}
+              style={{
+                alignSelf: 'center',
+                width: widthToDp(90),
+                height: heightToDp(40),
+                borderRadius: 15,
+                marginTop: heightToDp(3),
+              }}
             />
           </TouchableOpacity>
           <View style={styles.CategoryBar}>
@@ -50,11 +56,25 @@ export default function HomeScreen({navigation}) {
             <View style={styles.PictureBar}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('LegalDocScreen')}>
-                <Image source={require('../../../assets/legalDocIcon.png')} />
+                <Image
+                  source={require('../../../assets/legalDocIcon.png')}
+                  style={{
+                    width: widthToDp(60),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('RealEstateDocScreen')}>
-                <Image source={require('../../../assets/estateDocIcon.png')} />
+                <Image
+                  source={require('../../../assets/estateDocIcon.png')}
+                  style={{
+                    width: widthToDp(30),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
+                />
               </TouchableOpacity>
             </View>
             <View style={styles.PictureBar}>
@@ -64,12 +84,24 @@ export default function HomeScreen({navigation}) {
                     name: 'Medical Documents',
                   })
                 }>
-                <Image source={require('../../../assets/medicalDocIcon.png')} />
+                <Image
+                  source={require('../../../assets/medicalDocIcon.png')}
+                  style={{
+                    width: widthToDp(30),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('BusinessDocScreen')}>
                 <Image
                   source={require('../../../assets/businessDocIcon.png')}
+                  style={{
+                    width: widthToDp(60),
+                    height: heightToDp(30),
+                    borderRadius: 10,
+                  }}
                 />
               </TouchableOpacity>
             </View>

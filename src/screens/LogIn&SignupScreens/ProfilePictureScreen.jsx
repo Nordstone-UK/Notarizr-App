@@ -133,7 +133,7 @@ export default function ProfilePictureScreen({navigation}) {
       />
 
       <BottomSheetStyle>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <TouchableOpacity onPress={() => setImage('')}>
             <Text style={styles.textRemove}>Remove</Text>
           </TouchableOpacity>

@@ -9,7 +9,7 @@ const useFetchUser = () => {
 
   const fetchUserInfo = async () => {
     await user().then(response => {
-      console.log('Data before', response);
+      // console.log('Data before', response);
       dispatch(saveUserInfo(response.data.user));
     });
   };
