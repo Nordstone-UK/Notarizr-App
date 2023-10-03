@@ -6,12 +6,14 @@ import {saveUserInfo} from '../features/user/userSlice';
 const useFetchUser = () => {
   const [user] = useLazyQuery(FETCH_USER_INFO);
   const dispatch = useDispatch();
-
+  let info;
   const fetchUserInfo = async () => {
     await user().then(response => {
-      // console.log('Data before', response);
       dispatch(saveUserInfo(response.data.user));
+      console.log('Data before', response.data.user);
+      info = response.data.user;
     });
+    return info;
   };
 
   return {fetchUserInfo};

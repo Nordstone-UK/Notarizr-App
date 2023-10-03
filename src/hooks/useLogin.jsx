@@ -7,12 +7,14 @@ import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import {useSelector} from 'react-redux';
 
 const useLogin = () => {
   const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP);
   const [getPhoneOTP] = useLazyQuery(GET_PHONE_OTP);
   const {fetchUserInfo} = useFetchUser();
   const navigation = useNavigation();
+  // const user = useSelector(state => state.user.user);
   const handleOtpVerification = async (email, otp) => {
     await verifYOTP({
       variables: {email, otp},
@@ -46,11 +48,31 @@ const useLogin = () => {
         text1: 'Registration Successfull!',
       });
     }
-    await fetchUserInfo();
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'HomeScreen'}],
-    });
+    try {
+      const userInfo = await fetchUserInfo();
+      console.log('Received data:', userInfo);
+
+      if (userInfo.account_type === 'client') {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'HomeScreen'}],
+        });
+      } else {
+        if (userInfo.isVerified) {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'HomeScreen'}],
+          });
+        } else {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'AgentVerfiedScreen'}],
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error occurred:', error);
+    }
   };
   const handleResendOtp = async email => {
     await getPhoneOTP({

@@ -31,6 +31,7 @@ export default function AgentVerificationScreen({navigation}, props) {
   const variables = useSelector(state => state.register);
   const [photoID, setphotoID] = useState(null);
   const [Certificate, setCertificate] = useState(null);
+  const [loading, setLoading] = useState(false);
   const {uploadFiles, handleCompression, uploadFilestoS3, handleRegister} =
     useRegister();
   const deletePhotoID = () => {
@@ -50,6 +51,7 @@ export default function AgentVerificationScreen({navigation}, props) {
     setCertificate(response);
   };
   const submitRegister = async () => {
+    setLoading(true);
     const photeBlob = await handleCompression(photoID);
     const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
     const CertificateBlob = await uriToBlob(Certificate);
@@ -62,8 +64,12 @@ export default function AgentVerificationScreen({navigation}, props) {
       certificateUrl: CertificateURL,
       photoId: photoURL,
     };
-
+    console.log(photoURL);
+    console.log(CertificateURL);
+    setLoading(false);
     if (await handleRegister(params)) {
+      setLoading(false);
+
       navigation.navigate('AgentDocumentCompletion');
     } else {
       // Alert.alert('Problem while registering');
@@ -158,6 +164,7 @@ export default function AgentVerificationScreen({navigation}, props) {
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Continue"
+              loading={loading}
               viewStyle={props.viewStyle}
               GradiStyles={props.GradiStyles}
               onPress={() => submitRegister()}
