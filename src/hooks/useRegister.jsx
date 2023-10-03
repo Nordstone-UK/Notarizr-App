@@ -56,7 +56,6 @@ const useRegister = () => {
           ...variables,
         },
       };
-      console.log('Handle Request', request);
       const {data} = await register(request);
       console.log('After API', data);
       if (data?.register?.status === '201') {

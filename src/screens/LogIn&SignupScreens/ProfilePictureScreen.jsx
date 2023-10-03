@@ -83,12 +83,12 @@ export default function ProfilePictureScreen({navigation}) {
         ...variables,
         profilePicture: url,
       };
-
-      if (await handleRegister(params)) {
+      const isRegistered = await handleRegister(params);
+      console.log(isRegistered);
+      if (isRegistered) {
         settempLoading(false);
         navigation.navigate('RegisterCompletionScreen');
       } else {
-        // Alert.alert('Problem while registering');
         Toast.show({
           type: 'error',
           text1: 'Error',
