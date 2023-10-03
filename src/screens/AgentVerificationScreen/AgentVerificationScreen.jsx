@@ -52,31 +52,39 @@ export default function AgentVerificationScreen({navigation}, props) {
   };
   const submitRegister = async () => {
     setLoading(true);
-    const photeBlob = await handleCompression(photoID);
-    const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
-    const CertificateBlob = await uriToBlob(Certificate);
-    const CertificateURL = await uploadFilestoS3(
-      CertificateBlob,
-      variables.firstName,
-    );
-    const params = {
-      ...variables,
-      certificateUrl: CertificateURL,
-      photoId: photoURL,
-    };
-    console.log(photoURL);
-    console.log(CertificateURL);
-    setLoading(false);
-    if (await handleRegister(params)) {
+    if (photoID && Certificate) {
+      const photeBlob = await handleCompression(photoID);
+      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
+      const CertificateBlob = await uriToBlob(Certificate);
+      const CertificateURL = await uploadFilestoS3(
+        CertificateBlob,
+        variables.firstName,
+      );
+      const params = {
+        ...variables,
+        certificateUrl: CertificateURL,
+        photoId: photoURL,
+      };
+      console.log(photoURL);
+      console.log(CertificateURL);
       setLoading(false);
+      const isRegister = await handleRegister(params);
+      if (isRegister) {
+        setLoading(false);
 
-      navigation.navigate('AgentDocumentCompletion');
+        navigation.navigate('AgentDocumentCompletion');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Problem while registering',
+        });
+      }
     } else {
-      // Alert.alert('Problem while registering');
       Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Problem while registering',
+        type: 'warning',
+        text1: 'Warning!',
+        text2: 'Please provide all the documents',
       });
     }
   };
