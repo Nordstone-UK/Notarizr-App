@@ -28,7 +28,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const [location, setlocation] = useState('');
   const [Email, setEmail] = useState('');
   const [emailValid, setEmailValid] = useState();
-  const [gender, setgender] = useState('');
+  // const [gender, setgender] = useState('');
   const accountType = useSelector(state => state.register.accountType);
   const {first_name, profile_picture, last_name, email, phone_number} =
     useSelector(state => state.user.user);
@@ -40,7 +40,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     <View style={styles.container}>
       <NavigationHeader Title="Profile Details" />
       <ScrollView
-        contentContainerStyle={{paddingBottom: heightToDp(10)}}
+        // contentContainerStyle={{paddingBottom: heightToDp(10)}}
         showsVerticalScrollIndicator={false}>
         <View>
           <Image source={{uri: profile_picture}} style={styles.picture} />
@@ -53,7 +53,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
         </Text>
         <Text style={styles.textsubheading}>{email}</Text>
         <BottomSheetStyle>
-          <View>
+          <View style={{paddingBottom: widthToDp(5)}}>
             <LabelTextInput
               leftImageSoucre={require('../../../assets/NameIcon.png')}
               Label={true}

@@ -84,7 +84,6 @@ export default function ProfilePictureScreen({navigation}) {
         profilePicture: url,
       };
       const isRegistered = await handleRegister(params);
-      console.log('Is it working?', isRegistered);
       if (isRegistered) {
         settempLoading(false);
         navigation.navigate('RegisterCompletionScreen');
