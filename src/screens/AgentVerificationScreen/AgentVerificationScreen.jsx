@@ -21,6 +21,8 @@ import DocumentComponent from '../../components/DocumentComponent/DocumentCompon
 import SplashScreen from 'react-native-splash-screen';
 import useRegister from '../../hooks/useRegister';
 import {useSelector} from 'react-redux';
+import {uriToBlob} from '../../utils/ImagePicker';
+import Toast from 'react-native-toast-message';
 
 export default function AgentVerificationScreen({navigation}, props) {
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function AgentVerificationScreen({navigation}, props) {
   const submitRegister = async () => {
     const photeBlob = await handleCompression(photoID);
     const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
-    const CertificateBlob = await handleCompression(photoID);
+    const CertificateBlob = await uriToBlob(Certificate);
     const CertificateURL = await uploadFilestoS3(
       CertificateBlob,
       variables.firstName,
@@ -64,7 +66,12 @@ export default function AgentVerificationScreen({navigation}, props) {
     if (await handleRegister(params)) {
       navigation.navigate('AgentDocumentCompletion');
     } else {
-      Alert.alert('Problem while registering');
+      // Alert.alert('Problem while registering');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Problem while registering',
+      });
     }
   };
   return (

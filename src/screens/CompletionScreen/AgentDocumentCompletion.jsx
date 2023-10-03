@@ -2,13 +2,16 @@ import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import useLogin from '../../hooks/useLogin';
 
 export default function AgentDocumentCompletion({navigation}) {
+  const {resetStack} = useLogin();
+
   useEffect(() => {
     const delay = 3000;
 
     const timer = setTimeout(() => {
-      navigation.navigate('AgentVerfiedScreen');
+      resetStack('signup');
     }, delay);
 
     return () => clearTimeout(timer);

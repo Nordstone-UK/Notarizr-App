@@ -70,7 +70,12 @@ export default function SignUpDetailScreen({navigation}, props) {
             setEmailValid(response?.data?.isEmailValid?.emailTaken);
 
             if (response?.data?.isEmailValid?.emailTaken) {
-              Alert.alert('This email is already taken');
+              // Alert.alert('This email is already taken');
+              Toast.show({
+                type: 'error',
+                text1: 'This email is already taken!',
+                text2: 'Please enter other email address',
+              });
             } else {
               setEmailValid(false);
               dispatch(
@@ -150,7 +155,11 @@ export default function SignUpDetailScreen({navigation}, props) {
               onChangeText={text => setlocation(text)}
             />
             <View style={styles.GenderContainer}>
-              <Picker selectedValue={gender} onValueChange={handleGenderChange}>
+              <Picker
+                selectedValue={gender}
+                onValueChange={handleGenderChange}
+                style={{color: Colors.Black}}
+                placeholder="Select Gender">
                 <Picker.Item label="Select Gender" value="" />
                 <Picker.Item label="Male" value="male" />
                 <Picker.Item label="Female" value="female" />
@@ -171,7 +180,6 @@ export default function SignUpDetailScreen({navigation}, props) {
           </View>
         </BottomSheetStyle>
       </View>
-      <CustomToast />
     </ScrollView>
   );
 }

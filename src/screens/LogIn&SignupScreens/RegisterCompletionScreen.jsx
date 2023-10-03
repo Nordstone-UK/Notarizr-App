@@ -2,16 +2,15 @@ import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {ITEM_WIDTH, heightToDp, widthToDp} from '../../utils/Responsive';
+import useLogin from '../../hooks/useLogin';
 
 export default function RegisterCompletionScreen({navigation}) {
+  const {resetStack} = useLogin();
   useEffect(() => {
     const delay = 3000;
 
     const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'HomeScreen'}],
-      });
+      resetStack('signup');
     }, delay);
 
     return () => clearTimeout(timer);
@@ -30,8 +29,6 @@ export default function RegisterCompletionScreen({navigation}) {
           <Text style={styles.text}>
             Congratulations,{'\n'} you have completed your registration!
           </Text>
-
-          {/* <Text style={styles.subheading}>THE OPAL GORUP</Text> */}
         </View>
         <Image
           source={require('../../../assets/complete.png')}

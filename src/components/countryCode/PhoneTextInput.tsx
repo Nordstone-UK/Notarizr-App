@@ -54,6 +54,7 @@ const PhoneTextInput = ({
         onChangeFormattedText={text => {
           onChange(text);
         }}
+        textInputProps={{placeholderTextColor: Colors.DisableColor}}
       />
       <Text
         style={[
@@ -68,13 +69,16 @@ const PhoneTextInput = ({
   );
 };
 const styles = StyleSheet.create({
-  PhoneTextContainerStyle: {},
+  PhoneTextContainerStyle: {
+    backgroundColor: Colors.white,
+    color: Colors.TextColor,
+  },
   PhoneInputStyle: {
     borderRadius: 50,
     color: Colors.TextColor,
   },
   container: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
     borderWidth: 2,
     borderRadius: 15,
     marginHorizontal: widthToDp(5),

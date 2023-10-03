@@ -45,5 +45,5 @@ const toastConfig = {
 };
 
 export default function CustomToast() {
-  return <Toast position="bottom" bottomOffset={20} config={toastConfig} />;
+  return <Toast position="bottom" bottomOffset={10} config={toastConfig} />;
 }

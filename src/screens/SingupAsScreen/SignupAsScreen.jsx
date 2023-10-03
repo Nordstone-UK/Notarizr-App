@@ -8,15 +8,22 @@ import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch} from 'react-redux';
-// import {userType} from '../../features/user/userSlice';
 import {accountTypeSet} from '../../features/register/registerSlice';
 
-export default function SignupAsScreen({navigation}, props) {
+export default function SignupAsScreen({navigation}) {
   const [colored, setColored] = useState('client');
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
-  const handlUserType = () => {
-    dispatch(accountTypeSet(colored));
-    navigation.navigate('SignUpDetailScreen');
+  const handleUserType = async colored => {
+    setLoading(true);
+    try {
+      await dispatch(accountTypeSet(colored));
+      await navigation.navigate('SignUpDetailScreen');
+    } catch (error) {
+      console.error('Error occurred:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,7 +60,8 @@ export default function SignupAsScreen({navigation}, props) {
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Get Started"
-              onPress={() => handlUserType()}
+              loading={loading}
+              onPress={() => handleUserType(colored)}
             />
           </View>
         </ScrollView>

@@ -51,14 +51,14 @@ export default function LabelTextInput(props) {
           }
           onChangeText={props.onChangeText}
         />
-        {props.rightImageSource && (
+        {/* {props.rightImageSource && (
           <TouchableOpacity
             onPress={() => {
               setSecreText(!secureText);
             }}>
             <Image source={props.rightImageSource} style={styles.icon} />
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
       {(isFocused && props.LabelTextInput) || props.Label || false ? (
         <Text
@@ -119,9 +119,10 @@ const styles = StyleSheet.create({
   },
   input: {
     padding: widthToDp(6),
-    width: widthToDp(70),
+    // width: widthToDp(80),
     fontSize: 18,
     backgroundColor: 'transparent',
+    color: Colors.Black,
   },
   InputFocused: {
     borderColor: '#FF7A28',

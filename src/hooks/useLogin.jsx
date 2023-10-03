@@ -19,9 +19,7 @@ const useLogin = () => {
     })
       .then(response => {
         console.log(response?.data);
-        // Alert.alert(response?.data?.verifyPhoneOTP?.message);
         if (response?.data?.verifyPhoneOTP?.status !== '200') {
-          // Alert.alert('Something went wrong.');
           Toast.show({
             type: 'error',
             text1: 'We are Sorry!',
@@ -29,18 +27,25 @@ const useLogin = () => {
           });
         } else {
           saveAccessTokenToStorage(response?.data?.verifyPhoneOTP?.accessToken);
-          resetStack();
+          resetStack('login');
         }
       })
       .catch(error => {
         console.error(error);
       });
   };
-  const resetStack = async () => {
-    Toast.show({
-      type: 'success',
-      text1: 'Login Successfull!',
-    });
+  const resetStack = async login => {
+    if (login === 'login') {
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successfull!',
+      });
+    } else {
+      Toast.show({
+        type: 'success',
+        text1: 'Registration Successfull!',
+      });
+    }
     await fetchUserInfo();
     navigation.reset({
       index: 0,
@@ -83,7 +88,12 @@ const useLogin = () => {
       console.log('Error saving access token: ', error);
     }
   };
-  return {handleOtpVerification, handleResendOtp, saveAccessTokenToStorage};
+  return {
+    handleOtpVerification,
+    handleResendOtp,
+    saveAccessTokenToStorage,
+    resetStack,
+  };
 };
 
 export default useLogin;

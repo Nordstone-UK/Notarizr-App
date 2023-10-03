@@ -4,7 +4,6 @@ import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
-import MainBookingScreen from '../MainBookingScreen/MainBookingScreen';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {ScrollView} from 'react-native';
 import {useSelector} from 'react-redux';
@@ -97,7 +96,6 @@ export default function PhoneVerification({route, navigation}) {
           onPress={() => verifyOTP()}
         />
       </View>
-      <CustomToast />
     </ScrollView>
   );
 }

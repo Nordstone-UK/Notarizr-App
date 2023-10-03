@@ -27,6 +27,7 @@ import {captureImage, chooseFile} from '../../utils/ImagePicker';
 
 import {profilePictureSet} from '../../features/register/registerSlice';
 import useRegister from '../../hooks/useRegister';
+import Toast from 'react-native-toast-message';
 
 export default function ProfilePictureScreen({navigation}) {
   useEffect(() => {
@@ -87,7 +88,12 @@ export default function ProfilePictureScreen({navigation}) {
         settempLoading(false);
         navigation.navigate('RegisterCompletionScreen');
       } else {
-        Alert.alert('Problem while registering');
+        // Alert.alert('Problem while registering');
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Problem while registering',
+        });
         settempLoading(false);
       }
     } else {

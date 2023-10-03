@@ -128,7 +128,6 @@ export default function LoginScreen({navigation}, props) {
             </View>
           </View>
         </BottomSheetStyle>
-        <CustomToast />
       </ScrollView>
     </View>
   );
