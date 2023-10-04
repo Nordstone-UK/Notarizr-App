@@ -12,59 +12,87 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 
 export default function LegalDocScreen({route, navigation}) {
+  const documents = [
+    {
+      Title: 'Affidavit',
+      Price: '$500',
+    },
+    {
+      Title: 'Last Will and Testament',
+      Price: '$550',
+    },
+    {
+      Title: 'Power of Attorney',
+      Price: '$600',
+    },
+    {
+      Title: 'Sworn Statements',
+      Price: '$600',
+    },
+    {
+      Title: 'Court Documents',
+      Price: '$200',
+    },
+  ];
+  const onPress = () => {
+    navigation.navigate('MainBookingScreen', {name: 'Legal Documents'});
+  };
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+
+  const handleSearchInput = query => {
+    setSearchQuery(query);
+    performSearch(query);
+  };
+
+  const performSearch = query => {
+    const formattedQuery = query.toLowerCase();
+    if (formattedQuery === '') {
+      setSearchResults(null);
+    } else {
+      const filteredResults = documents.filter(document => {
+        const documentTitle = document.Title
+          ? document.Title.toLowerCase()
+          : '';
+        return documentTitle.includes(formattedQuery);
+      });
+      setSearchResults(filteredResults);
+    }
+  };
   return (
     <View style={styles.container}>
       <NavigationHeader
         Title="Legal Document"
         lastImg={require('../../../assets/bellIcon.png')}
         midImg={require('../../../assets/Search.png')}
+        onChangeText={e => {
+          handleSearchInput(e);
+        }}
+        searchQuery={searchQuery}
       />
+
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
-          <LegalDocumentCard
-            Title="Legal Document 1"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Legal Document 2"
-            Price="$550"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Legal Document 3"
-            Price="$600"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Legal Document 4"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Legal Document 5"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Legal Documents',
-              })
-            }
-          />
+          {searchResults === null
+            ? documents.map((document, index) => (
+                <LegalDocumentCard
+                  key={index}
+                  Title={document.Title}
+                  Price={document.Price}
+                  onPress={onPress}
+                  searchQuery={searchQuery}
+                />
+              ))
+            : searchResults.map((document, index) => (
+                <LegalDocumentCard
+                  key={index}
+                  Title={document.Title}
+                  Price={document.Price}
+                  onPress={onPress}
+                />
+              ))}
         </ScrollView>
       </BottomSheetStyle>
     </View>

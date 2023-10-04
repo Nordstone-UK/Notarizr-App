@@ -9,61 +9,91 @@ import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
 export default function RealEstateDocScreen({navigation}) {
+  const documents = [
+    {
+      Title: 'Deeds',
+      Price: '$500',
+    },
+    {
+      Title: 'Lease Agreements',
+      Price: '$550',
+    },
+    {
+      Title: 'Property Easements',
+      Price: '$600',
+    },
+    {
+      Title: 'Mortgage Documents',
+      Price: '$600',
+    },
+    {
+      Title: 'Real Estate Contracts',
+      Price: '$200',
+    },
+  ];
+  const onPress = () => {
+    navigation.navigate('MainBookingScreen', {name: 'Real Estate Documents'});
+  };
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+
+  const handleSearchInput = query => {
+    setSearchQuery(query);
+    performSearch(query);
+  };
+
+  const performSearch = query => {
+    const formattedQuery = query.toLowerCase();
+    if (formattedQuery === '') {
+      setSearchResults(null);
+    } else {
+      const filteredResults = documents.filter(document => {
+        const documentTitle = document.Title
+          ? document.Title.toLowerCase()
+          : '';
+        return documentTitle.includes(formattedQuery);
+      });
+      setSearchResults(filteredResults);
+    }
+  };
   return (
     <View style={styles.container}>
       <NavigationHeader
         Title="Real Estate Document"
         lastImg={require('../../../assets/bellIcon.png')}
         midImg={require('../../../assets/Search.png')}
+        onChangeText={e => {
+          handleSearchInput(e);
+        }}
+        searchQuery={searchQuery}
       />
+
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
-          contentContainerStyle={styles.contentContainer}>
-          <LegalDocumentCard
-            Title="Real Estate Document 1"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Real Estate Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Real Estate Document 2"
-            Price="$550"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Real Estate Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Real Estate Document 3"
-            Price="$600"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Real Estate Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Real Estate Document 4"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Real Estate Documents',
-              })
-            }
-          />
-          <LegalDocumentCard
-            Title="Real Estate Document 5"
-            onPress={() =>
-              navigation.navigate('MainBookingScreen', {
-                name: 'Real Estate Documents',
-              })
-            }
-          />
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}>
+          {searchResults === null
+            ? documents.map((document, index) => (
+                <LegalDocumentCard
+                  key={index}
+                  Title={document.Title}
+                  Price={document.Price}
+                  onPress={onPress}
+                  searchQuery={searchQuery}
+                />
+              ))
+            : searchResults.map((document, index) => (
+                <LegalDocumentCard
+                  key={index}
+                  Title={document.Title}
+                  Price={document.Price}
+                  onPress={onPress}
+                />
+              ))}
         </ScrollView>
       </BottomSheetStyle>
     </View>

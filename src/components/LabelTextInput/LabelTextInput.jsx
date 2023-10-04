@@ -51,14 +51,6 @@ export default function LabelTextInput(props) {
           }
           onChangeText={props.onChangeText}
         />
-        {/* {props.rightImageSource && (
-          <TouchableOpacity
-            onPress={() => {
-              setSecreText(!secureText);
-            }}>
-            <Image source={props.rightImageSource} style={styles.icon} />
-          </TouchableOpacity>
-        )} */}
       </View>
       {(isFocused && props.LabelTextInput) || props.Label || false ? (
         <Text
@@ -80,6 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: heightToDp(2),
     marginTop: heightToDp(5),
     alignItems: 'center',
+    alignSelf: 'center',
   },
 
   inputContainer: {
@@ -99,7 +92,7 @@ const styles = StyleSheet.create({
 
   labelFocused: {
     position: 'absolute',
-    left: widthToDp(15),
+    left: widthToDp(10),
     top: widthToDp(-3),
     padding: 2,
     fontSize: 15,
@@ -109,7 +102,7 @@ const styles = StyleSheet.create({
   },
   labelUnFocused: {
     position: 'absolute',
-    left: widthToDp(15),
+    left: widthToDp(10),
     top: widthToDp(-3),
     padding: 2,
     fontSize: 15,
@@ -119,7 +112,7 @@ const styles = StyleSheet.create({
   },
   input: {
     padding: widthToDp(6),
-    // width: widthToDp(80),
+    width: widthToDp(80),
     fontSize: 18,
     backgroundColor: 'transparent',
     color: Colors.Black,

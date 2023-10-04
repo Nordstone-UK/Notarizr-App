@@ -10,11 +10,16 @@ export default function TypesofServiceButton(props) {
       <View style={{flexDirection: 'row'}}>
         <View
           style={{
-            width: widthToDp(45),
+            minWidth: widthToDp(20),
+            flex: 1,
           }}>
           <Text style={styles.heading}>{props?.Title}</Text>
 
-          <View style={{alignSelf: 'flex-start', marginTop: heightToDp(2)}}>
+          <View
+            style={{
+              alignSelf: 'flex-start',
+              marginTop: heightToDp(2),
+            }}>
             <MainButton
               colors={
                 props.colors || [
@@ -27,7 +32,7 @@ export default function TypesofServiceButton(props) {
               styles={{
                 padding: widthToDp(2),
                 fontSize: widthToDp(4),
-                width: widthToDp(25),
+                minWidth: widthToDp(25),
               }}
               onPress={props.onPress}
             />
@@ -43,10 +48,9 @@ const styles = StyleSheet.create({
   container: {
     width: widthToDp(90),
     height: heightToDp(40),
-    marginHorizontal: widthToDp(5),
+    alignSelf: 'center',
     marginVertical: widthToDp(2),
-    paddingHorizontal: widthToDp(5),
-    paddingVertical: widthToDp(5),
+    padding: widthToDp(5),
     borderRadius: 10,
   },
   heading: {
@@ -57,7 +61,6 @@ const styles = StyleSheet.create({
   Image: {
     width: widthToDp(10),
     height: heightToDp(30),
-
     resizeMode: 'contain',
     flex: 1,
   },

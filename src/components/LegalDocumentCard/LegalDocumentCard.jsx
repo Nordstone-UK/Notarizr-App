@@ -18,7 +18,13 @@ export default function LegalDocumentCard(props) {
         style={styles.cardPic}
       />
       <View style={styles.nameContainer}>
-        <Text style={styles.textstyle}>{props.Title}</Text>
+        <Text
+          style={[
+            styles.textstyle,
+            props.searchQuery && {backgroundColor: 'yellow'},
+          ]}>
+          {props.Title}
+        </Text>
         <Text style={styles.pricestyles}>{props.Price || `$350`}</Text>
       </View>
     </TouchableOpacity>
@@ -38,8 +44,8 @@ const styles = StyleSheet.create({
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    width: '80%',
+    justifyContent: 'space-between',
+    width: widthToDp(70),
   },
   cardPic: {
     marginVertical: widthToDp(1),

@@ -86,6 +86,7 @@ import PhoneVerification from '../LogIn&SignupScreens/PhoneVerification';
 import AgentVerfiedScreen from '../CompletionScreen/AgentVerifiedScreen';
 import CustomToast from '../../components/CustomToast/CustomToast';
 import AgentSignupScreen from '../SingupAsScreen/AgentSignupScreen';
+import ActiveServicesScreen from '../ActiveServicesScreen/ActiveServicesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -144,7 +145,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="LocalNotaryDateScreen"
+          initialRouteName="OnboardingScreen1"
           screenOptions={{
             headerShown: false,
           }}>
@@ -187,6 +188,10 @@ export default function AppNavigation() {
           <Stack.Screen
             name="CategoryDetailScreen"
             component={CategoryDetailScreen}
+          />
+          <Stack.Screen
+            name="ActiveServicesScreen"
+            component={ActiveServicesScreen}
           />
           <Stack.Screen
             name="RealEstateDocScreen"

@@ -21,13 +21,13 @@ export default function HomeScreenHeader(props) {
         </Text>
       </View>
       <Text style={styles.heading}>{props.Title}</Text>
-      <LabelTextInput
+      {/* <LabelTextInput
         leftImageSoucre={require('../../../assets/Search.png')}
         placeholder={'Search'}
         InputStyles={{
           padding: widthToDp(2),
         }}
-      />
+      /> */}
     </View>
   );
 }

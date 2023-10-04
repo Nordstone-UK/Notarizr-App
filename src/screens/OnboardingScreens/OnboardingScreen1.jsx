@@ -24,6 +24,7 @@ export default function OnboardingScreen1({navigation}, props) {
       <Text style={styles.textSubheading}>
         Our app can provide you the Mobile and Online services
       </Text>
+
       <GradientButton
         Title="Next"
         colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}

@@ -108,7 +108,10 @@ export default function HomeScreen({navigation}) {
           </View>
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
-            <Text style={styles.subheading}>View all</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ActiveServicesScreen')}>
+              <Text style={styles.subheading}>View all</Text>
+            </TouchableOpacity>
           </View>
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
