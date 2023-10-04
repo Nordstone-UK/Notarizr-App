@@ -16,23 +16,24 @@ import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader
 import LinearGradient from 'react-native-linear-gradient';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import MainButton from '../../../components/MainGradientButton/MainButton';
+import WeekCalendar from '../../../components/WeekCalendar/WeekCalendar';
 
 export default function AgentAvailabilitySetupScreen({route, navigation}) {
   const dateInfo = [];
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  // const months = [
+  //   'Jan',
+  //   'Feb',
+  //   'Mar',
+  //   'Apr',
+  //   'May',
+  //   'Jun',
+  //   'Jul',
+  //   'Aug',
+  //   'Sep',
+  //   'Oct',
+  //   'Nov',
+  //   'Dec',
+  // ];
   for (let date = 1; date <= 31; date++) {
     // Calculate the day of the week using a helper function
     const day = calculateDayOfWeek(2023, 8, date); // August 2023, change as needed
@@ -53,36 +54,35 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
   }
   console.log(route);
 
-  const [isFocused, setIsFocused] = useState('');
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const handlePrevMonth = () => {
-    // Handle moving to the previous month
-    let newIndex = currentMonthIndex - 1;
-    let newYear = currentYear;
+  // const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+  // const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  // const handlePrevMonth = () => {
+  //   // Handle moving to the previous month
+  //   let newIndex = currentMonthIndex - 1;
+  //   let newYear = currentYear;
 
-    if (newIndex < 0) {
-      newIndex = 11; // December
-      newYear -= 1;
-    }
+  //   if (newIndex < 0) {
+  //     newIndex = 11; // December
+  //     newYear -= 1;
+  //   }
 
-    setCurrentMonthIndex(newIndex);
-    setCurrentYear(newYear);
-  };
-  const handleNextMonth = () => {
-    // Handle moving to the next month
-    let newIndex = currentMonthIndex + 1;
-    let newYear = currentYear;
+  //   setCurrentMonthIndex(newIndex);
+  //   setCurrentYear(newYear);
+  // };
+  // const handleNextMonth = () => {
+  //   // Handle moving to the next month
+  //   let newIndex = currentMonthIndex + 1;
+  //   let newYear = currentYear;
 
-    if (newIndex > 11) {
-      newIndex = 0; // January
-      newYear += 1;
-    }
+  //   if (newIndex > 11) {
+  //     newIndex = 0; // January
+  //     newYear += 1;
+  //   }
 
-    setCurrentMonthIndex(newIndex);
-    setCurrentYear(newYear);
-  };
-  const currentMonth = months[currentMonthIndex];
+  //   setCurrentMonthIndex(newIndex);
+  //   setCurrentYear(newYear);
+  // };
+  // const currentMonth = months[currentMonthIndex];
   const [timeInputs, setTimeInputs] = useState([{start: '', end: ''}]);
 
   const addMoreTimeInputs = () => {
@@ -115,85 +115,7 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
               borderRadius: 10,
               marginHorizontal: widthToDp(2),
             }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-              <TouchableOpacity onPress={handlePrevMonth}>
-                <Image
-                  source={require('../../../../assets/monthLeft.png')}
-                  style={styles.month}
-                />
-              </TouchableOpacity>
-              <Text style={styles.monthHead}>
-                {currentMonth} {currentYear}
-              </Text>
-              <TouchableOpacity onPress={handleNextMonth}>
-                <Image
-                  source={require('../../../../assets/monthRight.png')}
-                  style={styles.month}
-                />
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}>
-              {dateInfo.map((dateObj, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={{
-                    marginHorizontal: widthToDp(2),
-                    marginVertical: widthToDp(5),
-                  }}
-                  onPress={() => setIsFocused(dateObj.date)}>
-                  <LinearGradient
-                    style={styles.locationStyle}
-                    colors={
-                      isFocused === dateObj.date
-                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                        : [Colors.white, Colors.white]
-                    }
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}>
-                    <View
-                      style={[
-                        {
-                          paddingHorizontal: widthToDp(4),
-                          paddingVertical: widthToDp(2),
-                          alignItems: 'center',
-                        },
-                      ]}>
-                      <Text
-                        style={
-                          isFocused === dateObj.date
-                            ? styles.textWhite
-                            : styles.text
-                        }>
-                        {currentMonth}
-                      </Text>
-                      <Text
-                        style={
-                          isFocused === dateObj.date
-                            ? styles.dateHeadingWhite
-                            : styles.dateHeading
-                        }>
-                        {dateObj.date}
-                      </Text>
-                      <Text
-                        style={
-                          isFocused === dateObj.date
-                            ? styles.textWhite
-                            : styles.text
-                        }>
-                        {dateObj.day}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <WeekCalendar />
           </View>
           <View style={{marginVertical: widthToDp(6)}}>
             {timeInputs.map((timeInput, index) => (
@@ -203,36 +125,48 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
                   leftImageSoucre={require('../../../../assets/clockIcon.png')}
                   LabelTextInput="Start Time"
                   Label={true}
-                  labelStyle={{
-                    left: widthToDp(3),
-                    color: Colors.TextColor,
-                  }}
                   value={timeInput.start}
-                  AdjustWidth={{
-                    width: widthToDp(45),
-                    borderColor: Colors.DisableColor,
-                  }}
                   onChangeText={text =>
                     handleTimeInputChange(text, index, 'start')
                   }
+                  InputStyles={{
+                    padding: widthToDp(2),
+                  }}
+                  AdjustWidth={{
+                    width: widthToDp(40),
+                    borderColor: Colors.DisableColor,
+                  }}
+                  labelStyle={{
+                    position: 'absolute',
+                    left: widthToDp(5),
+                    top: widthToDp(-3),
+                    fontSize: widthToDp(3.5),
+                    color: Colors.TextColor,
+                  }}
                 />
                 <LabelTextInput
                   style={styles.input}
-                  Label={true}
-                  LabelTextInput="End Time"
                   leftImageSoucre={require('../../../../assets/clockIcon.png')}
-                  labelStyle={{
-                    left: widthToDp(3),
-                    color: Colors.TextColor,
-                  }}
+                  LabelTextInput="Start Time"
+                  Label={true}
                   value={timeInput.end}
+                  onChangeText={text =>
+                    handleTimeInputChange(text, index, 'start')
+                  }
+                  InputStyles={{
+                    padding: widthToDp(2),
+                  }}
                   AdjustWidth={{
-                    width: widthToDp(45),
+                    width: widthToDp(40),
                     borderColor: Colors.DisableColor,
                   }}
-                  onChangeText={text =>
-                    handleTimeInputChange(text, index, 'end')
-                  }
+                  labelStyle={{
+                    position: 'absolute',
+                    left: widthToDp(5),
+                    top: widthToDp(-3),
+                    fontSize: widthToDp(3.5),
+                    color: Colors.TextColor,
+                  }}
                 />
               </View>
             ))}
@@ -274,10 +208,10 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
                   paddingVertical: heightToDp(0),
                   fontSize: widthToDp(4),
                 }}
-                onPress={
-                  route.params
-                    ? () => navigation.navigate('AgentLocalClientReviewScreen')
-                    : () => navigation.navigate('AgentServicePereference')
+                onPress={() =>
+                  navigation.navigate('AgentServicePereference', {
+                    msg: 'local_notary',
+                  })
                 }
               />
             </View>
@@ -297,9 +231,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(5),
     fontFamily: 'Manrope-SemiBold',
   },
-  locationStyle: {
-    borderRadius: 5,
-  },
+
   monthHead: {
     alignSelf: 'center',
     fontSize: widthToDp(6),
@@ -362,3 +294,84 @@ const styles = StyleSheet.create({
     marginBottom: heightToDp(5),
   },
 });
+
+{
+  /* <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <TouchableOpacity onPress={handlePrevMonth}>
+                <Image
+                  source={require('../../../../assets/monthLeft.png')}
+                  style={styles.month}
+                />
+              </TouchableOpacity>
+              <Text style={styles.monthHead}>
+                {currentMonth} {currentYear}
+              </Text>
+              <TouchableOpacity onPress={handleNextMonth}>
+                <Image
+                  source={require('../../../../assets/monthRight.png')}
+                  style={styles.month}
+                />
+              </TouchableOpacity>
+            </View> 
+<ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+{dateInfo.map((dateObj, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    marginHorizontal: widthToDp(2),
+                    marginVertical: widthToDp(5),
+                  }}
+                  onPress={() => setIsFocused(dateObj.date)}>
+                  <LinearGradient
+                    style={styles.locationStyle}
+                    colors={
+                      isFocused === dateObj.date
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.white, Colors.white]
+                    }
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}>
+                    <View
+                      style={[
+                        {
+                          paddingHorizontal: widthToDp(4),
+                          paddingVertical: widthToDp(2),
+                          alignItems: 'center',
+                        },
+                      ]}>
+                      <Text
+                        style={
+                          isFocused === dateObj.date
+                            ? styles.textWhite
+                            : styles.text
+                        }>
+                        {currentMonth}
+                      </Text>
+                      <Text
+                        style={
+                          isFocused === dateObj.date
+                            ? styles.dateHeadingWhite
+                            : styles.dateHeading
+                        }>
+                        {dateObj.date}
+                      </Text>
+                      <Text
+                        style={
+                          isFocused === dateObj.date
+                            ? styles.textWhite
+                            : styles.text
+                        }>
+                        {dateObj.day}
+                      </Text>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))} 
+</ScrollView>;
+*/
+}

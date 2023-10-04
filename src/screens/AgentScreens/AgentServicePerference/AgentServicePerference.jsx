@@ -14,7 +14,7 @@ import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetS
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 
-export default function AgentServicePereference({navigation}) {
+export default function AgentServicePereference({route, navigation}) {
   const [stringArray, setStringArray] = useState([]);
 
   const toggleStringInArray = name => {
@@ -131,7 +131,11 @@ export default function AgentServicePereference({navigation}) {
                 paddingVertical: heightToDp(0),
                 fontSize: widthToDp(4),
               }}
-              onPress={() => navigation.navigate('AgentRONLocationScreen')}
+              onPress={() =>
+                route?.params?.msg === 'local_notary'
+                  ? navigation.navigate('ProfilePreferenceCompletion')
+                  : navigation.navigate('AgentRONLocationScreen')
+              }
             />
           </View>
         </View>

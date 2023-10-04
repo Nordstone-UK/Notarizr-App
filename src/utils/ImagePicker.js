@@ -43,12 +43,7 @@ const requestMediaAccessPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-        // {
-        //   title: 'External Storage Write Permission',
-        //   message: 'App needs write permission',
-        // },
       );
-      // If WRITE_EXTERNAL_STORAGE Permission is granted
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
       console.warn(err);
@@ -149,7 +144,6 @@ export const uriToBlob = uri => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.onload = function () {
-      // Return the blob
       resolve(xhr.response);
     };
     xhr.onerror = function () {

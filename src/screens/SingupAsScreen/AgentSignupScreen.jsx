@@ -10,19 +10,15 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch} from 'react-redux';
 import {accountTypeSet} from '../../features/register/registerSlice';
 
-export default function SignupAsScreen({navigation}) {
-  const [colored, setColored] = useState('client');
+export default function AgentSignupScreen({navigation}) {
+  const [colored, setColored] = useState('individual');
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const handleUserType = async colored => {
     setLoading(true);
     try {
-      await dispatch(accountTypeSet(colored));
-      if (colored === 'client') {
-        await navigation.navigate('SignUpDetailScreen');
-      } else {
-        await navigation.navigate('AgentSignupScreen');
-      }
+      //   await dispatch(accountTypeSet(colored));
+      await navigation.navigate('SignUpDetailScreen');
     } catch (error) {
       console.error('Error occurred:', error);
     } finally {
@@ -33,32 +29,36 @@ export default function SignupAsScreen({navigation}) {
   return (
     <View style={styles.container}>
       <CompanyHeader
-        Header={`Join Notarizr 😎 ${'\n'}and enjoy our services`}
+        Header={`Select whether you are an Individual or a Business`}
         HeaderStyle={{marginHorizontal: widthToDp(5)}}
       />
       <BottomSheetStyle>
         <ScrollView showsVerticalScrollIndicator={false}>
           <SignupButton
-            Title="SignUp as Client"
+            Title="SignUp as Individual"
             colors={
-              colored === 'client'
+              colored === 'individual'
                 ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                 : ['#F5F6F7', '#fff']
             }
-            TextStyle={colored === 'client' ? {color: '#fff'} : {color: '#000'}}
+            TextStyle={
+              colored === 'individual' ? {color: '#fff'} : {color: '#000'}
+            }
             picture={require('../../../assets/clientPic.png')}
-            onPress={() => setColored('client')}
+            onPress={() => setColored('individual')}
           />
           <SignupButton
-            Title="SignUp as Agent"
+            Title="SignUp as Business"
             colors={
-              colored === 'agent'
+              colored === 'business'
                 ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                 : ['#F5F6F7', '#fff']
             }
-            TextStyle={colored === 'agent' ? {color: '#fff'} : {color: '#000'}}
-            picture={require('../../../assets/agentPic.png')}
-            onPress={() => setColored('agent')}
+            TextStyle={
+              colored === 'business' ? {color: '#fff'} : {color: '#000'}
+            }
+            picture={require('../../../assets/business.jpg')}
+            onPress={() => setColored('business')}
           />
           <View style={styles.buttonConatiner}>
             <GradientButton

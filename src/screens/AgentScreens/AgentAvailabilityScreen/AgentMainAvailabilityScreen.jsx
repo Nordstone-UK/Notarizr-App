@@ -9,6 +9,7 @@ import MainBookingScreen from '../../MainBookingScreen/MainBookingScreen';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {Calendar} from 'react-native-calendars';
+import WeekCalendar from '../../../components/WeekCalendar/WeekCalendar';
 
 export default function AgentMainAvailabilityScreen({navigation}) {
   const [selected, setSelected] = useState('');
@@ -26,7 +27,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
           <Text style={styles.insideHeading}>
             Please provide us with your availability
           </Text>
-          <Calendar
+          {/* <Calendar
             onDayPress={day => {
               setSelected(day.dateString);
             }}
@@ -42,7 +43,16 @@ export default function AgentMainAvailabilityScreen({navigation}) {
               todayTextColor: Colors.Orange,
               textSectionTitleColor: '#000',
             }}
-          />
+          /> */}
+          <View
+            style={{
+              backgroundColor: Colors.white,
+              elevation: 20,
+              borderRadius: 10,
+              marginHorizontal: widthToDp(2),
+            }}>
+            <WeekCalendar />
+          </View>
           <View style={styles.buttonFlex}>
             <LabelTextInput
               leftImageSoucre={require('../../../../assets/clockIcon.png')}
@@ -112,7 +122,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
                   paddingVertical: heightToDp(1.5),
                   borderRadius: 5,
                 }}
-                onPress={() => navigation.navigate('AgentLocationScreen')}
+                onPress={() => navigation.navigate('AgentServicePereference')}
               />
             </View>
           </View>
@@ -151,6 +161,7 @@ const styles = StyleSheet.create({
   buttonFlex: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginTop: heightToDp(5),
   },
   bottomFlex: {
     marginVertical: heightToDp(5),

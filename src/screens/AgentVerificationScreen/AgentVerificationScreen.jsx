@@ -65,8 +65,8 @@ export default function AgentVerificationScreen({navigation}, props) {
         certificateUrl: CertificateURL,
         photoId: photoURL,
       };
-      console.log(photoURL);
-      console.log(CertificateURL);
+      console.log('qqwq', photoURL);
+      console.log('qqwq', CertificateURL);
       setLoading(false);
       const isRegister = await handleRegister(params);
       console.log('Is it working?', isRegister);
