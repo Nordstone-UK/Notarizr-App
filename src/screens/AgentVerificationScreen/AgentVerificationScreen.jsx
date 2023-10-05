@@ -23,11 +23,16 @@ import useRegister from '../../hooks/useRegister';
 import {useSelector} from 'react-redux';
 import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
+import NetInfo from '@react-native-community/netinfo';
 
 export default function AgentVerificationScreen({navigation}, props) {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
+  // useEffect(() => {
+  //   const unsubscribe = NetInfo.addEventListener(handleConnectivityChange);
+
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, []);
   const variables = useSelector(state => state.register);
   const [photoID, setphotoID] = useState(null);
   const [Certificate, setCertificate] = useState(null);
@@ -54,12 +59,20 @@ export default function AgentVerificationScreen({navigation}, props) {
     setLoading(true);
     if (photoID && Certificate) {
       const photeBlob = await handleCompression(photoID);
-      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
       const CertificateBlob = await uriToBlob(Certificate);
+      Toast.show({
+        type: 'warning',
+        text1: 'Item changed to BOLB!',
+      });
+      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
       const CertificateURL = await uploadFilestoS3(
         CertificateBlob,
         variables.firstName,
       );
+      Toast.show({
+        type: 'warning',
+        text1: 'Items uploaded to AWS!',
+      });
       const params = {
         ...variables,
         certificateUrl: CertificateURL,
@@ -73,7 +86,6 @@ export default function AgentVerificationScreen({navigation}, props) {
 
       if (isRegister) {
         setLoading(false);
-
         navigation.navigate('AgentDocumentCompletion');
       } else {
         Toast.show({
@@ -90,6 +102,7 @@ export default function AgentVerificationScreen({navigation}, props) {
       });
     }
   };
+
   return (
     <View style={styles.container}>
       <CompanyHeader
@@ -103,7 +116,6 @@ export default function AgentVerificationScreen({navigation}, props) {
           color: '#121826',
         }}
       />
-
       <BottomSheetStyle>
         <ScrollView
           style={{marginTop: heightToDp(5)}}

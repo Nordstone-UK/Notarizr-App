@@ -17,9 +17,9 @@ export default function SignupAsScreen({navigation}) {
   const handleUserType = async colored => {
     setLoading(true);
     try {
-      await dispatch(accountTypeSet(colored));
       if (colored === 'client') {
         await navigation.navigate('SignUpDetailScreen');
+        dispatch(accountTypeSet(colored));
       } else {
         await navigation.navigate('AgentSignupScreen');
       }

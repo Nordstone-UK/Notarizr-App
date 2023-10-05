@@ -5,8 +5,10 @@ import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import TypesofServiceButton from '../../../components/TypesofServiceButton/TypesofServiceButton';
 import Colors from '../../../themes/Colors';
+import {useSelector} from 'react-redux';
 
 export default function AgentMainBookingScreen({route, navigation}) {
+  const {account_type} = useSelector(state => state.user.user);
   return (
     <View style={styles.container}>
       <AgentHomeHeader />
@@ -23,28 +25,36 @@ export default function AgentMainBookingScreen({route, navigation}) {
           <Text style={styles.insideHeading}>
             Please choose the mode of service you wish to avail
           </Text>
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.Pink}}
-            Title="Mobile Notary"
-            Image={require('../../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('AgentMainAvailabilityScreen')}
-          />
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.LightBlue}}
-            Title="Remote Online Notary"
-            Image={require('../../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('AgentRemoteOnlineNotaryScreen')}
-          />
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.DarkBlue}}
-            Title="Local Notary"
-            Image={require('../../../../assets/service3Pic.png')}
-            onPress={() =>
-              navigation.navigate('AgentAvailabilitySetupScreen', {
-                service: 'local notary',
-              })
-            }
-          />
+          {account_type === 'individual-agent' && (
+            <TypesofServiceButton
+              backgroundColor={{backgroundColor: Colors.Pink}}
+              Title="Mobile Notary"
+              Image={require('../../../../assets/service1Pic.png')}
+              onPress={() => navigation.navigate('AgentMainAvailabilityScreen')}
+            />
+          )}
+          {account_type === 'individual-agent' && (
+            <TypesofServiceButton
+              backgroundColor={{backgroundColor: Colors.LightBlue}}
+              Title="Remote Online Notary"
+              Image={require('../../../../assets/service2Pic.png')}
+              onPress={() =>
+                navigation.navigate('AgentRemoteOnlineNotaryScreen')
+              }
+            />
+          )}
+          {account_type === 'company-agent' && (
+            <TypesofServiceButton
+              backgroundColor={{backgroundColor: Colors.DarkBlue}}
+              Title="Local Notary"
+              Image={require('../../../../assets/service3Pic.png')}
+              onPress={() =>
+                navigation.navigate('AgentAvailabilitySetupScreen', {
+                  service: 'local notary',
+                })
+              }
+            />
+          )}
         </ScrollView>
       </BottomSheetStyle>
     </View>

@@ -93,29 +93,7 @@ const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user.account_type);
 
-  return user === 'agent' ? (
-    <Tab.Navigator
-      screenOptions={({route}) => ({
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {height: heightToDp(17)},
-        tabBarIcon: ({focused}) => {
-          return <Ionicons focused={focused} name={route.name} />;
-        },
-      })}>
-      <Tab.Screen
-        name="Home"
-        component={AgentHomeScreen}
-        options={{
-          key: 'HomeScreen',
-        }}
-      />
-      <Tab.Screen name="AllBookingScreen" component={AgentAllBookingScreen} />
-      <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
-      <Tab.Screen name="ChatContactScreen" component={AgentChatContactScreen} />
-      <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
-    </Tab.Navigator>
-  ) : (
+  return user === 'client' ? (
     <Tab.Navigator
       screenOptions={({route}) => ({
         headerShown: false,
@@ -135,6 +113,28 @@ function TabNavigation() {
       />
       <Tab.Screen name="AllBookingScreen" component={AllBookingScreen} />
       <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
+      <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
+    </Tab.Navigator>
+  ) : (
+    <Tab.Navigator
+      screenOptions={({route}) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {height: heightToDp(17)},
+        tabBarIcon: ({focused}) => {
+          return <Ionicons focused={focused} name={route.name} />;
+        },
+      })}>
+      <Tab.Screen
+        name="Home"
+        component={AgentHomeScreen}
+        options={{
+          key: 'HomeScreen',
+        }}
+      />
+      <Tab.Screen name="AllBookingScreen" component={AgentAllBookingScreen} />
+      <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
+      <Tab.Screen name="ChatContactScreen" component={AgentChatContactScreen} />
       <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
     </Tab.Navigator>
   );

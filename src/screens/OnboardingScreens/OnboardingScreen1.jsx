@@ -7,7 +7,6 @@ import SkipButton from '../../components/MainGradientButton/SkipButton';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SplashScreen from 'react-native-splash-screen';
 
 export default function OnboardingScreen1({navigation}, props) {

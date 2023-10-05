@@ -17,7 +17,7 @@ export default function AgentSignupScreen({navigation}) {
   const handleUserType = async colored => {
     setLoading(true);
     try {
-      //   await dispatch(accountTypeSet(colored));
+      await dispatch(accountTypeSet(colored));
       await navigation.navigate('SignUpDetailScreen');
     } catch (error) {
       console.error('Error occurred:', error);
@@ -37,28 +37,32 @@ export default function AgentSignupScreen({navigation}) {
           <SignupButton
             Title="SignUp as Individual"
             colors={
-              colored === 'individual'
+              colored === 'individual-agent'
                 ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                 : ['#F5F6F7', '#fff']
             }
-            TextStyle={
-              colored === 'individual' ? {color: '#fff'} : {color: '#000'}
-            }
+            TextStyle={[
+              {fontSize: widthToDp(6)},
+              colored === 'individual-agent'
+                ? {color: '#fff'}
+                : {color: '#000'},
+            ]}
             picture={require('../../../assets/clientPic.png')}
-            onPress={() => setColored('individual')}
+            onPress={() => setColored('individual-agent')}
           />
           <SignupButton
             Title="SignUp as Business"
             colors={
-              colored === 'business'
+              colored === 'company-agent'
                 ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                 : ['#F5F6F7', '#fff']
             }
-            TextStyle={
-              colored === 'business' ? {color: '#fff'} : {color: '#000'}
-            }
+            TextStyle={[
+              {fontSize: widthToDp(6)},
+              colored === 'company-agent' ? {color: '#fff'} : {color: '#000'},
+            ]}
             picture={require('../../../assets/business.jpg')}
-            onPress={() => setColored('business')}
+            onPress={() => setColored('company-agent')}
           />
           <View style={styles.buttonConatiner}>
             <GradientButton

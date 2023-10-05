@@ -5,6 +5,7 @@ import {uploadDirectOnS3} from '../utils/s3Helper';
 import DocumentPicker from 'react-native-document-picker';
 import React, {useCallback} from 'react';
 import useLogin from './useLogin';
+import Toast from 'react-native-toast-message';
 
 const useRegister = () => {
   const {saveAccessTokenToStorage} = useLogin();
@@ -56,7 +57,16 @@ const useRegister = () => {
           ...variables,
         },
       };
+      Toast.show({
+        type: 'warning',
+        text1: 'Started the API call!',
+      });
       const {data} = await register(request);
+      Toast.show({
+        type: 'warning',
+        text1: 'API called responded!',
+        text2: data?.register?.status || 'No Msg from API',
+      });
       console.log('After API', data);
       if (data?.register?.status === '201') {
         saveAccessTokenToStorage(data?.register?.access_token);
