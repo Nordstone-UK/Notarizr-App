@@ -13,10 +13,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {widthToDp} from '../../utils/Responsive';
 
-export default function WeekCalendar() {
-  const weekdays = ['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'];
-
-  const [selectedDays, setSelectedDays] = useState(['']);
+export default function WeekCalendar({
+  selectedDays,
+  setSelectedDays,
+  weekdays,
+}) {
   const handleChange = day => {
     if (selectedDays.includes(day)) {
       setSelectedDays(selectedDays.filter(d => d !== day));
@@ -26,7 +27,7 @@ export default function WeekCalendar() {
   };
   return (
     <View style={{margin: widthToDp(2)}}>
-      <Text style={styles.monthHead}>WeekDays</Text>
+      <Text style={styles.monthHead}>Week Days</Text>
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}

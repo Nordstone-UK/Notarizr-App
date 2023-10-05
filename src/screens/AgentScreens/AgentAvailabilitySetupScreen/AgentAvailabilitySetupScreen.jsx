@@ -20,20 +20,9 @@ import WeekCalendar from '../../../components/WeekCalendar/WeekCalendar';
 
 export default function AgentAvailabilitySetupScreen({route, navigation}) {
   const dateInfo = [];
-  // const months = [
-  //   'Jan',
-  //   'Feb',
-  //   'Mar',
-  //   'Apr',
-  //   'May',
-  //   'Jun',
-  //   'Jul',
-  //   'Aug',
-  //   'Sep',
-  //   'Oct',
-  //   'Nov',
-  //   'Dec',
-  // ];
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const weekdays = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
   for (let date = 1; date <= 31; date++) {
     // Calculate the day of the week using a helper function
     const day = calculateDayOfWeek(2023, 8, date); // August 2023, change as needed
@@ -54,35 +43,6 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
   }
   console.log(route);
 
-  // const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
-  // const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  // const handlePrevMonth = () => {
-  //   // Handle moving to the previous month
-  //   let newIndex = currentMonthIndex - 1;
-  //   let newYear = currentYear;
-
-  //   if (newIndex < 0) {
-  //     newIndex = 11; // December
-  //     newYear -= 1;
-  //   }
-
-  //   setCurrentMonthIndex(newIndex);
-  //   setCurrentYear(newYear);
-  // };
-  // const handleNextMonth = () => {
-  //   // Handle moving to the next month
-  //   let newIndex = currentMonthIndex + 1;
-  //   let newYear = currentYear;
-
-  //   if (newIndex > 11) {
-  //     newIndex = 0; // January
-  //     newYear += 1;
-  //   }
-
-  //   setCurrentMonthIndex(newIndex);
-  //   setCurrentYear(newYear);
-  // };
-  // const currentMonth = months[currentMonthIndex];
   const [timeInputs, setTimeInputs] = useState([{start: '', end: ''}]);
 
   const addMoreTimeInputs = () => {

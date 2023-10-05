@@ -10,9 +10,14 @@ import MainButton from '../../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {Calendar} from 'react-native-calendars';
 import WeekCalendar from '../../../components/WeekCalendar/WeekCalendar';
+import useAgentService from '../../../hooks/useAgentService';
 
 export default function AgentMainAvailabilityScreen({navigation}) {
-  const [selected, setSelected] = useState('');
+  const [availability, setSelectedDays] = useState([]);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const weekdays = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
+  const {dispatchAvailability} = useAgentService();
 
   return (
     <View style={styles.container}>
@@ -27,23 +32,6 @@ export default function AgentMainAvailabilityScreen({navigation}) {
           <Text style={styles.insideHeading}>
             Please provide us with your availability
           </Text>
-          {/* <Calendar
-            onDayPress={day => {
-              setSelected(day.dateString);
-            }}
-            markedDates={{
-              [selected]: {
-                selected: true,
-                disableTouchEvent: true,
-                selectedDotColor: 'orange',
-              },
-            }}
-            theme={{
-              selectedDayBackgroundColor: Colors.Orange,
-              todayTextColor: Colors.Orange,
-              textSectionTitleColor: '#000',
-            }}
-          /> */}
           <View
             style={{
               backgroundColor: Colors.white,
@@ -51,12 +39,18 @@ export default function AgentMainAvailabilityScreen({navigation}) {
               borderRadius: 10,
               marginHorizontal: widthToDp(2),
             }}>
-            <WeekCalendar />
+            <WeekCalendar
+              selectedDays={availability}
+              weekdays={weekdays}
+              setSelectedDays={setSelectedDays}
+            />
           </View>
           <View style={styles.buttonFlex}>
             <LabelTextInput
               leftImageSoucre={require('../../../../assets/clockIcon.png')}
               LabelTextInput="Start Time"
+              placeholder="9 am"
+              onChangeText={e => setStartTime(e)}
               InputStyles={{
                 padding: widthToDp(2),
               }}
@@ -77,6 +71,8 @@ export default function AgentMainAvailabilityScreen({navigation}) {
             <LabelTextInput
               leftImageSoucre={require('../../../../assets/clockIcon.png')}
               LabelTextInput="End Time"
+              placeholder="5 pm"
+              onChangeText={e => setEndTime(e)}
               InputStyles={{
                 padding: widthToDp(2),
               }}
@@ -122,7 +118,9 @@ export default function AgentMainAvailabilityScreen({navigation}) {
                   paddingVertical: heightToDp(1.5),
                   borderRadius: 5,
                 }}
-                onPress={() => navigation.navigate('AgentServicePereference')}
+                onPress={() =>
+                  dispatchAvailability(availability, startTime, endTime)
+                }
               />
             </View>
           </View>

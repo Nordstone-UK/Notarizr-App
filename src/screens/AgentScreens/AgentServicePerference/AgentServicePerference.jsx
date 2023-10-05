@@ -13,22 +13,29 @@ import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import MainButton from '../../../components/MainGradientButton/MainButton';
+import useAgentService from '../../../hooks/useAgentService';
 
 export default function AgentServicePereference({route, navigation}) {
-  const [stringArray, setStringArray] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const categories = {
+    legal: '651edebe6ab4a249f611000d',
+    business: '651ede7d6ab4a249f610ffe9',
+    medical: '651edeab6ab4a249f6110005',
+    estate: '651ede9e6ab4a249f610fffd',
+  };
+  const {dispatchCategory} = useAgentService();
 
   const toggleStringInArray = name => {
-    const index = stringArray.indexOf(name);
+    const index = selectedCategories.indexOf(name);
 
     if (index === -1) {
       // If the string is not in the array, add it
-      setStringArray([...stringArray, name]);
+      setSelectedCategories([...selectedCategories, name]);
     } else {
       // If the string is in the array, remove it
-      const updatedArray = stringArray.filter((item, i) => i !== index);
-      setStringArray(updatedArray);
+      const updatedArray = selectedCategories.filter((item, i) => i !== index);
+      setSelectedCategories(updatedArray);
     }
-    // console.log(stringArray);
   };
   return (
     <View style={styles.container}>
@@ -46,11 +53,11 @@ export default function AgentServicePereference({route, navigation}) {
             <View style={styles.PictureBar}>
               <TouchableOpacity
                 style={styles.pictureCheck}
-                onPress={() => toggleStringInArray('legal')}>
+                onPress={() => toggleStringInArray(categories.legal)}>
                 <Image
                   source={require('../../../../assets/legalDocIcon.png')}
                 />
-                {stringArray.includes('legal') && (
+                {selectedCategories.includes(categories.legal) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
                     style={styles.checkIcon}
@@ -59,11 +66,11 @@ export default function AgentServicePereference({route, navigation}) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.pictureCheck}
-                onPress={() => toggleStringInArray('realestate')}>
+                onPress={() => toggleStringInArray(categories.estate)}>
                 <Image
                   source={require('../../../../assets/estateDocIcon.png')}
                 />
-                {stringArray.includes('realestate') && (
+                {selectedCategories.includes(categories.estate) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
                     style={styles.checkIcon}
@@ -74,11 +81,11 @@ export default function AgentServicePereference({route, navigation}) {
             <View style={styles.PictureBar}>
               <TouchableOpacity
                 style={styles.pictureCheck}
-                onPress={() => toggleStringInArray('medical')}>
+                onPress={() => toggleStringInArray(categories.medical)}>
                 <Image
                   source={require('../../../../assets/medicalDocIcon.png')}
                 />
-                {stringArray.includes('medical') && (
+                {selectedCategories.includes(categories.medical) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
                     style={styles.checkIcon}
@@ -87,11 +94,11 @@ export default function AgentServicePereference({route, navigation}) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.pictureCheck}
-                onPress={() => toggleStringInArray('business')}>
+                onPress={() => toggleStringInArray(categories.business)}>
                 <Image
                   source={require('../../../../assets/businessDocIcon.png')}
                 />
-                {stringArray.includes('business') && (
+                {selectedCategories.includes(categories.business) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
                     style={styles.checkIcon}
@@ -131,11 +138,7 @@ export default function AgentServicePereference({route, navigation}) {
                 paddingVertical: heightToDp(0),
                 fontSize: widthToDp(4),
               }}
-              onPress={() =>
-                route?.params?.msg === 'local_notary'
-                  ? navigation.navigate('ProfilePreferenceCompletion')
-                  : navigation.navigate('AgentRONLocationScreen')
-              }
+              onPress={() => dispatchCategory(selectedCategories)}
             />
           </View>
         </View>

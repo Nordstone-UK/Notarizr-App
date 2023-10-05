@@ -31,7 +31,7 @@ export default function AgentRemoteOnlineNotaryScreen({navigation}) {
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Enter Availability"
             Image={require('../../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('AgentAvailabilitySetupScreen')}
+            onPress={() => navigation.navigate('AgentMainAvailabilityScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

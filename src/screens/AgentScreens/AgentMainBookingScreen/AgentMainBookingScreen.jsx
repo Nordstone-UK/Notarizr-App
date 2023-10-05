@@ -6,9 +6,11 @@ import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetS
 import TypesofServiceButton from '../../../components/TypesofServiceButton/TypesofServiceButton';
 import Colors from '../../../themes/Colors';
 import {useSelector} from 'react-redux';
+import useAgentService from '../../../hooks/useAgentService';
 
 export default function AgentMainBookingScreen({route, navigation}) {
   const {account_type} = useSelector(state => state.user.user);
+  const {dispatchMobile, dispatchLocal, dispatchRON} = useAgentService();
   return (
     <View style={styles.container}>
       <AgentHomeHeader />
@@ -30,7 +32,7 @@ export default function AgentMainBookingScreen({route, navigation}) {
               backgroundColor={{backgroundColor: Colors.Pink}}
               Title="Mobile Notary"
               Image={require('../../../../assets/service1Pic.png')}
-              onPress={() => navigation.navigate('AgentMainAvailabilityScreen')}
+              onPress={() => dispatchMobile('mobile_notary')}
             />
           )}
           {account_type === 'individual-agent' && (
@@ -38,9 +40,7 @@ export default function AgentMainBookingScreen({route, navigation}) {
               backgroundColor={{backgroundColor: Colors.LightBlue}}
               Title="Remote Online Notary"
               Image={require('../../../../assets/service2Pic.png')}
-              onPress={() =>
-                navigation.navigate('AgentRemoteOnlineNotaryScreen')
-              }
+              onPress={() => dispatchRON('ron')}
             />
           )}
           {account_type === 'company-agent' && (
@@ -48,11 +48,7 @@ export default function AgentMainBookingScreen({route, navigation}) {
               backgroundColor={{backgroundColor: Colors.DarkBlue}}
               Title="Local Notary"
               Image={require('../../../../assets/service3Pic.png')}
-              onPress={() =>
-                navigation.navigate('AgentAvailabilitySetupScreen', {
-                  service: 'local notary',
-                })
-              }
+              onPress={() => dispatchLocal('local')}
             />
           )}
         </ScrollView>

@@ -9,9 +9,21 @@ import MainBookingScreen from '../../MainBookingScreen/MainBookingScreen';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
+import {useSelector} from 'react-redux';
+import useAgentService from '../../../hooks/useAgentService';
 
 export default function AgentRONLocationScreen({navigation}) {
   const [Location, setLocation] = useState('Florida');
+  const agentService = useSelector(state => state.agentService);
+  const {handleRegistration} = useAgentService();
+  const createService = () => {
+    console.log(Location);
+    const params = {
+      ...agentService,
+      location: Location,
+    };
+    handleRegistration(params);
+  };
   return (
     <View style={styles.container}>
       <AgentHomeHeader />
@@ -108,7 +120,7 @@ export default function AgentRONLocationScreen({navigation}) {
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Complete"
-            onPress={() => navigation.navigate('ProfilePreferenceCompletion')}
+            onPress={() => createService()}
           />
         </View>
       </BottomSheetStyle>

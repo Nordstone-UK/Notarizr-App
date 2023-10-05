@@ -77,7 +77,7 @@ import {useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
 import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
-import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationSelect';
+import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationScreen';
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
 import MapArrivalScreen from '../MapArrivalScreen/MapArrivalScreen';
