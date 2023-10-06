@@ -27,7 +27,7 @@ export default function WeekCalendar({
   };
   return (
     <View style={{margin: widthToDp(2)}}>
-      <Text style={styles.monthHead}>Week Days</Text>
+      <Text style={styles.monthHead}>Weekly</Text>
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}

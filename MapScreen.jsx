@@ -51,6 +51,7 @@ export default function MapScreen({navigation}) {
         <NavigationHeader
           Title="Nearby"
           lastImg={require('./assets/Search.png')}
+          lastImgPress={() => navigation.navigate('NotificationScreen')}
         />
         <View
           style={{

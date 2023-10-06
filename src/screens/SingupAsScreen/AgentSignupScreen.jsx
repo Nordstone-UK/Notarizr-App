@@ -11,14 +11,14 @@ import {useDispatch} from 'react-redux';
 import {accountTypeSet} from '../../features/register/registerSlice';
 
 export default function AgentSignupScreen({navigation}) {
-  const [colored, setColored] = useState('individual');
+  const [colored, setColored] = useState('individual-agent');
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const handleUserType = async colored => {
     setLoading(true);
     try {
-      await dispatch(accountTypeSet(colored));
       await navigation.navigate('SignUpDetailScreen');
+      dispatch(accountTypeSet(colored));
     } catch (error) {
       console.error('Error occurred:', error);
     } finally {

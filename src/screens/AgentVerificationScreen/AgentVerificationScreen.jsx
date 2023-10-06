@@ -80,8 +80,8 @@ export default function AgentVerificationScreen({navigation}, props) {
       };
       console.log('qqwq', photoURL);
       console.log('qqwq', CertificateURL);
-      setLoading(false);
       const isRegister = await handleRegister(params);
+      setLoading(false);
       console.log('Is it working?', isRegister);
 
       if (isRegister) {

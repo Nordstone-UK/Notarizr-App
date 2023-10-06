@@ -43,11 +43,11 @@ const useAgentService = () => {
     const request = {
       variables: {
         ...agentService,
-        name: first_name + last_name,
+        name: first_name + ' ' + last_name,
         location: location,
       },
     };
-    console.log(request);
+    console.log('Variables sent to API', request);
     const {data} = await createService(request);
     console.log('wdawd', data);
     if (data.createService.status === '201') {
@@ -66,7 +66,6 @@ const useAgentService = () => {
       ? LocalNotaryRegister(agentService)
       : navigation.navigate('AgentRONLocationScreen');
   };
-
   function orderWeekdays(selectedWeekdays) {
     const weekdaysOrder = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
 

@@ -87,6 +87,7 @@ import AgentVerfiedScreen from '../CompletionScreen/AgentVerifiedScreen';
 import CustomToast from '../../components/CustomToast/CustomToast';
 import AgentSignupScreen from '../SingupAsScreen/AgentSignupScreen';
 import ActiveServicesScreen from '../ActiveServicesScreen/ActiveServicesScreen';
+import NotificationScreen from '../NotificationScreen/NotificationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -145,7 +146,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="OnboardingScreen1"
+          initialRouteName="HomeScreen"
           screenOptions={{
             headerShown: false,
           }}>
@@ -166,6 +167,10 @@ export default function AppNavigation() {
           <Stack.Screen
             name="AgentSignupScreen"
             component={AgentSignupScreen}
+          />
+          <Stack.Screen
+            name="NotificationScreen"
+            component={NotificationScreen}
           />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen

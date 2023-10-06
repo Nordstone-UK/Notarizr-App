@@ -38,7 +38,7 @@ export default function BusinessDocScreen({route, navigation}) {
   };
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
-
+  const [isVisible, setIsVisible] = useState('');
   const handleSearchInput = query => {
     setSearchQuery(query);
     performSearch(query);
@@ -63,7 +63,10 @@ export default function BusinessDocScreen({route, navigation}) {
       <NavigationHeader
         Title="Business Document"
         lastImg={require('../../../assets/bellIcon.png')}
+        lastImgPress={() => navigation.navigate('NotificationScreen')}
         midImg={require('../../../assets/Search.png')}
+        midImgPress={() => setIsVisible(!isVisible)}
+        isVisible={isVisible}
         onChangeText={e => {
           handleSearchInput(e);
         }}

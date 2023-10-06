@@ -6,8 +6,10 @@ import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
+import useGetService from '../../hooks/useGetService';
 
 export default function MainBookingScreen({route, navigation}) {
+  const {fetchGetServiceAPI} = useGetService();
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -28,19 +30,19 @@ export default function MainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"
             Image={require('../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('MapScreen')}
+            onPress={() => fetchGetServiceAPI('mobile_notary')}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Remote Online Notary"
             Image={require('../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('OnlineNotaryScreen')}
+            onPress={() => fetchGetServiceAPI('ron')}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.DarkBlue}}
             Title="Local Notary"
             Image={require('../../../assets/service3Pic.png')}
-            onPress={() => navigation.navigate('LocalNotaryMapScreen')}
+            onPress={() => fetchGetServiceAPI('local')}
           />
         </ScrollView>
       </BottomSheetStyle>

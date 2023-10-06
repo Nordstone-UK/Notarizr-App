@@ -6,10 +6,13 @@ import {useNavigation} from '@react-navigation/native';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function NavigationHeader(props) {
-  const [isVisible, setIsVisible] = useState(false);
   const navigation = useNavigation();
   return (
-    <View style={{marginTop: heightToDp(10)}}>
+    <View
+      style={[
+        {marginTop: heightToDp(10)},
+        !props.isVisible && {marginBottom: heightToDp(5)},
+      ]}>
       <View style={styles.container}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -30,12 +33,12 @@ export default function NavigationHeader(props) {
           <Text style={styles.naveheader}>{props?.Title}</Text>
           <View style={styles.iconContainer}>
             {props.midImg && (
-              <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
+              <TouchableOpacity onPress={props.midImgPress}>
                 <Image source={props.midImg} />
               </TouchableOpacity>
             )}
             {props.lastImg && (
-              <TouchableOpacity>
+              <TouchableOpacity onPress={props.lastImgPress}>
                 <Image
                   source={props.lastImg}
                   style={{tintColor: Colors.TextColor}}
@@ -45,7 +48,7 @@ export default function NavigationHeader(props) {
           </View>
         </View>
       </View>
-      {isVisible && (
+      {(false || props?.isVisible) && (
         <LabelTextInput
           leftImageSoucre={require('../../../assets/Search.png')}
           placeholder={'Search'}
@@ -67,15 +70,15 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(4),
 
     alignItems: 'center',
-    alignSelf: 'center',
   },
   touchContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
   },
   Flexcontainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     width: '90%',
     marginLeft: widthToDp(3),
   },

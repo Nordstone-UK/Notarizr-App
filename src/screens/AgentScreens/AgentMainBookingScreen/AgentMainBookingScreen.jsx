@@ -15,9 +15,9 @@ export default function AgentMainBookingScreen({route, navigation}) {
     <View style={styles.container}>
       <AgentHomeHeader />
       <View style={styles.headingContainer}>
-        <Text style={styles.lightHeading}>Selected Service</Text>
+        {/* <Text style={styles.lightHeading}>Selected Service</Text> */}
         <Text style={styles.Heading}>
-          {route?.params?.name || 'Medical Documents'}
+          {/* {route?.params?.name || 'Medical Documents'} */}
         </Text>
       </View>
       <BottomSheetStyle>
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   headingContainer: {
     marginLeft: widthToDp(4),
-    marginBottom: heightToDp(2),
+    // marginBottom: heightToDp(2),
   },
   insideHeading: {
     color: Colors.TextColor,
