@@ -51,6 +51,11 @@ export default function LabelTextInput(props) {
           }
           onChangeText={props.onChangeText}
         />
+        {props.rightImageSoucre && (
+          <TouchableOpacity onPress={props.rightImagePress}>
+            <Image source={props.rightImageSoucre} style={styles.iconLeft} />
+          </TouchableOpacity>
+        )}
       </View>
       {(isFocused && props.LabelTextInput) || props.Label || false ? (
         <Text

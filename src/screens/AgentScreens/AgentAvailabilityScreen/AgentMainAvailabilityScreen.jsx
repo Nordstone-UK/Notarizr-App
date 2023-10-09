@@ -1,4 +1,12 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  ScrollView,
+  View,
+  Button,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useState} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
@@ -11,14 +19,15 @@ import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {Calendar} from 'react-native-calendars';
 import WeekCalendar from '../../../components/WeekCalendar/WeekCalendar';
 import useAgentService from '../../../hooks/useAgentService';
+import TimePicker from '../../../components/TimePicker/TimePicker';
+import moment from 'moment';
 
 export default function AgentMainAvailabilityScreen({navigation}) {
   const [availability, setSelectedDays] = useState([]);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const weekdays = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date());
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
   const {dispatchAvailability} = useAgentService();
-
   return (
     <View style={styles.container}>
       <AgentHomeHeader />
@@ -46,50 +55,18 @@ export default function AgentMainAvailabilityScreen({navigation}) {
             />
           </View>
           <View style={styles.buttonFlex}>
-            <LabelTextInput
-              leftImageSoucre={require('../../../../assets/clockIcon.png')}
-              LabelTextInput="Start Time"
-              placeholder="9 am"
-              onChangeText={e => setStartTime(e)}
-              InputStyles={{
-                padding: widthToDp(2),
-              }}
-              Label={true}
-              keyboardType={'numeric'}
-              AdjustWidth={{
-                width: widthToDp(40),
-                borderColor: Colors.DisableColor,
-              }}
-              labelStyle={{
-                position: 'absolute',
-                left: widthToDp(5),
-                top: widthToDp(-3),
-                fontSize: widthToDp(3.5),
-                color: Colors.TextColor,
-              }}
+            <TimePicker
+              onConfirm={date => setStartTime(date)}
+              Text="Start Time"
+              date={startTime}
             />
-            <LabelTextInput
-              leftImageSoucre={require('../../../../assets/clockIcon.png')}
-              LabelTextInput="End Time"
-              placeholder="5 pm"
-              onChangeText={e => setEndTime(e)}
-              InputStyles={{
-                padding: widthToDp(2),
-              }}
-              Label={true}
-              AdjustWidth={{
-                width: widthToDp(40),
-                borderColor: Colors.DisableColor,
-              }}
-              labelStyle={{
-                position: 'absolute',
-                left: widthToDp(5),
-                top: widthToDp(-3),
-                fontSize: widthToDp(3.5),
-                color: Colors.TextColor,
-              }}
+            <TimePicker
+              onConfirm={date => setEndTime(date)}
+              Text="End Time"
+              date={endTime}
             />
           </View>
+
           <View style={styles.bottomFlex}>
             <View style={styles.buttonFlex}>
               <MainButton
@@ -119,7 +96,11 @@ export default function AgentMainAvailabilityScreen({navigation}) {
                   borderRadius: 5,
                 }}
                 onPress={() =>
-                  dispatchAvailability(availability, startTime, endTime)
+                  dispatchAvailability(
+                    availability,
+                    moment(startTime).format('h:mm A'),
+                    moment(endTime).format('h:mm A'),
+                  )
                 }
               />
             </View>

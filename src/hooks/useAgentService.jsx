@@ -66,15 +66,13 @@ const useAgentService = () => {
       ? LocalNotaryRegister(agentService)
       : navigation.navigate('AgentRONLocationScreen');
   };
-  function orderWeekdays(selectedWeekdays) {
+  function orderWeekdays(weekdays) {
+    const selectedWeekdays = convertWeekdaysToLowerCase(weekdays);
     const weekdaysOrder = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
 
-    // Filter out selected weekdays that are valid (part of weekdaysOrder)
     const validWeekdays = selectedWeekdays.filter(day =>
       weekdaysOrder.includes(day),
     );
-
-    // Sort the valid weekdays based on their index in weekdaysOrder
     const orderedWeekdays = validWeekdays.sort(
       (a, b) => weekdaysOrder.indexOf(a) - weekdaysOrder.indexOf(b),
     );
@@ -99,6 +97,9 @@ const useAgentService = () => {
       });
     }
   };
+  function convertWeekdaysToLowerCase(weekdays) {
+    return weekdays.map(weekday => weekday.toLowerCase());
+  }
   return {
     dispatchMobile,
     dispatchLocal,

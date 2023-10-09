@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  ScrollView,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useState} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
@@ -11,12 +18,18 @@ import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import {useSelector} from 'react-redux';
 import useAgentService from '../../../hooks/useAgentService';
+import Toast from 'react-native-toast-message';
+import LinearGradient from 'react-native-linear-gradient';
+import {Button} from '@rneui/base';
 
 export default function AgentRONLocationScreen({navigation}) {
-  const [Location, setLocation] = useState('Florida');
+  const [cityArray, setCityArray] = useState(['New York']);
+  const [Location, setLocation] = useState('');
   const agentService = useSelector(state => state.agentService);
   const {handleRegistration} = useAgentService();
+
   const createService = () => {
+    const Location = cityArray;
     console.log(Location);
     const params = {
       ...agentService,
@@ -24,6 +37,20 @@ export default function AgentRONLocationScreen({navigation}) {
     };
     handleRegistration(params);
   };
+  function checkAndAddCity(city) {
+    if (cityArray.includes(city)) {
+      Toast.show({
+        type: 'error',
+        text1: 'City already added',
+      });
+    } else {
+      setCityArray(prevArray => [...prevArray, city]);
+      console.log('Added:', city);
+    }
+  }
+  function removeCity(city) {
+    setCityArray(prevArray => prevArray.filter(item => item !== city));
+  }
   return (
     <View style={styles.container}>
       <AgentHomeHeader />
@@ -35,85 +62,36 @@ export default function AgentRONLocationScreen({navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <Text style={styles.insideHeading}>
-            Please select your preferred locations
+            Please enter your preferred locations
           </Text>
+          <LabelTextInput
+            rightImageSoucre={require('../../../../assets/addIcon.png')}
+            rightImagePress={() => {
+              checkAndAddCity(Location), setLocation('');
+            }}
+            placeholder={'Enter your desired locations'}
+            LabelTextInput={'Locations'}
+            onChangeText={text => setLocation(text)}
+            Label={true}
+            defaultValue={Location}
+          />
           <View style={styles.buttonFlex}>
-            <MainButton
-              Title="Florida"
-              colors={
-                Location === 'Florida'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={{
-                padding: heightToDp(1),
-                fontSize: widthToDp(4),
-              }}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(10),
-                width: widthToDp(40),
-                paddingVertical: heightToDp(1.5),
-                borderRadius: 5,
-              }}
-              onPress={() => setLocation('Florida')}
-            />
-            <MainButton
-              Title="Ohio"
-              colors={
-                Location === 'Ohio'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={{
-                padding: heightToDp(1),
-                fontSize: widthToDp(4),
-              }}
-              GradiStyles={{
-                width: widthToDp(40),
-                paddingHorizontal: widthToDp(10),
-                paddingVertical: heightToDp(1.5),
-                borderRadius: 5,
-              }}
-              onPress={() => setLocation('Ohio')}
-            />
-            <MainButton
-              Title="New York"
-              colors={
-                Location === 'New York'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={{
-                padding: heightToDp(1),
-                fontSize: widthToDp(4),
-              }}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(10),
-                width: widthToDp(40),
-                paddingVertical: heightToDp(1.5),
-                borderRadius: 5,
-              }}
-              onPress={() => setLocation('New York')}
-            />
-            <MainButton
-              onPress={() => setLocation('Hawaii')}
-              Title="Hawaii"
-              colors={
-                Location === 'Hawaii'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={{
-                padding: heightToDp(1),
-                fontSize: widthToDp(4),
-              }}
-              GradiStyles={{
-                width: widthToDp(40),
-                paddingHorizontal: widthToDp(10),
-                paddingVertical: heightToDp(1.5),
-                borderRadius: 5,
-              }}
-            />
+            {cityArray.map((city, index) => (
+              <TouchableOpacity key={index} onPress={() => removeCity(city)}>
+                <LinearGradient
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 0}}
+                  style={styles.gradientstyles}>
+                  <View style={styles.buttonToucableOpacity}>
+                    <Text style={styles.buttonText}>{city}</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
           </View>
         </ScrollView>
         <View style={styles.bottomFlex}>
@@ -138,6 +116,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(5),
     fontFamily: 'Manrope-Regular',
   },
+  buttonToucableOpacity: {padding: heightToDp(1), fontSize: widthToDp(4)},
   Heading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
@@ -154,12 +133,27 @@ const styles = StyleSheet.create({
     marginVertical: widthToDp(3),
     marginHorizontal: widthToDp(5),
   },
+  gradientstyles: {
+    borderRadius: 10,
+    alignSelf: 'center',
+    paddingHorizontal: widthToDp(10),
+    width: widthToDp(40),
+    paddingVertical: heightToDp(1.5),
+  },
+  buttonText: {
+    padding: '5%',
+    color: '#fff',
+    fontSize: widthToDp(3),
+    textAlign: 'center',
+    fontFamily: 'Manrope-Bold',
+  },
   buttonFlex: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
     marginVertical: heightToDp(2),
     flexWrap: 'wrap',
     rowGap: widthToDp(2),
+    columnGap: widthToDp(2),
+    marginHorizontal: widthToDp(5),
   },
   bottomFlex: {
     flexDirection: 'column',
