@@ -13,29 +13,27 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 export default function BusinessDocScreen({route, navigation}) {
   const documents = [
     {
-      Title: 'Articles of Incorporation',
-      Price: '$500',
+      name: 'Articles of Incorporation',
+      price: 500,
     },
     {
-      Title: 'Corporate Bylaws',
-      Price: '$550',
+      name: 'Corporate Bylaws',
+      price: 550,
     },
     {
-      Title: 'Operating Agreements',
-      Price: '$600',
+      name: 'Operating Agreements',
+      price: 600,
     },
     {
-      Title: 'Partnership Agreements',
-      Price: '$600',
+      name: 'Partnership Agreements',
+      price: 600,
     },
     {
-      Title: 'Commercial Leases',
-      Price: '$200',
+      name: 'Commercial Leases',
+      price: 200,
     },
   ];
-  const onPress = () => {
-    navigation.navigate('MainBookingScreen', {name: 'Business Documents'});
-  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isVisible, setIsVisible] = useState('');
@@ -78,21 +76,31 @@ export default function BusinessDocScreen({route, navigation}) {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}>
           {searchResults === null
-            ? documents.map((document, index) => (
+            ? documents.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
-                  Title={document.Title}
-                  Price={document.Price}
-                  onPress={onPress}
+                  Title={item.name}
+                  Price={item.price}
+                  onPress={() => {
+                    navigation.navigate('MainBookingScreen', {
+                      name: 'Business Documents',
+                      documentType: item,
+                    });
+                  }}
                   searchQuery={searchQuery}
                 />
               ))
-            : searchResults.map((document, index) => (
+            : searchResults.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
-                  Title={document.Title}
-                  Price={document.Price}
-                  onPress={onPress}
+                  Title={item.name}
+                  Price={item.price}
+                  onPress={() => {
+                    navigation.navigate('MainBookingScreen', {
+                      name: 'Business Documents',
+                      documentType: item,
+                    });
+                  }}
                 />
               ))}
         </ScrollView>

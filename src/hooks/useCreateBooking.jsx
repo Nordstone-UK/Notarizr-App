@@ -1,18 +1,21 @@
 import {View, Text} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useMutation} from '@apollo/client';
 import {CREATE_BOOKING} from '../../request/mutations/createBooking.mutation';
 import {useNavigation} from '@react-navigation/native';
 
 const useCreateBooking = () => {
   const navigation = useNavigation();
+  // useEffect(() => {
+  //   console.log('Hook logged', BookingData);
+  // }, [BookingData]);
   const [BookingData, setBookingData] = useState({
     serviceType: null,
     service: null,
     agent: null,
     documentType: {
-      price: 500,
-      name: 'Legal Docs',
+      price: null,
+      name: null,
     },
   });
   const [createBooking] = useMutation(CREATE_BOOKING);

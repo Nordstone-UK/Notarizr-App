@@ -7,7 +7,7 @@ import {useNavigation} from '@react-navigation/native';
 const useGetService = () => {
   const [getServiceByServiceType] = useLazyQuery(GET_SERVICE_BY_SERVICE_TYPE);
   const navigation = useNavigation();
-  const fetchGetServiceAPI = async serviceType => {
+  const fetchGetServiceAPI = async (serviceType, documentData) => {
     const request = {
       variables: {
         serviceType,
@@ -22,6 +22,7 @@ const useGetService = () => {
         if (serviceType === 'mobile_notary') {
           navigation.navigate('MapScreen', {
             agents: response?.data?.getServiceByServiceType?.services,
+            documents: documentData,
           });
         } else if (serviceType === 'ron') {
           navigation.navigate('OnlineNotaryScreen');

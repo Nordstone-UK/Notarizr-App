@@ -8,17 +8,16 @@ import {
   View,
   Image,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import AgentCard from './src/components/AgentCard/AgentCard';
 import {widthToDp} from './src/utils/Responsive';
 import NavigationHeader from './src/components/Navigation Header/NavigationHeader';
 import AgentReviewCard from './src/components/AgentReviewCard/AgentReviewCard';
 import useGetService from './src/hooks/useGetService';
+import useCreateBooking from './src/hooks/useCreateBooking';
 
 export default function MapScreen({route, navigation}) {
-  // const {availableAgents} = useGetService();
-  const {agents} = route.params;
-  // console.log('MapScreen', agents[0].category);
+  const {agents, documents} = route.params;
 
   const data = [
     {
@@ -50,7 +49,6 @@ export default function MapScreen({route, navigation}) {
     },
   ];
   const renderItem = ({item}) => {
-    // console.log('Flat list', item);
     const {agent} = item;
 
     return (
@@ -62,7 +60,10 @@ export default function MapScreen({route, navigation}) {
         agentName={agent.first_name + ' ' + agent.last_name}
         agentAddress={agent.location}
         onPress={() =>
-          navigation.navigate('AgentReviewScreen', {description: item})
+          navigation.navigate('AgentReviewScreen', {
+            description: item,
+            documentType: documents,
+          })
         }
       />
     );

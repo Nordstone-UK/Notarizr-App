@@ -1,5 +1,5 @@
 import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -7,9 +7,13 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import useGetService from '../../hooks/useGetService';
+import useCreateBooking from '../../hooks/useCreateBooking';
 
 export default function MainBookingScreen({route, navigation}) {
   const {fetchGetServiceAPI} = useGetService();
+  const {documentType} = route.params;
+  console.log(documentType);
+
   return (
     <View style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -30,7 +34,10 @@ export default function MainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"
             Image={require('../../../assets/service1Pic.png')}
-            onPress={() => fetchGetServiceAPI('mobile_notary')}
+            onPress={
+              // () => consoleData()
+              () => fetchGetServiceAPI('mobile_notary', documentType)
+            }
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}

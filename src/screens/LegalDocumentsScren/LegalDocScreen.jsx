@@ -14,29 +14,27 @@ import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 export default function LegalDocScreen({route, navigation}) {
   const documents = [
     {
-      Title: 'Affidavit',
-      Price: '$500',
+      name: 'Affidavit',
+      price: 500,
     },
     {
-      Title: 'Last Will and Testament',
-      Price: '$550',
+      name: 'Last Will and Testament',
+      price: 550,
     },
     {
-      Title: 'Power of Attorney',
-      Price: '$600',
+      name: 'Power of Attorney',
+      price: 600,
     },
     {
-      Title: 'Sworn Statements',
-      Price: '$600',
+      name: 'Sworn Statements',
+      price: 600,
     },
     {
-      Title: 'Court Documents',
-      Price: '$200',
+      name: 'Court Documents',
+      price: 200,
     },
   ];
-  const onPress = () => {
-    navigation.navigate('MainBookingScreen', {name: 'Legal Documents'});
-  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isVisible, setIsVisible] = useState('');
@@ -79,21 +77,31 @@ export default function LegalDocScreen({route, navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           {searchResults === null
-            ? documents.map((document, index) => (
+            ? documents.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
-                  Title={document.Title}
-                  Price={document.Price}
-                  onPress={onPress}
+                  Title={item.name}
+                  Price={item.price}
+                  onPress={() => {
+                    navigation.navigate('MainBookingScreen', {
+                      name: 'Legal Documents',
+                      documentType: item,
+                    });
+                  }}
                   searchQuery={searchQuery}
                 />
               ))
-            : searchResults.map((document, index) => (
+            : searchResults.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
-                  Title={document.Title}
-                  Price={document.Price}
-                  onPress={onPress}
+                  Title={item.name}
+                  Price={item.price}
+                  onPress={() => {
+                    navigation.navigate('MainBookingScreen', {
+                      name: 'Legal Documents',
+                      documentType: item,
+                    });
+                  }}
                 />
               ))}
         </ScrollView>

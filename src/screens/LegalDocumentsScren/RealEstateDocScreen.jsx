@@ -14,29 +14,26 @@ import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 export default function RealEstateDocScreen({navigation}) {
   const documents = [
     {
-      Title: 'Deeds',
-      Price: '$500',
+      name: 'Deeds',
+      price: 500,
     },
     {
-      Title: 'Lease Agreements',
-      Price: '$550',
+      name: 'Lease Agreements',
+      price: 550,
     },
     {
-      Title: 'Property Easements',
-      Price: '$600',
+      name: 'Property Easements',
+      price: 600,
     },
     {
-      Title: 'Mortgage Documents',
-      Price: '$600',
+      name: 'Mortgage Documents',
+      price: 600,
     },
     {
-      Title: 'Real Estate Contracts',
-      Price: '$200',
+      name: 'Real Estate Contracts',
+      price: 200,
     },
   ];
-  const onPress = () => {
-    navigation.navigate('MainBookingScreen', {name: 'Real Estate Documents'});
-  };
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -52,9 +49,7 @@ export default function RealEstateDocScreen({navigation}) {
       setSearchResults(null);
     } else {
       const filteredResults = documents.filter(document => {
-        const documentTitle = document.Title
-          ? document.Title.toLowerCase()
-          : '';
+        const documentname = document.Title ? document.Title.toLowerCase() : '';
         return documentTitle.includes(formattedQuery);
       });
       setSearchResults(filteredResults);
@@ -81,21 +76,31 @@ export default function RealEstateDocScreen({navigation}) {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}>
           {searchResults === null
-            ? documents.map((document, index) => (
+            ? documents.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
-                  Title={document.Title}
-                  Price={document.Price}
-                  onPress={onPress}
+                  Title={item.name}
+                  Price={item.price}
+                  onPress={() => {
+                    navigation.navigate('MainBookingScreen', {
+                      name: 'Real Estate Documents',
+                      documentType: item,
+                    });
+                  }}
                   searchQuery={searchQuery}
                 />
               ))
-            : searchResults.map((document, index) => (
+            : searchResults.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
-                  Title={document.Title}
-                  Price={document.Price}
-                  onPress={onPress}
+                  Title={item.name}
+                  Price={item.price}
+                  onPress={() => {
+                    navigation.navigate('MainBookingScreen', {
+                      name: 'Real Estate Documents',
+                      documentType: item,
+                    });
+                  }}
                 />
               ))}
         </ScrollView>

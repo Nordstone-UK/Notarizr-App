@@ -19,18 +19,21 @@ import SplashScreen from 'react-native-splash-screen';
 import useCreateBooking from '../../hooks/useCreateBooking';
 
 export default function AgentReviewScreen({route, navigation}, props) {
-  const {BookingData, handleBookingCreation, setBookingData} =
+  const {BookingData, handleBookingCreation, consoleData, setBookingData} =
     useCreateBooking();
-  const {description} = route.params;
+  const {description, documentType} = route.params;
   const {agent} = description;
+  // console.log(route.params.documentType);
   // console.log('adwad', description);
   useEffect(() => {
     // SplashScreen.hide();
+
     setBookingData({
       ...BookingData,
       serviceType: description.service_type,
       service: description._id,
       agent: description.agent._id,
+      documentType: documentType,
     });
   }, []);
   const GradientText = props => {
@@ -94,7 +97,10 @@ export default function AgentReviewScreen({route, navigation}, props) {
               <GradientButton
                 Title="Book Now"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => handleBookingCreation()}
+                onPress={
+                  // () => consoleData()
+                  () => handleBookingCreation()
+                }
               />
             </View>
           </ScrollView>

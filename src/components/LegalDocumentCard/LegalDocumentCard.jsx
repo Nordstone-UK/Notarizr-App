@@ -25,7 +25,7 @@ export default function LegalDocumentCard(props) {
           ]}>
           {props.Title}
         </Text>
-        <Text style={styles.pricestyles}>{props.Price || `$350`}</Text>
+        <Text style={styles.pricestyles}>${props.Price || `350`}</Text>
       </View>
     </TouchableOpacity>
   );
