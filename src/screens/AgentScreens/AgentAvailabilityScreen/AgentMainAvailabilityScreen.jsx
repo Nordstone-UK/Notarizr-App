@@ -7,7 +7,7 @@ import {
   Button,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -28,6 +28,13 @@ export default function AgentMainAvailabilityScreen({navigation}) {
   const [endTime, setEndTime] = useState(new Date());
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
   const {dispatchAvailability} = useAgentService();
+  useEffect(() => {
+    console.log(
+      'Start Time in Main screen',
+      moment(startTime).format('h:mm A'),
+      moment(endTime).format('h:mm A'),
+    );
+  }, []);
   return (
     <View style={styles.container}>
       <AgentHomeHeader />

@@ -1,9 +1,25 @@
-import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
+import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function AgentVerfiedScreen({navigation}) {
+  const clearTokenFromStorage = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token cleared from AsyncStorage');
+    } catch (error) {
+      console.error('Error clearing token from AsyncStorage:', error);
+    }
+  };
+  const handleLogout = () => {
+    clearTokenFromStorage();
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'LoginScreen'}],
+    });
+  };
   return (
     <View style={styles.container}>
       <View style={styles.completeIcon}>
@@ -14,6 +30,12 @@ export default function AgentVerfiedScreen({navigation}) {
         <Text style={styles.text}>
           Please Wait, {'\n'} your application is being reviewed.
         </Text>
+        <TouchableOpacity onPress={() => handleLogout()}>
+          <Image
+            source={require('../../../assets/logout.png')}
+            style={styles.complete}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -44,9 +66,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
   },
   complete: {
-    alignSelf: 'flex-end',
-    width: widthToDp(90),
+    alignSelf: 'center',
     resizeMode: 'contain',
-    flex: 1,
   },
 });

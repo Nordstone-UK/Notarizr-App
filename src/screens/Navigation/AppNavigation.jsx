@@ -88,6 +88,7 @@ import CustomToast from '../../components/CustomToast/CustomToast';
 import AgentSignupScreen from '../SingupAsScreen/AgentSignupScreen';
 import ActiveServicesScreen from '../ActiveServicesScreen/ActiveServicesScreen';
 import NotificationScreen from '../NotificationScreen/NotificationScreen';
+import Splash_Screen from '../SplashScreen/Splash_Screen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -146,11 +147,12 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="LoginScreen"
+          initialRouteName="SplashScreen"
           screenOptions={{
             headerShown: false,
           }}>
           <Stack.Screen name="HomeScreen" component={TabNavigation} />
+          <Stack.Screen name="SplashScreen" component={Splash_Screen} />
           <Stack.Screen
             name="OnboardingScreen1"
             component={OnboardingScreen1}

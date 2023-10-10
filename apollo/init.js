@@ -32,10 +32,8 @@ const init = () => {
     },
   });
   const authLink = setContext(async (_, {headers}) => {
-    const token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2NTFlOGNkMjk1ZDVhMzc0NGI3ZTMyNzEiLCJpYXQiOjE2OTY1MjQzNDR9.l7xbEr-B3kcqxK56vjvY_yeJKRNYLHu-rOHgiAe-_lk';
-    // await AsyncStorage.getItem('token');
-    console.log(token);
+    const token = await AsyncStorage.getItem('token');
+    // console.log(token);
     return {
       headers: {
         ...headers,

@@ -12,10 +12,27 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import Colors from '../../themes/Colors';
 import SettingOptions from '../../components/SettingOptions/SettingOptions';
 import {useSelector} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileInfoScreen({navigation}) {
   const accountType = useSelector(state => state.register.accountType);
   const {first_name, profile_picture} = useSelector(state => state.user.user);
+  const clearTokenFromStorage = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token cleared from AsyncStorage');
+    } catch (error) {
+      console.error('Error clearing token from AsyncStorage:', error);
+    }
+  };
+  const handleLogout = () => {
+    clearTokenFromStorage();
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'LoginScreen'}],
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Image source={{uri: profile_picture}} style={styles.picture} />
@@ -48,11 +65,12 @@ export default function ProfileInfoScreen({navigation}) {
               Title="Profile Details"
               onPress={() => navigation.navigate('ProfileDetailEditScreen')}
             />
-            <SettingOptions
+
+            {/* <SettingOptions
               icon={require('../../../assets/passwordLock.png')}
               Title="Change Password"
               onPress={() => navigation.navigate('PasswordEditScreen')}
-            />
+            /> */}
             <SettingOptions
               icon={require('../../../assets/greenLocation.png')}
               Title="Address"
@@ -62,6 +80,11 @@ export default function ProfileInfoScreen({navigation}) {
               icon={require('../../../assets/blueCard.png')}
               Title="Payment Method"
               onPress={() => navigation.navigate('PaymentUpdateScreen')}
+            />
+            <SettingOptions
+              icon={require('../../../assets/logout.png')}
+              Title="Log out"
+              onPress={() => handleLogout()}
             />
           </View>
         </ScrollView>
