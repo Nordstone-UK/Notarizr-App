@@ -6,14 +6,20 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import React from 'react';
 import AgentCard from './src/components/AgentCard/AgentCard';
 import {widthToDp} from './src/utils/Responsive';
 import NavigationHeader from './src/components/Navigation Header/NavigationHeader';
 import AgentReviewCard from './src/components/AgentReviewCard/AgentReviewCard';
+import useGetService from './src/hooks/useGetService';
 
-export default function MapScreen({navigation}) {
+export default function MapScreen({route, navigation}) {
+  // const {availableAgents} = useGetService();
+  const {agents} = route.params;
+  // console.log('MapScreen', agents[0].category);
+
   const data = [
     {
       key: '1',
@@ -43,16 +49,30 @@ export default function MapScreen({navigation}) {
       agentAddress: 'Shop 28, Jigara Kalakand Road',
     },
   ];
+  const renderItem = ({item}) => {
+    // console.log('Flat list', item);
+    const {agent} = item;
+
+    return (
+      <AgentReviewCard
+        image={item.image}
+        source={{uri: agent.profile_picture}}
+        // bottomRightText={item.bottomRightText}
+        // bottomLeftText={item.bottomLeftText}
+        agentName={agent.first_name + ' ' + agent.last_name}
+        agentAddress={agent.location}
+        onPress={() =>
+          navigation.navigate('AgentReviewScreen', {description: item})
+        }
+      />
+    );
+  };
   return (
     <View style={styles.container}>
       <ImageBackground
         source={require('./assets/map.png')}
         style={styles.container}>
-        <NavigationHeader
-          Title="Nearby"
-          lastImg={require('./assets/Search.png')}
-          lastImgPress={() => navigation.navigate('NotificationScreen')}
-        />
+        <NavigationHeader Title="Nearby" />
         <View
           style={{
             flex: 1,
@@ -61,19 +81,9 @@ export default function MapScreen({navigation}) {
           <View style={{flexDirection: 'row'}}>
             <FlatList
               horizontal
-              data={data}
-              renderItem={({item}) => (
-                <AgentReviewCard
-                  image={item.image}
-                  source={item.source}
-                  bottomRightText={item.bottomRightText}
-                  bottomLeftText={item.bottomLeftText}
-                  agentName={item.agentName}
-                  agentAddress={item.agentAddress}
-                  onPress={() => navigation.navigate('AgentReviewScreen')}
-                />
-              )}
-              keyExtractor={item => item.key}
+              data={agents}
+              renderItem={renderItem}
+              keyExtractor={item => item._id}
             />
           </View>
         </View>

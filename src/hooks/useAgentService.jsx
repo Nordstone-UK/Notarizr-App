@@ -44,7 +44,7 @@ const useAgentService = () => {
       variables: {
         ...agentService,
         name: first_name + ' ' + last_name,
-        location: location,
+        location: [location],
       },
     };
     console.log('Variables sent to API', request);
@@ -83,8 +83,10 @@ const useAgentService = () => {
     const request = {
       variables: {
         ...variables,
+        name: first_name + ' ' + last_name,
       },
     };
+    console.log(request);
     const {data} = await createService(request);
     console.log('wdawd', data);
     if (data.createService.status === '201') {

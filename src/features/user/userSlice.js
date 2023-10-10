@@ -15,7 +15,7 @@ const initialState = {
     location: 'London',
     subscriptionType: 'free',
     isVerified: true,
-    account_type: 'individual-agent',
+    account_type: 'client',
   },
 };
 

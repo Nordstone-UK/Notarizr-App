@@ -53,18 +53,18 @@ export default function AgentReviewCard(props) {
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
       <View style={{flexDirection: 'row'}}>
-        <View>
-          <View style={{flex: 1}}>
-            <ImageBackground source={props.source} style={styles.cardImage}>
-              <AgentReviewComponent task={props.task} />
-            </ImageBackground>
-          </View>
+        <View
+          style={{
+            flex: 1,
+            margin: widthToDp(2),
+            justifyContent: 'center',
+          }}>
+          <Image source={props.source} style={styles.cardImage} />
+          <AgentReviewComponent task={props.task} />
         </View>
         <View>
           <View
             style={{
-              width: widthToDp(50),
-              marginLeft: widthToDp(6),
               width: widthToDp(60),
               marginTop: heightToDp(2),
             }}>
@@ -85,7 +85,12 @@ export default function AgentReviewCard(props) {
               style={{
                 flexDirection: 'row',
               }}>
-              <Image source={props.image} />
+              <Image
+                source={
+                  require('../../../assets/locationIcon.png') || props?.image
+                }
+                style={{tintColor: Colors.Black}}
+              />
               <View
                 style={{
                   marginLeft: widthToDp(1),
@@ -138,19 +143,20 @@ export default function AgentReviewCard(props) {
 
 const styles = StyleSheet.create({
   cardContainer: {
+    flex: 1,
     backgroundColor: Colors.white,
     elevation: 30,
     borderRadius: 10,
-    paddingBottom: heightToDp(6),
+    // paddingBottom: heightToDp(10),
     marginHorizontal: heightToDp(5),
     marginVertical: heightToDp(2),
   },
   cardImage: {
-    margin: widthToDp(2),
-    width: '110%',
-    height: '105%',
-    borderRadius: 6,
-    overflow: 'hidden',
+    marginHorizontal: widthToDp(2),
+    width: widthToDp(25),
+    height: heightToDp(25),
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
   },
   nameHeading: {
     fontSize: widthToDp(4),

@@ -8,33 +8,36 @@ export default function AgentReviewComponent(props) {
   return (
     <View
       style={{
-        flex: 1,
-        justifyContent: 'flex-end',
+        // flex: 1,
+        // justifyContent: 'flex-start',
+        marginHorizontal: widthToDp(2),
       }}>
-      <View
-        style={[
-          styles.ImageProces,
-          props.task && {
-            backgroundColor: Colors.CardProcessColor,
-          },
-          props.task === 'In Process' && {
-            backgroundColor: Colors.CardProcessColor,
-          },
-          props.task === 'Online' && {
-            backgroundColor: Colors.DarkPink,
-          },
-          props.task === 'Completed' && {
-            backgroundColor: Colors.Green,
-          },
-          props.task === 'Rejected' && {
-            backgroundColor: Colors.Red,
-          },
-          props.task === 'Pending' && {
-            backgroundColor: Colors.Orange,
-          },
-        ]}>
-        <Text style={styles.text}>{props.task}</Text>
-      </View>
+      {props.task && (
+        <View
+          style={[
+            styles.ImageProces,
+            props.task && {
+              backgroundColor: Colors.CardProcessColor,
+            },
+            props.task === 'In Process' && {
+              backgroundColor: Colors.CardProcessColor,
+            },
+            props.task === 'Online' && {
+              backgroundColor: Colors.DarkPink,
+            },
+            props.task === 'Completed' && {
+              backgroundColor: Colors.Green,
+            },
+            props.task === 'Rejected' && {
+              backgroundColor: Colors.Red,
+            },
+            props.task === 'Pending' && {
+              backgroundColor: Colors.Orange,
+            },
+          ]}>
+          <Text style={styles.text}>{props.task}</Text>
+        </View>
+      )}
 
       <LinearGradient
         style={styles.dateContainer}
@@ -64,12 +67,12 @@ const styles = StyleSheet.create({
   dateStyle: {
     color: Colors.white,
     fontFamily: 'Poppins-Bold',
-    fontSize: widthToDp(7),
+    fontSize: widthToDp(5.5),
   },
   rating: {
     color: Colors.white,
     fontFamily: 'Poppins-Light',
-    fontSize: widthToDp(3.5),
+    fontSize: widthToDp(3),
   },
   ImageProces: {
     paddingVertical: widthToDp(1),
@@ -78,6 +81,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     color: '#fff',
     fontFamily: 'Poppins-SemiBold',
-    fontSize: widthToDp(3.5),
+    fontSize: widthToDp(3),
   },
 });

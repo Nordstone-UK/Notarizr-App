@@ -5,7 +5,7 @@ export const CREATE_SERVICE = gql`
     $name: String!
     $serviceType: String!
     $availability: AvailabilityInput!
-    $location: String!
+    $location: [String!]!
     $category: [String!]
   ) {
     createService(

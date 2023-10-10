@@ -7,7 +7,6 @@ import {useNavigation} from '@react-navigation/native';
 const useGetService = () => {
   const [getServiceByServiceType] = useLazyQuery(GET_SERVICE_BY_SERVICE_TYPE);
   const navigation = useNavigation();
-  const [data, setData] = useState();
   const fetchGetServiceAPI = async serviceType => {
     const request = {
       variables: {
@@ -15,21 +14,27 @@ const useGetService = () => {
       },
     };
     console.log(request);
-    const response = await getServiceByServiceType(request);
-    console.log(response.data);
+    await getServiceByServiceType(request)
+      .then(response => {
+        console.log('In hook', response.data.getServiceByServiceType.services);
 
-    console.log(response.data.getServiceByServiceType.services);
+        // setAvailableAgents(response.data.getServiceByServiceType.services);
+        if (serviceType === 'mobile_notary') {
+          navigation.navigate('MapScreen', {
+            agents: response?.data?.getServiceByServiceType?.services,
+          });
+        } else if (serviceType === 'ron') {
+          navigation.navigate('OnlineNotaryScreen');
+        } else {
+          navigation.navigate('LocalNotaryMapScreen');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
   };
 
-  return {fetchGetServiceAPI, data};
+  return {fetchGetServiceAPI};
 };
 
 export default useGetService;
-
-// if (serviceType === 'mobile_notary') {
-//   navigation.navigate('MapScreen');
-// } else if (serviceType === 'ron') {
-//   navigation.navigate('OnlineNotaryScreen');
-// } else {
-//   navigation.navigate('LocalNotaryMapScreen');
-// }

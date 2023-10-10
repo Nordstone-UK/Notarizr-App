@@ -23,9 +23,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Button} from '@rneui/base';
 
 export default function AgentRONLocationScreen({navigation}) {
-  const [cityArray, setCityArray] = useState(['New York']);
+  const {location} = useSelector(state => state.user.user);
+
+  const [cityArray, setCityArray] = useState([location]);
   const [Location, setLocation] = useState('');
   const agentService = useSelector(state => state.agentService);
+  // console.log(user);
   const {handleRegistration} = useAgentService();
 
   const createService = () => {
@@ -116,7 +119,9 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(5),
     fontFamily: 'Manrope-Regular',
   },
-  buttonToucableOpacity: {padding: heightToDp(1), fontSize: widthToDp(4)},
+  buttonToucableOpacity: {
+    fontSize: widthToDp(4),
+  },
   Heading: {
     color: Colors.TextColor,
     fontSize: widthToDp(6),
@@ -137,13 +142,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignSelf: 'center',
     paddingHorizontal: widthToDp(10),
-    width: widthToDp(40),
-    paddingVertical: heightToDp(1.5),
+    minWidth: widthToDp(40),
+    paddingVertical: heightToDp(2),
   },
   buttonText: {
-    padding: '5%',
     color: '#fff',
-    fontSize: widthToDp(3),
+    fontSize: widthToDp(4),
     textAlign: 'center',
     fontFamily: 'Manrope-Bold',
   },
