@@ -77,9 +77,6 @@ export default function AgentReviewCard(props) {
                 <Text numberOfLines={1} style={styles.nameHeading}>
                   {name}
                 </Text>
-                {/* <Text numberOfLines={1} style={styles.nameHeading}>
-                  {NameSecondPart}
-                </Text> */}
               </View>
               <TouchableOpacity>
                 <Image source={require('../../../assets/option.png')} />
