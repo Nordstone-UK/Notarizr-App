@@ -15,7 +15,7 @@ const GooglePlacesInput = () => {
       getCurrentLocation={true}
       enablePoweredByContainer={false}
       query={{
-        key: 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA',
+        key: '',
         language: 'en',
       }}
       onFail={error => console.error(error)}
