@@ -27,7 +27,10 @@ const useGetService = () => {
         } else if (serviceType === 'ron') {
           navigation.navigate('OnlineNotaryScreen');
         } else {
-          navigation.navigate('LocalNotaryMapScreen');
+          navigation.navigate('LocalNotaryMapScreen', {
+            agents: response?.data?.getServiceByServiceType?.services,
+            documents: documentData,
+          });
         }
       })
       .catch(error => {

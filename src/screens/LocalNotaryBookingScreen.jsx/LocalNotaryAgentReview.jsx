@@ -1,4 +1,11 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
@@ -9,24 +16,24 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
+import useCreateBooking from '../../hooks/useCreateBooking';
 
-export default function LocalNotaryAgentReview({navigation}, props) {
+export default function LocalNotaryAgentReview({route, navigation}, props) {
+  const {consoleData} = useCreateBooking();
+  const {description, documentType} = route.params;
+  const {agent} = description;
+  console.log('agent', description);
+
   useEffect(() => {
-    SplashScreen.hide();
+    // setBookingData({
+    //   ...BookingData,
+    //   serviceType: description.service_type,
+    //   service: description._id,
+    //   agent: description.agent._id,
+    //   documentType: documentType,
+    // });
   }, []);
-  const name = 'Advocate Mary Smith';
-  const [firstWord, secondWord] = separateStringAfterFirstWord(name);
-  function separateStringAfterFirstWord(inputString) {
-    const words = inputString.split(' ');
 
-    if (words.length > 1) {
-      const firstWord = words[0];
-      const restOfTheString = words.slice(1).join(' ');
-      return [firstWord, restOfTheString];
-    } else {
-      return [inputString, ''];
-    }
-  }
   const GradientText = props => {
     return (
       <MaskedView maskElement={<Text {...props} />}>
@@ -42,15 +49,12 @@ export default function LocalNotaryAgentReview({navigation}, props) {
   return (
     <View style={styles.contianer}>
       <NavigationHeader Title="Agent Review" />
-      <ScrollView style={styles.contianer}>
-        <Image
-          source={require('../../../assets/agentReview.png')}
-          style={styles.picture}
-        />
-
+      <ScrollView contentContainerStyle={{flex: 1}}>
+        <Image source={{uri: agent.profile_picture}} style={styles.picture} />
         <View style={styles.nameContainer}>
-          <Text style={styles.name}>{firstWord}</Text>
-          <Text style={styles.name}>{secondWord}</Text>
+          <Text style={styles.name}>
+            {agent.first_name} {agent.last_name}
+          </Text>
           <GradientText style={styles.placestyle}>5.0</GradientText>
           <Image
             source={require('../../../assets/orangeStar.png')}
@@ -60,34 +64,45 @@ export default function LocalNotaryAgentReview({navigation}, props) {
         </View>
         <View style={{marginTop: heightToDp(2)}} />
         <BottomSheetStyle>
-          <View style={styles.sheetContainer}>
-            <Text style={styles.heading}>Description</Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences.
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences.
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences.
-            </Text>
-            <View style={styles.addressView}>
-              <Image
-                source={require('../../../assets/locationIcon.png')}
-                style={styles.locationImage}
-              />
-              <Text style={styles.detail}>
-                Legal building, James street, New York
+          <ScrollView contentContainerStyle={{flex: 1}}>
+            <View style={styles.sheetContainer}>
+              <Text style={styles.heading}>Description</Text>
+              <Text style={styles.preference}>Email : {agent.email}</Text>
+              <Text style={styles.preference}>
+                Availability : {description.availability.startTime} to{' '}
+                {description.availability.endTime}
               </Text>
+              <View>
+                <Text style={styles.preference}>Weekdays : </Text>
+                <FlatList
+                  horizontal
+                  data={description.availability.weekdays}
+                  renderItem={({item}) => (
+                    <Text style={styles.preference}>{item.toUpperCase()}</Text>
+                  )}
+                  keyExtractor={(item, index) => index.toString()}
+                />
+              </View>
+              <View style={styles.addressView}>
+                <Image
+                  source={require('../../../assets/locationIcon.png')}
+                  style={styles.locationImage}
+                />
+                <Text style={styles.detail}>{agent.location}</Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.button}>
-            <GradientButton
-              Title="Select"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => navigation.navigate('LocalNotaryDateScreen')}
-            />
-          </View>
+            <View style={styles.button}>
+              <GradientButton
+                Title="Select"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                onPress={() =>
+                  navigation.navigate('LocalNotaryDateScreen', {
+                    description: description,
+                  })
+                }
+              />
+            </View>
+          </ScrollView>
         </BottomSheetStyle>
       </ScrollView>
     </View>
@@ -100,6 +115,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   picture: {
+    width: widthToDp(40),
+    height: heightToDp(40),
     alignSelf: 'center',
   },
   nameContainer: {
@@ -165,3 +182,5 @@ const styles = StyleSheet.create({
     marginVertical: widthToDp(5),
   },
 });
+
+// onPress={() => navigation.navigate('LocalNotaryDateScreen')}

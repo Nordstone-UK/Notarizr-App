@@ -27,13 +27,13 @@ export default function CategoryDetailScreen({navigation}) {
         <Text style={styles.Heading}>
           Find all the services offered by Notarizr
         </Text>
-        <LabelTextInput
+        {/* <LabelTextInput
           leftImageSoucre={require('../../../assets/Search.png')}
           placeholder={'Search'}
           InputStyles={{
             padding: widthToDp(2),
           }}
-        />
+        /> */}
       </View>
       <BottomSheetStyle>
         <ScrollView

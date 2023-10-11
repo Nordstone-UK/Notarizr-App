@@ -49,7 +49,7 @@ export default function MainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.DarkBlue}}
             Title="Local Notary"
             Image={require('../../../assets/service3Pic.png')}
-            onPress={() => fetchGetServiceAPI('local')}
+            onPress={() => fetchGetServiceAPI('local', documentType)}
           />
         </ScrollView>
       </BottomSheetStyle>

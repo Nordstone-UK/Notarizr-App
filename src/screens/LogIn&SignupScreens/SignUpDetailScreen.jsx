@@ -6,8 +6,8 @@ import {
   Animated,
   View,
   TextInput,
-  ScrollView,
   Alert,
+  ScrollView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -26,9 +26,13 @@ import {Picker} from '@react-native-picker/picker';
 import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 import Toast from 'react-native-toast-message';
 import CustomToast from '../../components/CustomToast/CustomToast';
-import Geolocation from '@react-native-community/geolocation';
+// import Geolocation from '@react-native-community/geolocation';
+import GooglePlacesInput from '../../components/GooglePlacesInput/GooglePlacesInput';
+// import {ScrollView} from 'react-native-virtualized-view';
 
 export default function SignUpDetailScreen({navigation}, props) {
+  navigator.geolocation = require('@react-native-community/geolocation');
+
   const [firstName, setfirstName] = useState('');
   const [lastName, setlastName] = useState('');
   const [phoneNumber, setNumber] = useState('');
@@ -154,6 +158,9 @@ export default function SignUpDetailScreen({navigation}, props) {
               LabelTextInput={'City'}
               onChangeText={text => setlocation(text)}
             />
+            {/* <View>
+              <GooglePlacesInput />
+            </View> */}
             <View style={styles.GenderContainer}>
               <Picker
                 selectedValue={gender}

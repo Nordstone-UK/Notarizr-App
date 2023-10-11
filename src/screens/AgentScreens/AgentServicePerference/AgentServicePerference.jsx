@@ -46,7 +46,7 @@ export default function AgentServicePereference({route, navigation}) {
           contentContainerStyle={styles.contentContainer}>
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>
-              Please select your preferred services
+              Please select your preferred categories
             </Text>
           </View>
           <View style={styles.CategoryPictures}>

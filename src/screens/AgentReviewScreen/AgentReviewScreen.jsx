@@ -23,11 +23,8 @@ export default function AgentReviewScreen({route, navigation}, props) {
     useCreateBooking();
   const {description, documentType} = route.params;
   const {agent} = description;
-  // console.log(route.params.documentType);
-  // console.log('adwad', description);
-  useEffect(() => {
-    // SplashScreen.hide();
 
+  useEffect(() => {
     setBookingData({
       ...BookingData,
       serviceType: description.service_type,
@@ -97,10 +94,7 @@ export default function AgentReviewScreen({route, navigation}, props) {
               <GradientButton
                 Title="Book Now"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={
-                  // () => consoleData()
-                  () => handleBookingCreation()
-                }
+                onPress={() => handleBookingCreation()}
               />
             </View>
           </ScrollView>
