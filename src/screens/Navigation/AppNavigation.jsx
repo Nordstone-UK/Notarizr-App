@@ -1,4 +1,4 @@
-import {View, Text} from 'react-native';
+import {View, Text, Platform} from 'react-native';
 import React from 'react';
 import OnboardingScreen2 from '../OnboardingScreens/OnboardingScreen2';
 import OnboardingScreen3 from '../OnboardingScreens/OnboardingScreen3';
@@ -100,7 +100,7 @@ function TabNavigation() {
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {height: heightToDp(22)},
+        tabBarStyle: {height: Platform.OS === 'android' ? heightToDp(17) : 22},
 
         tabBarIcon: ({focused}) => {
           return <Ionicons focused={focused} name={route.name} />;
