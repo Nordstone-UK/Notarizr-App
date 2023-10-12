@@ -13,7 +13,7 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
-import {Linking} from 'react-native';
+import {Linking, SafeAreaView} from 'react-native';
 
 export default function HomeScreen({navigation}) {
   const openLinkInBrowser = () => {
@@ -24,7 +24,7 @@ export default function HomeScreen({navigation}) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="One Click and Select our services." />
       <BottomSheetStyle>
         <ScrollView
@@ -136,7 +136,7 @@ export default function HomeScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 
