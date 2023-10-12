@@ -15,6 +15,7 @@ import {polyfill as polyfillEncoding} from 'react-native-polyfill-globals/src/en
 import {polyfill as polyfillReadableStream} from 'react-native-polyfill-globals/src/readable-stream';
 import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch';
 import Geolocation from '@react-native-community/geolocation';
+import {SafeAreaView} from 'react-native';
 
 polyfillReadableStream();
 polyfillEncoding();
