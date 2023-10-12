@@ -100,7 +100,8 @@ function TabNavigation() {
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {height: heightToDp(17)},
+        tabBarStyle: {height: heightToDp(22)},
+
         tabBarIcon: ({focused}) => {
           return <Ionicons focused={focused} name={route.name} />;
         },
@@ -121,7 +122,7 @@ function TabNavigation() {
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {height: heightToDp(17)},
+        tabBarStyle: {height: heightToDp(22)},
         tabBarIcon: ({focused}) => {
           return <Ionicons focused={focused} name={route.name} />;
         },
