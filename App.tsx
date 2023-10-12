@@ -20,7 +20,7 @@ polyfillReadableStream();
 polyfillEncoding();
 polyfillFetch();
 const client = init();
-Geolocation.getCurrentPosition(info => console.log(info));
+// Geolocation.getCurrentPosition(info => console.log(info));
 
 function App(): JSX.Element {
   return (

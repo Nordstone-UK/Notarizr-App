@@ -24,15 +24,7 @@ export default function LocalNotaryAgentReview({route, navigation}, props) {
   const {agent} = description;
   console.log('agent', description);
 
-  useEffect(() => {
-    // setBookingData({
-    //   ...BookingData,
-    //   serviceType: description.service_type,
-    //   service: description._id,
-    //   agent: description.agent._id,
-    //   documentType: documentType,
-    // });
-  }, []);
+  useEffect(() => {}, []);
 
   const GradientText = props => {
     return (
@@ -98,6 +90,7 @@ export default function LocalNotaryAgentReview({route, navigation}, props) {
                 onPress={() =>
                   navigation.navigate('LocalNotaryDateScreen', {
                     description: description,
+                    documentType: documentType,
                   })
                 }
               />

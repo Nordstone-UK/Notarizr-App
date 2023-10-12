@@ -7,7 +7,7 @@ import {
   useColorScheme,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -20,11 +20,19 @@ import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader
 import LinearGradient from 'react-native-linear-gradient';
 import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
 import moment from 'moment';
+import useCreateBooking from '../../hooks/useCreateBooking';
 
 export default function LocalNotaryDateScreen({route, navigation}) {
-  const {description} = route.params;
+  const {description, documentType} = route.params;
   const {agent} = description;
+  const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const {
+    setLocalBookingData,
+    handleLocalNotaryBookingCreation,
+    LocalBookingData,
+  } = useCreateBooking();
+  console.log(documentType);
   function generateTimeSlots(openTime, closeTime) {
     let startTime = moment(openTime, 'hh:mm A');
     let endTime = moment(closeTime, 'hh:mm A');
@@ -42,7 +50,21 @@ export default function LocalNotaryDateScreen({route, navigation}) {
 
     return timeSlots;
   }
-
+  useEffect(() => {
+    setLocalBookingData({
+      ...LocalBookingData,
+      serviceType: description.service_type,
+      service: description._id,
+      agent: description.agent._id,
+      documentType: documentType,
+    });
+  }, []);
+  const handleLocalBooking = async () => {
+    const data = await handleLocalNotaryBookingCreation(
+      selectedDate,
+      selectedTime,
+    );
+  };
   const TimeAvailable = generateTimeSlots(
     description.availability.startTime,
     description.availability.endTime,
@@ -80,19 +102,21 @@ export default function LocalNotaryDateScreen({route, navigation}) {
               Please provide us with your availability
             </Text>
           </View>
-          <CustomCalendar />
+          <CustomCalendar
+            selected={selectedDate}
+            onDayPress={day => setSelectedDate(day)}
+          />
           <Text style={styles.headingContainer}>Availability</Text>
-          {/* <Text style={styles.insideText}>Morning</Text> */}
           <View style={styles.dateContainer}>
             {TimeAvailable.map((slot, index) => (
               <TouchableOpacity
                 key={index}
                 // style={styles.slot}
-                onPress={() => setSelectedTime(slot.start)}>
+                onPress={() => setSelectedTime(slot.start + ' - ' + slot.end)}>
                 <LinearGradient
                   style={styles.slot}
                   colors={
-                    selectedTime === slot.start
+                    selectedTime === slot.start + ' - ' + slot.end
                       ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                       : [Colors.white, Colors.white]
                   }
@@ -101,7 +125,9 @@ export default function LocalNotaryDateScreen({route, navigation}) {
                   <Text
                     style={[
                       styles.timeText,
-                      selectedTime === slot.start && {color: Colors.white},
+                      selectedTime === slot.start + ' - ' + slot.end && {
+                        color: Colors.white,
+                      },
                     ]}>
                     {slot.start} - {slot.end}
                   </Text>
@@ -109,14 +135,6 @@ export default function LocalNotaryDateScreen({route, navigation}) {
               </TouchableOpacity>
             ))}
           </View>
-          {/* <Text style={styles.insideText}>Afternoon</Text>
-          <View style={styles.dateContainer}>
-            {Object.entries(timeSlots2).map(([slotName, slotTime]) => (
-              <TouchableOpacity key={slotName} style={styles.slot}>
-                <Text style={styles.timeText}>{slotTime}</Text>
-              </TouchableOpacity>
-            ))}
-          </View> */}
           <View style={styles.buttonFlex}>
             <MainButton
               Title="Back"
@@ -142,7 +160,10 @@ export default function LocalNotaryDateScreen({route, navigation}) {
                 paddingVertical: widthToDp(3),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => navigation.navigate('AgentBookCompletion')}
+              onPress={
+                () => handleLocalBooking()
+                // () => navigation.navigate('AgentBookCompletion')
+              }
             />
           </View>
         </ScrollView>
@@ -160,7 +181,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: widthToDp(5),
-    marginVertical: widthToDp(5),
   },
   timeText: {
     color: Colors.TextColor,

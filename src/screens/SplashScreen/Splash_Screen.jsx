@@ -63,8 +63,9 @@ export default function Splash_Screen({navigation}) {
     }
   };
   useEffect(() => {
-    checkAuthentication();
-    SplashScreen.hide();
+    checkAuthentication().then(() => {
+      SplashScreen.hide();
+    });
   }, []);
   return (
     <View style={styles.container}>

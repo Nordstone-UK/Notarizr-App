@@ -20,7 +20,8 @@ export default function ProfileInfoScreen({navigation}) {
   const clearTokenFromStorage = async () => {
     try {
       await AsyncStorage.removeItem('token');
-      console.log('Token cleared from AsyncStorage');
+      const token = await AsyncStorage.getItem('token');
+      console.log('Token cleared from AsyncStorage', token);
     } catch (error) {
       console.error('Error clearing token from AsyncStorage:', error);
     }

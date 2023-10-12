@@ -109,7 +109,6 @@ function TabNavigation() {
         name="Home"
         component={HomeScreen}
         options={{
-          // Handle the reset action for HomeScreen
           key: 'HomeScreen',
         }}
       />
@@ -152,7 +151,7 @@ export default function AppNavigation() {
             headerShown: false,
           }}>
           <Stack.Screen name="HomeScreen" component={TabNavigation} />
-          <Stack.Screen name="SplashScreen" component={Splash_Screen} />
+          <Stack.Screen name="Splash_Screen" component={Splash_Screen} />
           <Stack.Screen
             name="OnboardingScreen1"
             component={OnboardingScreen1}

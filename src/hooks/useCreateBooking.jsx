@@ -49,14 +49,17 @@ const useCreateBooking = () => {
       });
   };
 
-  const handleLocalNotaryBookingCreation = async () => {
+  const handleLocalNotaryBookingCreation = async (data, time) => {
     console.log(LocalBookingData);
     const request = {
       variables: {
         ...LocalBookingData,
+        dateOfBooking: data,
+        timeOfBooking: time,
       },
     };
     console.log('prev', request);
+
     await createLocalBooking(request)
       .then(response => {
         console.log('Booking', response.data.createBookingR.status);
@@ -69,8 +72,8 @@ const useCreateBooking = () => {
       });
   };
 
-  const consoleData = () => {
-    console.log(BookingData);
+  const consoleData = async data => {
+    console.log(data);
   };
   return {
     handleBookingCreation,

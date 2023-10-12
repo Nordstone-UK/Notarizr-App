@@ -4,14 +4,11 @@ import {Calendar} from 'react-native-calendars';
 import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
-export default function CustomCalendar() {
-  const [selected, setSelected] = useState('');
-
+export default function CustomCalendar({selected, onDayPress}) {
   return (
     <Calendar
       onDayPress={day => {
-        console.log(day.dateString);
-        setSelected(day.dateString);
+        onDayPress(day.dateString);
       }}
       style={{
         color: Colors.Orange,
