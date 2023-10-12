@@ -14,7 +14,7 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
-import {Linking, SafeAreaView} from 'react-native';
+import {Linking} from 'react-native';
 
 export default function HomeScreen({navigation}) {
   const openLinkInBrowser = () => {
