@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -21,7 +22,7 @@ import SettingOptions from '../../components/SettingOptions/SettingOptions';
 
 export default function SettingScreen({navigation}, props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Setting" />
       <BottomSheetStyle>
         <ScrollView style={{marginTop: heightToDp(5)}}>
@@ -47,7 +48,7 @@ export default function SettingScreen({navigation}, props) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

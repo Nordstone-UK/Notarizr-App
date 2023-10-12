@@ -1,4 +1,11 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  ScrollView,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -31,7 +38,7 @@ export default function SignupAsScreen({navigation}) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <CompanyHeader
         Header={`Join Notarizr 😎 ${'\n'}and enjoy our services`}
         HeaderStyle={{marginHorizontal: widthToDp(5)}}
@@ -70,7 +77,7 @@ export default function SignupAsScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

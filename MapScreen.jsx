@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
   Image,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect} from 'react';
 import AgentCard from './src/components/AgentCard/AgentCard';
@@ -69,7 +70,7 @@ export default function MapScreen({route, navigation}) {
     );
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ImageBackground
         source={require('./assets/map.png')}
         style={styles.container}>
@@ -89,7 +90,7 @@ export default function MapScreen({route, navigation}) {
           </View>
         </View>
       </ImageBackground>
-    </View>
+    </SafeAreaView>
   );
 }
 

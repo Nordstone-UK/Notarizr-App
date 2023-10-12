@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  SafeAreaView,
 } from 'react-native';
 import React from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
@@ -13,7 +14,7 @@ import Colors from '../../themes/Colors';
 
 export default function ChatScreen(props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Brandon Roger"
         ProfilePic={require('../../../assets/profileIcon.png')}
@@ -31,7 +32,7 @@ export default function ChatScreen(props) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

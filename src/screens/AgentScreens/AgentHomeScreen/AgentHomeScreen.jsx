@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
@@ -24,7 +25,7 @@ export default function AgentHomeScreen({navigation}) {
     );
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Title="Explore your opportunities here." Switch={true} />
       <BottomSheetStyle>
         <ScrollView
@@ -70,7 +71,7 @@ export default function AgentHomeScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

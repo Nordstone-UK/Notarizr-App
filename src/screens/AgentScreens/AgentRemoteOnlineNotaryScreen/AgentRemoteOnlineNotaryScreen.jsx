@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {SafeAreaView, StyleSheet, Text, ScrollView, View} from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import TypesofServiceButton from '../../../components/TypesofServiceButton/TypesofServiceButton';
@@ -8,7 +8,7 @@ import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader
 
 export default function AgentRemoteOnlineNotaryScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Switch={true} />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -35,7 +35,7 @@ export default function AgentRemoteOnlineNotaryScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

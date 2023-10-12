@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  SafeAreaView,
   View,
 } from 'react-native';
 import React from 'react';
@@ -15,7 +16,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 
 export default function MapArrivalScreen({navigation}, props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Brandon Roger"
         ProfilePic={require('../../../assets/profileIcon.png')}
@@ -34,7 +35,7 @@ export default function MapArrivalScreen({navigation}, props) {
           onPress={() => navigation.navigate('FinalBookingScreen')}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

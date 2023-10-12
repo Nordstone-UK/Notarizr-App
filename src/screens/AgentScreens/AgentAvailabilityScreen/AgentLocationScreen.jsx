@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {SafeAreaView, StyleSheet, Text, ScrollView, View} from 'react-native';
 import React, {useState} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
@@ -13,7 +13,7 @@ import GradientButton from '../../../components/MainGradientButton/GradientButto
 export default function AgentLocationScreen({navigation}) {
   const [Location, setLocation] = useState('Florida');
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader />
       <View style={styles.headingContainer}>
         <Text style={styles.Heading}>Profile Setup</Text>
@@ -112,7 +112,7 @@ export default function AgentLocationScreen({navigation}) {
           />
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

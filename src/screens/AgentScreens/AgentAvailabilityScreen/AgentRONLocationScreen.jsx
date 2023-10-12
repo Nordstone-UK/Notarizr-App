@@ -1,5 +1,5 @@
 import {
-  Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   ScrollView,
@@ -55,7 +55,7 @@ export default function AgentRONLocationScreen({navigation}) {
     setCityArray(prevArray => prevArray.filter(item => item !== city));
   }
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader />
       <View style={styles.headingContainer}>
         <Text style={styles.Heading}>Profile Setup</Text>
@@ -105,7 +105,7 @@ export default function AgentRONLocationScreen({navigation}) {
           />
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

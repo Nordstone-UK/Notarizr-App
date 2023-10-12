@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -18,7 +19,7 @@ export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('Active');
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader
         Title="One Click and Select our services."
         SearchEnabled={true}
@@ -187,7 +188,7 @@ export default function AgentAllBookingScreen({navigation}) {
           )}
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

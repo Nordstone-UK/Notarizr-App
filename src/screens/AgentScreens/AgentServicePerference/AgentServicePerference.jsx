@@ -3,6 +3,7 @@ import {
   StyleSheet,
   Text,
   ScrollView,
+  SafeAreaView,
   View,
   TouchableOpacity,
 } from 'react-native';
@@ -38,7 +39,7 @@ export default function AgentServicePereference({route, navigation}) {
     }
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Switch={true} Title="Profile Setup" />
       <BottomSheetStyle>
         <ScrollView
@@ -143,7 +144,7 @@ export default function AgentServicePereference({route, navigation}) {
           </View>
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

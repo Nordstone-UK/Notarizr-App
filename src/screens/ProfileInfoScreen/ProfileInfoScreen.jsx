@@ -5,6 +5,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
@@ -35,7 +36,7 @@ export default function ProfileInfoScreen({navigation}) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image source={{uri: profile_picture}} style={styles.picture} />
       <Text style={styles.textheading}>{first_name}</Text>
       <BottomSheetStyle>
@@ -90,7 +91,7 @@ export default function ProfileInfoScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

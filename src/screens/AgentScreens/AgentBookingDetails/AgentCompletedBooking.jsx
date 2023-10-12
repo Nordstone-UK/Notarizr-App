@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -15,7 +16,7 @@ import ClientServiceCard from '../../../components/ClientServiceCard/ClientServi
 
 export default function AgentCompletedBooking({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader
         Title="Booking Details"
         SearchEnabled={true}
@@ -65,7 +66,7 @@ export default function AgentCompletedBooking({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

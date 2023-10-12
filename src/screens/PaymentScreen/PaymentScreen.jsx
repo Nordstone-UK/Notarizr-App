@@ -6,6 +6,7 @@ import {
   View,
   useColorScheme,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -16,7 +17,7 @@ import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 export default function PaymentScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Payment Method" />
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
@@ -105,7 +106,7 @@ export default function PaymentScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

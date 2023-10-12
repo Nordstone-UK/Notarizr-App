@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -37,7 +38,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     SplashScreen.hide();
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Profile Details" />
       <ScrollView
         // contentContainerStyle={{paddingBottom: heightToDp(10)}}
@@ -109,7 +110,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
           </View>
         </BottomSheetStyle>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

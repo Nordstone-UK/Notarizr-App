@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  SafeAreaView,
+  Text,
+  ScrollView,
+  View,
+} from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
@@ -9,7 +16,7 @@ import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofS
 
 export default function OnlineNotaryScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -36,7 +43,7 @@ export default function OnlineNotaryScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

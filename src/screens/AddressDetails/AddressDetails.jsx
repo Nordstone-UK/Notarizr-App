@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, ScrollView} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
 import React from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -10,7 +17,7 @@ import AddressCard from '../../components/AddressCard/AddressCard';
 
 export default function AddressDetails({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Address" />
       <Text style={styles.textheading}>Please find all your addresses</Text>
       <BottomSheetStyle>
@@ -28,7 +35,7 @@ export default function AddressDetails({navigation}) {
           />
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

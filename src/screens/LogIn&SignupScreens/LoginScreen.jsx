@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -70,7 +71,7 @@ export default function LoginScreen({navigation}, props) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{backgroundColor: Colors.PinkBackground}}>
@@ -129,7 +130,7 @@ export default function LoginScreen({navigation}, props) {
           </View>
         </BottomSheetStyle>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

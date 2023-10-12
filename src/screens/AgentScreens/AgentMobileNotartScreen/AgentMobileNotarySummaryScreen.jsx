@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,7 +19,7 @@ import NavigationPaymentHeader from '../../../components/NavigationPaymentHeader
 export default function AgentMobileNotarySummaryScreen() {
   const [notes, setNotes] = useState(false);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationPaymentHeader
         Title="Booking"
         midImg={require('../../../../assets/greenIcon.png')}
@@ -107,7 +107,7 @@ export default function AgentMobileNotarySummaryScreen() {
           <DocumentComponent image={require('../../../../assets/doc.png')} />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

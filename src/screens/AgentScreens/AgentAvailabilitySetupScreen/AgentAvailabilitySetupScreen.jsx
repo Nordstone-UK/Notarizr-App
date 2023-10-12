@@ -6,7 +6,7 @@ import {
   View,
   TouchableOpacity,
   TextInput,
-  Button,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -56,7 +56,7 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Switch={true} />
       <View style={styles.headingContainer}>
         <Text style={styles.Heading}>Profile Setup</Text>
@@ -178,7 +178,7 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({

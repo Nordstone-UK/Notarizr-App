@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -18,7 +18,7 @@ import GradientButton from '../../../components/MainGradientButton/GradientButto
 export default function AgentMobileNotaryStartScreen() {
   const [notary, setNotary] = useState(true);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Booking"
         midImg={require('../../../../assets/chatNavIcon.png')}
@@ -110,7 +110,7 @@ export default function AgentMobileNotaryStartScreen() {
           )}
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

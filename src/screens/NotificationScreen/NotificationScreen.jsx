@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   ImageBackground,
+  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
 import React, {useState} from 'react';
@@ -17,7 +18,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 export default function NotificationScreen({navigation}) {
   const [notification, setNotification] = useState(false);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Notfications" />
       <BottomSheetStyle>
         {notification ? (
@@ -36,7 +37,7 @@ export default function NotificationScreen({navigation}) {
           </ImageBackground>
         )}
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

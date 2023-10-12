@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {ScrollView, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
@@ -8,7 +8,7 @@ import TypesofServiceButton from '../../../components/TypesofServiceButton/Types
 
 export default function AgentProfileEditScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Title="Profile Setup" Switch={true} />
       <BottomSheetStyle>
         <ScrollView>
@@ -36,7 +36,7 @@ export default function AgentProfileEditScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -20,7 +21,7 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 export default function ActiveServicesScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Categories" />
       <View style={{marginHorizontal: widthToDp(3)}}>
         <Text style={styles.Heading}>
@@ -100,7 +101,7 @@ export default function ActiveServicesScreen() {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

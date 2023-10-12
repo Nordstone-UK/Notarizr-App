@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, Image} from 'react-native';
+import {StyleSheet, Text, View, Image, SafeAreaView} from 'react-native';
 import React from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -10,7 +10,7 @@ import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
 export default function PasswordEditScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Change Password" />
       <Text style={styles.textheading}>Please update your Password</Text>
       <BottomSheetStyle>
@@ -39,7 +39,7 @@ export default function PasswordEditScreen({navigation}) {
           </View>
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

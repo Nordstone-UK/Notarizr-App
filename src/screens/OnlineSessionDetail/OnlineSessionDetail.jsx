@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -20,7 +21,7 @@ import DocumentComponent from '../../components/DocumentComponent/DocumentCompon
 
 export default function OnlineSessionDetail({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Booking"
         midImg={require('../../../assets/chatNavIcon.png')}
@@ -92,7 +93,7 @@ export default function OnlineSessionDetail({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

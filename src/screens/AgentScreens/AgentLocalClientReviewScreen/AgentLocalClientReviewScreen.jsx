@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -29,7 +29,7 @@ export default function AgentLocalClientReviewScreen({navigation}) {
 
   const [notary, setNotary] = useState(true);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Booking"
         midImg={require('../../../../assets/chatNavIcon.png')}
@@ -141,7 +141,7 @@ export default function AgentLocalClientReviewScreen({navigation}) {
           <ModalCheck modalVisible={isVisible} />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

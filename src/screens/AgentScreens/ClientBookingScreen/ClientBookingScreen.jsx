@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 
@@ -18,7 +18,7 @@ import DocumentComponent from '../../../components/DocumentComponent/DocumentCom
 
 export default function ClientBookingScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Switch={true} />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -106,7 +106,7 @@ export default function ClientBookingScreen() {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  View,
+} from 'react-native';
 import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -58,7 +65,7 @@ export default function LegalDocScreen({route, navigation}) {
     }
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Legal Document"
         lastImg={require('../../../assets/bellIcon.png')}
@@ -106,7 +113,7 @@ export default function LegalDocScreen({route, navigation}) {
               ))}
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

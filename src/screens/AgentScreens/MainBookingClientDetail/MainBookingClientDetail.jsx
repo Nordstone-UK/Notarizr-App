@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,7 +19,7 @@ import ClientServiceCard from '../../../components/ClientServiceCard/ClientServi
 export default function AgentBookingClientDetail({navigation}) {
   const [notary, setNotary] = useState(true);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -94,7 +94,7 @@ export default function AgentBookingClientDetail({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

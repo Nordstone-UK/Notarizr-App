@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  ScrollView,
+  View,
+  SafeAreaView,
+} from 'react-native';
 import React, {useState} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
@@ -12,7 +19,7 @@ export default function AgentMainBookingScreen({route, navigation}) {
   const {account_type} = useSelector(state => state.user.user);
   const {dispatchMobile, dispatchLocal, dispatchRON} = useAgentService();
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader />
       <View style={styles.headingContainer}>
         {/* <Text style={styles.lightHeading}>Selected Service</Text> */}
@@ -53,7 +60,7 @@ export default function AgentMainBookingScreen({route, navigation}) {
           )}
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

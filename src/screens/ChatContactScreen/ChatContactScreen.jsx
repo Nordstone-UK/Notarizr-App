@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, SafeAreaView, View} from 'react-native';
 import React from 'react';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -7,7 +7,7 @@ import ChatContacts from '../../components/ChatContacts/ChatContacts';
 
 export default function ChatContactScreen({navigation}) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="Find all your messages with our agents here" />
       <BottomSheetStyle>
         <ScrollView>
@@ -28,7 +28,7 @@ export default function ChatContactScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

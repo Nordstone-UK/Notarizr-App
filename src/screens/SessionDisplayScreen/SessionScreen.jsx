@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -21,7 +21,7 @@ export default function SessionScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('All');
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="Find all your bookings with our agents here" />
       <BottomSheetStyle>
         <ScrollView
@@ -163,7 +163,7 @@ export default function SessionScreen({navigation}) {
           )}
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

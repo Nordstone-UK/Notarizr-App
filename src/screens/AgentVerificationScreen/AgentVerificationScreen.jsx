@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Animated,
   View,
-  TextInput,
+  SafeAreaView,
   ScrollView,
   Alert,
 } from 'react-native';
@@ -26,13 +26,6 @@ import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
 
 export default function AgentVerificationScreen({navigation}, props) {
-  // useEffect(() => {
-  //   const unsubscribe = NetInfo.addEventListener(handleConnectivityChange);
-
-  //   return () => {
-  //     unsubscribe();
-  //   };
-  // }, []);
   const variables = useSelector(state => state.register);
   const [photoID, setphotoID] = useState(null);
   const [Certificate, setCertificate] = useState(null);
@@ -104,7 +97,7 @@ export default function AgentVerificationScreen({navigation}, props) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <CompanyHeader
         Header="Verification"
         subHeading="Please verify your identity"
@@ -194,7 +187,7 @@ export default function AgentVerificationScreen({navigation}, props) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -5,6 +5,7 @@ import {
   Text,
   View,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
@@ -30,7 +31,7 @@ export default function NotaryCallScreen({navigation}) {
     );
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.NavbarContainer}>
         <View style={styles.NavContainer}>
           <Image
@@ -179,7 +180,7 @@ export default function NotaryCallScreen({navigation}) {
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

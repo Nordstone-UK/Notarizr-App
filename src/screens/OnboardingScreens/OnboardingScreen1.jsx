@@ -1,4 +1,11 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  ScrollView,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 
 import React, {useEffect} from 'react';
@@ -14,7 +21,7 @@ export default function OnboardingScreen1({navigation}, props) {
     SplashScreen.hide();
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image
         source={require('../../../assets/screen1.png')}
         style={styles.imagestyle}
@@ -34,7 +41,7 @@ export default function OnboardingScreen1({navigation}, props) {
         Title="Skip"
         onPress={() => navigation.navigate('OnboardingScreen3')}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

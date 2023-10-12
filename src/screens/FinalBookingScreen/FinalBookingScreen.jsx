@@ -1,4 +1,11 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import Colors from '../../themes/Colors';
@@ -10,70 +17,72 @@ import DocumentComponent from '../../components/DocumentComponent/DocumentCompon
 
 export default function FinalBookingScreen({navigation}) {
   return (
-    <ScrollView style={styles.container}>
-      <NavigationHeader Title="Booking" />
-      <View style={styles.headingContainer}>
-        <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>Medical documents</Text>
-      </View>
-      <BottomSheetStyle>
-        <View style={styles.topFlexContainer}>
-          <Text style={styles.agent}>Selected Agent</Text>
-          <View style={styles.iconFlex}>
-            <Image
-              source={require('../../../assets/greenIcon.png')}
-              style={styles.icon}
-            />
-            <Text style={styles.icontext}>Processed</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <NavigationHeader Title="Booking" />
+        <View style={styles.headingContainer}>
+          <Text style={styles.lightHeading}>Selected Service</Text>
+          <Text style={styles.Heading}>Medical documents</Text>
+        </View>
+        <BottomSheetStyle>
+          <View style={styles.topFlexContainer}>
+            <Text style={styles.agent}>Selected Agent</Text>
+            <View style={styles.iconFlex}>
+              <Image
+                source={require('../../../assets/greenIcon.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.icontext}>Processed</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.nameContainer}>
-          <Image
-            source={require('../../../assets/agentReview.png')}
-            style={styles.iconProfile}
-          />
-          <Text style={styles.agentName}>Advocate Mary Smith</Text>
-        </View>
-        <View style={styles.sheetContainer}>
-          <Text style={styles.insideHeading}>Booking Preferences</Text>
-          <View style={styles.addressView}>
+          <View style={styles.nameContainer}>
             <Image
-              source={require('../../../assets/locationIcon.png')}
-              style={styles.locationImage}
+              source={require('../../../assets/agentReview.png')}
+              style={styles.iconProfile}
             />
-            <Text style={styles.detail}>
-              Legal building, James street, New York
+            <Text style={styles.agentName}>Advocate Mary Smith</Text>
+          </View>
+          <View style={styles.sheetContainer}>
+            <Text style={styles.insideHeading}>Booking Preferences</Text>
+            <View style={styles.addressView}>
+              <Image
+                source={require('../../../assets/locationIcon.png')}
+                style={styles.locationImage}
+              />
+              <Text style={styles.detail}>
+                Legal building, James street, New York
+              </Text>
+            </View>
+            <View style={styles.addressView}>
+              <Image
+                source={require('../../../assets/calenderIcon.png')}
+                style={styles.locationImage}
+              />
+              <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
+            </View>
+            <Text style={styles.preference}>Notes:</Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences.
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences.
+            </Text>
+            <Text style={styles.preference}>
+              Please provide us with your booking preferences.
             </Text>
           </View>
-          <View style={styles.addressView}>
-            <Image
-              source={require('../../../assets/calenderIcon.png')}
-              style={styles.locationImage}
+          <DocumentComponent image={require('../../../assets/Pdf.png')} />
+          <DocumentComponent image={require('../../../assets/doc.png')} />
+          <View style={styles.btnView}>
+            <GradientButton
+              Title="Make Payment"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              onPress={() => navigation.navigate('PaymentScreen')}
             />
-            <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
           </View>
-          <Text style={styles.preference}>Notes:</Text>
-          <Text style={styles.preference}>
-            Please provide us with your booking preferences.
-          </Text>
-          <Text style={styles.preference}>
-            Please provide us with your booking preferences.
-          </Text>
-          <Text style={styles.preference}>
-            Please provide us with your booking preferences.
-          </Text>
-        </View>
-        <DocumentComponent image={require('../../../assets/Pdf.png')} />
-        <DocumentComponent image={require('../../../assets/doc.png')} />
-        <View style={styles.btnView}>
-          <GradientButton
-            Title="Make Payment"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() => navigation.navigate('PaymentScreen')}
-          />
-        </View>
-      </BottomSheetStyle>
-    </ScrollView>
+        </BottomSheetStyle>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

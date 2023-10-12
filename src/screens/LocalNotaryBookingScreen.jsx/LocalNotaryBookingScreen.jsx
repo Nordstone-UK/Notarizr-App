@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -18,7 +18,7 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 
 export default function LocalNotaryBookingScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -101,7 +101,7 @@ export default function LocalNotaryBookingScreen() {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

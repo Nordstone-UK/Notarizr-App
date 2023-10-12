@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -21,7 +28,7 @@ export default function AgentVerfiedScreen({navigation}) {
     });
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.completeIcon}>
         <Image
           source={require('../../../assets/question.png')}
@@ -37,7 +44,7 @@ export default function AgentVerfiedScreen({navigation}) {
           />
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

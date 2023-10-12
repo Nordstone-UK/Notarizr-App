@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -31,7 +32,7 @@ export default function AddCardScreen({navigation}, props) {
   _onFocus = field => console.log('focusing', field);
   _onChange = form => console.log(JSON.stringify(form, null, ' '));
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Add Card" />
 
       <BottomSheetStyle>
@@ -59,7 +60,7 @@ export default function AddCardScreen({navigation}, props) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

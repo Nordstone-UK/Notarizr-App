@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -68,12 +75,12 @@ export default function Splash_Screen({navigation}) {
     });
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image
         source={require('../../../assets/launch_screen.png')}
         style={styles.complete}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

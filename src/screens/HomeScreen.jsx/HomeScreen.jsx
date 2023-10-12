@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -24,7 +25,7 @@ export default function HomeScreen({navigation}) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="One Click and Select our services." />
       <BottomSheetStyle>
         <ScrollView
@@ -136,7 +137,7 @@ export default function HomeScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

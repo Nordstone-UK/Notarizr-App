@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, Image, Alert} from 'react-native';
+import {StyleSheet, Text, View, Image, SafeAreaView} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -45,58 +45,60 @@ export default function PhoneVerification({route, navigation}) {
     SplashScreen.hide();
   }, []);
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.subContainer}>
-        <Text style={styles.heading}>Enter OTP to Verify</Text>
-        <Image source={require('../../../assets/otp.png')} />
-        <OTPInputView
-          style={{
-            width: widthToDp(80),
-            height: heightToDp(50),
-            color: Colors.TextColor,
-          }}
-          code={otp}
-          autoFocusOnLoad={false}
-          editable={true}
-          pinCount={4}
-          onCodeChanged={code => {
-            setOTPcode(code);
-          }}
-          codeInputFieldStyle={styles.underlineStyleBase}
-          codeInputHighlightStyle={styles.underlineStyleHighLighted}
-        />
-        <Text style={styles.subheading}>
-          We have sent an OTP on this number:
-        </Text>
-        <Text style={styles.subheading}>{message}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.subContainer}>
+          <Text style={styles.heading}>Enter OTP to Verify</Text>
+          <Image source={require('../../../assets/otp.png')} />
+          <OTPInputView
+            style={{
+              width: widthToDp(80),
+              height: heightToDp(50),
+              color: Colors.TextColor,
+            }}
+            code={otp}
+            autoFocusOnLoad={false}
+            editable={true}
+            pinCount={4}
+            onCodeChanged={code => {
+              setOTPcode(code);
+            }}
+            codeInputFieldStyle={styles.underlineStyleBase}
+            codeInputHighlightStyle={styles.underlineStyleHighLighted}
+          />
+          <Text style={styles.subheading}>
+            We have sent an OTP on this number:
+          </Text>
+          <Text style={styles.subheading}>{message}</Text>
 
+          <View style={{marginVertical: heightToDp(5)}}>
+            <MainButton
+              Title="Resend OTP"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                width: widthToDp(40),
+                marginTop: heightToDp(2),
+                paddingVertical: heightToDp(2),
+              }}
+              loading={resendloading}
+              styles={{
+                padding: 0,
+                fontSize: widthToDp(4),
+              }}
+              onPress={() => handleResend()}
+            />
+          </View>
+        </View>
         <View style={{marginVertical: heightToDp(5)}}>
-          <MainButton
-            Title="Resend OTP"
+          <GradientButton
+            Title="Verify OTP"
+            loading={loading}
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              width: widthToDp(40),
-              marginTop: heightToDp(2),
-              paddingVertical: heightToDp(2),
-            }}
-            loading={resendloading}
-            styles={{
-              padding: 0,
-              fontSize: widthToDp(4),
-            }}
-            onPress={() => handleResend()}
+            onPress={() => verifyOTP()}
           />
         </View>
-      </View>
-      <View style={{marginVertical: heightToDp(5)}}>
-        <GradientButton
-          Title="Verify OTP"
-          loading={loading}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={() => verifyOTP()}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

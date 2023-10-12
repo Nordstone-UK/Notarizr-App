@@ -4,7 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  SafeAreaView,
   View,
 } from 'react-native';
 import React from 'react';
@@ -37,7 +37,7 @@ export default function LocalNotaryMapScreen({route, navigation}) {
     );
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ImageBackground
         source={require('../../../assets/map.png')}
         style={styles.container}>
@@ -57,7 +57,7 @@ export default function LocalNotaryMapScreen({route, navigation}) {
           </View>
         </View>
       </ImageBackground>
-    </View>
+    </SafeAreaView>
   );
 }
 

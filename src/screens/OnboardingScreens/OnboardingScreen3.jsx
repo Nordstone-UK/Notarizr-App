@@ -1,4 +1,11 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  ScrollView,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React from 'react';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
@@ -8,7 +15,7 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function OnboardingScreen3({navigation}, props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image
         source={require('../../../assets/screen3.png')}
         style={styles.imagestyle}
@@ -23,7 +30,7 @@ export default function OnboardingScreen3({navigation}, props) {
         viewStyle={props.viewStyle}
         onPress={() => navigation.navigate('LoginScreen')}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

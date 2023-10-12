@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -43,7 +44,7 @@ export default function AgentSessionInviteScreen({navigation}) {
     }
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader Switch={true} />
       <View style={styles.headingContainer}>
         <Text style={styles.Heading}>Invite Signer</Text>
@@ -251,7 +252,7 @@ export default function AgentSessionInviteScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

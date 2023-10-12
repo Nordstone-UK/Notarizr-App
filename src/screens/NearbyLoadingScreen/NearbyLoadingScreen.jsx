@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, SafeAreaView} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
@@ -18,7 +18,7 @@ export default function NearbyLoadingScreen({navigation}) {
     return () => clearTimeout(timer);
   }, [navigation]);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Loading" />
       <Image
         source={require('../../../assets/Loading.png')}
@@ -26,7 +26,7 @@ export default function NearbyLoadingScreen({navigation}) {
       />
       <Text style={styles.heading}>Wait for the available agents</Text>
       <Text style={styles.subhheading}>We will automatically match agents</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 

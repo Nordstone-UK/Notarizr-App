@@ -1,4 +1,11 @@
-import {Button, Image, StyleSheet, Text, View} from 'react-native';
+import {
+  Button,
+  Image,
+  StyleSheet,
+  Text,
+  SafeAreaView,
+  View,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -16,7 +23,7 @@ export default function WaitingRoomScreen({navigation}) {
     return () => clearTimeout(timeoutId);
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.NavbarContainer}>
         <View style={styles.NavContainer}>
           <Image
@@ -150,7 +157,7 @@ export default function WaitingRoomScreen({navigation}) {
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

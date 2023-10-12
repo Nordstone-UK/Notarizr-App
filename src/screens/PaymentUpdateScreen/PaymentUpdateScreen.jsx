@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -25,7 +26,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
     SplashScreen.hide();
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Payment Method" />
       <Text style={styles.textheading}>
         Please find all our added cards here
@@ -52,7 +53,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
           />
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
+import {StyleSheet, Text, View, Image, SafeAreaView} from 'react-native';
 import React from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -6,7 +6,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 
 export default function RejectedByAgentScreen({navigation}, props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.completeIcon}>
         <Image
           source={require('../../../assets/rejectedIcon.png')}
@@ -24,7 +24,7 @@ export default function RejectedByAgentScreen({navigation}, props) {
           onPress={() => navigation.navigate('HomeScreen')}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

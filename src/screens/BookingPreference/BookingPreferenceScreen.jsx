@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, SafeAreaView} from 'react-native';
 import React from 'react';
 import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
@@ -11,7 +11,7 @@ import DocumentComponent from '../../components/DocumentComponent/DocumentCompon
 
 export default function BookingPreferenceScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -50,7 +50,7 @@ export default function BookingPreferenceScreen() {
           />
         </View>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

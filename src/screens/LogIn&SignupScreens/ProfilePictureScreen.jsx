@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -124,7 +125,7 @@ export default function ProfilePictureScreen({navigation}) {
     }
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <CompanyHeader
         Header="Profile Image"
         subHeading="Please provide us with your profile image"
@@ -191,7 +192,7 @@ export default function ProfilePictureScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

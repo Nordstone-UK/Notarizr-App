@@ -6,6 +6,7 @@ import {
   View,
   useColorScheme,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -71,7 +72,7 @@ export default function LocalNotaryDateScreen({route, navigation}) {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View>
         <View style={styles.namebar}>
           <View style={styles.flexContainer}>
@@ -168,7 +169,7 @@ export default function LocalNotaryDateScreen({route, navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

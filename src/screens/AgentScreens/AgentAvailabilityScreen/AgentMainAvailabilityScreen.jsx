@@ -1,5 +1,5 @@
 import {
-  Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   ScrollView,
@@ -36,7 +36,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
     );
   }, []);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AgentHomeHeader />
       <View style={styles.headingContainer}>
         <Text style={styles.Heading}>Profile Setup</Text>
@@ -114,7 +114,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

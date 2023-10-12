@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, ImageBackground} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+} from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {ITEM_WIDTH, heightToDp, widthToDp} from '../../utils/Responsive';
@@ -16,7 +23,7 @@ export default function RegisterCompletionScreen({navigation}) {
     return () => clearTimeout(timer);
   }, [navigation]);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ImageBackground
         source={require('../../../assets/Group.png')}
         style={styles.groupimage}>
@@ -35,7 +42,7 @@ export default function RegisterCompletionScreen({navigation}) {
           style={styles.complete}
         />
       </ImageBackground>
-    </View>
+    </SafeAreaView>
   );
 }
 

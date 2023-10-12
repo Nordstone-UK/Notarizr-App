@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -20,7 +21,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 
 export default function CancelledBookingScreen({route, navigation}, props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -84,7 +85,7 @@ export default function CancelledBookingScreen({route, navigation}, props) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

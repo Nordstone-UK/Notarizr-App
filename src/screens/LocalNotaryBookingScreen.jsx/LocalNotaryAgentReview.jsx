@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
@@ -39,7 +40,7 @@ export default function LocalNotaryAgentReview({route, navigation}, props) {
     );
   };
   return (
-    <View style={styles.contianer}>
+    <SafeAreaView style={styles.contianer}>
       <NavigationHeader Title="Agent Review" />
       <ScrollView contentContainerStyle={{flex: 1}}>
         <Image source={{uri: agent.profile_picture}} style={styles.picture} />
@@ -98,7 +99,7 @@ export default function LocalNotaryAgentReview({route, navigation}, props) {
           </ScrollView>
         </BottomSheetStyle>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

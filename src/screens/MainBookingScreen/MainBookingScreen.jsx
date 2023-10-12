@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  View,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
@@ -15,7 +22,7 @@ export default function MainBookingScreen({route, navigation}) {
   console.log(documentType);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
@@ -53,7 +60,7 @@ export default function MainBookingScreen({route, navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 

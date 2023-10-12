@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -20,7 +21,7 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 
 export default function NewAddressScreen({navigation}, props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Address" />
       <BottomSheetStyle>
         <ScrollView style={{marginTop: heightToDp(5)}}>
@@ -66,7 +67,7 @@ export default function NewAddressScreen({navigation}, props) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </View>
+    </SafeAreaView>
   );
 }
 
