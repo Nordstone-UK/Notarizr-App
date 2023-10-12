@@ -4,15 +4,16 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import {useSelector} from 'react-redux';
-
 export default function HomeScreenHeader(props) {
   const {first_name, profile_picture} = useSelector(state => state.user.user);
-
+  console.log('profile_picture', profile_picture);
   return (
     <View>
       <View style={styles.namebar}>
         <Image
-          source={{uri: profile_picture}}
+          source={{
+            uri: 'https://notarizr-app-data.s3.amazonaws.com/images/Profile%20Pictures/d0984283-9c01-4b3c-aefb-d9f6d5611fc4.JPEG',
+          }}
           style={styles.imagestyles}
           onError={error => console.error('Image load error:', error)}
         />
@@ -21,13 +22,6 @@ export default function HomeScreenHeader(props) {
         </Text>
       </View>
       <Text style={styles.heading}>{props.Title}</Text>
-      {/* <LabelTextInput
-        leftImageSoucre={require('../../../assets/Search.png')}
-        placeholder={'Search'}
-        InputStyles={{
-          padding: widthToDp(2),
-        }}
-      /> */}
     </View>
   );
 }

@@ -18,8 +18,7 @@ export default function AgentReviewCard(props) {
   const name = props?.agentName;
 
   const [firstPart, secondPart] = splitStringBefore4thWord(address);
-  // const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
-
+  console.log(props.source);
   function splitStringBefore4thWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
