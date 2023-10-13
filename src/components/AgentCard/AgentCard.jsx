@@ -63,10 +63,13 @@ export default function AgentCard(props) {
   }
   return (
     <View style={styles.cardContainer}>
-      <View style={{flexDirection: 'row'}}>
-        <View>
-          <AgentCardPicture task={props.task} source={props.source} />
-        </View>
+      <View style={{flexDirection: 'row', margin: heightToDp(1)}}>
+        <AgentCardPicture
+          task={props.task}
+          source={props.source}
+          dateofBooking={props.dateofBooking}
+          timeofBooking={props.timeofBooking}
+        />
         <View
           style={{
             width: widthToDp(50),
@@ -76,8 +79,6 @@ export default function AgentCard(props) {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              marginTop: heightToDp(2),
-              width: widthToDp(55),
             }}>
             <View>
               <Text style={styles.nameHeading}>{NameFirstPart}</Text>
@@ -90,13 +91,12 @@ export default function AgentCard(props) {
           <View
             style={{
               flexDirection: 'row',
-              width: widthToDp(50),
             }}>
-            <Image source={props.image} style={{marginRight: widthToDp(0.5)}} />
+            <Image source={props.image} />
             {props?.OrangeText && OrangeGradient(props?.OrangeText)}
             <View
               style={{
-                marginLeft: widthToDp(0.5),
+                marginLeft: widthToDp(1),
               }}>
               <Text style={styles.address}>{firstPart}</Text>
             </View>
@@ -111,7 +111,7 @@ export default function AgentCard(props) {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              paddingTop: heightToDp(5),
+              paddingTop: heightToDp(2),
             }}>
             <Text
               style={[
@@ -142,12 +142,12 @@ export default function AgentCard(props) {
 
 const styles = StyleSheet.create({
   cardContainer: {
+    flex: 1,
     backgroundColor: Colors.white,
     elevation: 30,
     borderRadius: 10,
-    paddingBottom: heightToDp(6),
-    marginVertical: heightToDp(2),
     marginHorizontal: heightToDp(5),
+    marginVertical: heightToDp(2),
   },
   nameHeading: {
     fontSize: widthToDp(4),
@@ -167,14 +167,15 @@ const styles = StyleSheet.create({
   locationStyle: {
     borderRadius: 20,
     paddingHorizontal: widthToDp(1.5),
-    // marginHorizontal: widthToDp(0.5),
   },
   orangeline: {
+    flex: 0.5,
+    marginBottom: heightToDp(5),
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: '130%',
-    right: widthToDp(9),
-    zIndex: -1,
+    width: widthToDp(60),
+    right: widthToDp(5),
+    zIndex: -2,
     paddingVertical: heightToDp(2),
   },
   totalStyles: {

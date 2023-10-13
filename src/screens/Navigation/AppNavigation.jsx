@@ -94,6 +94,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user.account_type);
+  console.log(user);
 
   return user === 'client' ? (
     <Tab.Navigator

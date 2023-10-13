@@ -7,20 +7,26 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import AgentTimeCard from '../AgentCard/AgentTimeCard';
 export default function AgentCardPicture(props) {
   return (
-    <View style={{flex: 1}}>
-      <ImageBackground source={props.source} style={styles.cardImage}>
-        <AgentTimeCard task={props.task} />
-      </ImageBackground>
+    <View
+      style={{
+        marginHorizontal: widthToDp(2),
+        marginVertical: widthToDp(2),
+      }}>
+      <Image source={props.source} style={styles.cardImage} />
+      <AgentTimeCard
+        task={props.task}
+        dateofBooking={props.dateofBooking}
+        timeofBooking={props.timeofBooking}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   cardImage: {
-    margin: widthToDp(2),
     width: widthToDp(30),
-    height: '105%',
-    borderRadius: 6,
-    overflow: 'hidden',
+    height: heightToDp(25),
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
   },
 });

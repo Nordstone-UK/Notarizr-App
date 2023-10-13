@@ -8,8 +8,6 @@ export default function AgentReviewComponent(props) {
   return (
     <View
       style={{
-        // flex: 1,
-        // justifyContent: 'flex-start',
         marginHorizontal: widthToDp(2),
       }}>
       {props.task && (

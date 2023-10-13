@@ -12,9 +12,11 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
+  const {fetchBookingInfo} = useFetchBooking();
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -30,6 +32,14 @@ export default function Splash_Screen({navigation}) {
             } else {
               navigation.navigate('HomeScreen');
             }
+          })
+          .catch(error => {
+            console.log(error);
+          });
+
+        await fetchBookingInfo()
+          .then(() => {
+            console.log('Booking called successfully');
           })
           .catch(error => {
             console.log(error);

@@ -8,12 +8,28 @@ export default function AgentTimeCard(props) {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
+  console.log(props.timeofBooking);
+  const time = props.timeofBooking || '10:00 AM - 11:00 AM';
+  const dateObject = new Date(props.dateofBooking);
+  const monthNamesShort = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  const monthShort = monthNamesShort[dateObject.getMonth()];
+  const date = dateObject.getDate();
+  const startTime = time.split(' - ')[0];
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'flex-end',
-      }}>
+    <View>
       <View
         style={[
           styles.ImageProces,
@@ -44,15 +60,19 @@ export default function AgentTimeCard(props) {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
         <View>
-          <Text style={styles.dateStyle}>12:30</Text>
+          <Text style={styles.dateStyle}>{startTime}</Text>
           <Text
             style={[
               styles.dateStyle,
-              {fontFamily: 'Poppins-Bold', fontSize: widthToDp(7)},
+              {
+                fontFamily: 'Poppins-Bold',
+                fontSize: widthToDp(7),
+                height: heightToDp(10),
+              },
             ]}>
-            22
+            {date}
           </Text>
-          <Text style={styles.dateStyle}>Sep</Text>
+          <Text style={styles.dateStyle}>{monthShort}</Text>
         </View>
       </LinearGradient>
     </View>
@@ -61,10 +81,8 @@ export default function AgentTimeCard(props) {
 
 const styles = StyleSheet.create({
   dateContainer: {
-    borderBottomLeftRadius: 5,
-    borderBottomRightRadius: 5,
-    alignItems: 'center',
-    padding: widthToDp(2),
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
   ImageProces: {
     paddingVertical: widthToDp(1),
@@ -78,9 +96,8 @@ const styles = StyleSheet.create({
 
   dateStyle: {
     color: Colors.white,
-    fontSize: widthToDp(3.5),
-    fontFamily: 'Poppins-SemiBold',
-    marginVertical: heightToDp(-1),
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
+    height: heightToDp(5),
   },
 });

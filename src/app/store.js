@@ -4,7 +4,7 @@ import paymentReducer from '../features/review/reviewSlice';
 import serviceReducer from '../features/service/serviceSlice';
 import registerReducer from '../features/register/registerSlice';
 import agentServiceReducer from '../features/agentService/agentServiceSlice';
-
+import bookingInfoReducer from '../features/bookingInfo/bookingInfoSlice';
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -12,5 +12,6 @@ export const store = configureStore({
     service: serviceReducer,
     register: registerReducer,
     agentService: agentServiceReducer,
+    bookingInfo: bookingInfoReducer,
   },
 });

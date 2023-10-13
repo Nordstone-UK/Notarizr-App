@@ -8,12 +8,15 @@ import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import {useSelector} from 'react-redux';
+import useFetchBooking from './useFetchBooking';
 
 const useLogin = () => {
   const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP);
   const [getPhoneOTP] = useLazyQuery(GET_PHONE_OTP);
   const {fetchUserInfo} = useFetchUser();
   const navigation = useNavigation();
+  const {fetchBookingInfo} = useFetchBooking();
+
   // const user = useSelector(state => state.user.user);
   const handleOtpVerification = async (email, otp) => {
     await verifYOTP({
@@ -50,6 +53,7 @@ const useLogin = () => {
     }
     try {
       const userInfo = await fetchUserInfo();
+      await fetchBookingInfo();
       console.log('Received data:', userInfo);
 
       if (userInfo.account_type === 'client') {
