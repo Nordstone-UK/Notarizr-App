@@ -33,6 +33,7 @@ export const GET_SERVICE_BY_SERVICE_TYPE = gql`
           profile_picture
           gender
           isBlocked
+          rating
           chatPrivacy
           location
           subscriptionType
