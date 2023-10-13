@@ -55,7 +55,9 @@ export default function AgentReviewScreen({route, navigation}, props) {
           <Text style={styles.name}>
             {agent.first_name} {agent.last_name}
           </Text>
-          <GradientText style={styles.placestyle}>5.0</GradientText>
+          <GradientText style={styles.placestyle}>
+            {agent.rating || '4.0'}
+          </GradientText>
           <Image
             source={require('../../../assets/orangeStar.png')}
             style={styles.star}
