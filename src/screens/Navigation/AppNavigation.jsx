@@ -101,7 +101,9 @@ function TabNavigation() {
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {height: Platform.OS === 'android' ? heightToDp(17) : 22},
+        tabBarStyle: {
+          height: Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
+        },
 
         tabBarIcon: ({focused}) => {
           return <Ionicons focused={focused} name={route.name} />;
@@ -123,7 +125,9 @@ function TabNavigation() {
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {height: heightToDp(22)},
+        tabBarStyle: {
+          height: Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
+        },
         tabBarIcon: ({focused}) => {
           return <Ionicons focused={focused} name={route.name} />;
         },
