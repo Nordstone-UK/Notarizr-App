@@ -89,6 +89,7 @@ import AgentSignupScreen from '../SingupAsScreen/AgentSignupScreen';
 import ActiveServicesScreen from '../ActiveServicesScreen/ActiveServicesScreen';
 import NotificationScreen from '../NotificationScreen/NotificationScreen';
 import Splash_Screen from '../SplashScreen/Splash_Screen';
+import MedicalDocScreen from '../LegalDocumentsScren/MedicalDocScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -197,6 +198,7 @@ export default function AppNavigation() {
             component={SignUpDetailScreen}
           />
           <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
+          <Stack.Screen name="MedicalDocScreen" component={MedicalDocScreen} />
           <Stack.Screen
             name="CategoryDetailScreen"
             component={CategoryDetailScreen}

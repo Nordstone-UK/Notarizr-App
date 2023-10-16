@@ -26,9 +26,8 @@ export default function AgentCard(props) {
   };
   const address = props?.agentAddress;
   const name = props?.agentName;
-
   const [firstPart, secondPart] = splitStringBefore4thWord(address);
-  const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
+  // const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
 
   function splitStringBefore4thWord(inputString) {
     if (inputString) {
@@ -69,6 +68,7 @@ export default function AgentCard(props) {
           source={props.source}
           dateofBooking={props.dateofBooking}
           timeofBooking={props.timeofBooking}
+          createdAt={props.createdAt}
         />
         <View
           style={{
@@ -79,10 +79,10 @@ export default function AgentCard(props) {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
+              width: widthToDp(55),
             }}>
             <View>
-              <Text style={styles.nameHeading}>{NameFirstPart}</Text>
-              <Text style={styles.nameHeading}>{NameSecondPart}</Text>
+              <Text style={styles.nameHeading}>{name}</Text>
             </View>
             <TouchableOpacity>
               <Image source={require('../../../assets/option.png')} />

@@ -2,9 +2,8 @@ import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
   View,
-  TouchableOpacity,
+  FlatList,
   SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
@@ -18,8 +17,9 @@ import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import {Linking} from 'react-native';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
-export default function ActiveServicesScreen() {
+import {ScrollView} from 'react-native-virtualized-view';
+export default function ActiveServicesScreen({route, navigation}) {
+  const {bookingDetail} = route.params;
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Categories" />
@@ -35,7 +35,32 @@ export default function ActiveServicesScreen() {
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
           </View>
-          <AgentCard
+          <FlatList
+            data={bookingDetail}
+            keyExtractor={item => item._id}
+            renderItem={({item}) => {
+              return (
+                <>
+                  <AgentCard
+                    source={{uri: item.agent.profile_picture}}
+                    bottomRightText="$400"
+                    bottomLeftText="Total"
+                    image={require('../../../assets/agentLocation.png')}
+                    agentName={
+                      item.agent.first_name + ' ' + item.agent.last_name
+                    }
+                    agentAddress={item.agent.location}
+                    task={item.status}
+                    OrangeText={'At Office'}
+                    dateofBooking={item.date_of_booking}
+                    timeofBooking={item.time_of_booking}
+                    createdAt={item.createdAt}
+                  />
+                </>
+              );
+            }}
+          />
+          {/* <AgentCard
             image={require('../../../assets/agentLocation.png')}
             source={require('../../../assets/agentCardPic.png')}
             bottomRightText="$400"
@@ -98,7 +123,7 @@ export default function ActiveServicesScreen() {
             OrangeText={'At Office'}
             task="Online"
             onPress={() => navigation.navigate('MedicalBookingScreen')}
-          />
+          /> */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

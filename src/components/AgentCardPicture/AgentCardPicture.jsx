@@ -17,6 +17,7 @@ export default function AgentCardPicture(props) {
         task={props.task}
         dateofBooking={props.dateofBooking}
         timeofBooking={props.timeofBooking}
+        createdAt={props.createdAt}
       />
     </View>
   );

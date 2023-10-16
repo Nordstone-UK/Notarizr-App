@@ -51,7 +51,7 @@ export default function MapScreen({route, navigation}) {
   ];
   const renderItem = ({item}) => {
     const {agent} = item;
-    console.log(agent.profile_picture);
+    // console.log(agent.profile_picture);
     return (
       <AgentReviewCard
         image={item.image}

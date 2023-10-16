@@ -1,16 +1,52 @@
 import {Image, StyleSheet, Switch, Text, View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import {useSelector} from 'react-redux';
+import {useMutation} from '@apollo/client';
+import {UPDATE_ONLINE_STATUS} from '../../../request/mutations/updateOnlineStatus.mutation';
+import Toast from 'react-native-toast-message';
 
 export default function AgentHomeHeader(props) {
+  // useEffect(() => {
+  //   Toast.show({
+  //     type: 'success',
+  //     text1: 'Status Updated',
+  //     text2: 'You are now ' + 'onlines',
+  //   });
+  // }, []);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [updateOnlineStatusR] = useMutation(UPDATE_ONLINE_STATUS);
   const {profile_picture, first_name, last_name} = useSelector(
     state => state.user.user,
   );
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  const toggleSwitch = () => {
+    setIsEnabled(!isEnabled);
+  };
+  const sendStatusUpdate = async () => {
+    let onlineStatus;
+    !isEnabled ? (onlineStatus = 'online') : (onlineStatus = 'offline');
+    try {
+      const {data} = await updateOnlineStatusR({variables: {onlineStatus}});
+      console.log(data);
+
+      if (data.updateOnlineStatusR.status === '204') {
+        Toast.show({
+          type: 'success',
+          text1: 'Status Updated',
+          text2: 'You are now ' + onlineStatus,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+        text2: 'Please try again later',
+      });
+    }
+  };
   return (
     <View>
       <View style={styles.namebar}>
@@ -26,6 +62,7 @@ export default function AgentHomeHeader(props) {
               ios_backgroundColor="#3e3e3e"
               onValueChange={toggleSwitch}
               value={isEnabled}
+              onChange={sendStatusUpdate}
             />
           )}
         </View>

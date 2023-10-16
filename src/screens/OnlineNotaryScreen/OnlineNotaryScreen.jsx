@@ -13,8 +13,13 @@ import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
+import useGetService from '../../hooks/useGetService';
 
-export default function OnlineNotaryScreen({navigation}) {
+export default function OnlineNotaryScreen({route, navigation}) {
+  const documentType = route.params;
+  const {fetchGetServiceAPI} = useGetService();
+  console.log('documentType', documentType);
+  // console.log('route.params', route.params);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -33,7 +38,10 @@ export default function OnlineNotaryScreen({navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Available Agents"
             Image={require('../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('NearbyLoadingScreen')}
+            onPress={
+              () => fetchGetServiceAPI('ron', documentType)
+              // () => navigation.navigate('NearbyLoadingScreen')
+            }
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}

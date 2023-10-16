@@ -2,8 +2,8 @@ import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
   View,
+  FlatList,
   SafeAreaView,
 } from 'react-native';
 import React, {useState} from 'react';
@@ -17,8 +17,10 @@ import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
+import {ScrollView} from 'react-native-virtualized-view';
 
-export default function AllBookingScreen({navigation}) {
+export default function AllBookingScreen({route, navigation}) {
+  const {bookingDetail} = route.params;
   const [isFocused, setIsFocused] = useState('Active');
 
   return (
@@ -27,6 +29,7 @@ export default function AllBookingScreen({navigation}) {
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.contentContainer}>
           <View
             style={{
@@ -107,29 +110,31 @@ export default function AllBookingScreen({navigation}) {
             />
           </View>
           {isFocused === 'Active' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="Total"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="On Process"
-              OrangeText={'At Office'}
+            <FlatList
+              data={bookingDetail}
+              keyExtractor={item => item._id}
+              renderItem={({item}) => {
+                return (
+                  <AgentCard
+                    source={{uri: item.agent.profile_picture}}
+                    bottomRightText="$400"
+                    bottomLeftText="Total"
+                    image={require('../../../assets/agentLocation.png')}
+                    agentName={
+                      item.agent.first_name + ' ' + item.agent.last_name
+                    }
+                    agentAddress={item.agent.location}
+                    task={item.status}
+                    OrangeText={'At Office'}
+                    dateofBooking={item.date_of_booking}
+                    timeofBooking={item.time_of_booking}
+                    createdAt={item.createdAt}
+                  />
+                );
+              }}
             />
           )}
-          {isFocused === 'Active' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$300"
-              bottomLeftText="Total"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Pending"
-              OrangeText={'At Office'}
-            />
-          )}
+
           {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}

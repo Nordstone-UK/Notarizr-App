@@ -24,21 +24,22 @@ import {Button} from '@rneui/base';
 
 export default function AgentRONLocationScreen({navigation}) {
   const {location} = useSelector(state => state.user.user);
-
+  const [isDiabled, setIsDisabled] = useState(false);
   const [cityArray, setCityArray] = useState([location]);
   const [Location, setLocation] = useState('');
   const agentService = useSelector(state => state.agentService);
-  // console.log(user);
   const {handleRegistration} = useAgentService();
 
-  const createService = () => {
+  const createService = async () => {
+    setIsDisabled(true);
     const Location = cityArray;
     console.log(Location);
     const params = {
       ...agentService,
       location: Location,
     };
-    handleRegistration(params);
+    await handleRegistration(params);
+    setIsDisabled(false);
   };
   function checkAndAddCity(city) {
     if (cityArray.includes(city)) {
@@ -54,6 +55,7 @@ export default function AgentRONLocationScreen({navigation}) {
   function removeCity(city) {
     setCityArray(prevArray => prevArray.filter(item => item !== city));
   }
+
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader />
@@ -102,6 +104,7 @@ export default function AgentRONLocationScreen({navigation}) {
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Complete"
             onPress={() => createService()}
+            isDisabled={isDiabled}
           />
         </View>
       </BottomSheetStyle>

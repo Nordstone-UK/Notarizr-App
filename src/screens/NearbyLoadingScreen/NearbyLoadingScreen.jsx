@@ -4,18 +4,16 @@ import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
-export default function NearbyLoadingScreen({navigation}) {
+export default function NearbyLoadingScreen({route, navigation}) {
+  const {agents, documents} = route.params;
+
   useEffect(() => {
-    // Delay in milliseconds (e.g., 3000ms = 3 seconds)
-    const delay = 3000;
-
-    const timer = setTimeout(() => {
-      // Navigate to SecondScreen after the specified delay
-      navigation.navigate('AgentReviewScreen');
-    }, delay);
-
-    // Clear the timer when the component unmounts
-    return () => clearTimeout(timer);
+    // const delay = 3000;
+    // const timer = setTimeout(() => {
+    //   navigation.navigate('AgentReviewScreen');
+    // }, delay);
+    // return () => clearTimeout(timer);
+    console.log(agents, documents);
   }, [navigation]);
   return (
     <SafeAreaView style={styles.container}>

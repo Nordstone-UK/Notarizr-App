@@ -50,7 +50,10 @@ export default function MainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Remote Online Notary"
             Image={require('../../../assets/service2Pic.png')}
-            onPress={() => fetchGetServiceAPI('ron', documentType)}
+            onPress={
+              () => navigation.navigate('OnlineNotaryScreen', documentType)
+              // () => fetchGetServiceAPI('ron', documentType)
+            }
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.DarkBlue}}

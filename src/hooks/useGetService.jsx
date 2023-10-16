@@ -18,16 +18,18 @@ const useGetService = () => {
       .then(response => {
         console.log('In hook', response.data.getServiceByServiceType.services);
 
-        // setAvailableAgents(response.data.getServiceByServiceType.services);
         if (serviceType === 'mobile_notary') {
           navigation.navigate('MapScreen', {
             agents: response?.data?.getServiceByServiceType?.services,
             documents: documentData,
           });
-        } else if (serviceType === 'ron') {
-          navigation.navigate('OnlineNotaryScreen');
-        } else {
+        } else if (serviceType === 'local') {
           navigation.navigate('LocalNotaryMapScreen', {
+            agents: response?.data?.getServiceByServiceType?.services,
+            documents: documentData,
+          });
+        } else {
+          navigation.navigate('NearbyLoadingScreen', {
             agents: response?.data?.getServiceByServiceType?.services,
             documents: documentData,
           });
@@ -37,7 +39,24 @@ const useGetService = () => {
         console.log(error);
       });
   };
-
+  const RONfetchAPI = async (serviceType, documentData) => {
+    const request = {
+      variables: {
+        serviceType: 'ron',
+      },
+    };
+    await getServiceByServiceType(request)
+      .then(response => {
+        console.log('In hook', response.data.getServiceByServiceType.services);
+        navigation.navigate('NearbyLoadingScreen', {
+          agents: response?.data?.getServiceByServiceType?.services,
+          documents: documentData,
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
   return {fetchGetServiceAPI};
 };
 

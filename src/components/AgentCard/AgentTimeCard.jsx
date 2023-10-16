@@ -4,12 +4,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
+import moment from 'moment';
 export default function AgentTimeCard(props) {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
-  console.log(props.timeofBooking);
-  const time = props.timeofBooking || '10:00 AM - 11:00 AM';
   const dateObject = new Date(props.dateofBooking);
   const monthNamesShort = [
     'Jan',
@@ -26,8 +22,13 @@ export default function AgentTimeCard(props) {
     'Dec',
   ];
   const monthShort = monthNamesShort[dateObject.getMonth()];
-  const date = dateObject.getDate();
-  const startTime = time.split(' - ')[0];
+  // const date = dateObject.getDate();
+  // const time = props.timeofBooking || '10:00 AM - 11:00 AM';
+  const date = moment(props.createdAt).format('D');
+  const month = moment(props.createdAt).format('MMM');
+  const time = moment(props.createdAt).format('h:mm A');
+  // const startTime = time.split(' - ')[0];
+
   return (
     <View>
       <View
@@ -60,7 +61,7 @@ export default function AgentTimeCard(props) {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
         <View>
-          <Text style={styles.dateStyle}>{startTime}</Text>
+          <Text style={styles.dateStyle}>{time}</Text>
           <Text
             style={[
               styles.dateStyle,
@@ -72,7 +73,7 @@ export default function AgentTimeCard(props) {
             ]}>
             {date}
           </Text>
-          <Text style={styles.dateStyle}>{monthShort}</Text>
+          <Text style={styles.dateStyle}>{month}</Text>
         </View>
       </LinearGradient>
     </View>
