@@ -8,9 +8,14 @@ const useFetchBooking = () => {
   const dispatch = useDispatch();
 
   const fetchBookingInfo = async () => {
-    await getBooking().then(response => {
-      dispatch(setBookingState(response.data.getBookings.bookings));
-    });
+    try {
+      const {data, error} = await getBooking();
+      // console.log('Printing', data);
+      // dispatch(setBookingState(data?.getBookings?.bookings));
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return {fetchBookingInfo};

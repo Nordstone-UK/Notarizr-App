@@ -17,12 +17,20 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import {Linking} from 'react-native';
 import {useSelector} from 'react-redux';
 import {ScrollView} from 'react-native-virtualized-view';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
 export default function HomeScreen({navigation}) {
-  const bookingDetail = useSelector(state => state.bookingInfo);
-  console.log('Booking Detail from Redux:', bookingDetail);
-
-  // useEffect(() => {}, [bookingDetail]);
+  // const bookingDetail = useSelector(state => state.bookingInfo);
+  // console.log('Booking Detail from Redux:', bookingDetail);
+  const {fetchBookingInfo} = useFetchBooking();
+  const [Booking, setBooking] = useState([]);
+  useEffect(() => {
+    const init = async () => {
+      const bookingDetail = await fetchBookingInfo();
+      setBooking(bookingDetail.getBookings.bookings);
+    };
+    init();
+  }, []);
   // const bookingDetail = [
   //   {
   //     __typename: 'Booking',
@@ -620,14 +628,11 @@ export default function HomeScreen({navigation}) {
               <Text style={styles.subheading}>View all</Text>
             </TouchableOpacity>
           </View> */}
-          {/* {bookingDetail === undefined || bookingDetail.length === 0 ? (
-            <ActivityIndicator />
-          ) : ( */}
-          <View>
+          <View style={{flex: 1}}>
             <FlatList
-              data={bookingDetail}
+              data={Booking}
               keyExtractor={item => item._id}
-              ListEmptyComponent={() => <Text>No Active Services</Text>}
+              // ListEmptyComponent={() => <Text>No Active Services</Text>}
               renderItem={({item}) => {
                 return (
                   <Text>{item.agent.first_name}</Text>
@@ -649,7 +654,6 @@ export default function HomeScreen({navigation}) {
               }}
             />
           </View>
-          {/* )} */}
         </View>
       </BottomSheetStyle>
     </SafeAreaView>

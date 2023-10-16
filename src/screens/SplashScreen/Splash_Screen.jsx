@@ -36,14 +36,6 @@ export default function Splash_Screen({navigation}) {
           .catch(error => {
             console.log(error);
           });
-
-        await fetchBookingInfo()
-          .then(() => {
-            console.log('Booking called successfully');
-          })
-          .catch(error => {
-            console.log(error);
-          });
       } else {
         checkFirstLaunch();
       }
