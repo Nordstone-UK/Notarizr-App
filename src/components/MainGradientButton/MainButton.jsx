@@ -11,7 +11,7 @@ import {widthToDp} from '../../utils/Responsive';
 
 export default function MainButton(props) {
   return (
-    <TouchableOpacity onPress={props.onPress}>
+    <TouchableOpacity onPress={props.onPress} disabled={props.isDisabled}>
       <LinearGradient
         colors={props.colors}
         start={{x: 0, y: 0}}
@@ -19,10 +19,10 @@ export default function MainButton(props) {
         style={[styles.gradientstyles, props.GradiStyles]}>
         <View style={[styles.buttonToucableOpacity, props.viewStyle]}>
           <View style={[styles.buttonToucableOpacity, props.viewStyle]}>
-            {props.loading || false ? (
+            {props.loading || props.isDisabled || false ? (
               <ActivityIndicator
                 style={[styles.buttonText, props.styles]}
-                size="large"
+                size="small"
                 color="#ffff"
               />
             ) : (

@@ -35,6 +35,7 @@ export default function TypesofServiceButton(props) {
                 minWidth: widthToDp(25),
               }}
               onPress={props.onPress}
+              isDisabled={props.isDisabled}
             />
           </View>
         </View>

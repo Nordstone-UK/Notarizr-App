@@ -3,9 +3,11 @@ import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import useGetService from '../../hooks/useGetService';
 
 export default function NearbyLoadingScreen({route, navigation}) {
-  const {agents, documents} = route.params;
+  const {documentType} = route.params;
+  const {RONfetchAPI} = useGetService();
 
   useEffect(() => {
     // const delay = 3000;
@@ -13,8 +15,9 @@ export default function NearbyLoadingScreen({route, navigation}) {
     //   navigation.navigate('AgentReviewScreen');
     // }, delay);
     // return () => clearTimeout(timer);
-    console.log(agents, documents);
-  }, [navigation]);
+    // console.log(agents, documents);
+    RONfetchAPI(documentType);
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Loading" />

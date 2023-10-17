@@ -119,11 +119,7 @@ export default function HomeScreen({navigation}) {
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('AllBookingScreen', {
-                  bookingDetail: Booking,
-                })
-              }>
+              onPress={() => navigation.navigate('AllBookingScreen')}>
               <Text style={styles.subheading}>View all</Text>
             </TouchableOpacity>
           </View>

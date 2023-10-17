@@ -17,9 +17,18 @@ import useGetService from '../../hooks/useGetService';
 
 export default function OnlineNotaryScreen({route, navigation}) {
   const documentType = route.params;
-  const {fetchGetServiceAPI} = useGetService();
+  const {RONfetchAPI} = useGetService();
+  const [isDisabled, setIsDisabled] = useState(false);
   console.log('documentType', documentType);
-  // console.log('route.params', route.params);
+  const handleFetchAPI = async () => {
+    setIsDisabled(true);
+    navigation.navigate('NearbyLoadingScreen', {
+      documentType: documentType,
+    });
+    await RONfetchAPI('ron', documentType);
+    setIsDisabled(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -38,8 +47,9 @@ export default function OnlineNotaryScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Available Agents"
             Image={require('../../../assets/service1Pic.png')}
+            isDisabled={isDisabled}
             onPress={
-              () => fetchGetServiceAPI('ron', documentType)
+              () => handleFetchAPI()
               // () => navigation.navigate('NearbyLoadingScreen')
             }
           />

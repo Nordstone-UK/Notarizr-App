@@ -6,7 +6,7 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -18,11 +18,20 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 import {ScrollView} from 'react-native-virtualized-view';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
 export default function AllBookingScreen({route, navigation}) {
-  const {bookingDetail} = route.params;
   const [isFocused, setIsFocused] = useState('Active');
+  const {fetchBookingInfo} = useFetchBooking();
 
+  const [booking, setBooking] = useState();
+  useEffect(() => {
+    const init = async () => {
+      const bookingDetail = await fetchBookingInfo();
+      setBooking(bookingDetail.getBookings.bookings);
+    };
+    init();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="Find all your bookings with our agents here" />
@@ -111,7 +120,7 @@ export default function AllBookingScreen({route, navigation}) {
           </View>
           {isFocused === 'Active' && (
             <FlatList
-              data={bookingDetail}
+              data={booking}
               keyExtractor={item => item._id}
               renderItem={({item}) => {
                 return (

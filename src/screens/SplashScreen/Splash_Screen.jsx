@@ -14,6 +14,7 @@ import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
 import useFetchBooking from '../../hooks/useFetchBooking';
+import Geolocation from '@react-native-community/geolocation';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
