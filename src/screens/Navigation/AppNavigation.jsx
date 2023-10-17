@@ -90,6 +90,7 @@ import ActiveServicesScreen from '../ActiveServicesScreen/ActiveServicesScreen';
 import NotificationScreen from '../NotificationScreen/NotificationScreen';
 import Splash_Screen from '../SplashScreen/Splash_Screen';
 import MedicalDocScreen from '../LegalDocumentsScren/MedicalDocScreen';
+import RONAgentReviewScreen from '../RONAgentReviewScreen/RONAgentReviewScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -230,6 +231,10 @@ export default function AppNavigation() {
           <Stack.Screen
             name="AgentReviewScreen"
             component={AgentReviewScreen}
+          />
+          <Stack.Screen
+            name="RONAgentReviewScreen"
+            component={RONAgentReviewScreen}
           />
           <Stack.Screen
             name="AgentBookCompletion"

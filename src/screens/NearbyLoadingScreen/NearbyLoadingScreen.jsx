@@ -10,12 +10,6 @@ export default function NearbyLoadingScreen({route, navigation}) {
   const {RONfetchAPI} = useGetService();
 
   useEffect(() => {
-    // const delay = 3000;
-    // const timer = setTimeout(() => {
-    //   navigation.navigate('AgentReviewScreen');
-    // }, delay);
-    // return () => clearTimeout(timer);
-    // console.log(agents, documents);
     RONfetchAPI(documentType);
   }, []);
   return (

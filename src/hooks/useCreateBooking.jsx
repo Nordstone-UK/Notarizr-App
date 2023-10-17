@@ -39,6 +39,7 @@ const useCreateBooking = () => {
     console.log('prev', request);
     await createBooking(request)
       .then(response => {
+        console.log('response', response);
         console.log('Booking', response.data.createBookingR.status);
         if (response.data.createBookingR.status === '201') {
           navigation.navigate('AgentBookCompletion');

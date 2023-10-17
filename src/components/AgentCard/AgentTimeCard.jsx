@@ -6,7 +6,10 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
 import moment from 'moment';
 export default function AgentTimeCard(props) {
-  const dateObject = new Date(props.dateofBooking);
+  let date;
+  let time;
+  let month;
+
   const monthNamesShort = [
     'Jan',
     'Feb',
@@ -21,13 +24,16 @@ export default function AgentTimeCard(props) {
     'Nov',
     'Dec',
   ];
-  const monthShort = monthNamesShort[dateObject.getMonth()];
-  // const date = dateObject.getDate();
-  // const time = props.timeofBooking || '10:00 AM - 11:00 AM';
-  const date = moment(props.createdAt).format('D');
-  const month = moment(props.createdAt).format('MMM');
-  const time = moment(props.createdAt).format('h:mm A');
-  // const startTime = time.split(' - ')[0];
+  if (props.dateofBooking === null && props.timeofBooking === null) {
+    date = moment(props.createdAt).format('D');
+    month = moment(props.createdAt).format('MMM');
+    time = moment(props.createdAt).format('h:mm A');
+  } else {
+    const dateObject = new Date(props.dateofBooking);
+    month = monthNamesShort[dateObject.getMonth()];
+    date = dateObject.getDate();
+    time = props.timeofBooking.split(' - ')[0];
+  }
 
   return (
     <View>

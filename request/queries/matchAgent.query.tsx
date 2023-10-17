@@ -21,6 +21,41 @@ export const GET_MATCHED_AGENT = gql`
         isVerified
         account_type
         online_status
+        distance
+        current_location {
+          type
+          coordinates
+        }
+        service {
+          _id
+          name
+          image
+          status
+          service_type
+          category {
+            _id
+            name
+            status
+            document {
+              _id
+              name
+              price
+              image
+              createdAt
+              updatedAt
+            }
+            createdAt
+            updatedAt
+          }
+          availability {
+            weekdays
+            startTime
+            endTime
+          }
+          location
+          createdAt
+          updatedAt
+        }
       }
     }
   }

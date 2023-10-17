@@ -42,7 +42,7 @@ const init = () => {
         ...headers,
         authorization: token ? `Bearer ${token}` : '',
         'X-User-Coordinates':
-          latitude && longitude ? `${latitude},${longitude}` : '',
+          latitude && longitude ? `${longitude},${latitude}` : '',
       },
     };
   });

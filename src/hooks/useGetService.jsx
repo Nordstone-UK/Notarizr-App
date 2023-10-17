@@ -18,16 +18,16 @@ const useGetService = () => {
     console.log(request);
     await getServiceByServiceType(request)
       .then(response => {
-        console.log('In hook', response.data.getServiceByServiceType.services);
+        console.log('In hook', response?.data?.getServiceByServiceType?.users);
 
         if (serviceType === 'mobile_notary') {
           navigation.navigate('MapScreen', {
-            agents: response?.data?.getServiceByServiceType?.services,
+            agents: response?.data?.getServiceByServiceType?.users,
             documents: documentData,
           });
         } else if (serviceType === 'local') {
           navigation.navigate('LocalNotaryMapScreen', {
-            agents: response?.data?.getServiceByServiceType?.services,
+            agents: response?.data?.getServiceByServiceType?.users,
             documents: documentData,
           });
         }
@@ -42,12 +42,14 @@ const useGetService = () => {
         serviceType: 'ron',
       },
     };
+    console.log('documentData', documentData);
     await matchAgent(request)
       .then(response => {
-        console.log('In hook', response.data?.matchAgent);
-        navigation.navigate('AgentReviewScreen', {
-          agents: response?.data?.matchAgent?.user,
-          documents: documentData,
+        console.log('In hook', response.data);
+        console.log(response?.data?.matchAgent);
+        navigation.navigate('RONAgentReviewScreen', {
+          agents: response?.data?.matchAgent,
+          documentType: documentData,
         });
       })
       .catch(error => {

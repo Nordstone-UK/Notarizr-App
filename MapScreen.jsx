@@ -19,47 +19,16 @@ import useCreateBooking from './src/hooks/useCreateBooking';
 
 export default function MapScreen({route, navigation}) {
   const {agents, documents} = route.params;
+  console.log(route.params);
 
-  const data = [
-    {
-      key: '1',
-      image: require('./assets/agentLocation.png'),
-      source: require('./assets/agentCardPic.png'),
-      bottomRightText: '30 minutes',
-      bottomLeftText: '0.5 Miles',
-      agentName: 'Advocate Parimal M. Trivedi',
-      agentAddress: 'Shop 28, Jigara Kalakand Road',
-    },
-    {
-      key: '2',
-      image: require('./assets/agentLocation.png'),
-      source: require('./assets/agentCardPic.png'),
-      bottomRightText: '45 minutes',
-      bottomLeftText: '1 Mile',
-      agentName: 'Advocate Parimal M. Trivedi',
-      agentAddress: 'Shop 28, Jigara Kalakand Road',
-    },
-    {
-      key: '3',
-      image: require('./assets/agentLocation.png'),
-      source: require('./assets/agentCardPic.png'),
-      bottomRightText: '20 minutes',
-      bottomLeftText: '0.3 Miles',
-      agentName: 'Advocate Parimal M. Trivedi',
-      agentAddress: 'Shop 28, Jigara Kalakand Road',
-    },
-  ];
   const renderItem = ({item}) => {
-    const {agent} = item;
-    // console.log(agent.profile_picture);
+    console.log('item', item);
     return (
       <AgentReviewCard
-        image={item.image}
-        source={{uri: agent.profile_picture}}
-        // bottomRightText={item.bottomRightText}
-        // bottomLeftText={item.bottomLeftText}
-        agentName={agent.first_name + ' ' + agent.last_name}
-        agentAddress={agent.location}
+        image={item?.image}
+        source={{uri: item?.profile_picture}}
+        agentName={item?.first_name + ' ' + item?.last_name}
+        agentAddress={item?.location}
         onPress={() =>
           navigation.navigate('AgentReviewScreen', {
             description: item,

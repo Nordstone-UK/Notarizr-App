@@ -93,7 +93,9 @@ export default function AgentCard(props) {
               flexDirection: 'row',
             }}>
             <Image source={props.image} />
-            {props?.OrangeText && OrangeGradient(props?.OrangeText)}
+            {props?.dateofBooking
+              ? OrangeGradient('At Office')
+              : OrangeGradient('At Home')}
             <View
               style={{
                 marginLeft: widthToDp(1),
