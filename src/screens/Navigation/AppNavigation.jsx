@@ -39,7 +39,6 @@ import Ionicons from '../../components/Ionicons/Ionicons';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import OnlineNotaryScreen from '../OnlineNotaryScreen/OnlineNotaryScreen';
 import NearbyLoadingScreen from '../NearbyLoadingScreen/NearbyLoadingScreen';
-import MapScreen from '../../../MapScreen';
 import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import SessionScreen from '../SessionDisplayScreen/SessionScreen';
 import OnlineSessionDetail from '../OnlineSessionDetail/OnlineSessionDetail';
@@ -91,6 +90,7 @@ import NotificationScreen from '../NotificationScreen/NotificationScreen';
 import Splash_Screen from '../SplashScreen/Splash_Screen';
 import MedicalDocScreen from '../LegalDocumentsScren/MedicalDocScreen';
 import RONAgentReviewScreen from '../RONAgentReviewScreen/RONAgentReviewScreen';
+import MapScreen from '../MapScreen/MapScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();

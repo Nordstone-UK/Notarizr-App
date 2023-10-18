@@ -10,16 +10,12 @@ import {
   SafeAreaView,
 } from 'react-native';
 import React, {useEffect} from 'react';
-import AgentCard from './src/components/AgentCard/AgentCard';
-import {widthToDp} from './src/utils/Responsive';
-import NavigationHeader from './src/components/Navigation Header/NavigationHeader';
-import AgentReviewCard from './src/components/AgentReviewCard/AgentReviewCard';
-import useGetService from './src/hooks/useGetService';
-import useCreateBooking from './src/hooks/useCreateBooking';
+
+import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 
 export default function MapScreen({route, navigation}) {
   const {agents, documents} = route.params;
-  console.log(route.params);
 
   const renderItem = ({item}) => {
     console.log('item', item);
@@ -41,7 +37,7 @@ export default function MapScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={require('./assets/map.png')}
+        source={require('../../../assets/map.png')}
         style={styles.container}>
         <NavigationHeader Title="Nearby" />
         <View

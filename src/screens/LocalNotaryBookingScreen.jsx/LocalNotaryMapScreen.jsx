@@ -14,21 +14,17 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 
 export default function LocalNotaryMapScreen({route, navigation}) {
   const {agents, documents} = route.params;
-  console.log('dawdfnioa', agents);
 
   const renderItem = ({item}) => {
-    const {agent} = item;
-
+    console.log('item', item);
     return (
       <AgentReviewCard
-        image={item.image}
-        source={{uri: agent.profile_picture}}
-        // bottomRightText={item.bottomRightText}
-        // bottomLeftText={item.bottomLeftText}
-        agentName={agent.first_name + ' ' + agent.last_name}
-        agentAddress={agent.location}
+        image={item?.image}
+        source={{uri: item?.profile_picture}}
+        agentName={item?.first_name + ' ' + item?.last_name}
+        agentAddress={item?.location}
         onPress={() =>
-          navigation.navigate('LocalNotaryAgentReview', {
+          navigation.navigate('AgentReviewScreen', {
             description: item,
             documentType: documents,
           })

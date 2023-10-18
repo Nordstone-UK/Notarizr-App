@@ -23,14 +23,15 @@ export default function AgentReviewScreen({route, navigation}, props) {
   const {BookingData, handleBookingCreation, consoleData, setBookingData} =
     useCreateBooking();
   const {description, documentType} = route.params;
-  const {agent} = description;
+  const {service} = description;
+  console.log('description', description);
 
   useEffect(() => {
     setBookingData({
       ...BookingData,
-      serviceType: description.service_type,
-      service: description._id,
-      agent: description.agent._id,
+      serviceType: description?.service?.service_type,
+      service: description?.service?._id,
+      agent: description?._id,
       documentType: documentType,
     });
   }, []);
@@ -50,13 +51,16 @@ export default function AgentReviewScreen({route, navigation}, props) {
     <SafeAreaView style={styles.contianer}>
       <NavigationHeader Title="Agent Review" />
       <ScrollView contentContainerStyle={{flex: 1}}>
-        <Image source={{uri: agent.profile_picture}} style={styles.picture} />
+        <Image
+          source={{uri: description?.profile_picture}}
+          style={styles.picture}
+        />
         <View style={styles.nameContainer}>
           <Text style={styles.name}>
-            {agent.first_name} {agent.last_name}
+            {description?.first_name} {description?.last_name}
           </Text>
           <GradientText style={styles.placestyle}>
-            {agent.rating || '4.0'}
+            {description?.rating || '4.0'}
           </GradientText>
           <Image
             source={require('../../../assets/orangeStar.png')}
@@ -69,16 +73,18 @@ export default function AgentReviewScreen({route, navigation}, props) {
           <ScrollView contentContainerStyle={{flex: 1}}>
             <View style={styles.sheetContainer}>
               <Text style={styles.heading}>Description</Text>
-              <Text style={styles.preference}>Email : {agent.email}</Text>
               <Text style={styles.preference}>
-                Availability : {description.availability.startTime} to{' '}
-                {description.availability.endTime}
+                Email : {description?.email}
+              </Text>
+              <Text style={styles.preference}>
+                Availability : {service?.availability?.startTime} to{' '}
+                {service?.availability?.endTime}
               </Text>
               <View>
                 <Text style={styles.preference}>Weekdays : </Text>
                 <FlatList
                   horizontal
-                  data={description.availability.weekdays}
+                  data={service?.availability?.weekdays}
                   renderItem={({item}) => (
                     <Text style={styles.preference}>{item.toUpperCase()}</Text>
                   )}
@@ -90,7 +96,7 @@ export default function AgentReviewScreen({route, navigation}, props) {
                   source={require('../../../assets/locationIcon.png')}
                   style={styles.locationImage}
                 />
-                <Text style={styles.detail}>{agent.location}</Text>
+                <Text style={styles.detail}>{description?.location}</Text>
               </View>
             </View>
             <View style={styles.button}>

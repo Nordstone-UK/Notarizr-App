@@ -20,15 +20,19 @@ export default function MainBookingScreen({route, navigation}) {
   const {fetchGetServiceAPI} = useGetService();
   const {documentType} = route.params;
   console.log(documentType);
-
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [localDisabled, setLocalDisabled] = useState(false);
+  const handleAPIFetch = async string => {
+    string === 'local' ? setLocalDisabled(true) : setIsDisabled(true);
+    await fetchGetServiceAPI(string, documentType);
+    string === 'local' ? setLocalDisabled(false) : setIsDisabled(false);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>
-          {route?.params?.name || 'Medical Documents'}
-        </Text>
+        <Text style={styles.Heading}>{route?.params?.name}</Text>
       </View>
       <BottomSheetStyle>
         <ScrollView
@@ -41,10 +45,8 @@ export default function MainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"
             Image={require('../../../assets/service1Pic.png')}
-            onPress={
-              // () => consoleData()
-              () => fetchGetServiceAPI('mobile_notary', documentType)
-            }
+            onPress={() => handleAPIFetch('mobile_notary')}
+            isDisabled={isDisabled}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
@@ -58,7 +60,8 @@ export default function MainBookingScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.DarkBlue}}
             Title="Local Notary"
             Image={require('../../../assets/service3Pic.png')}
-            onPress={() => fetchGetServiceAPI('local', documentType)}
+            onPress={() => handleAPIFetch('local')}
+            isDisabled={localDisabled}
           />
         </ScrollView>
       </BottomSheetStyle>
