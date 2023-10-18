@@ -118,33 +118,30 @@ export default function AllBookingScreen({route, navigation}) {
               onPress={() => setIsFocused('Rejected')}
             />
           </View>
-          {isFocused === 'Active' && (
-            <FlatList
-              data={booking}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => {
-                return (
-                  <AgentCard
-                    source={{uri: item.agent.profile_picture}}
-                    bottomRightText="$400"
-                    bottomLeftText="Total"
-                    image={require('../../../assets/agentLocation.png')}
-                    agentName={
-                      item.agent.first_name + ' ' + item.agent.last_name
-                    }
-                    agentAddress={item.agent.location}
-                    task={item.status}
-                    OrangeText={'At Office'}
-                    dateofBooking={item.date_of_booking}
-                    timeofBooking={item.time_of_booking}
-                    createdAt={item.createdAt}
-                  />
-                );
-              }}
-            />
-          )}
 
-          {isFocused === 'Complete' && (
+          <FlatList
+            data={booking}
+            keyExtractor={item => item._id}
+            renderItem={({item}) => {
+              return (
+                <AgentCard
+                  source={{uri: item.agent.profile_picture}}
+                  bottomRightText="$400"
+                  bottomLeftText="Total"
+                  image={require('../../../assets/agentLocation.png')}
+                  agentName={item.agent.first_name + ' ' + item.agent.last_name}
+                  agentAddress={item.agent.location}
+                  task={item.status}
+                  OrangeText={'At Office'}
+                  dateofBooking={item.date_of_booking}
+                  timeofBooking={item.time_of_booking}
+                  createdAt={item.createdAt}
+                />
+              );
+            }}
+          />
+
+          {/* {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}
               source={require('../../../assets/agentCardPic.png')}
@@ -187,7 +184,7 @@ export default function AllBookingScreen({route, navigation}) {
               agentAddress={'Shop 28, jigara Kalakand Road'}
               task="Rejected"
             />
-          )}
+          )} */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

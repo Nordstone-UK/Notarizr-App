@@ -7,12 +7,31 @@ import {
   View,
   SafeAreaView,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
+import {GiftedChat} from 'react-native-gifted-chat';
 
 export default function ChatScreen(props) {
+  const [messages, setMessages] = useState([]);
+
+  const onSend = newMessages => {
+    setMessages(previousMessages =>
+      GiftedChat.append(previousMessages, newMessages),
+    );
+  };
+  const renderSend = props => {
+    return (
+      <TouchableOpacity style={styles.button}>
+        <Image
+          source={require('../../../assets/send.png')}
+          style={styles.icon}
+        />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -22,15 +41,14 @@ export default function ChatScreen(props) {
         lastImg={require('../../../assets/voiceCallIcon.png')}
       />
       <View style={styles.bottonSheet}>
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.input} placeholder="Enter your message" />
-          <TouchableOpacity style={styles.button}>
-            <Image
-              source={require('../../../assets/send.png')}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
+        <GiftedChat
+          messages={messages}
+          renderSend={renderSend}
+          onSend={messages => onSend(messages)}
+          user={{
+            _id: 1, // user id
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -63,9 +81,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
     paddingHorizontal: 10,
   },
+  icon: {
+    width: widthToDp(7),
+    height: heightToDp(7),
+  },
   button: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
+    paddingVertical: heightToDp(2),
+    paddingHorizontal: heightToDp(2),
   },
 });
