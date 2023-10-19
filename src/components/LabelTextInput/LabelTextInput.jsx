@@ -28,7 +28,7 @@ export default function LabelTextInput(props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, props.container]}>
       <View
         style={[
           styles.inputContainer,
@@ -41,6 +41,7 @@ export default function LabelTextInput(props) {
         <TextInput
           onFocus={handleFocus}
           onBlur={handleBlur}
+          editable={!props.editable}
           style={[styles.input, props.InputStyles]}
           keyboardType={props.keyboardType || 'default'}
           secureTextEntry={secureText || false}

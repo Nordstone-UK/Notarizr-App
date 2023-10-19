@@ -1,7 +1,7 @@
 import {
   Image,
   StyleSheet,
-  Text,
+  ActivityIndicator,
   View,
   FlatList,
   SafeAreaView,
@@ -118,29 +118,35 @@ export default function AllBookingScreen({route, navigation}) {
               onPress={() => setIsFocused('Rejected')}
             />
           </View>
-
-          <FlatList
-            data={booking}
-            keyExtractor={item => item._id}
-            renderItem={({item}) => {
-              return (
-                <AgentCard
-                  source={{uri: item.agent.profile_picture}}
-                  bottomRightText="$400"
-                  bottomLeftText="Total"
-                  image={require('../../../assets/agentLocation.png')}
-                  agentName={item.agent.first_name + ' ' + item.agent.last_name}
-                  agentAddress={item.agent.location}
-                  task={item.status}
-                  OrangeText={'At Office'}
-                  dateofBooking={item.date_of_booking}
-                  timeofBooking={item.time_of_booking}
-                  createdAt={item.createdAt}
-                />
-              );
-            }}
-          />
-
+          {booking ? (
+            <FlatList
+              data={booking}
+              keyExtractor={item => item._id}
+              renderItem={({item}) => {
+                return (
+                  <AgentCard
+                    source={{uri: item.agent.profile_picture}}
+                    bottomRightText="$400"
+                    bottomLeftText="Total"
+                    image={require('../../../assets/agentLocation.png')}
+                    agentName={
+                      item.agent.first_name + ' ' + item.agent.last_name
+                    }
+                    agentAddress={item.agent.location}
+                    task={item.status}
+                    OrangeText={'At Office'}
+                    dateofBooking={item.date_of_booking}
+                    timeofBooking={item.time_of_booking}
+                    createdAt={item.createdAt}
+                  />
+                );
+              }}
+            />
+          ) : (
+            <View>
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            </View>
+          )}
           {/* {isFocused === 'Complete' && (
             <AgentCard
               image={require('../../../assets/agentLocation.png')}

@@ -6,6 +6,7 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
+  FlatList,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,18 +20,13 @@ import moment from 'moment-timezone';
 import {Picker} from '@react-native-picker/picker';
 import DocumentPicker, {types} from 'react-native-document-picker';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
+import DocumentDropDown from '../../../components/DocumentDropDown/DocumentDropDown';
 
 export default function AgentSessionInviteScreen({navigation}) {
   const [selected, setSelected] = useState('Allow user to choose');
   const [session, setSession] = useState('Let Signer Choose');
-  const [selectedTimezone, setSelectedTimezone] = useState(''); // Default value
-  const timezoneOptions = moment.tz.names();
-  const handleTimezoneSelect = timezone => {
-    setSelectedTimezone(timezone);
-  };
-
   const [fileResponse, setFileResponse] = useState([]);
-
+  const [currentDate, setCurrentDate] = useState();
   const handleDocumentSelection = useCallback(async () => {
     try {
       const response = await DocumentPicker.pick({
@@ -43,6 +39,20 @@ export default function AgentSessionInviteScreen({navigation}) {
       console.warn(err);
     }
   }, []);
+  function add15MinutesAndFormat() {
+    const currentTime = moment();
+    const updatedTime = currentTime.add(15, 'minutes');
+    const formattedTime = updatedTime.format('h:mm A / DD-MMM-YYYY');
+    setCurrentDate(formattedTime);
+  }
+  const handleNotarizeNow = () => {
+    setSession('Notarize Now');
+    add15MinutesAndFormat();
+  };
+  const handleSchedule = () => {
+    setCurrentDate('');
+    setSession('Schedule for Later');
+  };
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader Switch={true} />
@@ -52,22 +62,33 @@ export default function AgentSessionInviteScreen({navigation}) {
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
-          contentContainerStyle={{paddingVertical: heightToDp(5)}}>
-          <LabelTextInput
-            LabelTextInput="Client Name"
-            placeholder="Enter Name here"
-            Label={true}
-            labelStyle={{
-              color: Colors.TextColor,
-            }}
-          />
+          nestedScrollEnabled={true}
+          contentContainerStyle={{
+            paddingVertical: heightToDp(5),
+            marginHorizontal: widthToDp(3),
+          }}>
+          <View>
+            <ScrollView
+              horizontal={true}
+              contentContainerStyle={{
+                marginHorizontal: widthToDp(2),
+                marginBottom: heightToDp(2),
+              }}>
+              <DocumentDropDown />
+            </ScrollView>
+          </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Observers</Text>
-            <Text>
+            <Text style={styles.lightHeading}>
               An Observer is anyone with relevant information for all the
               signing that may need to be on the notarization session.
             </Text>
-            <View style={{marginTop: heightToDp(3), alignSelf: 'flex-start'}}>
+            <View
+              style={{
+                marginTop: heightToDp(3),
+                marginHorizontal: widthToDp(2),
+                alignSelf: 'flex-start',
+              }}>
               <MainButton
                 Title="Add Observer"
                 colors={[Colors.DisableColor, Colors.DisableColor]}
@@ -146,9 +167,9 @@ export default function AgentSessionInviteScreen({navigation}) {
             <Text style={styles.Heading}>Session Schedule</Text>
             <View style={styles.buttonBottom}>
               <MainButton
-                Title="Let Signer Choose"
+                Title="Notarize Now"
                 colors={
-                  session === 'Let Signer Choose'
+                  session === 'Notarize Now'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
@@ -160,24 +181,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() => setSession('Let Signer Choose')}
-              />
-              <MainButton
-                Title="Notirize Now"
-                colors={
-                  session === 'Notirize Now'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => setSession('Notirize Now')}
+                onPress={() => handleNotarizeNow()}
               />
               <MainButton
                 Title="Schedule for Later"
@@ -194,37 +198,19 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() => setSession('Schedule for Later')}
+                onPress={() => handleSchedule()}
               />
             </View>
           </View>
           <LabelTextInput
             LabelTextInput="Date & Time"
-            placeholder="Enter here"
+            placeholder="Enter Date & Time here"
             Label={true}
-            labelStyle={{
-              color: Colors.TextColor,
-            }}
+            defaultValue={currentDate}
+            editable={currentDate}
             leftImageSoucre={require('../../../../assets/calenderIcon.png')}
           />
-          <View style={styles.picker}>
-            <Picker
-              selectedValue={selectedTimezone}
-              onValueChange={handleTimezoneSelect}>
-              <Picker.Item
-                label="Select a timezone"
-                color={Colors.DullTextColor}
-              />
-              {timezoneOptions.map((timezone, index) => (
-                <Picker.Item
-                  key={index}
-                  label={timezone}
-                  value={timezone}
-                  color={Colors.DullTextColor}
-                />
-              ))}
-            </Picker>
-          </View>
+
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Document</Text>
             <TouchableOpacity
@@ -270,7 +256,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.DisableColor,
     width: widthToDp(90),
-    marginHorizontal: widthToDp(5),
     marginVertical: widthToDp(5),
     borderRadius: 15,
   },
@@ -278,11 +263,16 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
+    marginHorizontal: widthToDp(3),
+  },
+  lightHeading: {
+    color: Colors.TextColor,
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Manrope-Regular',
+    marginHorizontal: widthToDp(3),
   },
   headingContainer: {
-    marginLeft: widthToDp(5),
     marginVertical: widthToDp(5),
-    // marginBottom: heightToDp(2),
   },
   insideHeading: {
     color: Colors.TextColor,
@@ -303,7 +293,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: heightToDp(2),
-    marginHorizontal: widthToDp(5),
   },
   iconContainer: {
     alignContent: 'center',
@@ -312,7 +301,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   insideText: {
-    marginHorizontal: widthToDp(3),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
@@ -322,13 +310,11 @@ const styles = StyleSheet.create({
     height: heightToDp(5),
   },
   preference: {
-    marginLeft: widthToDp(4),
     marginVertical: widthToDp(1),
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
   },
   detail: {
-    marginLeft: widthToDp(2),
     marginVertical: widthToDp(2),
     fontSize: widthToDp(4),
     color: Colors.DullTextColor,
@@ -340,7 +326,6 @@ const styles = StyleSheet.create({
   addressView: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: widthToDp(4),
   },
   buttonBottom: {
     flexDirection: 'row',
@@ -349,6 +334,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     rowGap: widthToDp(2),
     columnGap: heightToDp(1),
+    marginHorizontal: widthToDp(2),
   },
   buttonFlex: {
     flexDirection: 'row',
