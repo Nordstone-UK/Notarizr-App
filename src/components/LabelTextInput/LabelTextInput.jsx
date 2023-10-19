@@ -41,7 +41,7 @@ export default function LabelTextInput(props) {
         <TextInput
           onFocus={handleFocus}
           onBlur={handleBlur}
-          editable={!props.editable}
+          editable={!props.editable || true}
           style={[styles.input, props.InputStyles]}
           keyboardType={props.keyboardType || 'default'}
           secureTextEntry={secureText || false}

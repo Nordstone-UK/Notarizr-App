@@ -21,12 +21,14 @@ import {Picker} from '@react-native-picker/picker';
 import DocumentPicker, {types} from 'react-native-document-picker';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import DocumentDropDown from '../../../components/DocumentDropDown/DocumentDropDown';
+import ObserversModal from '../../../components/ModalComponent/ObserversModal';
 
 export default function AgentSessionInviteScreen({navigation}) {
   const [selected, setSelected] = useState('Allow user to choose');
   const [session, setSession] = useState('Let Signer Choose');
   const [fileResponse, setFileResponse] = useState([]);
   const [currentDate, setCurrentDate] = useState();
+  const [visible, setVisible] = useState(false);
   const handleDocumentSelection = useCallback(async () => {
     try {
       const response = await DocumentPicker.pick({
@@ -55,7 +57,7 @@ export default function AgentSessionInviteScreen({navigation}) {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <AgentHomeHeader Switch={true} />
+      {/* <AgentHomeHeader Switch={true} /> */}
       <View style={styles.headingContainer}>
         <Text style={styles.Heading}>Invite Signer</Text>
       </View>
@@ -91,7 +93,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               }}>
               <MainButton
                 Title="Add Observer"
-                colors={[Colors.DisableColor, Colors.DisableColor]}
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 GradiStyles={{
                   paddingVertical: heightToDp(1),
                   paddingHorizontal: widthToDp(5),
@@ -100,6 +102,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
+                onPress={() => setVisible(true)}
               />
             </View>
           </View>
@@ -210,7 +213,6 @@ export default function AgentSessionInviteScreen({navigation}) {
             editable={currentDate}
             leftImageSoucre={require('../../../../assets/calenderIcon.png')}
           />
-
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Document</Text>
             <TouchableOpacity
@@ -238,6 +240,10 @@ export default function AgentSessionInviteScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
+      <ObserversModal
+        modalVisible={visible}
+        setModalVisible={bool => setVisible(bool)}
+      />
     </SafeAreaView>
   );
 }
