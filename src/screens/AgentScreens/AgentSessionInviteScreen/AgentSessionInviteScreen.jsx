@@ -29,6 +29,235 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [fileResponse, setFileResponse] = useState([]);
   const [currentDate, setCurrentDate] = useState();
   const [visible, setVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState();
+  const [selectedDocument, setSelectedDocument] = useState();
+  const categoriesData = [
+    {
+      _id: '650c6794d57205424f7a614c',
+      name: 'Non-legal Documents',
+      status: 'active',
+      document: [],
+      createdAt: '2023-09-21T15:56:04.826Z',
+      updatedAt: '2023-09-21T16:24:15.889Z',
+    },
+    {
+      _id: '651ede7d6ab4a249f610ffe9',
+      name: 'Business Documents',
+      status: 'active',
+      document: [
+        {
+          _id: '652ea91edc12d33d1e9bd7d5',
+          name: 'Liquidity Documents',
+          price: null,
+          image: '',
+          createdAt: '2023-10-17T15:32:46.321Z',
+          updatedAt: '2023-10-17T15:32:46.321Z',
+          statePrices: [],
+        },
+      ],
+      createdAt: '2023-10-05T16:04:13.483Z',
+      updatedAt: '2023-10-17T15:32:46.336Z',
+    },
+    {
+      _id: '651ede9e6ab4a249f610fffd',
+      name: 'Real Estate Documents',
+      status: 'active',
+      document: [],
+      createdAt: '2023-10-05T16:04:46.824Z',
+      updatedAt: '2023-10-05T16:05:25.254Z',
+    },
+    {
+      _id: '651edeab6ab4a249f6110005',
+      name: 'Medical Documents',
+      status: 'active',
+      document: [],
+      createdAt: '2023-10-05T16:04:59.215Z',
+      updatedAt: '2023-10-05T16:05:25.339Z',
+    },
+    {
+      _id: '651edebe6ab4a249f611000d',
+      name: 'Legal Documents',
+      status: 'active',
+      document: [],
+      createdAt: '2023-10-05T16:05:18.753Z',
+      updatedAt: '2023-10-05T16:05:25.693Z',
+    },
+    {
+      _id: '65203a1d34ca6d905bb60c7c',
+      name: 'Affiliate Documents',
+      status: 'active',
+      document: [
+        {
+          _id: '65242e67d9bff38ab0a83aaa',
+          name: 'Health documents',
+          price: null,
+          image: 'image/',
+          createdAt: null,
+          updatedAt: null,
+          statePrices: [],
+        },
+        {
+          _id: '6528298f7d558ecff4eaa737',
+          name: 'New Docs 2',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:14:55.147Z',
+          updatedAt: '2023-10-12T17:14:55.147Z',
+          statePrices: [],
+        },
+        {
+          _id: '652829957d558ecff4eaa73a',
+          name: 'New Docs 2',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:15:01.158Z',
+          updatedAt: '2023-10-12T17:15:01.158Z',
+          statePrices: [],
+        },
+        {
+          _id: '652829dc7d558ecff4eaa746',
+          name: 'Test 001',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:16:12.347Z',
+          updatedAt: '2023-10-12T17:16:12.347Z',
+          statePrices: [],
+        },
+        {
+          _id: '65282a347d558ecff4eaa749',
+          name: 'Technical Documents',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:17:40.890Z',
+          updatedAt: '2023-10-12T17:17:40.890Z',
+          statePrices: [],
+        },
+        {
+          _id: '65282a7b7d558ecff4eaa74c',
+          name: 'Technical Documents',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:18:51.526Z',
+          updatedAt: '2023-10-12T17:18:51.526Z',
+          statePrices: [],
+        },
+        {
+          _id: '65282b057d558ecff4eaa755',
+          name: 'New Docs',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:21:09.005Z',
+          updatedAt: '2023-10-12T17:21:09.005Z',
+          statePrices: [],
+        },
+        {
+          _id: '65282b197d558ecff4eaa759',
+          name: 'Docssss',
+          price: null,
+          image: '',
+          createdAt: '2023-10-12T17:21:29.940Z',
+          updatedAt: '2023-10-12T17:21:29.940Z',
+          statePrices: [],
+        },
+      ],
+      createdAt: '2023-10-06T16:47:25.251Z',
+      updatedAt: '2023-10-12T17:57:24.797Z',
+    },
+    {
+      _id: '65258592781d7a0cfcb8d9a4',
+      name: 'Immigration Documents',
+      status: 'active',
+      document: [
+        {
+          _id: '652ff97b8834bf181d71ea35',
+          name: 'Child Support',
+          price: null,
+          image: '',
+          createdAt: '2023-10-18T15:27:55.533Z',
+          updatedAt: '2023-10-18T17:09:30.477Z',
+          statePrices: [
+            {
+              state: 'California',
+              price: 23,
+            },
+            {
+              state: 'Connecticut',
+              price: 43,
+            },
+            {
+              state: 'Arkansas',
+              price: 90,
+            },
+            {
+              state: 'Oklahoma',
+              price: 100,
+            },
+            {
+              state: 'Washington',
+              price: 132,
+            },
+          ],
+        },
+        {
+          _id: '652ffcc18834bf181d71ea59',
+          name: 'Affidavit',
+          price: null,
+          image: '',
+          createdAt: '2023-10-18T15:41:53.129Z',
+          updatedAt: '2023-10-18T15:41:53.129Z',
+          statePrices: [
+            {
+              state: 'Arizona',
+              price: 323,
+            },
+            {
+              state: 'California',
+              price: 323,
+            },
+            {
+              state: 'Florida',
+              price: 545,
+            },
+          ],
+        },
+        {
+          _id: '652fff258834bf181d71ea69',
+          name: 'Annuity Doc',
+          price: null,
+          image: '',
+          createdAt: '2023-10-18T15:52:05.757Z',
+          updatedAt: '2023-10-18T15:52:05.757Z',
+          statePrices: [
+            {
+              state: 'Florida',
+              price: 234,
+            },
+            {
+              state: 'California',
+              price: 3254,
+            },
+            {
+              state: 'Louisiana',
+              price: 323,
+            },
+            {
+              state: 'Hawaii',
+              price: 434,
+            },
+            {
+              state: 'Arizona',
+              price: 435,
+            },
+          ],
+        },
+      ],
+      createdAt: '2023-10-10T17:10:42.269Z',
+      updatedAt: '2023-10-18T15:52:05.962Z',
+    },
+  ];
+  const selectedCategoryData = categoriesData.find(
+    category => category.name === selectedCategory,
+  );
   const handleDocumentSelection = useCallback(async () => {
     try {
       const response = await DocumentPicker.pick({
@@ -76,8 +305,46 @@ export default function AgentSessionInviteScreen({navigation}) {
                 marginHorizontal: widthToDp(2),
                 marginBottom: heightToDp(2),
               }}>
-              <DocumentDropDown />
+              <DocumentDropDown placeholder={'Search Client by Email'} />
             </ScrollView>
+          </View>
+          <View style={{flex: 1, justifyContent: 'center'}}>
+            <Picker
+              selectedValue={selectedCategory}
+              onValueChange={itemValue => {
+                setSelectedCategory(itemValue);
+                setSelectedDocument(null);
+              }}
+              style={{
+                borderWidth: 5,
+                borderColor: 'orange',
+                marginBottom: 20,
+              }}>
+              <Picker.Item label="Select Category" value={null} />
+              {categoriesData.map(category => (
+                <Picker.Item
+                  key={category._id}
+                  label={category.name}
+                  value={category.name}
+                />
+              ))}
+            </Picker>
+
+            {selectedCategoryData && (
+              <Picker
+                selectedValue={selectedDocument}
+                style={{borderWidth: 2, borderColor: 'orange'}}
+                onValueChange={itemValue => setSelectedDocument(itemValue)}>
+                <Picker.Item label="Select Document" value={null} />
+                {selectedCategoryData.document.map(document => (
+                  <Picker.Item
+                    key={document._id}
+                    label={document.name}
+                    value={document.name}
+                  />
+                ))}
+              </Picker>
+            )}
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Observers</Text>
@@ -252,6 +519,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  con: {
+    justifyContent: 'center',
+  },
+  picker: {
+    width: widthToDp(60),
+    marginTop: heightToDp(5),
+    borderWidth: 2,
+    borderColor: Colors.Orange,
   },
   lightHeading: {
     color: Colors.TextColor,

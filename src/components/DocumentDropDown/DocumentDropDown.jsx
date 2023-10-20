@@ -4,7 +4,7 @@ import SearchableDropdown from 'react-native-searchable-dropdown';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
-const DocumentDropdown = () => {
+const DocumentDropdown = props => {
   const documentData = [
     {
       name: 'Affidavit',
@@ -46,7 +46,7 @@ const DocumentDropdown = () => {
       resetValue={false}
       underlineColorAndroid="transparent"
       textInputProps={{
-        placeholder: 'Search by Email',
+        placeholder: props?.placeholder,
         underlineColorAndroid: 'transparent',
         style: {
           padding: widthToDp(4),

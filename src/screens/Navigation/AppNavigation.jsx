@@ -154,12 +154,13 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="AgentSessionInviteScreen"
+          initialRouteName="Splash_Screen"
           screenOptions={{
             headerShown: false,
           }}>
-          <Stack.Screen name="HomeScreen" component={TabNavigation} />
           <Stack.Screen name="Splash_Screen" component={Splash_Screen} />
+
+          <Stack.Screen name="HomeScreen" component={TabNavigation} />
           <Stack.Screen
             name="OnboardingScreen1"
             component={OnboardingScreen1}
