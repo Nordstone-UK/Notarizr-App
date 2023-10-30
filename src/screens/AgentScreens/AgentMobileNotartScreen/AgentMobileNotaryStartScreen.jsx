@@ -14,16 +14,16 @@ import DocumentComponent from '../../../components/DocumentComponent/DocumentCom
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
+import {useSelector} from 'react-redux';
 
 export default function AgentMobileNotaryStartScreen() {
+  const booking = useSelector(state => state.booking.booking);
+  // console.log(booking);
+  const {booked_by} = booking;
   const [notary, setNotary] = useState(true);
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader
-        Title="Booking"
-        midImg={require('../../../../assets/chatNavIcon.png')}
-        lastImg={require('../../../../assets/locationIcon.png')}
-      />
+      <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
@@ -50,15 +50,15 @@ export default function AgentMobileNotaryStartScreen() {
           </View>
           <View style={styles.flexContainer}>
             <Image
-              source={require('../../../../assets/clientIcon.png')}
-              style={{resizeMode: 'contain'}}
+              source={{uri: booked_by?.profile_picture}}
+              style={styles.iconProfile}
             />
             <Text
               style={[
                 styles.Heading,
                 {marginHorizontal: widthToDp(5), fontSize: widthToDp(4.5)},
               ]}>
-              Bunny Joel
+              {booked_by?.first_name} {booked_by?.last_name}
             </Text>
           </View>
           <View style={styles.sheetContainer}>
@@ -71,9 +71,7 @@ export default function AgentMobileNotaryStartScreen() {
                 source={require('../../../../assets/locationIcon.png')}
                 style={styles.locationImage}
               />
-              <Text style={styles.detail}>
-                Legal building, James street, New York
-              </Text>
+              <Text style={styles.detail}>{booked_by?.location}</Text>
             </View>
             <View style={styles.addressView}>
               <Image
@@ -169,6 +167,12 @@ const styles = StyleSheet.create({
   greenIcon: {
     width: widthToDp(5),
     height: heightToDp(5),
+  },
+  iconProfile: {
+    width: widthToDp(15),
+    height: heightToDp(15),
+    marginRight: widthToDp(5),
+    borderRadius: 50,
   },
   preference: {
     marginLeft: widthToDp(4),

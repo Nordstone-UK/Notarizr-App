@@ -31,6 +31,8 @@ export default function MapScreen({route, navigation}) {
     handleGetLocation();
   }, []);
   const {agents, documents} = route.params;
+  console.log('agents', agents);
+
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
@@ -48,7 +50,7 @@ export default function MapScreen({route, navigation}) {
     });
   };
   const renderItem = ({item}) => {
-    console.log('item', item);
+    // console.log('item', item);
     return (
       <AgentReviewCard
         image={item?.image}
@@ -71,18 +73,25 @@ export default function MapScreen({route, navigation}) {
           <MapView
             zoomEnabled={true}
             region={{
-              latitude: location.latitude,
-              longitude: location.longitude,
+              latitude: 31.5080767,
+              longitude: 74.2865129,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
             showsUserLocation={true}
             provider={PROVIDER_GOOGLE}
             style={styles.map}>
-            <Marker
-              coordinate={{latitude: 31.512606, longitude: 74.286523}}
-              title={'Test'}
-            />
+            {agents.map(agent => (
+              <Marker
+                key={agent._id}
+                coordinate={{
+                  latitude: agent.current_location.coordinates[1],
+                  longitude: agent.current_location.coordinates[0],
+                }}
+                title={agent.first_name + ' ' + agent.last_name}
+                description={agent.location}
+              />
+            ))}
           </MapView>
         </>
       )}

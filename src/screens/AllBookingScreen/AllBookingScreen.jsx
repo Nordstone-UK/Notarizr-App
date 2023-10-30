@@ -26,11 +26,11 @@ export default function AllBookingScreen({route, navigation}) {
 
   const [booking, setBooking] = useState();
   useEffect(() => {
-    const init = async () => {
-      const bookingDetail = await fetchBookingInfo();
-      setBooking(bookingDetail.getBookings.bookings);
+    const init = async status => {
+      const bookingDetail = await fetchBookingInfo(status);
+      setBooking(bookingDetail);
     };
-    init();
+    init('pending');
   }, []);
   return (
     <SafeAreaView style={styles.container}>

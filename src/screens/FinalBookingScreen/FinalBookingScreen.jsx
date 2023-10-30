@@ -14,8 +14,12 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
+import {useSelector} from 'react-redux';
 
 export default function FinalBookingScreen({navigation}) {
+  const booking = useSelector(state => state.booking.booking);
+  // console.log(booking);
+  const {booked_by} = booking;
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -26,7 +30,7 @@ export default function FinalBookingScreen({navigation}) {
         </View>
         <BottomSheetStyle>
           <View style={styles.topFlexContainer}>
-            <Text style={styles.agent}>Selected Agent</Text>
+            <Text style={styles.agent}>Client details</Text>
             <View style={styles.iconFlex}>
               <Image
                 source={require('../../../assets/greenIcon.png')}
@@ -37,10 +41,12 @@ export default function FinalBookingScreen({navigation}) {
           </View>
           <View style={styles.nameContainer}>
             <Image
-              source={require('../../../assets/agentReview.png')}
+              source={{uri: booked_by?.profile_picture}}
               style={styles.iconProfile}
             />
-            <Text style={styles.agentName}>Advocate Mary Smith</Text>
+            <Text style={styles.agentName}>
+              {booked_by?.first_name} {booked_by?.last_name}
+            </Text>
           </View>
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
@@ -49,9 +55,7 @@ export default function FinalBookingScreen({navigation}) {
                 source={require('../../../assets/locationIcon.png')}
                 style={styles.locationImage}
               />
-              <Text style={styles.detail}>
-                Legal building, James street, New York
-              </Text>
+              <Text style={styles.detail}>{booked_by?.location}</Text>
             </View>
             <View style={styles.addressView}>
               <Image
@@ -147,6 +151,7 @@ const styles = StyleSheet.create({
     width: widthToDp(15),
     height: heightToDp(15),
     marginRight: widthToDp(5),
+    borderRadius: 50,
   },
   insideHeading: {
     color: Colors.TextColor,

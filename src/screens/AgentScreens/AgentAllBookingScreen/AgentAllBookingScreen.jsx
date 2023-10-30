@@ -2,22 +2,32 @@ import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
   View,
-  TouchableOpacity,
+  FlatList,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import Colors from '../../../themes/Colors';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
+import useFetchBooking from '../../../hooks/useFetchBooking';
+import {ScrollView} from 'react-native-virtualized-view';
 
 export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('Active');
-
+  const {fetchAgentBookingInfo} = useFetchBooking();
+  const [Booking, setBooking] = useState([]);
+  useEffect(() => {
+    const init = async status => {
+      const bookingDetail = await fetchAgentBookingInfo(status);
+      console.log(bookingDetail);
+      setBooking(bookingDetail);
+    };
+    init('pending');
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -107,7 +117,34 @@ export default function AgentAllBookingScreen({navigation}) {
               onPress={() => setIsFocused('Rejected')}
             />
           </View>
-          {isFocused === 'Active' && (
+          <View style={{flex: 1}}>
+            <FlatList
+              data={Booking.slice(0, 2)}
+              keyExtractor={item => item._id}
+              renderItem={({item}) => {
+                return (
+                  <ClientServiceCard
+                    image={require('../../../../assets/agentLocation.png')}
+                    source={{uri: item.booked_by.profile_picture}}
+                    bottomLeftText={item.document_type.price}
+                    agentName={
+                      item.booked_by.first_name + ' ' + item.booked_by.last_name
+                    }
+                    agentAddress={item.booked_by.location}
+                    task="Mobile"
+                    OrangeText="At Home"
+                    Button={true}
+                    onPress={() =>
+                      navigation.navigate('ClientDetailsScreen', {
+                        clientDetail: item,
+                      })
+                    }
+                  />
+                );
+              }}
+            />
+          </View>
+          {/* {isFocused === 'Active' && (
             <ClientServiceCard
               image={require('../../../../assets/agentLocation.png')}
               source={require('../../../../assets/maleAgentPic.png')}
@@ -185,7 +222,7 @@ export default function AgentAllBookingScreen({navigation}) {
               Work={true}
               Canceled={true}
             />
-          )}
+          )} */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

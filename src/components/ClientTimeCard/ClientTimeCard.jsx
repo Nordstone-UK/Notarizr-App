@@ -9,12 +9,7 @@ export default function ClientTimeCard(props) {
     SplashScreen.hide();
   }, []);
   return (
-    <View
-      style={{
-        flex: 1,
-        marginTop: heightToDp(5),
-        justifyContent: 'flex-end',
-      }}>
+    <View>
       <View
         style={[
           styles.ImageProces,

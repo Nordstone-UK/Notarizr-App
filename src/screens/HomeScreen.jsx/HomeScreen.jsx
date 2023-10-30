@@ -23,13 +23,13 @@ export default function HomeScreen({navigation}) {
   const {fetchBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState([]);
   useEffect(() => {
-    const init = async () => {
-      const bookingDetail = await fetchBookingInfo();
-      setBooking(bookingDetail.getBookings.bookings);
+    const init = async status => {
+      const bookingDetail = await fetchBookingInfo(status);
+      console.log(bookingDetail);
+      setBooking(bookingDetail);
     };
-    init();
+    init('pending');
   }, []);
-  // console.log(Booking);
   const openLinkInBrowser = () => {
     const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
     Linking.openURL(url).catch(err =>

@@ -17,8 +17,16 @@ import GradientButton from '../../../components/MainGradientButton/GradientButto
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
 
 import ModalCheck from '../../../components/ModalComponent/ModalCheck';
+import useBookingStatus from '../../../hooks/useBookingStatus';
 
-export default function AgentMobileNotaryStartScreen({navigation}) {
+export default function AgentMobileNotaryStartScreen({route, navigation}) {
+  const {clientDetail} = route.params;
+  console.log('clientDetail:', clientDetail._id);
+  const capitalizeFirstLetter = string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+  const {handleUpdateBookingStatus} = useBookingStatus();
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -34,14 +42,22 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
 
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
-            source={require('../../../../assets/maleAgentPic.png')}
-            bottomLeftText="$400"
-            agentName={'Bunny Joel'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
+            source={{uri: clientDetail.booked_by.profile_picture}}
+            bottomLeftText={clientDetail.document_type.price}
+            agentName={
+              clientDetail.booked_by.first_name +
+              ' ' +
+              clientDetail.booked_by.last_name
+            }
+            agentAddress={clientDetail.booked_by.location}
             task="Mobile"
             OrangeText="At Home"
-            Work={true}
-            WorkStatus="Completed"
+            onPress={() =>
+              navigation.navigate('ClientDetailsScreen', {
+                clientDetail: clientDetail,
+              })
+            }
+            status={clientDetail.status}
           />
           <View style={styles.sheetContainer}>
             <Text
@@ -54,7 +70,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                Legal building, James street, New York
+                {clientDetail?.booked_by?.location}
               </Text>
             </View>
             <View style={styles.addressView}>
@@ -62,8 +78,23 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 source={require('../../../../assets/calenderIcon.png')}
                 style={styles.locationImage}
               />
-              <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
+              <Text style={styles.detail}>
+                Start Time: {clientDetail?.service?.availability.startTime}
+              </Text>
+              <Text style={styles.detail}>
+                End Time: {clientDetail?.service?.availability.endTime}
+              </Text>
             </View>
+            <Text style={styles.preference}>WeekDays:</Text>
+            <Text style={styles.preference}>
+              {clientDetail?.service?.availability.weekdays?.map(
+                (day, index) => (
+                  <Text key={index} style={styles.dayText}>
+                    {capitalizeFirstLetter(day)}{' '}
+                  </Text>
+                ),
+              )}
+            </Text>
             <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
@@ -80,7 +111,9 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
           <MainButton
             Title="Accept"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() => navigation.navigate('AgentBookCompletion')}
+            onPress={() =>
+              handleUpdateBookingStatus('accepted', clientDetail._id)
+            }
             GradiStyles={{
               width: widthToDp(40),
               paddingHorizontal: widthToDp(0),
@@ -95,7 +128,9 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
           <MainButton
             Title="Reject"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() => navigation.goBack()} //<-- Navigate to next page
+            onPress={() =>
+              handleUpdateBookingStatus('rejected', clientDetail._id)
+            }
             GradiStyles={{
               width: widthToDp(40),
               paddingHorizontal: widthToDp(0),
