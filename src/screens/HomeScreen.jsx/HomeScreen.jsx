@@ -71,7 +71,7 @@ export default function HomeScreen({navigation}) {
               <TouchableOpacity
                 onPress={() => navigation.navigate('LegalDocScreen')}>
                 <Image
-                  source={require('../../../assets/legalDocIcon.png')}
+                  source={require('../../../assets/Group1.png')}
                   style={{
                     width: widthToDp(60),
                     height: heightToDp(30),
@@ -82,7 +82,7 @@ export default function HomeScreen({navigation}) {
               <TouchableOpacity
                 onPress={() => navigation.navigate('RealEstateDocScreen')}>
                 <Image
-                  source={require('../../../assets/estateDocIcon.png')}
+                  source={require('../../../assets/Group2.png')}
                   style={{
                     width: widthToDp(30),
                     height: heightToDp(30),
@@ -95,7 +95,7 @@ export default function HomeScreen({navigation}) {
               <TouchableOpacity
                 onPress={() => navigation.navigate('MedicalDocScreen')}>
                 <Image
-                  source={require('../../../assets/medicalDocIcon.png')}
+                  source={require('../../../assets/Group3.png')}
                   style={{
                     width: widthToDp(30),
                     height: heightToDp(30),
@@ -106,7 +106,7 @@ export default function HomeScreen({navigation}) {
               <TouchableOpacity
                 onPress={() => navigation.navigate('BusinessDocScreen')}>
                 <Image
-                  source={require('../../../assets/businessDocIcon.png')}
+                  source={require('../../../assets/Group4.png')}
                   style={{
                     width: widthToDp(60),
                     height: heightToDp(30),
