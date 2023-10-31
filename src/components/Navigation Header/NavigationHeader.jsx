@@ -29,10 +29,11 @@ export default function NavigationHeader(props) {
         <View
           style={[
             styles.Flexcontainer,
-            props.ProfilePic && {
-              marginLeft: widthToDp(1.5),
-              justifyContent: 'space-around',
-            },
+            props.ProfilePic &&
+              {
+                // marginLeft: widthToDp(1.5),
+                // justifyContent: 'space-around',
+              },
           ]}>
           <Text style={styles.naveheader}>{props?.Title}</Text>
           <View style={styles.iconContainer}>
@@ -83,7 +84,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '90%',
     marginLeft: widthToDp(3),
   },
   iconContainer: {
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
   },
   profilePic: {
     marginLeft: widthToDp(2),
-
     width: widthToDp(10),
     height: heightToDp(10),
+    borderRadius: 25,
   },
 });

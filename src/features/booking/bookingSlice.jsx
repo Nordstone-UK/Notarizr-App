@@ -3,6 +3,7 @@ import {createSlice} from '@reduxjs/toolkit';
 const initialState = {
   booking: [],
   coordinates: [],
+  user: [],
 };
 
 export const bookingSlice = createSlice({
@@ -17,9 +18,14 @@ export const bookingSlice = createSlice({
       state.coordinates = action.payload;
       console.log('coordinates Info Set in Redux', state.coordinates);
     },
+    setUser: (state, action) => {
+      state.user = action.payload;
+      console.log('user Info Set in Redux', state.user);
+    },
   },
 });
 
-export const {setBookingInfoState, setCoordinates} = bookingSlice.actions;
+export const {setBookingInfoState, setCoordinates, setUser} =
+  bookingSlice.actions;
 
 export default bookingSlice.reducer;

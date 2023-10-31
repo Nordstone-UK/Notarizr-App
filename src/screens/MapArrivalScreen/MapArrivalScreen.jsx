@@ -21,7 +21,7 @@ import useBookingStatus from '../../hooks/useBookingStatus';
 export default function MapArrivalScreen({navigation}, props) {
   const [location, setLocation] = useState();
   const [loading, setLoading] = useState(false);
-  const clientData = useSelector(state => state.booking.booking);
+  const clientData = useSelector(state => state.booking.user);
   const coordinates = useSelector(state => state.booking.coordinates);
   const user = useSelector(state => state.user.user.account_type);
   const handleGetLocation = async () => {
@@ -35,7 +35,6 @@ export default function MapArrivalScreen({navigation}, props) {
   };
   useEffect(() => {
     handleGetLocation();
-    // console.log('Displaying', location, coordinates, user);
   }, []);
   const getLocation = () => {
     return new Promise((resolve, reject) => {

@@ -23,7 +23,9 @@ import {useDispatch} from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
+  setUser,
 } from '../../features/booking/bookingSlice';
+import {useStripe} from '@stripe/stripe-react-native';
 
 export default function AllBookingScreen({route, navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
@@ -46,9 +48,9 @@ export default function AllBookingScreen({route, navigation}) {
     navigation.navigate('MedicalBookingScreen', {
       item: item,
     });
-    console.log('Redux sending item: ', item.agent);
-    dispatch(setBookingInfoState(item?.agent));
+    dispatch(setBookingInfoState(item));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
+    dispatch(setUser(item?.agent));
   };
   return (
     <SafeAreaView style={styles.container}>

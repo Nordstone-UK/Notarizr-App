@@ -207,6 +207,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   padding: widthToDp(0),
                   fontSize: widthToDp(6),
                 }}
+                onPress={() => navigation.navigate('PaymentScreen')}
               />
             )}
           </View>
