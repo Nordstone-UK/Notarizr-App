@@ -29,7 +29,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const {handlegetBookingStatus} = useBookingStatus();
   const payment = useSelector(state => state.payment.payment);
   const item = route.params.item;
-  console.log('item', item);
+  // console.log('item', item);
   const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [status, setStatus] = useState();
@@ -49,7 +49,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   const getBookingStatus = async () => {
     try {
       const status = await handlegetBookingStatus(item._id);
-      // setNotary(capitalizeFirstLetter(status));
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
       console.error('Error retrieving booking status:', error);
@@ -86,10 +85,17 @@ export default function MedicalBookingScreen({route, navigation}) {
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>Selected agent</Text>
             <View style={styles.iconContainer}>
-              <Image
-                source={require('../../../assets/greenIcon.png')}
-                style={styles.greenIcon}
-              />
+              {status === 'Pending' ? (
+                <Image
+                  source={require('../../../assets/pending.png')}
+                  style={styles.greenIcon}
+                />
+              ) : (
+                <Image
+                  source={require('../../../assets/greenIcon.png')}
+                  style={styles.greenIcon}
+                />
+              )}
               <Text style={styles.insideText}>{status}</Text>
             </View>
           </View>
@@ -158,59 +164,64 @@ export default function MedicalBookingScreen({route, navigation}) {
               Please provide us with your booking preferences
             </Text>
           </View>
-          <View style={styles.buttonFlex}>
-            {status !== 'Completed' ? (
-              <>
-                <MainButton
-                  Title="Chat"
+          {status === 'Pending' ? null : (
+            <View style={styles.buttonFlex}>
+              {status !== 'Completed' ? (
+                <>
+                  <MainButton
+                    Title="Chat"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      width: widthToDp(40),
+                      paddingVertical: widthToDp(2),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(5),
+                    }}
+                    onPress={() => navigation.navigate('ChatScreen')}
+                  />
+                  <MainButton
+                    Title="Track"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      width: widthToDp(40),
+                      paddingVertical: widthToDp(2),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(5),
+                    }}
+                    onPress={() => navigation.navigate('MapArrivalScreen')}
+                  />
+                </>
+              ) : (
+                <GradientButton
+                  Title="Make Payment"
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
                   ]}
                   GradiStyles={{
-                    width: widthToDp(40),
-                    paddingVertical: widthToDp(2),
+                    width: widthToDp(90),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
                   }}
                   styles={{
                     padding: widthToDp(0),
-                    fontSize: widthToDp(5),
+                    fontSize: widthToDp(6),
                   }}
-                  onPress={() => navigation.navigate('ChatScreen')}
+                  onPress={() => navigation.navigate('PaymentScreen')}
                 />
-                <MainButton
-                  Title="Track"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{
-                    width: widthToDp(40),
-                    paddingVertical: widthToDp(2),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(5),
-                  }}
-                  onPress={() => navigation.navigate('MapArrivalScreen')}
-                />
-              </>
-            ) : (
-              <GradientButton
-                Title="Make Payment"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  width: widthToDp(90),
-                  paddingVertical: widthToDp(4),
-                  marginTop: widthToDp(10),
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  fontSize: widthToDp(6),
-                }}
-                onPress={() => navigation.navigate('PaymentScreen')}
-              />
-            )}
-          </View>
+              )}
+            </View>
+          )}
         </ScrollView>
         {isVisible ? (
           <BottomSheet modalProps={{}} isVisible={isVisible}>

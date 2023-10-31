@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  Alert,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
@@ -17,45 +17,62 @@ import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useSelector} from 'react-redux';
 import {useStripe} from '@stripe/stripe-react-native';
+import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
-  console.log('bookingDetail', bookingDetail);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
-  const initializePaymentSheet = async () => {
-    const {paymentIntent, ephemeralKey, customer, publishableKey} =
-      await fetchPaymentSheetParams();
 
+  const initializePaymentSheet = async () => {
+    setLoading(true);
+    const response = await fetchPaymentSheetParams(
+      bookingDetail?.document_type?.price * 100,
+      bookingDetail._id,
+    );
+    const {customer_id, ephemeralKey, paymentIntent} =
+      response?.data?.createPaymentIntentR;
+    console.log(
+      'Payment Intent response',
+      customer_id,
+      ephemeralKey,
+      paymentIntent,
+    );
     const {error} = await initPaymentSheet({
       merchantDisplayName: 'Example, Inc.',
-      customerId: customer,
+      customerId: customer_id,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
       // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
       //methods that complete payment after a delay, like SEPA Debit and Sofort.
-      allowsDelayedPaymentMethods: true,
+      // allowsDelayedPaymentMethods: true,
       defaultBillingDetails: {
         name: 'Jane Doe',
       },
     });
     if (!error) {
       setLoading(true);
+      console.log('error', error);
     }
+    setLoading(false);
   };
-
   const openPaymentSheet = async () => {
+    setLoading(true);
     const {error} = await presentPaymentSheet();
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('error.message', error.message);
     } else {
       Alert.alert('Success', 'Your order is confirmed!');
+      navigation.navigate('HomeScreen');
     }
+    setLoading(false);
   };
 
-  // useEffect(() => {
-  //   initializePaymentSheet();
-  // }, []);
+  useEffect(() => {
+    initializePaymentSheet();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Payment Method" />
@@ -141,7 +158,8 @@ export default function PaymentScreen({navigation}) {
             <GradientButton
               Title="Complete Payment"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => navigation.navigate('PaymentCompletionScreen')}
+              onPress={() => openPaymentSheet()}
+              loading={loading}
             />
           </View>
         </ScrollView>

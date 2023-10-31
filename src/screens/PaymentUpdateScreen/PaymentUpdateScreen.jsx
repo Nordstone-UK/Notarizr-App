@@ -20,11 +20,11 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {hairlineWidth} from 'react-native-extended-stylesheet';
-import useStripe from '../../hooks/useStripe';
 import {useSelector} from 'react-redux';
+import useStripeApi from '../../hooks/useStripeApi';
 
 export default function PaymentUpdateScreen({navigation}, props) {
-  const {handleStripeCreation} = useStripe();
+  const {handleStripeCreation} = useStripeApi();
 
   useEffect(() => {
     SplashScreen.hide();

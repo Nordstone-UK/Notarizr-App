@@ -15,12 +15,18 @@ import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import {Linking} from 'react-native';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ScrollView} from 'react-native-virtualized-view';
 import useFetchBooking from '../../hooks/useFetchBooking';
+import {
+  setBookingInfoState,
+  setCoordinates,
+  setUser,
+} from '../../features/booking/bookingSlice';
 
 export default function HomeScreen({navigation}) {
   const {fetchBookingInfo} = useFetchBooking();
+  const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
   useEffect(() => {
     const init = async status => {
@@ -35,6 +41,14 @@ export default function HomeScreen({navigation}) {
     Linking.openURL(url).catch(err =>
       console.error('An error occurred: ', err),
     );
+  };
+  const handleAgentData = item => {
+    navigation.navigate('MedicalBookingScreen', {
+      item: item,
+    });
+    dispatch(setBookingInfoState(item));
+    dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
+    dispatch(setUser(item?.agent));
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -129,21 +143,23 @@ export default function HomeScreen({navigation}) {
               keyExtractor={item => item._id}
               renderItem={({item}) => {
                 return (
-                  <AgentCard
-                    source={{uri: item.agent.profile_picture}}
-                    bottomRightText="$400"
-                    bottomLeftText="Total"
-                    image={require('../../../assets/agentLocation.png')}
-                    agentName={
-                      item.agent.first_name + ' ' + item.agent.last_name
-                    }
-                    agentAddress={item.agent.location}
-                    task={item.status}
-                    OrangeText={'At Office'}
-                    dateofBooking={item.date_of_booking}
-                    timeofBooking={item.time_of_booking}
-                    createdAt={item.createdAt}
-                  />
+                  <TouchableOpacity onPress={() => handleAgentData(item)}>
+                    <AgentCard
+                      source={{uri: item.agent.profile_picture}}
+                      bottomRightText="$400"
+                      bottomLeftText="Total"
+                      image={require('../../../assets/agentLocation.png')}
+                      agentName={
+                        item.agent.first_name + ' ' + item.agent.last_name
+                      }
+                      agentAddress={item.agent.location}
+                      task={item.status}
+                      OrangeText={'At Office'}
+                      dateofBooking={item.date_of_booking}
+                      timeofBooking={item.time_of_booking}
+                      createdAt={item.createdAt}
+                    />
+                  </TouchableOpacity>
                 );
               }}
             />

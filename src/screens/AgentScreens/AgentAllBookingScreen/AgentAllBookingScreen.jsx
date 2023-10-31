@@ -17,17 +17,23 @@ import useFetchBooking from '../../../hooks/useFetchBooking';
 import {ScrollView} from 'react-native-virtualized-view';
 
 export default function AgentAllBookingScreen({navigation}) {
-  const [isFocused, setIsFocused] = useState('Active');
+  const [isFocused, setIsFocused] = useState('accepted');
   const {fetchAgentBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState([]);
+
+  const init = async status => {
+    const bookingDetail = await fetchAgentBookingInfo(status);
+    console.log(bookingDetail);
+    setBooking(bookingDetail);
+  };
   useEffect(() => {
-    const init = async status => {
-      const bookingDetail = await fetchAgentBookingInfo(status);
-      console.log(bookingDetail);
-      setBooking(bookingDetail);
-    };
-    init('pending');
+    init('accepted');
   }, []);
+  const callBookingsAPI = async status => {
+    setBooking(null);
+    setIsFocused(status);
+    init(status);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -39,87 +45,116 @@ export default function AgentAllBookingScreen({navigation}) {
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              alignContent: 'center',
-              marginBottom: widthToDp(2),
-            }}>
-            <MainButton
-              Title="Active"
-              colors={
-                isFocused === 'Active'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Active'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => setIsFocused('Active')}
-            />
-            <MainButton
-              Title="Completed"
-              colors={
-                isFocused === 'Complete'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Complete'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => setIsFocused('Complete')}
-            />
-            <MainButton
-              Title="Rejected"
-              colors={
-                isFocused === 'Rejected'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Rejected'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => setIsFocused('Rejected')}
-            />
-          </View>
+          <ScrollView
+            horizontal={true}
+            contentContainerStyle={{}}
+            showsHorizontalScrollIndicator={false}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                alignContent: 'center',
+                columnGap: widthToDp(5),
+                marginHorizontal: widthToDp(5),
+              }}>
+              <MainButton
+                Title="Active"
+                colors={
+                  isFocused === 'accepted'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'accepted'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('accepted')}
+              />
+              <MainButton
+                Title="Pending"
+                colors={
+                  isFocused === 'pending'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'pending'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('pending')}
+              />
+              <MainButton
+                Title="Completed"
+                colors={
+                  isFocused === 'completed'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'completed'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('completed')}
+              />
+              <MainButton
+                Title="Rejected"
+                colors={
+                  isFocused === 'rejected'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'rejected'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('rejected')}
+              />
+            </View>
+          </ScrollView>
           <View style={{flex: 1}}>
             <FlatList
-              data={Booking.slice(0, 2)}
+              data={Booking}
               keyExtractor={item => item._id}
               renderItem={({item}) => {
                 return (
