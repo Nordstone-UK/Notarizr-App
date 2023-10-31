@@ -13,24 +13,29 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
-import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import {useSelector} from 'react-redux';
+import useBookingStatus from '../../hooks/useBookingStatus';
 
 export default function MapArrivalScreen({navigation}, props) {
-  const [location, setLocation] = useState(null);
-
+  const [location, setLocation] = useState();
+  const [loading, setLoading] = useState(false);
+  const clientData = useSelector(state => state.booking.booking);
+  const coordinates = useSelector(state => state.booking.coordinates);
+  const user = useSelector(state => state.user.user.account_type);
   const handleGetLocation = async () => {
     try {
       const coordinates = await getLocation();
-      console.log('coordinates', coordinates);
+      // console.log('coordinates', coordinates);
       setLocation(coordinates);
     } catch (error) {
       console.log(error);
     }
   };
-
   useEffect(() => {
     handleGetLocation();
+    // console.log('Displaying', location, coordinates, user);
   }, []);
   const getLocation = () => {
     return new Promise((resolve, reject) => {
@@ -48,6 +53,7 @@ export default function MapArrivalScreen({navigation}, props) {
       );
     });
   };
+
   return (
     <SafeAreaView style={styles.container}>
       {location && (
@@ -62,30 +68,49 @@ export default function MapArrivalScreen({navigation}, props) {
           provider={PROVIDER_GOOGLE}
           showsUserLocation={true}
           style={styles.map}>
-          {/* {agents.map(agent => (
-          <Marker
-            key={agent._id}
-            coordinate={{
-              latitude: agent.current_location.coordinates[1],
-              longitude: agent.current_location.coordinates[0],
-            }}
-            title={agent.first_name + ' ' + agent.last_name}
-            description={agent.location}
-          />
-        ))} */}
+          {coordinates && (
+            <>
+              <Marker
+                key={clientData?._id}
+                coordinate={{
+                  latitude: coordinates[1],
+                  longitude: coordinates[0],
+                }}
+                title={clientData?.first_name + ' ' + clientData?.last_name}
+                description={clientData?.location}
+              />
+              <Polyline
+                coordinates={[
+                  {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                  },
+                  {
+                    latitude: coordinates[1],
+                    longitude: coordinates[0],
+                  },
+                ]}
+                strokeWidth={3}
+                strokeColor="blue"
+              />
+            </>
+          )}
         </MapView>
       )}
       <NavigationHeader
-        Title="Brandon Roger"
-        ProfilePic={require('../../../assets/profileIcon.png')}
+        Title={clientData?.first_name + ' ' + clientData?.last_name}
+        ProfilePic={{uri: clientData?.profile_picture}}
       />
-      <View style={styles.button}>
-        <GradientButton
-          Title="Arriving by 1:30 PM"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={() => navigation.navigate('AgentMobileNotaryStartScreen')}
-        />
-      </View>
+      {user !== 'client' && (
+        <View style={styles.button}>
+          <GradientButton
+            Title="Arrived"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            loading={loading}
+            onPress={() => navigation.navigate('AgentMobileNotaryStartScreen')}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }

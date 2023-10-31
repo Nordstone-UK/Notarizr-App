@@ -15,7 +15,11 @@ export default function NavigationHeader(props) {
       ]}>
       <View style={styles.container}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() =>
+            props?.payment
+              ? navigation.navigate('HomeScreen')
+              : navigation.goBack()
+          }
           style={styles.touchContainer}>
           <Image source={require('../../../assets/backIcon.png')} />
         </TouchableOpacity>

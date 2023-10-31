@@ -23,6 +23,10 @@ export const GET_AGENT_BOOKING = gql`
           isVerified
           account_type
           online_status
+          current_location {
+            type
+            coordinates
+          }
         }
         service_type
         service {

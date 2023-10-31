@@ -34,7 +34,13 @@ export default function AgentTimeCard(props) {
     date = dateObject.getDate();
     time = props.timeofBooking.split(' - ')[0];
   }
+  function capitalizeFirstLetter(str) {
+    if (typeof str !== 'string' || str.length === 0) {
+      return str;
+    }
 
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
   return (
     <View>
       <View
@@ -43,23 +49,23 @@ export default function AgentTimeCard(props) {
           props.task && {
             backgroundColor: Colors.CardProcessColor,
           },
-          props.task === 'In Process' && {
+          props.task === 'accepted' && {
             backgroundColor: Colors.CardProcessColor,
           },
           props.task === 'Online' && {
             backgroundColor: Colors.DarkPink,
           },
-          props.task === 'Completed' && {
+          props.task === 'completed' && {
             backgroundColor: Colors.Green,
           },
           props.task === 'Rejected' && {
             backgroundColor: Colors.Red,
           },
-          props.task === 'Pending' && {
+          props.task === 'pending' && {
             backgroundColor: Colors.Orange,
           },
         ]}>
-        <Text style={styles.text}>{props.task}</Text>
+        <Text style={styles.text}>{capitalizeFirstLetter(props.task)}</Text>
       </View>
       <LinearGradient
         style={styles.dateContainer}

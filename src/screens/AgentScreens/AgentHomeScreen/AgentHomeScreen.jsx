@@ -19,7 +19,10 @@ import useFetchBooking from '../../../hooks/useFetchBooking';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ScrollView} from 'react-native-virtualized-view';
 import {useDispatch} from 'react-redux';
-import {setBookingInfoState} from '../../../features/booking/bookingSlice';
+import {
+  setBookingInfoState,
+  setCoordinates,
+} from '../../../features/booking/bookingSlice';
 
 export default function AgentHomeScreen({navigation}) {
   const openLinkInBrowser = () => {
@@ -41,7 +44,9 @@ export default function AgentHomeScreen({navigation}) {
   }, []);
   const handleNavigation = item => {
     navigation.navigate('ClientDetailsScreen', {clientDetail: item});
-    dispatch(setBookingInfoState(item));
+    console.log | ('Redux sending item: ', item);
+    dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
+    dispatch(setBookingInfoState(item.booked_by));
   };
   return (
     <SafeAreaView style={styles.container}>

@@ -23,6 +23,10 @@ export const GET_CLIENT_BOOKING = gql`
           isVerified
           account_type
           online_status
+          current_location {
+            type
+            coordinates
+          }
         }
         service_type
         service {
@@ -79,6 +83,10 @@ export const GET_CLIENT_BOOKING = gql`
           isVerified
           account_type
           online_status
+          current_location {
+            type
+            coordinates
+          }
         }
         preference_analysis
         status

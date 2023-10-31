@@ -1,14 +1,12 @@
-import {useMutation} from '@apollo/client';
+import {useLazyQuery, useMutation} from '@apollo/client';
 import {UPDATE_BOOKING_STATUS} from '../../request/mutations/updateBookingStatus.mutation';
-import {useState} from 'react';
+import {useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import {GET_BOOKING_STATUS} from '../../request/queries/getBookingStatus.query';
 const useBookingStatus = () => {
   const navigation = useNavigation();
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS);
-  const [bookingRequest, setBookingRequset] = useState({
-    bookingId: null,
-    status: null,
-  });
+  const [getBookingStatus] = useLazyQuery(GET_BOOKING_STATUS);
   const handleUpdateBookingStatus = async (status, id) => {
     const request = {
       variables: {
@@ -35,8 +33,26 @@ const useBookingStatus = () => {
       console.error(error);
     }
   };
-
-  return {handleUpdateBookingStatus, setBookingRequset};
+  const handlegetBookingStatus = async id => {
+    const request = {
+      variables: {
+        bookingId: id,
+      },
+    };
+    console.log('request for booking status', request);
+    try {
+      const response = await getBookingStatus(request);
+      console.log('response for Booking', response);
+      console.log(
+        'response for Booking Status',
+        response.data.getBookingStatus.booking_status,
+      );
+      return response.data.getBookingStatus.booking_status;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  return {handleUpdateBookingStatus, handlegetBookingStatus};
 };
 
 export default useBookingStatus;

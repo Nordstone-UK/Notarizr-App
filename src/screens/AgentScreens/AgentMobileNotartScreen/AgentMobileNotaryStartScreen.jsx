@@ -4,48 +4,135 @@ import {
   Text,
   ScrollView,
   View,
+  RefreshControl,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
+import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import useBookingStatus from '../../../hooks/useBookingStatus';
+import useRegister from '../../../hooks/useRegister';
+import {WorkDocs} from 'aws-sdk';
+import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
+import {BottomSheet} from '@rneui/base';
+import ReviewPopup from '../../../components/ReviewPopup/ReviewPopup';
+import {useFocusEffect} from '@react-navigation/native';
+import {paymentCheck} from '../../../features/review/reviewSlice';
 
-export default function AgentMobileNotaryStartScreen() {
+export default function AgentMobileNotaryStartScreen({navigation}) {
+  const {handlegetBookingStatus, handleUpdateBookingStatus} =
+    useBookingStatus();
+  const payment = useSelector(state => state.payment.payment);
+  const {uploadFiles} = useRegister();
   const booking = useSelector(state => state.booking.booking);
-  // console.log(booking);
+  console.log('booking id for API', booking?._id);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState();
   const {booked_by} = booking;
-  const [notary, setNotary] = useState(true);
+  const [notary, setNotary] = useState();
+  const [documents, setDocuments] = useState(null);
+  const [showNotes, setShowNotes] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const dispatch = useDispatch();
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsVisible(payment);
+    }, [payment]),
+  );
+
+  const handleReduxPayment = () => {
+    setIsVisible(false);
+    dispatch(paymentCheck());
+    navigation.navigate('HomeScreen');
+  };
+  function capitalizeFirstLetter(str) {
+    if (typeof str !== 'string' || str.length === 0) {
+      return str;
+    }
+
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  const getBookingStatus = async () => {
+    try {
+      const status = await handlegetBookingStatus(booking._id);
+      setNotary(capitalizeFirstLetter(status));
+      setStatus(capitalizeFirstLetter(status));
+    } catch (error) {
+      console.error('Error retrieving booking status:', error);
+    }
+  };
+  useEffect(() => {
+    getBookingStatus();
+    console.log('adwwadaawd', notary, status);
+  }, [status]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleStatusChange = async string => {
+    setLoading(true);
+    try {
+      await handleUpdateBookingStatus(string, booking?._id);
+      await getBookingStatus();
+    } catch (error) {
+      console.error('Error updating and fetching booking status:', error);
+    }
+    setLoading(false);
+  };
+  const selectDocuments = async () => {
+    const response = await uploadFiles();
+    setDocuments(response);
+    console.log('Uploaded Files', response);
+  };
+  const deleteDocument = () => {
+    setDocuments(null);
+  };
+  const handleNext = () => {
+    setNotary(null);
+    setShowNotes(true);
+  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+      console.log('Refreshing.....');
+    }, 2000);
+  }, []);
+  const handleRequestPayment = () => {
+    setShowNotes(false);
+    navigation.navigate('PaymentCompletionScreen');
+  };
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Booking" />
+      <NavigationHeader Title="Booking" payment={payment} />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView scrollEnabled={true}>
+        <ScrollView
+          scrollEnabled={true}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>Client details</Text>
             <View
               style={[
                 styles.iconContainer,
-                notary ? {width: widthToDp(30)} : {width: widthToDp(35)},
+                status !== 'Completed'
+                  ? {width: widthToDp(30)}
+                  : {width: widthToDp(35)},
               ]}>
               <Image
                 source={require('../../../../assets/greenIcon.png')}
                 style={{resizeMode: 'contain'}}
               />
-              {notary ? (
-                <Text style={styles.lightHeading}>Progress</Text>
-              ) : (
-                <Text style={styles.lightHeading}>Completed</Text>
-              )}
+              {status && <Text style={styles.lightHeading}>{status}</Text>}
             </View>
           </View>
           <View style={styles.flexContainer}>
@@ -90,23 +177,92 @@ export default function AgentMobileNotaryStartScreen() {
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
+            {documents && (
+              <DocumentComponent
+                Title="Picture ID"
+                image={require('../../../../assets/Pdf.png')}
+                onPress={() => deleteDocument()}
+              />
+            )}
           </View>
-        </ScrollView>
-        <View style={styles.buttonBottom}>
-          {notary ? (
-            <GradientButton
-              Title="Start Notary"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => setNotary(false)}
-            />
-          ) : (
-            <GradientButton
-              Title="Complete Notary"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              // onPress={() => setNotary(false)} <-- Navigate to next page
+
+          {showNotes && (
+            <LabelTextInput
+              LabelTextInput="Notes"
+              placeholder="Write notes here"
+              Label={true}
             />
           )}
-        </View>
+
+          <View style={styles.buttonBottom}>
+            {notary === 'Accepted' && (
+              <GradientButton
+                Title="Start Notary"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                onPress={() => handleStatusChange('ongoing')}
+                loading={loading}
+                GradiStyles={{marginTop: widthToDp(5)}}
+              />
+            )}
+            {notary === 'Ongoing' && (
+              <GradientButton
+                Title="Complete Notary"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                onPress={() => handleStatusChange('completed')}
+                loading={loading}
+                GradiStyles={{marginTop: widthToDp(5)}}
+              />
+            )}
+            {notary === 'Completed' && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  marginTop: widthToDp(1),
+                }}>
+                <GradientButton
+                  Title="Upload Documents"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{paddingHorizontal: widthToDp(3)}}
+                  styles={{padding: 0}}
+                  onPress={() => selectDocuments()}
+                />
+                <GradientButton
+                  Title="Next"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    marginHorizontal: widthToDp(3),
+                    paddingVertical: heightToDp(1),
+                  }}
+                  styles={{
+                    padding: widthToDp(3),
+                  }}
+                  onPress={() => handleNext()}
+                />
+              </View>
+            )}
+            {notary === null && showNotes ? (
+              <GradientButton
+                Title="Request Payment"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                onPress={() => handleRequestPayment()}
+                loading={loading}
+                GradiStyles={{marginVertical: widthToDp(5)}}
+              />
+            ) : null}
+          </View>
+        </ScrollView>
+        {isVisible ? (
+          <BottomSheet modalProps={{}} isVisible={isVisible}>
+            <ReviewPopup onPress={() => handleReduxPayment()} />
+          </BottomSheet>
+        ) : null}
       </BottomSheetStyle>
     </SafeAreaView>
   );
@@ -196,8 +352,6 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(4),
   },
   buttonBottom: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginBottom: heightToDp(5),
+    marginTop: heightToDp(10),
   },
 });

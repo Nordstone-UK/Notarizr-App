@@ -2,6 +2,7 @@ import {createSlice} from '@reduxjs/toolkit';
 
 const initialState = {
   booking: [],
+  coordinates: [],
 };
 
 export const bookingSlice = createSlice({
@@ -12,9 +13,13 @@ export const bookingSlice = createSlice({
       state.booking = action.payload;
       console.log('Booking Info Set in Redux', state.booking);
     },
+    setCoordinates: (state, action) => {
+      state.coordinates = action.payload;
+      console.log('coordinates Info Set in Redux', state.coordinates);
+    },
   },
 });
 
-export const {setBookingInfoState} = bookingSlice.actions;
+export const {setBookingInfoState, setCoordinates} = bookingSlice.actions;
 
 export default bookingSlice.reducer;
