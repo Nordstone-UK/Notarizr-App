@@ -87,7 +87,7 @@ export default function MedicalDocScreen({route, navigation}) {
                 <LegalDocumentCard
                   key={index}
                   Title={item.name}
-                  source={require('../../../assets/medicalDoc.png')}
+                  source={require('../../../assets/docPicture.png')}
                   Price={item.price}
                   onPress={() => {
                     navigation.navigate('MainBookingScreen', {
