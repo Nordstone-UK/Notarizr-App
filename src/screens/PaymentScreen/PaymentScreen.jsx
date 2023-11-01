@@ -20,14 +20,17 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
+  // console.log('bookingDetail payment', bookingDetail);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
-
+  const DocumentPrice = bookingDetail?.document_type?.price;
+  const Fee = bookingDetail?.document_type?.price * 0.1;
+  const TotalAmount = DocumentPrice + Fee + 2;
   const initializePaymentSheet = async () => {
     setLoading(true);
     const response = await fetchPaymentSheetParams(
-      bookingDetail?.document_type?.price * 100,
+      TotalAmount * 100,
       bookingDetail._id,
     );
     const {customer_id, ephemeralKey, paymentIntent} =
@@ -39,7 +42,7 @@ export default function PaymentScreen({navigation}) {
       paymentIntent,
     );
     const {error} = await initPaymentSheet({
-      merchantDisplayName: 'Example, Inc.',
+      merchantDisplayName: 'The Opal Group',
       customerId: customer_id,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
@@ -52,7 +55,7 @@ export default function PaymentScreen({navigation}) {
     });
     if (!error) {
       setLoading(true);
-      console.log('error', error);
+      // console.log('error', error);
     }
     setLoading(false);
   };
@@ -64,7 +67,7 @@ export default function PaymentScreen({navigation}) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('error.message', error.message);
     } else {
-      Alert.alert('Success', 'Your order is confirmed!');
+      Alert.alert('Payment Completed!');
       navigation.navigate('HomeScreen');
     }
     setLoading(false);
@@ -126,12 +129,14 @@ export default function PaymentScreen({navigation}) {
           </TouchableOpacity>
           <View style={{marginVertical: heightToDp(2)}}>
             <View style={styles.docsContainer}>
-              <Text style={styles.textPay}>Medical documents</Text>
-              <Text style={styles.textPay}>$400</Text>
+              <Text style={styles.textPay}>
+                {bookingDetail?.document_type?.name}
+              </Text>
+              <Text style={styles.textPay}>${DocumentPrice}</Text>
             </View>
             <View style={styles.docsContainer}>
               <Text style={styles.textPay}>Tax 10%</Text>
-              <Text style={styles.textPay}>$10</Text>
+              <Text style={styles.textPay}>${Fee}</Text>
             </View>
             <View style={styles.docsContainer}>
               <Text style={styles.textPay}>Fees</Text>
@@ -149,7 +154,7 @@ export default function PaymentScreen({navigation}) {
           />
           <View style={styles.docsContainer}>
             <Text style={styles.textPay}>Total Amount</Text>
-            <Text style={styles.textPay}>$412</Text>
+            <Text style={styles.textPay}>${DocumentPrice + Fee + 2}</Text>
           </View>
           <View
             style={{

@@ -29,9 +29,9 @@ export default function MapScreen({route, navigation}) {
 
   useEffect(() => {
     handleGetLocation();
+    console.log('location', location);
   }, []);
   const {agents, documents} = route.params;
-  console.log('agents', agents);
 
   const getLocation = () => {
     return new Promise((resolve, reject) => {
@@ -50,7 +50,6 @@ export default function MapScreen({route, navigation}) {
     });
   };
   const renderItem = ({item}) => {
-    // console.log('item', item);
     return (
       <AgentReviewCard
         image={item?.image}
@@ -73,8 +72,8 @@ export default function MapScreen({route, navigation}) {
           <MapView
             zoomEnabled={true}
             region={{
-              latitude: 31.5080767,
-              longitude: 74.2865129,
+              latitude: location.latitude,
+              longitude: location.longitude,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}

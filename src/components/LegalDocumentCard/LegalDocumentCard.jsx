@@ -13,10 +13,7 @@ import Colors from '../../themes/Colors';
 export default function LegalDocumentCard(props) {
   return (
     <TouchableOpacity style={styles.container} onPress={props.onPress}>
-      <Image
-        source={require('../../../assets/agentReactanelPic.png')}
-        style={styles.cardPic}
-      />
+      <Image source={props?.source} style={styles.cardPic} />
       <View style={styles.nameContainer}>
         <Text
           style={[
@@ -48,6 +45,9 @@ const styles = StyleSheet.create({
     width: widthToDp(70),
   },
   cardPic: {
+    width: widthToDp(20),
+    height: widthToDp(20),
+    resizeMode: 'contain',
     marginVertical: widthToDp(1),
     padding: widthToDp(10),
   },
@@ -61,6 +61,5 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
-    // marginLeft: widthToDp(8),
   },
 });

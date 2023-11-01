@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
@@ -37,14 +38,14 @@ export default function AgentHomeScreen({navigation}) {
   useEffect(() => {
     const init = async status => {
       const bookingDetail = await fetchAgentBookingInfo(status);
-      console.log(bookingDetail);
+      // console.log(bookingDetail);
       setBooking(bookingDetail);
     };
     init('pending');
   }, []);
   const handleNavigation = item => {
     navigation.navigate('ClientDetailsScreen', {clientDetail: item});
-    console.log | ('Redux sending item: ', item);
+    console.log('Redux sending item: ', item);
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
     dispatch(setBookingInfoState(item.booked_by));
   };
@@ -82,28 +83,54 @@ export default function AgentHomeScreen({navigation}) {
             <Text style={styles.subheaing}>View All</Text>
           </View>
           <View style={{flex: 1}}>
-            <FlatList
-              data={Booking.slice(0, 2)}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => {
-                return (
-                  <ClientServiceCard
-                    image={require('../../../../assets/agentLocation.png')}
-                    source={{uri: item.booked_by.profile_picture}}
-                    bottomLeftText={item.document_type.price}
-                    agentName={
-                      item.booked_by.first_name + ' ' + item.booked_by.last_name
-                    }
-                    agentAddress={item.booked_by.location}
-                    task="Mobile"
-                    OrangeText="At Home"
-                    Button={true}
-                    clientDetail={item}
-                    onPress={() => handleNavigation(item)}
+            {Booking ? (
+              Booking.length !== 0 ? (
+                <FlatList
+                  data={Booking.slice(0, 2)}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}) => {
+                    return (
+                      <ClientServiceCard
+                        image={require('../../../../assets/agentLocation.png')}
+                        source={{uri: item.booked_by.profile_picture}}
+                        bottomLeftText={item.document_type.price}
+                        agentName={
+                          item.booked_by.first_name +
+                          ' ' +
+                          item.booked_by.last_name
+                        }
+                        agentAddress={item.booked_by.location}
+                        task="Mobile"
+                        OrangeText="At Home"
+                        Button={true}
+                        clientDetail={item}
+                        onPress={() => handleNavigation(item)}
+                        dateofBooking={item.date_of_booking}
+                        timeofBooking={item.time_of_booking}
+                        createdAt={item.createdAt}
+                        status={item.status}
+                      />
+                    );
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: widthToDp(10),
+                  }}>
+                  <Image
+                    source={require('../../../../assets/mainLogo.png')}
+                    style={styles.picture}
                   />
-                );
-              }}
-            />
+                  <Text style={styles.subheading}>No Booking Found...</Text>
+                </View>
+              )
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )}
           </View>
         </ScrollView>
       </BottomSheetStyle>
@@ -154,5 +181,9 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
 });

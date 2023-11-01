@@ -4,10 +4,43 @@ import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
+import moment from 'moment';
 export default function ClientTimeCard(props) {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
+  let date;
+  let time;
+  let month;
+
+  const monthNamesShort = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  if (props.dateofBooking === null && props.timeofBooking === null) {
+    date = moment(props.createdAt).format('D');
+    month = moment(props.createdAt).format('MMM');
+    time = moment(props.createdAt).format('h:mm A');
+  } else {
+    const dateObject = new Date(props.dateofBooking);
+    month = monthNamesShort[dateObject.getMonth()];
+    date = dateObject.getDate();
+    time = props.timeofBooking.split(' - ')[0];
+  }
+  function capitalizeFirstLetter(str) {
+    if (typeof str !== 'string' || str.length === 0) {
+      return str;
+    }
+
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
   return (
     <View>
       <View
@@ -22,17 +55,17 @@ export default function ClientTimeCard(props) {
           props.task === 'Online' && {
             backgroundColor: Colors.DarkPink,
           },
-          props.task === 'Completed' && {
+          props.task === 'completed' && {
             backgroundColor: Colors.Green,
           },
-          props.task === 'Rejected' && {
+          props.task === 'rejected' && {
             backgroundColor: Colors.Red,
           },
-          props.task === 'Pending' && {
+          props.task === 'pending' && {
             backgroundColor: Colors.Orange,
           },
         ]}>
-        <Text style={styles.text}>{props.task}</Text>
+        <Text style={styles.text}>{capitalizeFirstLetter(props.task)}</Text>
       </View>
       <LinearGradient
         style={styles.dateContainer}
@@ -40,15 +73,15 @@ export default function ClientTimeCard(props) {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
         <View>
-          <Text style={styles.dateStyle}>12:30</Text>
+          <Text style={styles.dateStyle}>{time}</Text>
           <Text
             style={[
               styles.dateStyle,
               {fontFamily: 'Poppins-Bold', fontSize: widthToDp(7)},
             ]}>
-            22
+            {date}
           </Text>
-          <Text style={styles.dateStyle}>Sep</Text>
+          <Text style={styles.dateStyle}>{month}</Text>
         </View>
       </LinearGradient>
     </View>

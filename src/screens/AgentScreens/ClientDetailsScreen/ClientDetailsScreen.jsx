@@ -18,15 +18,29 @@ import ClientServiceCard from '../../../components/ClientServiceCard/ClientServi
 
 import ModalCheck from '../../../components/ModalComponent/ModalCheck';
 import useBookingStatus from '../../../hooks/useBookingStatus';
+import {useDispatch} from 'react-redux';
+import {
+  setBookingInfoState,
+  setCoordinates,
+  setUser,
+} from '../../../features/booking/bookingSlice';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const {clientDetail} = route.params;
-  console.log('clientDetail:', clientDetail._id);
+  // console.log('clientDetail:', clientDetail);
+  const dispatch = useDispatch();
   const capitalizeFirstLetter = string => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
   const {handleUpdateBookingStatus} = useBookingStatus();
-
+  const handleClientData = item => {
+    handleUpdateBookingStatus('accepted', clientDetail._id);
+    dispatch(setBookingInfoState(clientDetail));
+    dispatch(
+      setCoordinates(clientDetail?.booked_by?.current_location?.coordinates),
+    );
+    dispatch(setUser(clientDetail?.booked_by));
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -58,6 +72,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
               })
             }
             status={clientDetail.status}
+            dateofBooking={clientDetail.date_of_booking}
+            timeofBooking={clientDetail.time_of_booking}
+            createdAt={clientDetail.createdAt}
           />
           <View style={styles.sheetContainer}>
             <Text
@@ -108,39 +125,41 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           </View>
         </ScrollView>
         <View style={styles.buttonBottom}>
-          <MainButton
-            Title="Accept"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() =>
-              handleUpdateBookingStatus('accepted', clientDetail._id)
-            }
-            GradiStyles={{
-              width: widthToDp(40),
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(3),
-            }}
-            styles={{
-              padding: widthToDp(0),
-              fontSize: widthToDp(4),
-            }}
-          />
+          {clientDetail.status === 'pending' && (
+            <>
+              <MainButton
+                Title="Accept"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                onPress={() => handleClientData()}
+                GradiStyles={{
+                  width: widthToDp(40),
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: heightToDp(3),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+              />
 
-          <MainButton
-            Title="Reject"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() =>
-              handleUpdateBookingStatus('rejected', clientDetail._id)
-            }
-            GradiStyles={{
-              width: widthToDp(40),
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(3),
-            }}
-            styles={{
-              padding: widthToDp(0),
-              fontSize: widthToDp(4),
-            }}
-          />
+              <MainButton
+                Title="Reject"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                onPress={() =>
+                  handleUpdateBookingStatus('rejected', clientDetail._id)
+                }
+                GradiStyles={{
+                  width: widthToDp(40),
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: heightToDp(3),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+              />
+            </>
+          )}
         </View>
       </BottomSheetStyle>
     </SafeAreaView>

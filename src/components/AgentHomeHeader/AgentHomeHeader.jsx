@@ -22,7 +22,7 @@ export default function AgentHomeHeader(props) {
     !isEnabled ? (onlineStatus = 'online') : (onlineStatus = 'offline');
     try {
       const {data} = await updateOnlineStatusR({variables: {onlineStatus}});
-      console.log(data);
+      // console.log(data);
 
       if (data.updateOnlineStatusR.status === '204') {
         Toast.show({

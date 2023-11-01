@@ -85,18 +85,33 @@ const useRegister = () => {
       const response = await DocumentPicker.pickSingle({
         presentationStyle: 'fullScreen',
       });
+      console.log('Document Picker: ', response);
       return response.uri;
     } catch (err) {
       console.warn(err);
     }
   }, []);
 
+  const uploadMultipleFiles = useCallback(async () => {
+    try {
+      const results = await DocumentPicker.pick({
+        allowMultiSelection: true,
+      });
+      const documentUris = results.map(result => result.uri);
+
+      console.log('Document Picker:', documentUris);
+      return documentUris;
+    } catch (err) {
+      console.warn(err);
+    }
+  }, []);
   return {
     handleCompression,
     uploadBlobToS3,
     handleRegister,
     uploadFiles,
     uploadFilestoS3,
+    uploadMultipleFiles,
   };
 };
 

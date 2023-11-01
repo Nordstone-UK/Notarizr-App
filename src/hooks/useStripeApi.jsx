@@ -40,10 +40,10 @@ const useStripeApi = () => {
         bookingId,
       },
     };
-    console.log('Before Payment Intent: ', request);
+    // console.log('Before Payment Intent: ', request);
     try {
       const response = await createPaymentIntent(request);
-      console.log('Got Payment Intent: ', response);
+      // console.log('Got Payment Intent: ', response);
       return response;
     } catch (error) {
       console.error(error);

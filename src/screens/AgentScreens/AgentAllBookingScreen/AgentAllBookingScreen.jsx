@@ -1,10 +1,11 @@
 import {
-  Image,
+  ActivityIndicator,
   StyleSheet,
   Text,
   View,
   FlatList,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,15 +20,15 @@ import {ScrollView} from 'react-native-virtualized-view';
 export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchAgentBookingInfo} = useFetchBooking();
-  const [Booking, setBooking] = useState([]);
+  const [Booking, setBooking] = useState();
 
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
-    console.log(bookingDetail);
     setBooking(bookingDetail);
   };
   useEffect(() => {
     init('accepted');
+    setIsFocused('accepted');
   }, []);
   const callBookingsAPI = async status => {
     setBooking(null);
@@ -153,111 +154,57 @@ export default function AgentAllBookingScreen({navigation}) {
             </View>
           </ScrollView>
           <View style={{flex: 1}}>
-            <FlatList
-              data={Booking}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => {
-                return (
-                  <ClientServiceCard
-                    image={require('../../../../assets/agentLocation.png')}
-                    source={{uri: item.booked_by.profile_picture}}
-                    bottomLeftText={item.document_type.price}
-                    agentName={
-                      item.booked_by.first_name + ' ' + item.booked_by.last_name
-                    }
-                    agentAddress={item.booked_by.location}
-                    task="Mobile"
-                    OrangeText="At Home"
-                    Button={true}
-                    onPress={() =>
-                      navigation.navigate('ClientDetailsScreen', {
-                        clientDetail: item,
-                      })
-                    }
+            {Booking ? (
+              Booking.length !== 0 ? (
+                <FlatList
+                  data={Booking}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}) => {
+                    return (
+                      <ClientServiceCard
+                        image={require('../../../../assets/agentLocation.png')}
+                        source={{uri: item.booked_by.profile_picture}}
+                        bottomLeftText={item.document_type.price}
+                        agentName={
+                          item.booked_by.first_name +
+                          ' ' +
+                          item.booked_by.last_name
+                        }
+                        agentAddress={item.booked_by.location}
+                        task="Mobile"
+                        OrangeText="At Home"
+                        onPress={() =>
+                          navigation.navigate('ClientDetailsScreen', {
+                            clientDetail: item,
+                          })
+                        }
+                        dateofBooking={item.date_of_booking}
+                        timeofBooking={item.time_of_booking}
+                        createdAt={item.createdAt}
+                        status={item.status}
+                      />
+                    );
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: widthToDp(10),
+                  }}>
+                  <Image
+                    source={require('../../../../assets/mainLogo.png')}
+                    style={styles.picture}
                   />
-                );
-              }}
-            />
+                  <Text style={styles.subheading}>No Booking Found...</Text>
+                </View>
+              )
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )}
           </View>
-          {/* {isFocused === 'Active' && (
-            <ClientServiceCard
-              image={require('../../../../assets/agentLocation.png')}
-              source={require('../../../../assets/maleAgentPic.png')}
-              bottomLeftText="$400"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Mobile"
-              OrangeText="At Home"
-              Button={true}
-              onPress={() => navigation.navigate('AgentBookingClientDetail')}
-            />
-          )}
-          {isFocused === 'Active' && (
-            <ClientServiceCard
-              image={require('../../../../assets/agentLocation.png')}
-              source={require('../../../../assets/maleAgentPic.png')}
-              bottomLeftText="$400"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Mobile"
-              OrangeText="At Home"
-              Work={true}
-              WorkStatus="In Progress"
-            />
-          )}
-          {isFocused === 'Complete' && (
-            <ClientServiceCard
-              image={require('../../../../assets/agentLocation.png')}
-              source={require('../../../../assets/maleAgentPic.png')}
-              bottomLeftText="$400"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Mobile"
-              OrangeText="At Home"
-              Work={true}
-              WorkStatus="Completed"
-            />
-          )}
-          {isFocused === 'Complete' && (
-            <ClientServiceCard
-              image={require('../../../../assets/agentLocation.png')}
-              source={require('../../../../assets/maleAgentPic.png')}
-              bottomLeftText="$400"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Mobile"
-              OrangeText="At Home"
-              Work={true}
-              WorkStatus="Completed"
-            />
-          )}
-          {isFocused === 'Rejected' && (
-            <ClientServiceCard
-              image={require('../../../../assets/agentLocation.png')}
-              source={require('../../../../assets/maleAgentPic.png')}
-              bottomLeftText="$400"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Mobile"
-              OrangeText="At Home"
-              Work={true}
-              time={true}
-              Canceled={true}
-            />
-          )}
-          {isFocused === 'Rejected' && (
-            <ClientServiceCard
-              image={require('../../../../assets/agentLocation.png')}
-              source={require('../../../../assets/maleAgentPic.png')}
-              bottomLeftText="$400"
-              agentName={'Bunny Joel'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Mobile"
-              OrangeText="At Home"
-              Work={true}
-              Canceled={true}
-            />
-          )} */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -297,5 +244,9 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
 });

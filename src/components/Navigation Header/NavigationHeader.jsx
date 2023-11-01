@@ -14,28 +14,22 @@ export default function NavigationHeader(props) {
         !props.isVisible && {marginBottom: heightToDp(5)},
       ]}>
       <View style={styles.container}>
-        <TouchableOpacity
-          onPress={() =>
-            props?.payment
-              ? navigation.navigate('HomeScreen')
-              : navigation.goBack()
-          }
-          style={styles.touchContainer}>
-          <Image source={require('../../../assets/backIcon.png')} />
-        </TouchableOpacity>
-        {props.ProfilePic && (
-          <Image source={props.ProfilePic} style={styles.profilePic} />
-        )}
-        <View
-          style={[
-            styles.Flexcontainer,
-            props.ProfilePic &&
-              {
-                // marginLeft: widthToDp(1.5),
-                // justifyContent: 'space-around',
-              },
-          ]}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <TouchableOpacity
+            onPress={() =>
+              props?.payment
+                ? navigation.navigate('HomeScreen')
+                : navigation.goBack()
+            }
+            style={styles.touchContainer}>
+            <Image source={require('../../../assets/backIcon.png')} />
+          </TouchableOpacity>
+          {props.ProfilePic && (
+            <Image source={props.ProfilePic} style={styles.profilePic} />
+          )}
           <Text style={styles.naveheader}>{props?.Title}</Text>
+        </View>
+        <View style={[styles.Flexcontainer]}>
           <View style={styles.iconContainer}>
             {props.midImg && (
               <TouchableOpacity onPress={props.midImgPress}>
@@ -72,32 +66,30 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginRight: widthToDp(2),
-    marginLeft: widthToDp(4),
-
+    marginLeft: widthToDp(2),
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   touchContainer: {
     flexDirection: 'row',
-    // alignItems: 'center',
   },
   Flexcontainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginLeft: widthToDp(3),
+    marginLeft: widthToDp(1),
   },
   iconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-
     width: widthToDp(15),
     justifyContent: 'space-between',
+    marginRight: widthToDp(2),
   },
   naveheader: {
     fontSize: widthToDp(5),
-
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
+    marginHorizontal: widthToDp(2),
   },
   profilePic: {
     marginLeft: widthToDp(2),

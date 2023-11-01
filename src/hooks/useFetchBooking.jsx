@@ -23,10 +23,14 @@ const useFetchBooking = () => {
       },
     };
     try {
-      const {data, error} = await getClientBooking(request);
-      console.log('Printing', data);
+      const data = await getClientBooking(request);
       // dispatch(setBookingState(data?.getBookings?.bookings));
-      return data?.getClientBookings?.bookings;
+      // console.log(
+      //   'Client Booking iNfo',
+      //   data?.data?.getClientBookings?.bookings,
+      // );
+
+      return sortBookingByDate(data?.data?.getClientBookings?.bookings);
     } catch (error) {
       console.log(error);
     }
@@ -39,13 +43,19 @@ const useFetchBooking = () => {
       },
     };
     try {
-      const {data, error} = await getAgentBooking(request);
-      console.log('Printing', data);
-      return data?.getAgentBookings?.bookings;
+      const {data} = await getAgentBooking(request);
+      // console.log('Agent Booking iNfo', data);
+      return sortBookingByDate(data?.getAgentBookings?.bookings);
     } catch (error) {
       console.log(error);
     }
   };
+  const sortBookingByDate = bookingArray => {
+    return bookingArray.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+  };
+
   return {fetchBookingInfo, fetchAgentBookingInfo};
 };
 

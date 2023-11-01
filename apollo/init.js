@@ -37,7 +37,7 @@ const init = () => {
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
     const {latitude, longitude} = await getCurrentLocation();
-    console.log('Coords: ', latitude, longitude);
+    // console.log('Coords: ', latitude, longitude);
     return {
       headers: {
         ...headers,
@@ -82,7 +82,7 @@ const getCurrentLocation = () => {
     try {
       Geolocation.getCurrentPosition(
         position => {
-          console.log('Inside coordinates: ');
+          // console.log('Inside coordinates: ');
           const {latitude, longitude} = position.coords;
           resolve({latitude, longitude});
         },

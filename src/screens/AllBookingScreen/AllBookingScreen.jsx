@@ -5,6 +5,8 @@ import {
   View,
   FlatList,
   SafeAreaView,
+  Image,
+  Text,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -167,36 +169,51 @@ export default function AllBookingScreen({route, navigation}) {
               />
             </View>
           </ScrollView>
+
           {booking ? (
-            <FlatList
-              data={booking}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => {
-                return (
-                  <TouchableOpacity onPress={() => handleAgentData(item)}>
-                    <AgentCard
-                      source={{uri: item.agent.profile_picture}}
-                      bottomRightText="$400"
-                      bottomLeftText="Total"
-                      image={require('../../../assets/agentLocation.png')}
-                      agentName={
-                        item.agent.first_name + ' ' + item.agent.last_name
-                      }
-                      agentAddress={item.agent.location}
-                      task={item.status}
-                      OrangeText={'At Office'}
-                      dateofBooking={item.date_of_booking}
-                      timeofBooking={item.time_of_booking}
-                      createdAt={item.createdAt}
-                    />
-                  </TouchableOpacity>
-                );
-              }}
-            />
+            booking.length !== 0 ? (
+              <FlatList
+                data={booking}
+                keyExtractor={item => item._id}
+                renderItem={({item}) => {
+                  return (
+                    <TouchableOpacity onPress={() => handleAgentData(item)}>
+                      <AgentCard
+                        source={{uri: item.agent.profile_picture}}
+                        bottomRightText={item.document_type.price}
+                        bottomLeftText="Total"
+                        image={require('../../../assets/agentLocation.png')}
+                        agentName={
+                          item.agent.first_name + ' ' + item.agent.last_name
+                        }
+                        agentAddress={item.agent.location}
+                        task={item.status}
+                        OrangeText={'At Office'}
+                        dateofBooking={item.date_of_booking}
+                        timeofBooking={item.time_of_booking}
+                        createdAt={item.createdAt}
+                      />
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: widthToDp(10),
+                }}>
+                <Image
+                  source={require('../../../assets/mainLogo.png')}
+                  style={styles.picture}
+                />
+                <Text style={styles.subheading}>No Booking Found...</Text>
+              </View>
+            )
           ) : (
-            <View>
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            </View>
+            <ActivityIndicator size="large" color={Colors.Orange} />
           )}
         </ScrollView>
       </BottomSheetStyle>
@@ -208,6 +225,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
   Heading: {
     fontSize: widthToDp(6.5),
@@ -223,7 +244,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     alignSelf: 'center',
-    paddingRight: widthToDp(2),
   },
   CategoryBar: {
     flexDirection: 'row',

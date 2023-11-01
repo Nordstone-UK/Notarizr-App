@@ -6,6 +6,7 @@ import {
   Animated,
   View,
   TextInput,
+  Alert,
   ScrollView,
   SafeAreaView,
 } from 'react-native';
@@ -17,42 +18,169 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
-import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {useSelector} from 'react-redux';
 import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
+import Toast from 'react-native-toast-message';
+import {useLazyQuery} from '@apollo/client';
+import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
+import {captureImage, chooseFile} from '../../utils/ImagePicker';
+import useUpdate from '../../hooks/useUpdate';
+import useRegister from '../../hooks/useRegister';
+import useFetchUser from '../../hooks/useFetchUser';
 
 export default function ProfileDetailEditScreen({navigation}, props) {
-  const [firstName, setfirstName] = useState('');
-  const [lastName, setlastName] = useState('');
-  const [phoneNumber, setNumber] = useState('');
-  const [location, setlocation] = useState('');
-  const [Email, setEmail] = useState('');
+  const {
+    gender: oldGender,
+    first_name,
+    location: oldLocation,
+    profile_picture,
+    last_name,
+    email: oldEmail,
+    phone_number,
+  } = useSelector(state => state.user.user);
+  const [firstName, setfirstName] = useState(first_name);
+  const [lastName, setlastName] = useState(last_name);
+  const [phoneNumber, setNumber] = useState(phone_number);
+  const [location, setlocation] = useState(oldLocation);
+  const [email, setEmail] = useState(oldEmail);
+  const [gender, setGender] = useState(oldGender);
   const [emailValid, setEmailValid] = useState();
-  // const [gender, setgender] = useState('');
+  const [image, setImage] = useState();
+  const [tempLoading, settempLoading] = useState(false);
+  const [profilePicture, setProfilePicure] = useState(profile_picture);
   const accountType = useSelector(state => state.register.accountType);
-  const {first_name, profile_picture, last_name, email, phone_number} =
-    useSelector(state => state.user.user);
+  const {fetchUserInfo} = useFetchUser();
 
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
+  const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
+  const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
+  const {handleProfileUpdate} = useUpdate();
+  // const handleEmailValid = async () => {
+  //   console.log(email, location, firstName, lastName, gender);
+  //   if (!email || !location || !phoneNumber || !firstName || !lastName) {
+  //     Toast.show({
+  //       type: 'warning',
+  //       text1: 'Warning!',
+  //       text2: 'Please fill all the fields before submitting.',
+  //     });
+  //   } else {
+  //     return new Promise(() => {
+  //       try {
+  //         isEmailValid({
+  //           variables: {email},
+  //         }).then(response => {
+  //           setEmailValid(response?.data?.isEmailValid?.emailTaken);
+
+  //           if (response?.data?.isEmailValid?.emailTaken) {
+  //             Toast.show({
+  //               type: 'error',
+  //               text1: 'This email is already taken!',
+  //               text2: 'Please enter other email address',
+  //             });
+  //           } else {
+  //             setEmailValid(false);
+  //             submitRegister({
+  //               firstName,
+  //               lastName,
+  //               email,
+  //               phoneNumber,
+  //               location,
+  //               profilePicture,
+  //               gender,
+  //             });
+  //             console.log('Email is Valid');
+  //           }
+  //         });
+  //       } catch (error) {
+  //         console.log(error);
+  //       }
+  //     });
+  //   }
+  // };
+  const showCameraGalleryAlert = () => {
+    Alert.alert(
+      'Choose an option',
+      'Select a source for your image:',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => {
+            // Handle Camera button press
+            // You can add your camera logic here
+          },
+        },
+        {
+          text: 'Gallery',
+          onPress: async () => {
+            const uri = await chooseFile('photo');
+            setImage(uri);
+          },
+        },
+        {
+          text: 'Camera',
+          onPress: async () => {
+            const uri = await captureImage('photo');
+            setImage(uri);
+          },
+          style: 'cancel',
+        },
+      ],
+      {cancelable: false},
+    );
+  };
+  const submitRegister = async () => {
+    settempLoading(true);
+    if (image) {
+      const imageBlob = await handleCompression(image);
+      const url = await uploadBlobToS3(imageBlob);
+      setProfilePicure(url);
+    }
+
+    const params = {
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      phoneNumber: phoneNumber,
+      location: location,
+      profilePicture: profilePicture,
+      gender: gender,
+    };
+    console.log(params);
+    const isUpdated = await handleProfileUpdate(params);
+    if (isUpdated) {
+      await fetchUserInfo();
+      settempLoading(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Profile Updated!',
+        text2: 'Your profile has been updated successfully.',
+      });
+      navigation.navigate('ProfileInfoScreen');
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Problem while updating',
+      });
+      settempLoading(false);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Profile Details" />
-      <ScrollView
-        // contentContainerStyle={{paddingBottom: heightToDp(10)}}
-        showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View>
           <Image source={{uri: profile_picture}} style={styles.picture} />
-          <TouchableOpacity style={styles.camera}>
+          <TouchableOpacity
+            style={styles.camera}
+            onPress={() => showCameraGalleryAlert()}>
             <Image source={require('../../../assets/cameraIcon.png')} />
           </TouchableOpacity>
         </View>
         <Text style={styles.textheading}>
           {first_name} {last_name}
         </Text>
-        <Text style={styles.textsubheading}>{email}</Text>
+        <Text style={styles.textsubheading}>{oldEmail}</Text>
         <BottomSheetStyle>
           <View style={{paddingBottom: widthToDp(5)}}>
             <LabelTextInput
@@ -75,7 +203,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               placeholder={'Enter your email address'}
               LabelTextInput={(emailValid && 'Email Taken') || 'Email Address'}
               onChangeText={text => setEmail(text)}
-              defaultValue={email}
+              defaultValue={oldEmail}
               Label={true}
               labelStyle={emailValid && {color: Colors.Red}}
               AdjustWidth={emailValid && {borderColor: Colors.Red}}
@@ -86,6 +214,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               }}
               LabelTextInput="Phone Number"
               Label={true}
+              value={phone_number}
               placeholder={'XXXXXXXXXXX'}
             />
 
@@ -93,7 +222,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               leftImageSoucre={require('../../../assets/locationIcon.png')}
               Label={true}
               placeholder={'Enter your city'}
-              // defaultValue={first_name}
+              defaultValue={oldLocation}
               LabelTextInput={'City'}
               onChangeText={text => setlocation(text)}
             />
@@ -104,7 +233,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               <GradientButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 Title="Save Details"
-                onPress={() => navigation.navigate('ProfileInfoScreen')}
+                onPress={() => submitRegister()}
+                // loading={tempLoading || validLoading}
               />
             </View>
           </View>

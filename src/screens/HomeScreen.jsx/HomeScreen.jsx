@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -31,7 +32,7 @@ export default function HomeScreen({navigation}) {
   useEffect(() => {
     const init = async status => {
       const bookingDetail = await fetchBookingInfo(status);
-      console.log(bookingDetail);
+      console.log('bookingDetail', bookingDetail);
       setBooking(bookingDetail);
     };
     init('pending');
@@ -138,31 +139,53 @@ export default function HomeScreen({navigation}) {
             </TouchableOpacity>
           </View>
           <View style={{flex: 1}}>
-            <FlatList
-              data={Booking.slice(0, 2)}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => {
-                return (
-                  <TouchableOpacity onPress={() => handleAgentData(item)}>
-                    <AgentCard
-                      source={{uri: item.agent.profile_picture}}
-                      bottomRightText="$400"
-                      bottomLeftText="Total"
-                      image={require('../../../assets/agentLocation.png')}
-                      agentName={
-                        item.agent.first_name + ' ' + item.agent.last_name
-                      }
-                      agentAddress={item.agent.location}
-                      task={item.status}
-                      OrangeText={'At Office'}
-                      dateofBooking={item.date_of_booking}
-                      timeofBooking={item.time_of_booking}
-                      createdAt={item.createdAt}
-                    />
-                  </TouchableOpacity>
-                );
-              }}
-            />
+            {Booking ? (
+              Booking.length !== 0 ? (
+                <FlatList
+                  data={Booking.slice(0, 2)}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}) => {
+                    return (
+                      <TouchableOpacity onPress={() => handleAgentData(item)}>
+                        <AgentCard
+                          source={{uri: item?.agent?.profile_picture}}
+                          bottomRightText={item?.document_type?.price}
+                          bottomLeftText="Total"
+                          image={require('../../../assets/agentLocation.png')}
+                          agentName={
+                            item?.agent?.first_name +
+                            ' ' +
+                            item?.agent?.last_name
+                          }
+                          agentAddress={item?.agent?.location}
+                          task={item?.status}
+                          OrangeText={'At Office'}
+                          dateofBooking={item?.date_of_booking}
+                          timeofBooking={item?.time_of_booking}
+                          createdAt={item?.createdAt}
+                        />
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: widthToDp(10),
+                  }}>
+                  <Image
+                    source={require('../../../assets/mainLogo.png')}
+                    style={styles.picture}
+                  />
+                  <Text style={styles.subheading}>No Booking Found...</Text>
+                </View>
+              )
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )}
           </View>
         </ScrollView>
       </BottomSheetStyle>
@@ -189,7 +212,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.TextColor,
     alignSelf: 'center',
-    paddingRight: widthToDp(2),
   },
   CategoryBar: {
     flexDirection: 'row',
@@ -203,5 +225,9 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
 });

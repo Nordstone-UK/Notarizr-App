@@ -133,7 +133,7 @@ export default function AgentCard(props) {
                   fontSize: widthToDp(4.5),
                 },
               ]}>
-              {props.bottomRightText}
+              ${props.bottomRightText}
             </Text>
           </View>
         </View>

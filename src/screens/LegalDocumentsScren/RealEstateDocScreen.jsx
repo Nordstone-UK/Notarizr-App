@@ -86,6 +86,7 @@ export default function RealEstateDocScreen({navigation}) {
             ? documents.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
+                  source={require('../../../assets/estateDoc.jpg')}
                   Title={item.name}
                   Price={item.price}
                   onPress={() => {

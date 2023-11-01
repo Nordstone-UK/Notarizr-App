@@ -5,7 +5,7 @@ import {widthToDp} from '../../utils/Responsive';
 const GooglePlacesInput = () => {
   const handlePlaceSelect = (data, details) => {
     // Handle selected place
-    console.log(data, details);
+    // console.log(data, details);
   };
   return (
     <GooglePlacesAutocomplete

@@ -24,7 +24,6 @@ export default function AgentReviewScreen({route, navigation}, props) {
     useCreateBooking();
   const {description, documentType} = route.params;
   const {service} = description;
-  console.log('description', description);
 
   useEffect(() => {
     setBookingData({

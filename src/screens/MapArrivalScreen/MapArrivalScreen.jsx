@@ -27,12 +27,13 @@ export default function MapArrivalScreen({navigation}, props) {
   const handleGetLocation = async () => {
     try {
       const coordinates = await getLocation();
-      // console.log('coordinates', coordinates);
+      console.log('coordinates', coordinates);
       setLocation(coordinates);
     } catch (error) {
       console.log(error);
     }
   };
+  console.log('clientData', clientData);
   useEffect(() => {
     handleGetLocation();
   }, []);

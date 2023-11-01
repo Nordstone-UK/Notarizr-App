@@ -30,17 +30,17 @@ const useCreateBooking = () => {
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [createLocalBooking] = useMutation(CREATE_LOCAL_NOTARY_BOOKING);
   const handleBookingCreation = async () => {
-    console.log(BookingData);
+    // console.log(BookingData);
     const request = {
       variables: {
         ...BookingData,
       },
     };
-    console.log('prev', request);
+    // console.log('prev', request);
     await createBooking(request)
       .then(response => {
-        console.log('response', response);
-        console.log('Booking', response.data.createBookingR.status);
+        // console.log('response', response);
+        // console.log('Booking', response.data.createBookingR.status);
         if (response.data.createBookingR.status === '201') {
           navigation.navigate('AgentBookCompletion');
         }
@@ -51,7 +51,7 @@ const useCreateBooking = () => {
   };
 
   const handleLocalNotaryBookingCreation = async (data, time) => {
-    console.log(LocalBookingData);
+    // console.log(LocalBookingData);
     const request = {
       variables: {
         ...LocalBookingData,
@@ -59,11 +59,11 @@ const useCreateBooking = () => {
         timeOfBooking: time,
       },
     };
-    console.log('prev', request);
+    // console.log('prev', request);
 
     await createLocalBooking(request)
       .then(response => {
-        console.log('Booking', response.data.createBookingR.status);
+        // console.log('Booking', response.data.createBookingR.status);
         if (response.data.createBookingR.status === '201') {
           navigation.navigate('AgentBookCompletion');
         }
@@ -74,15 +74,13 @@ const useCreateBooking = () => {
   };
 
   const consoleData = async data => {
-    console.log(data);
+    // console.log(data);
   };
   return {
     handleBookingCreation,
     handleLocalNotaryBookingCreation,
     consoleData,
-    BookingData,
     setBookingData,
-    LocalBookingData,
     setLocalBookingData,
   };
 };

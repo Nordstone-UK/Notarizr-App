@@ -14,14 +14,13 @@ const useBookingStatus = () => {
         status: status,
       },
     };
-    console.log('request', request);
+    // console.log('request', request);
     try {
       const response = await updateBookingStatus(request);
-      console.log('response for Booking', response);
-      console.log(
-        'response for Booking Status',
-        response.data.updateBookingStatusR.booking.status,
-      );
+      // console.log(
+      //   'response for Booking Status',
+      //   response.data.updateBookingStatusR.booking.status,
+      // );
       if (response.data.updateBookingStatusR.booking.status === 'accepted') {
         navigation.navigate('BookingAcceptedScreen');
       } else if (
@@ -39,14 +38,13 @@ const useBookingStatus = () => {
         bookingId: id,
       },
     };
-    console.log('request for booking status', request);
+    // console.log('request for booking status', request);
     try {
       const response = await getBookingStatus(request);
-      console.log('response for Booking', response);
-      console.log(
-        'response for Booking Status',
-        response.data.getBookingStatus.booking_status,
-      );
+      // console.log(
+      //   'response for Booking Status',
+      //   response.data.getBookingStatus.booking_status,
+      // );
       return response.data.getBookingStatus.booking_status;
     } catch (error) {
       console.error(error);

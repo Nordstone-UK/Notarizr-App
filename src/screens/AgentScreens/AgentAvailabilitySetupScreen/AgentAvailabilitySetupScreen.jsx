@@ -41,7 +41,7 @@ export default function AgentAvailabilitySetupScreen({route, navigation}) {
     const date = new Date(year, month - 1, day);
     return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
   }
-  console.log(route);
+  // console.log(route);
 
   const [timeInputs, setTimeInputs] = useState([{start: '', end: ''}]);
 

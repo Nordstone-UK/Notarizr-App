@@ -1,20 +1,36 @@
 import {
-  Image,
+  ActivityIndicator,
   StyleSheet,
   Text,
-  ScrollView,
   View,
-  TouchableOpacity,
+  FlatList,
   SafeAreaView,
+  Image,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
+import useFetchBooking from '../../../hooks/useFetchBooking';
+import {ScrollView} from 'react-native-virtualized-view';
 
 export default function AgentCompletedBooking({navigation}) {
+  const {fetchAgentBookingInfo} = useFetchBooking();
+  const [Booking, setBooking] = useState();
+
+  const init = async status => {
+    const bookingDetail = await fetchAgentBookingInfo(status);
+    setBooking(bookingDetail);
+  };
+  useEffect(() => {
+    init('completed');
+  }, []);
+  // const callBookingsAPI = async status => {
+  //   setBooking(null);
+  //   setIsFocused(status);
+  // };
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -27,43 +43,58 @@ export default function AgentCompletedBooking({navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <Text style={styles.Heading}>Completed Booking</Text>
-
-          <ClientServiceCard
-            image={require('../../../../assets/agentLocation.png')}
-            source={require('../../../../assets/maleAgentPic.png')}
-            bottomLeftText="$400"
-            agentName={'Bunny Joel'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            task="Mobile"
-            OrangeText="At Home"
-            Work={true}
-            Time={true}
-            WorkStatus="Completed"
-          />
-          <ClientServiceCard
-            image={require('../../../../assets/agentLocation.png')}
-            source={require('../../../../assets/maleAgentPic.png')}
-            bottomLeftText="$400"
-            agentName={'Bunny Joel'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            task="Mobile"
-            OrangeText="At Home"
-            Time={true}
-            Work={true}
-            WorkStatus="Completed"
-          />
-          <ClientServiceCard
-            image={require('../../../../assets/agentLocation.png')}
-            source={require('../../../../assets/maleAgentPic.png')}
-            bottomLeftText="$400"
-            agentName={'Bunny Joel'}
-            agentAddress={'Shop 28, jigara Kalakand Road'}
-            task="Mobile"
-            OrangeText="At Home"
-            Time={true}
-            Work={true}
-            WorkStatus="Completed"
-          />
+          <View style={{flex: 1}}>
+            {Booking ? (
+              Booking.length !== 0 ? (
+                <FlatList
+                  data={Booking}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}) => {
+                    return (
+                      <ClientServiceCard
+                        image={require('../../../../assets/agentLocation.png')}
+                        source={{uri: item.booked_by.profile_picture}}
+                        bottomLeftText={item.document_type.price}
+                        agentName={
+                          item.booked_by.first_name +
+                          ' ' +
+                          item.booked_by.last_name
+                        }
+                        agentAddress={item.booked_by.location}
+                        task="Mobile"
+                        OrangeText="At Home"
+                        onPress={() =>
+                          navigation.navigate('ClientDetailsScreen', {
+                            clientDetail: item,
+                          })
+                        }
+                        dateofBooking={item.date_of_booking}
+                        timeofBooking={item.time_of_booking}
+                        createdAt={item.createdAt}
+                        status={item.status}
+                      />
+                    );
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: widthToDp(10),
+                  }}>
+                  <Image
+                    source={require('../../../../assets/mainLogo.png')}
+                    style={styles.picture}
+                  />
+                  <Text style={styles.subheading}>No Booking Found...</Text>
+                </View>
+              )
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )}
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -84,22 +115,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingVertical: heightToDp(5),
   },
-  flexContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginRight: widthToDp(5),
-  },
-  subheaing: {
-    color: Colors.TextColor,
-    fontFamily: 'Manrope-SemiBold',
-  },
+
   subheading: {
     fontSize: widthToDp(4),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
-    alignSelf: 'center',
-    paddingRight: widthToDp(2),
   },
   CategoryBar: {
     flexDirection: 'row',
@@ -113,5 +133,9 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
 });

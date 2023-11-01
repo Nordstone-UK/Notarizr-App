@@ -86,6 +86,7 @@ export default function LegalDocScreen({route, navigation}) {
           {searchResults === null
             ? documents.map((item, index) => (
                 <LegalDocumentCard
+                  source={require('../../../assets/legalDoc.jpg')}
                   key={index}
                   Title={item.name}
                   Price={item.price}

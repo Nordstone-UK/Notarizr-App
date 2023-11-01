@@ -58,7 +58,7 @@ export default function AgentTimeCard(props) {
           props.task === 'completed' && {
             backgroundColor: Colors.Green,
           },
-          props.task === 'Rejected' && {
+          props.task === 'rejected' && {
             backgroundColor: Colors.Red,
           },
           props.task === 'pending' && {

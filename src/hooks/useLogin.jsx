@@ -54,7 +54,7 @@ const useLogin = () => {
     try {
       const userInfo = await fetchUserInfo();
       await fetchBookingInfo();
-      console.log('Received data:', userInfo);
+      // console.log('Received data:', userInfo);
 
       if (userInfo.account_type === 'client') {
         navigation.reset({

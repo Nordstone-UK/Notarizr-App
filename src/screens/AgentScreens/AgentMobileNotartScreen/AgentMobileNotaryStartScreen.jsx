@@ -29,9 +29,9 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
   const payment = useSelector(state => state.payment.payment);
-  const {uploadFiles} = useRegister();
+  const {uploadFiles, uploadMultipleFiles} = useRegister();
   const booking = useSelector(state => state.booking.booking);
-  console.log('booking id for API', booking?._id);
+  // console.log('booking id for API', booking._id);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState();
   const {booked_by} = booking;
@@ -39,6 +39,8 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
   const [documents, setDocuments] = useState(null);
   const [showNotes, setShowNotes] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   const dispatch = useDispatch();
   useFocusEffect(
     React.useCallback(() => {
@@ -63,6 +65,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
       const status = await handlegetBookingStatus(booking._id);
       setNotary(capitalizeFirstLetter(status));
       setStatus(capitalizeFirstLetter(status));
+      // console.log(status);
     } catch (error) {
       console.error('Error retrieving booking status:', error);
     }
@@ -71,7 +74,6 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
     getBookingStatus();
     console.log('adwwadaawd', notary, status);
   }, [status]);
-  const [refreshing, setRefreshing] = useState(false);
 
   const handleStatusChange = async string => {
     setLoading(true);
@@ -84,12 +86,15 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
     setLoading(false);
   };
   const selectDocuments = async () => {
-    const response = await uploadFiles();
+    const response = await uploadMultipleFiles();
     setDocuments(response);
-    console.log('Uploaded Files', response);
+    // console.log('Uploaded Files', response);
   };
-  const deleteDocument = () => {
-    setDocuments(null);
+
+  const deleteDocument = index => {
+    const updatedUris = [...documents];
+    updatedUris.splice(index, 1);
+    setDocuments(updatedUris);
   };
   const handleNext = () => {
     setNotary(null);
@@ -177,13 +182,15 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
-            {documents && (
-              <DocumentComponent
-                Title="Picture ID"
-                image={require('../../../../assets/Pdf.png')}
-                onPress={() => deleteDocument()}
-              />
-            )}
+            {documents &&
+              documents.map(index => (
+                <DocumentComponent
+                  Title="Picture ID"
+                  image={require('../../../../assets/Pdf.png')}
+                  onPress={() => deleteDocument(index)}
+                  key={index}
+                />
+              ))}
           </View>
 
           {showNotes && (

@@ -18,7 +18,7 @@ const useGetService = () => {
     console.log(request);
     await getServiceByServiceType(request)
       .then(response => {
-        console.log('In hook', response?.data?.getServiceByServiceType?.users);
+        // console.log('In hook', response?.data?.getServiceByServiceType?.users);
 
         if (serviceType === 'mobile_notary') {
           navigation.navigate('MapScreen', {
@@ -45,7 +45,7 @@ const useGetService = () => {
     console.log('documentData', documentData);
     await matchAgent(request)
       .then(response => {
-        console.log('In hook', response.data);
+        // console.log('In hook', response.data);
         console.log(response?.data?.matchAgent);
         navigation.navigate('RONAgentReviewScreen', {
           agents: response?.data?.matchAgent,
