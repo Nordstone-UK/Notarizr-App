@@ -12,7 +12,12 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import Colors from '../../themes/Colors';
 
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {
+  formatDateTime,
+  heightToDp,
+  width,
+  widthToDp,
+} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
@@ -56,7 +61,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   useEffect(() => {
     getBookingStatus();
-    // console.log('adwwadaawd', status);
   }, [status]);
   const handleReduxPayment = () => {
     setIsVisible(false);
@@ -69,6 +73,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       setRefreshing(false);
     }, 2000);
   }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -102,7 +107,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           {status !== 'Completed' ? (
             <AgentCard
               source={{uri: item.agent.profile_picture}}
-              bottomRightText="$400"
+              bottomRightText={item?.document_type?.price}
               bottomLeftText="Total"
               image={require('../../../assets/agentLocation.png')}
               agentName={item.agent.first_name + ' ' + item.agent.last_name}
@@ -143,7 +148,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                Legal building, James street, New York
+                {capitalizeFirstLetter(item?.agent?.location)}
               </Text>
             </View>
             <View style={styles.addressView}>
@@ -151,18 +156,10 @@ export default function MedicalBookingScreen({route, navigation}) {
                 source={require('../../../assets/calenderIcon.png')}
                 style={styles.locationImage}
               />
-              <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
+              <Text style={styles.detail}>
+                {formatDateTime(item.createdAt)}
+              </Text>
             </View>
-            <Text style={styles.preference}>Notes:</Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
           </View>
           {status === 'Pending' ? null : (
             <View style={styles.buttonFlex}>

@@ -123,4 +123,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
+  contentContainer: {
+    marginVertical: heightToDp(3),
+  },
 });

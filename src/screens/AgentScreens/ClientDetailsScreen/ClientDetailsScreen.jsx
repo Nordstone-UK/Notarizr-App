@@ -87,7 +87,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                {clientDetail?.booked_by?.location}
+                {capitalizeFirstLetter(clientDetail?.booked_by?.location)}
               </Text>
             </View>
             <View style={styles.addressView}>
@@ -107,20 +107,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
               {clientDetail?.service?.availability.weekdays?.map(
                 (day, index) => (
                   <Text key={index} style={styles.dayText}>
-                    {capitalizeFirstLetter(day)}{' '}
+                    {capitalizeFirstLetter(day)}
                   </Text>
                 ),
               )}
-            </Text>
-            <Text style={styles.preference}>Notes:</Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
             </Text>
           </View>
         </ScrollView>

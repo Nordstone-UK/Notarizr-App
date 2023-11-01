@@ -24,6 +24,7 @@ export default function AgentAllBookingScreen({navigation}) {
 
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
+    console.log('bookingDetail', bookingDetail);
     setBooking(bookingDetail);
   };
   useEffect(() => {

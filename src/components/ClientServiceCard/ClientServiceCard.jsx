@@ -242,7 +242,9 @@ export default function ClientServiceCard(props) {
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: Colors.white,
-    elevation: 30,
+    // elevation: 30,
+    borderWidth: 1,
+    borderColor: Colors.DullTextColor,
     borderRadius: 10,
     marginVertical: widthToDp(2),
     marginHorizontal: heightToDp(5),

@@ -32,11 +32,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    elevation: 20,
     margin: widthToDp(2),
     borderRadius: 10,
     alignItems: 'center',
-    padding: widthToDp(3),
+    padding: widthToDp(1),
+    borderColor: Colors.DullTextColor,
+    borderWidth: 1,
   },
   nameContainer: {
     flexDirection: 'row',
@@ -50,6 +51,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginVertical: widthToDp(1),
     padding: widthToDp(10),
+    // borderRadius: 35,
   },
   textstyle: {
     fontSize: widthToDp(4),
