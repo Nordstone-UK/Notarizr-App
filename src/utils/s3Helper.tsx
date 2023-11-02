@@ -2,8 +2,8 @@ import S3 from 'aws-sdk/clients/s3';
 
 // import S3 from 'react-aws-s3'
 const signatureVersion = 'v4';
-const accessKeyId = 'AKIA2FEB4ZRQPG2ESKDT';
-const secretAccessKey = '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';
+const accessKeyId = 'AKIAYMBF2K7JBUCNVT76';
+const secretAccessKey = 'laBxpmXdvQN11N162/tMj9HvGzoSZw2eDJu3lnNls';
 
 const MUNROE_BUCKET_NAME = 'notarizr-app-data';
 interface UploadFileOptions {
