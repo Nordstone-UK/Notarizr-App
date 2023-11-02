@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     width: widthToDp(70),
   },
   cardPic: {
-    width: widthToDp(),
+    width: widthToDp(20),
     height: widthToDp(20),
     resizeMode: 'contain',
     marginVertical: widthToDp(1),

@@ -36,7 +36,16 @@ export default function NavigationHeader(props) {
           <View style={styles.iconContainer}>
             {props.midImg && (
               <TouchableOpacity onPress={props.midImgPress}>
-                <Image source={props.midImg} style={styles.backIcon} />
+                <Image
+                  source={props.midImg}
+                  style={[
+                    styles.backIcon,
+                    props.midImg === require('../../../assets/Search.png') && {
+                      width: widthToDp(5),
+                      height: heightToDp(5),
+                    },
+                  ]}
+                />
               </TouchableOpacity>
             )}
             {props.lastImg && (
