@@ -18,7 +18,7 @@ export default function BookingAcceptedScreen({route, navigation}) {
     const delay = 3000;
     dispatch(serviceCheck());
     const timer = setTimeout(() => {
-      navigation.navigate('AgentLocalClientReviewScreen');
+      navigation.navigate('MapArrivalScreen');
     }, delay);
 
     return () => clearTimeout(timer);

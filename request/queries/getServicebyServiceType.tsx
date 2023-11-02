@@ -43,6 +43,10 @@ export const GET_SERVICE_BY_SERVICE_TYPE = gql`
               image
               createdAt
               updatedAt
+              statePrices {
+                state
+                price
+              }
             }
             createdAt
             updatedAt

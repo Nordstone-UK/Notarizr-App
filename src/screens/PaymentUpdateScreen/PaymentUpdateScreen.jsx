@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Animated,
   View,
-  TextInput,
+  Linking,
   ScrollView,
   SafeAreaView,
 } from 'react-native';
@@ -20,11 +20,34 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {hairlineWidth} from 'react-native-extended-stylesheet';
+import {useSelector} from 'react-redux';
+import useStripeApi from '../../hooks/useStripeApi';
 
 export default function PaymentUpdateScreen({navigation}, props) {
+  const {handleStripeCreation} = useStripeApi();
+
   useEffect(() => {
     SplashScreen.hide();
   }, []);
+  const user = useSelector(state => state.user.user.account_type);
+  console.log('user', user);
+  const [Link, setLink] = useState();
+  const [loading, setLoading] = useState(false);
+  const openLink = async () => {
+    const supported = await Linking.canOpenURL(Link);
+    if (supported) {
+      await Linking.openURL(Link);
+    } else {
+      console.log("Don't know how to open URI: ", Link);
+    }
+  };
+  const CreateStripeAccount = async () => {
+    setLoading(true);
+    const response = await handleStripeCreation();
+    // console.log('Link is:', response);
+    setLink(response);
+    setLoading(false);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Payment Method" />
@@ -36,14 +59,38 @@ export default function PaymentUpdateScreen({navigation}, props) {
         <ScrollView
           style={{marginTop: heightToDp(5)}}
           showsVerticalScrollIndicator={false}>
-          <Image
+          {Link === undefined && user !== 'client' && (
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              Title="Create Stripe Account"
+              onPress={() => CreateStripeAccount()}
+              GradiStyles={{padding: widthToDp(2)}}
+              styles={{
+                padding: 0,
+              }}
+              loading={loading}
+            />
+          )}
+          {Link && (
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              Title="Continue signing up"
+              onPress={() => openLink()}
+              GradiStyles={{padding: widthToDp(2)}}
+              styles={{
+                padding: 0,
+              }}
+              loading={loading}
+            />
+          )}
+          {/* <Image
             source={require('../../../assets/Card.png')}
             style={styles.CardIcons}
           />
           <Image
             source={require('../../../assets/Card.png')}
             style={styles.CardIcons}
-          />
+          /> */}
         </ScrollView>
         <View style={{marginBottom: heightToDp(5)}}>
           <GradientButton

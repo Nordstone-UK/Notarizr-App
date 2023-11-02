@@ -25,7 +25,7 @@ export default function Splash_Screen({navigation}) {
       if (token) {
         await fetchUserInfo()
           .then(response => {
-            console.log('Data after', response);
+            // console.log('Data after', response);
             if (
               response.isVerified == false &&
               response.account_type == 'agent'

@@ -4,24 +4,84 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  Alert,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {useSelector} from 'react-redux';
+import {useStripe} from '@stripe/stripe-react-native';
+import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentScreen({navigation}) {
+  const bookingDetail = useSelector(state => state.booking.booking);
+  // console.log('bookingDetail payment', bookingDetail);
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  const {fetchPaymentSheetParams} = useStripeApi();
+  const [loading, setLoading] = useState(false);
+  const DocumentPrice = bookingDetail?.document_type?.price;
+  const Fee = bookingDetail?.document_type?.price * 0.1;
+  const TotalAmount = DocumentPrice + Fee + 2;
+  const initializePaymentSheet = async () => {
+    setLoading(true);
+    const response = await fetchPaymentSheetParams(
+      TotalAmount * 100,
+      bookingDetail._id,
+    );
+    const {customer_id, ephemeralKey, paymentIntent} =
+      response?.data?.createPaymentIntentR;
+    console.log(
+      'Payment Intent response',
+      customer_id,
+      ephemeralKey,
+      paymentIntent,
+    );
+    const {error} = await initPaymentSheet({
+      merchantDisplayName: 'The Opal Group',
+      customerId: customer_id,
+      customerEphemeralKeySecret: ephemeralKey,
+      paymentIntentClientSecret: paymentIntent,
+      // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
+      //methods that complete payment after a delay, like SEPA Debit and Sofort.
+      // allowsDelayedPaymentMethods: true,
+      defaultBillingDetails: {
+        name: 'Jane Doe',
+      },
+    });
+    if (!error) {
+      setLoading(true);
+      // console.log('error', error);
+    }
+    setLoading(false);
+  };
+  const openPaymentSheet = async () => {
+    setLoading(true);
+    const {error} = await presentPaymentSheet();
+
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('error.message', error.message);
+    } else {
+      Alert.alert('Payment Completed!');
+      navigation.navigate('HomeScreen');
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    initializePaymentSheet();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Payment Method" />
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
-          <View style={styles.insideContainer}>
+          {/* <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>
               Please find all your added cards here
             </Text>
@@ -32,7 +92,7 @@ export default function PaymentScreen({navigation}) {
               <Image source={require('../../../assets/Card.png')} />
               <Image source={require('../../../assets/Card.png')} />
             </ScrollView>
-          </View>
+          </View> */}
           <TouchableOpacity style={styles.addContainer}>
             <Text style={styles.addMore}>Add more</Text>
             <Image
@@ -69,12 +129,14 @@ export default function PaymentScreen({navigation}) {
           </TouchableOpacity>
           <View style={{marginVertical: heightToDp(2)}}>
             <View style={styles.docsContainer}>
-              <Text style={styles.textPay}>Medical documents</Text>
-              <Text style={styles.textPay}>$400</Text>
+              <Text style={styles.textPay}>
+                {bookingDetail?.document_type?.name}
+              </Text>
+              <Text style={styles.textPay}>${DocumentPrice}</Text>
             </View>
             <View style={styles.docsContainer}>
               <Text style={styles.textPay}>Tax 10%</Text>
-              <Text style={styles.textPay}>$10</Text>
+              <Text style={styles.textPay}>${Fee}</Text>
             </View>
             <View style={styles.docsContainer}>
               <Text style={styles.textPay}>Fees</Text>
@@ -92,7 +154,7 @@ export default function PaymentScreen({navigation}) {
           />
           <View style={styles.docsContainer}>
             <Text style={styles.textPay}>Total Amount</Text>
-            <Text style={styles.textPay}>$412</Text>
+            <Text style={styles.textPay}>${DocumentPrice + Fee + 2}</Text>
           </View>
           <View
             style={{
@@ -101,7 +163,8 @@ export default function PaymentScreen({navigation}) {
             <GradientButton
               Title="Complete Payment"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => navigation.navigate('PaymentCompletionScreen')}
+              onPress={() => openPaymentSheet()}
+              loading={loading}
             />
           </View>
         </ScrollView>

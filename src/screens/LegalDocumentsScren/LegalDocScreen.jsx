@@ -86,6 +86,7 @@ export default function LegalDocScreen({route, navigation}) {
           {searchResults === null
             ? documents.map((item, index) => (
                 <LegalDocumentCard
+                  source={require('../../../assets/legalDoc.png')}
                   key={index}
                   Title={item.name}
                   Price={item.price}
@@ -121,5 +122,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  contentContainer: {
+    marginVertical: heightToDp(3),
   },
 });

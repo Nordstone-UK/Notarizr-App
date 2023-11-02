@@ -18,21 +18,21 @@ export const agentServiceSlice = createSlice({
   reducers: {
     setServiceType: (state, action) => {
       state.serviceType = action.payload;
-      console.log('ServiceType Set', state.serviceType);
+      // console.log('ServiceType Set', state.serviceType);
     },
     setAvailability: (state, action) => {
       state.availability.weekdays = action.payload.availability;
       state.availability.startTime = action.payload.startTime;
       state.availability.endTime = action.payload.endTime;
-      console.log('Availability Set', state.availability);
+      // console.log('Availability Set', state.availability);
     },
     setCategories: (state, action) => {
       state.category = action.payload;
-      console.log('Categories Set', state.category);
+      // console.log('Categories Set', state.category);
     },
     setServiceLocation: (state, action) => {
       state.location = action.payload;
-      console.log('Location Set', state.location);
+      // console.log('Location Set', state.location);
     },
   },
 });

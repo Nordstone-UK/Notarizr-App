@@ -33,7 +33,7 @@ export default function PaymentCompletionScreen({navigation}, props) {
 
     const delay = 3000;
     const timer = setTimeout(() => {
-      navigation.navigate('MedicalBookingScreen');
+      navigation.navigate('AgentMobileNotaryStartScreen');
     }, delay);
 
     return () => clearTimeout(timer);

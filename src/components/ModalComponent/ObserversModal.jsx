@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.white,
     marginHorizontal: widthToDp(5),
-    elevation: 30,
+    elevation: 10,
     paddingVertical: heightToDp(5),
     borderRadius: 10,
   },

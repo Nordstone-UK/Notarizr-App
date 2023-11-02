@@ -9,14 +9,7 @@ import {UPDATE_ONLINE_STATUS} from '../../../request/mutations/updateOnlineStatu
 import Toast from 'react-native-toast-message';
 
 export default function AgentHomeHeader(props) {
-  // useEffect(() => {
-  //   Toast.show({
-  //     type: 'success',
-  //     text1: 'Status Updated',
-  //     text2: 'You are now ' + 'onlines',
-  //   });
-  // }, []);
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled, setIsEnabled] = useState();
   const [updateOnlineStatusR] = useMutation(UPDATE_ONLINE_STATUS);
   const {profile_picture, first_name, last_name} = useSelector(
     state => state.user.user,
@@ -29,7 +22,7 @@ export default function AgentHomeHeader(props) {
     !isEnabled ? (onlineStatus = 'online') : (onlineStatus = 'offline');
     try {
       const {data} = await updateOnlineStatusR({variables: {onlineStatus}});
-      console.log(data);
+      // console.log(data);
 
       if (data.updateOnlineStatusR.status === '204') {
         Toast.show({
@@ -67,13 +60,18 @@ export default function AgentHomeHeader(props) {
           )}
         </View>
         <View style={styles.IconFlex}>
-          <Image
-            source={require('../../../assets/Search.png')}
-            style={styles.Icon}
-          />
+          {props?.SearchEnabled && (
+            <Image
+              source={require('../../../assets/Search.png')}
+              style={{
+                width: widthToDp(5),
+                height: heightToDp(5),
+              }}
+            />
+          )}
           <Image
             source={require('../../../assets/bellIcon.png')}
-            style={styles.Icon}
+            style={styles.backIcon}
           />
         </View>
       </View>
@@ -97,18 +95,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: widthToDp(5),
     justifyContent: 'space-between',
-    width: '90%',
+    // borderWidth: 1,
   },
   nameFlex: {
     flexDirection: 'row',
     alignItems: 'center',
+    // borderWidth: 1,
   },
   IconFlex: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    // borderWidth: 1,
+    // width: widthToDp(20),
   },
-  Icon: {
-    marginHorizontal: widthToDp(2),
+  backIcon: {
+    width: widthToDp(6),
+    height: heightToDp(6),
+    marginLeft: widthToDp(2),
   },
   textHeading: {
     fontSize: widthToDp(6),

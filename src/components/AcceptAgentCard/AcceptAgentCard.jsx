@@ -131,7 +131,9 @@ export default function AcceptAgentCard(props) {
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: Colors.white,
-    elevation: 30,
+    elevation: 10,
+    // borderWidth: 1,
+    // borderColor: Colors.DullTextColor,
     borderRadius: 10,
     marginVertical: widthToDp(2),
     paddingBottom: heightToDp(6),

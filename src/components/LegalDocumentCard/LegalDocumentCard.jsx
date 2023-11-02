@@ -13,10 +13,7 @@ import Colors from '../../themes/Colors';
 export default function LegalDocumentCard(props) {
   return (
     <TouchableOpacity style={styles.container} onPress={props.onPress}>
-      <Image
-        source={require('../../../assets/agentReactanelPic.png')}
-        style={styles.cardPic}
-      />
+      <Image source={props?.source} style={styles.cardPic} />
       <View style={styles.nameContainer}>
         <Text
           style={[
@@ -35,11 +32,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    elevation: 20,
-    margin: widthToDp(2),
+    marginVertical: widthToDp(2),
+    marginHorizontal: widthToDp(3),
     borderRadius: 10,
     alignItems: 'center',
-    padding: widthToDp(3),
+    padding: widthToDp(1),
+    elevation: 10,
   },
   nameContainer: {
     flexDirection: 'row',
@@ -48,11 +46,14 @@ const styles = StyleSheet.create({
     width: widthToDp(70),
   },
   cardPic: {
+    width: widthToDp(20),
+    height: widthToDp(20),
+    resizeMode: 'contain',
     marginVertical: widthToDp(1),
     padding: widthToDp(10),
   },
   textstyle: {
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(4.5),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),
@@ -61,6 +62,5 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
-    // marginLeft: widthToDp(8),
   },
 });

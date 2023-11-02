@@ -10,7 +10,7 @@ export const bookingInfoSlice = createSlice({
   reducers: {
     setBookingState: (state, action) => {
       state.booking = action.payload;
-      console.log('Booking Set in Redux', state.booking[0].__typename);
+      // console.log('Booking Set in Redux', state.booking[0].__typename);
     },
   },
 });

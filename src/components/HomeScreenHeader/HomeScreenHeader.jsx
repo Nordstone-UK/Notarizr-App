@@ -11,7 +11,7 @@ export default function HomeScreenHeader(props) {
       <View style={styles.namebar}>
         <Image
           source={{
-            uri: 'https://notarizr-app-data.s3.amazonaws.com/images/Profile%20Pictures/d0984283-9c01-4b3c-aefb-d9f6d5611fc4.JPEG',
+            uri: profile_picture,
           }}
           style={styles.imagestyles}
           onError={error => console.error('Image load error:', error)}

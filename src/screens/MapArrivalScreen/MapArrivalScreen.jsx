@@ -8,33 +8,109 @@ import {
   SafeAreaView,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
+import Geolocation from '@react-native-community/geolocation';
+import {useSelector} from 'react-redux';
+import useBookingStatus from '../../hooks/useBookingStatus';
 
 export default function MapArrivalScreen({navigation}, props) {
+  const [location, setLocation] = useState();
+  const [loading, setLoading] = useState(false);
+  const clientData = useSelector(state => state.booking.user);
+  const coordinates = useSelector(state => state.booking.coordinates);
+  const user = useSelector(state => state.user.user.account_type);
+  const handleGetLocation = async () => {
+    try {
+      const coordinates = await getLocation();
+      console.log('coordinates', coordinates);
+      setLocation(coordinates);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  console.log('clientData', clientData);
+  useEffect(() => {
+    handleGetLocation();
+  }, []);
+  const getLocation = () => {
+    return new Promise((resolve, reject) => {
+      Geolocation.getCurrentPosition(
+        position => {
+          const {latitude, longitude} = position.coords;
+          resolve({latitude, longitude});
+        },
+        error => {
+          reject(error);
+        },
+        Platform.OS === 'android'
+          ? {}
+          : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+      );
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {location && (
+        <MapView
+          zoomEnabled={true}
+          region={{
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+          provider={PROVIDER_GOOGLE}
+          showsUserLocation={true}
+          style={styles.map}>
+          {coordinates && (
+            <>
+              <Marker
+                key={clientData?._id}
+                coordinate={{
+                  latitude: coordinates[1],
+                  longitude: coordinates[0],
+                }}
+                title={clientData?.first_name + ' ' + clientData?.last_name}
+                description={clientData?.location}
+              />
+              <Polyline
+                coordinates={[
+                  {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                  },
+                  {
+                    latitude: coordinates[1],
+                    longitude: coordinates[0],
+                  },
+                ]}
+                strokeWidth={3}
+                strokeColor="blue"
+              />
+            </>
+          )}
+        </MapView>
+      )}
       <NavigationHeader
-        Title="Brandon Roger"
-        ProfilePic={require('../../../assets/profileIcon.png')}
-        midImg={require('../../../assets/videoCallIcon.png')}
-        lastImg={require('../../../assets/voiceCallIcon.png')}
+        Title={clientData?.first_name + ' ' + clientData?.last_name}
+        ProfilePic={{uri: clientData?.profile_picture}}
       />
-      <ScrollView style={styles.bottonSheet}>
-        <View style={styles.inputContainer}>
-          <Image source={require('../../../assets/arriving.png')} />
+      {user !== 'client' && (
+        <View style={styles.button}>
+          <GradientButton
+            Title="Arrived"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            loading={loading}
+            onPress={() => navigation.navigate('AgentMobileNotaryStartScreen')}
+          />
         </View>
-      </ScrollView>
-      <View style={styles.button}>
-        <GradientButton
-          Title="Arriving by 1:30 PM"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={() => navigation.navigate('FinalBookingScreen')}
-        />
-      </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -48,12 +124,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
   },
-  inputContainer: {
-    marginTop: widthToDp(5),
-    alignItems: 'center',
-  },
 
+  map: {
+    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+  },
   button: {
-    marginVertical: widthToDp(5),
+    justifyContent: 'flex-end',
+    flex: 1,
+    marginBottom: widthToDp(5),
   },
 });

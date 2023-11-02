@@ -55,9 +55,10 @@ export default function AgentServicePereference({route, navigation}) {
               <TouchableOpacity
                 style={styles.pictureCheck}
                 onPress={() => toggleStringInArray(categories.legal)}>
-                <Image
+                {/* <Image
                   source={require('../../../../assets/legalDocIcon.png')}
-                />
+                /> */}
+                <Image source={require('../../../../assets/Group1.png')} />
                 {selectedCategories.includes(categories.legal) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
@@ -68,9 +69,7 @@ export default function AgentServicePereference({route, navigation}) {
               <TouchableOpacity
                 style={styles.pictureCheck}
                 onPress={() => toggleStringInArray(categories.estate)}>
-                <Image
-                  source={require('../../../../assets/estateDocIcon.png')}
-                />
+                <Image source={require('../../../../assets/Group2.png')} />
                 {selectedCategories.includes(categories.estate) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
@@ -83,9 +82,7 @@ export default function AgentServicePereference({route, navigation}) {
               <TouchableOpacity
                 style={styles.pictureCheck}
                 onPress={() => toggleStringInArray(categories.medical)}>
-                <Image
-                  source={require('../../../../assets/medicalDocIcon.png')}
-                />
+                <Image source={require('../../../../assets/Group3.png')} />
                 {selectedCategories.includes(categories.medical) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}
@@ -96,9 +93,7 @@ export default function AgentServicePereference({route, navigation}) {
               <TouchableOpacity
                 style={styles.pictureCheck}
                 onPress={() => toggleStringInArray(categories.business)}>
-                <Image
-                  source={require('../../../../assets/businessDocIcon.png')}
-                />
+                <Image source={require('../../../../assets/Group4.png')} />
                 {selectedCategories.includes(categories.business) && (
                   <Image
                     source={require('../../../../assets/checkIcon.png')}

@@ -1,10 +1,13 @@
 import {
-  Image,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   View,
   FlatList,
   SafeAreaView,
+  Image,
+  Text,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -19,178 +22,213 @@ import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 import {ScrollView} from 'react-native-virtualized-view';
 import useFetchBooking from '../../hooks/useFetchBooking';
+import {useDispatch} from 'react-redux';
+import {
+  setBookingInfoState,
+  setCoordinates,
+  setUser,
+} from '../../features/booking/bookingSlice';
+import {useStripe} from '@stripe/stripe-react-native';
 
 export default function AllBookingScreen({route, navigation}) {
-  const [isFocused, setIsFocused] = useState('Active');
+  const [isFocused, setIsFocused] = useState('accepted');
   const {fetchBookingInfo} = useFetchBooking();
+  const [refreshing, setRefreshing] = useState(false);
 
   const [booking, setBooking] = useState();
+  const dispatch = useDispatch();
+  const init = async status => {
+    const bookingDetail = await fetchBookingInfo(status);
+    setBooking(bookingDetail);
+  };
   useEffect(() => {
-    const init = async () => {
-      const bookingDetail = await fetchBookingInfo();
-      setBooking(bookingDetail.getBookings.bookings);
-    };
-    init();
+    init('accepted');
   }, []);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    init('pending');
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+  const callBookingsAPI = async status => {
+    setBooking(null);
+    setIsFocused(status);
+    init(status);
+  };
+  const handleAgentData = item => {
+    navigation.navigate('MedicalBookingScreen', {
+      item: item,
+    });
+    dispatch(setBookingInfoState(item));
+    dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
+    dispatch(setUser(item?.agent));
+  };
   return (
     <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="Find all your bookings with our agents here" />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.contentContainer}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              alignContent: 'center',
-              marginBottom: widthToDp(2),
-            }}>
-            <MainButton
-              Title="Active"
-              colors={
-                isFocused === 'Active'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Active'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => setIsFocused('Active')}
-            />
-            <MainButton
-              Title="Completed"
-              colors={
-                isFocused === 'Complete'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Complete'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => setIsFocused('Complete')}
-            />
-            <MainButton
-              Title="Rejected"
-              colors={
-                isFocused === 'Rejected'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Rejected'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => setIsFocused('Rejected')}
-            />
-          </View>
-          {booking ? (
-            <FlatList
-              data={booking}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => {
-                return (
-                  <AgentCard
-                    source={{uri: item.agent.profile_picture}}
-                    bottomRightText="$400"
-                    bottomLeftText="Total"
-                    image={require('../../../assets/agentLocation.png')}
-                    agentName={
-                      item.agent.first_name + ' ' + item.agent.last_name
-                    }
-                    agentAddress={item.agent.location}
-                    task={item.status}
-                    OrangeText={'At Office'}
-                    dateofBooking={item.date_of_booking}
-                    timeofBooking={item.time_of_booking}
-                    createdAt={item.createdAt}
-                  />
-                );
-              }}
-            />
-          ) : (
-            <View>
-              <ActivityIndicator size="large" color={Colors.Orange} />
+          <ScrollView
+            horizontal={true}
+            contentContainerStyle={{}}
+            showsHorizontalScrollIndicator={false}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                alignContent: 'center',
+                columnGap: widthToDp(5),
+                marginHorizontal: widthToDp(5),
+              }}>
+              <MainButton
+                Title="Active"
+                colors={
+                  isFocused === 'accepted'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'accepted'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('accepted')}
+              />
+              <MainButton
+                Title="Pending"
+                colors={
+                  isFocused === 'pending'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'pending'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('pending')}
+              />
+              <MainButton
+                Title="Completed"
+                colors={
+                  isFocused === 'completed'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'completed'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('completed')}
+              />
+              <MainButton
+                Title="Rejected"
+                colors={
+                  isFocused === 'rejected'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                styles={
+                  isFocused === 'rejected'
+                    ? {
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                    : {
+                        color: Colors.TextColor,
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: widthToDp(1),
+                        fontSize: widthToDp(5),
+                      }
+                }
+                onPress={() => callBookingsAPI('rejected')}
+              />
             </View>
-          )}
-          {/* {isFocused === 'Complete' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="Total"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Completed"
-            />
-          )}
-          {isFocused === 'Complete' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="Total"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Completed"
-            />
-          )}
-          {isFocused === 'Rejected' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="Total"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Rejected"
-            />
-          )}
-          {isFocused === 'Rejected' && (
-            <AgentCard
-              image={require('../../../assets/agentLocation.png')}
-              source={require('../../../assets/agentCardPic.png')}
-              bottomRightText="$400"
-              bottomLeftText="Total"
-              agentName={'Advocate Parimal M. Trivedi'}
-              agentAddress={'Shop 28, jigara Kalakand Road'}
-              task="Rejected"
-            />
-          )} */}
+          </ScrollView>
+          <View style={styles.bookingContainer}>
+            {booking ? (
+              booking.length !== 0 ? (
+                <FlatList
+                  data={booking}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}) => {
+                    return (
+                      <TouchableOpacity onPress={() => handleAgentData(item)}>
+                        <AgentCard
+                          source={{uri: item.agent.profile_picture}}
+                          bottomRightText={item.document_type.price}
+                          bottomLeftText="Total"
+                          image={require('../../../assets/agentLocation.png')}
+                          agentName={
+                            item.agent.first_name + ' ' + item.agent.last_name
+                          }
+                          agentAddress={item.agent.location}
+                          task={item.status}
+                          OrangeText={'At Office'}
+                          dateofBooking={item.date_of_booking}
+                          timeofBooking={item.time_of_booking}
+                          createdAt={item.createdAt}
+                        />
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: widthToDp(10),
+                  }}>
+                  <Image
+                    source={require('../../../assets/mainLogo.png')}
+                    style={styles.picture}
+                  />
+                  <Text style={styles.subheading}>No Booking Found...</Text>
+                </View>
+              )
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )}
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -201,6 +239,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
   Heading: {
     fontSize: widthToDp(6.5),
@@ -216,7 +258,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     alignSelf: 'center',
-    paddingRight: widthToDp(2),
   },
   CategoryBar: {
     flexDirection: 'row',
@@ -230,5 +271,9 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  bookingContainer: {
+    // borderWidth: 1,
+    marginVertical: widthToDp(3),
   },
 });

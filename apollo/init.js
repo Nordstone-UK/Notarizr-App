@@ -5,7 +5,7 @@ import {
   createHttpLink,
   from,
 } from '@apollo/client';
-import PermissionsAndroid from 'react-native';
+import {PermissionsAndroid, Platform} from 'react-native';
 import {setContext} from 'apollo-link-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
@@ -29,6 +29,7 @@ const defaultOptions = {
 const init = () => {
   const httpLink = new HttpLink({
     uri: DEV_LIVE,
+    timeout: 10000,
     fetchOptions: {
       reactNative: {textStreaming: true},
     },
@@ -36,7 +37,7 @@ const init = () => {
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
     const {latitude, longitude} = await getCurrentLocation();
-    console.log('Coords: ', latitude, longitude);
+    // console.log('Coords: ', latitude, longitude);
     return {
       headers: {
         ...headers,
@@ -56,55 +57,81 @@ const init = () => {
   });
   return init;
 };
-const getCurrentLocation = () => {
-  return new Promise((resolve, reject) => {
-    Geolocation.getCurrentPosition(
-      position => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-        resolve({latitude, longitude});
-      },
-      error => {
-        reject(error);
-      },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+const requestLocationPermission = async () => {
+  if (Platform.OS === 'ios') {
+    return Geolocation.requestAuthorization('whenInUse');
+  }
+
+  if (Platform.OS === 'android') {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
     );
+
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      return 'granted';
+    } else {
+      throw new Error('Location permission denied');
+    }
+  }
+
+  throw new Error('Unsupported platform');
+};
+
+const getCurrentLocation = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      Geolocation.getCurrentPosition(
+        position => {
+          // console.log('Inside coordinates: ');
+          const {latitude, longitude} = position.coords;
+          resolve({latitude, longitude});
+        },
+        error => {
+          reject(error);
+        },
+        Platform.OS === 'android'
+          ? {}
+          : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+      );
+    } catch (error) {
+      reject(error);
+    }
   });
 };
 
-const checkLocationPermission = async () => {
-  const permissionStatus = await check(
-    PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  );
+// const checkLocationPermission = async () => {
+//   const permissionStatus = await check(
+//     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+//   );
 
-  switch (permissionStatus) {
-    case RESULTS.GRANTED:
-      // Location permission is granted
-      return;
-    case RESULTS.DENIED:
-      // Location permission is denied, request it
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Location Permission',
-            message: 'This app requires access to your location.',
-            buttonPositive: 'Allow',
-          },
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          // Location permission granted
-          return;
-        } else {
-          // Location permission denied
-          throw new Error('Location permission denied.');
-        }
-      } catch (error) {
-        throw error;
-      }
-    default:
-      throw new Error('Location permission check failed.');
-  }
-};
+//   switch (permissionStatus) {
+//     case RESULTS.GRANTED:
+//       // Location permission is granted
+//       return;
+//     case RESULTS.DENIED:
+//       // Location permission is denied, request it
+//       try {
+//         const granted = await PermissionsAndroid.request(
+//           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+//           {
+//             title: 'Location Permission',
+//             message: 'This app requires access to your location.',
+//             buttonPositive: 'Allow',
+//           },
+//         );
+//         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+//           // Location permission granted
+//           return;
+//         } else {
+//           // Location permission denied
+//           throw new Error('Location permission denied.');
+//         }
+//       } catch (error) {
+//         throw error;
+//       }
+//     default:
+//       throw new Error('Location permission check failed.');
+//   }
+// };
 
 export default init;

@@ -133,7 +133,7 @@ export default function AgentCard(props) {
                   fontSize: widthToDp(4.5),
                 },
               ]}>
-              {props.bottomRightText}
+              ${props.bottomRightText}
             </Text>
           </View>
         </View>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
     backgroundColor: Colors.white,
-    elevation: 30,
+    elevation: 10,
     borderRadius: 10,
     marginHorizontal: heightToDp(5),
     marginVertical: heightToDp(2),

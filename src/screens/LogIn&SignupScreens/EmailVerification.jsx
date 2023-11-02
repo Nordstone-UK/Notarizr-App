@@ -17,7 +17,7 @@ import {ceredentailSet} from '../../features/register/registerSlice';
 
 export default function EmailVerification({route, navigation}) {
   const {ceredentials, message} = route.params;
-  console.log(ceredentials);
+  // console.log(ceredentials);
   const email = useSelector(state => state.register.email);
   const [otp, setOTPcode] = useState('');
   const [verifYOTP, {loading: verifyLoading}] = useLazyQuery(VERIFY_PHONE_OTP);
@@ -28,7 +28,7 @@ export default function EmailVerification({route, navigation}) {
       variables: {email, otp},
     })
       .then(response => {
-        console.log(response?.data);
+        // console.log(response?.data);
         // Alert.alert(response?.data?.verifyPhoneOTP?.message);
         // dispatch(ceredentailSet({firstName, lastName, number, city, email}));
         navigation.navigate('ProfilePictureScreen');
@@ -48,7 +48,7 @@ export default function EmailVerification({route, navigation}) {
       getPhoneOtp({
         variables: {email},
       }).then(response => {
-        console.log(response.data.getPhoneOTP.phoneNumber);
+        // console.log(response.data.getPhoneOTP.phoneNumber);
         if (response?.data?.getPhoneOTP?.status !== '200') {
           Alert.alert('OTP not sent');
         } else {

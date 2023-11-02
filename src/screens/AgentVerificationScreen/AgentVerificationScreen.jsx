@@ -40,12 +40,12 @@ export default function AgentVerificationScreen({navigation}, props) {
   };
   const selectPhotoID = async () => {
     const response = await uploadFiles();
-    console.log(response);
+    // console.log(response);
     setphotoID(response);
   };
   const selectCertificate = async () => {
     const response = await uploadFiles();
-    console.log(response);
+    // console.log(response);
     setCertificate(response);
   };
   const submitRegister = async () => {
@@ -71,11 +71,11 @@ export default function AgentVerificationScreen({navigation}, props) {
         certificateUrl: CertificateURL,
         photoId: photoURL,
       };
-      console.log('qqwq', photoURL);
-      console.log('qqwq', CertificateURL);
+      // console.log('qqwq', photoURL);
+      // console.log('qqwq', CertificateURL);
       const isRegister = await handleRegister(params);
       setLoading(false);
-      console.log('Is it working?', isRegister);
+      // console.log('Is it working?', isRegister);
 
       if (isRegister) {
         setLoading(false);

@@ -10,7 +10,7 @@ export const reviewSlice = createSlice({
   reducers: {
     paymentCheck: state => {
       state.payment = !state.payment;
-      console.log(state.payment);
+      // console.log(state.payment);
     },
   },
 });

@@ -86,6 +86,7 @@ export default function RealEstateDocScreen({navigation}) {
             ? documents.map((item, index) => (
                 <LegalDocumentCard
                   key={index}
+                  source={require('../../../assets/estateDoc.png')}
                   Title={item.name}
                   Price={item.price}
                   onPress={() => {
@@ -120,5 +121,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  contentContainer: {
+    marginVertical: heightToDp(3),
   },
 });

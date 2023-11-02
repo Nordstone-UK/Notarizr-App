@@ -23,24 +23,15 @@ polyfillFetch();
 const client = init();
 
 function App(): JSX.Element {
-  const [publishableKey, setPublishableKey] = useState('');
+  const publishableKey = 'pk_test_FSxGM2WbrX0AZFSi8KLj9s4D00IxKQrrDI';
 
-  const fetchPublishableKey = async () => {
-    const key = '0';
-    //  = await fetchKey(); // fetch key from your server here
-    setPublishableKey(key);
-  };
-
-  useEffect(() => {
-    // fetchPublishableKey();
-  }, []);
   return (
     <ApolloProvider client={client}>
       <Provider store={store}>
         <StripeProvider
           publishableKey={publishableKey}
-          merchantIdentifier="merchant.identifier" // required for Apple Pay
-          urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
+          // merchantIdentifier="merchant.identifier" // required for Apple Pay
+          // urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
         >
           <AppNavigation />
         </StripeProvider>

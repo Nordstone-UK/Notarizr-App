@@ -126,4 +126,8 @@ const styles = StyleSheet.create({
   InputFocused: {
     borderColor: '#FF7A28',
   },
+  iconLeft: {
+    width: widthToDp(5),
+    height: heightToDp(5),
+  },
 });

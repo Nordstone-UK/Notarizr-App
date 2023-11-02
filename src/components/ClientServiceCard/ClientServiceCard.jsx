@@ -19,11 +19,9 @@ import ClientTimeCard from '../ClientTimeCard/ClientTimeCard';
 export default function ClientServiceCard(props) {
   const navigation = useNavigation();
   const address = props?.agentAddress;
-  const name = props?.agentName;
-  const Work = props?.Work || false;
+  // const Work = props?.Work || false;
   const [firstPart, secondPart] = splitStringBefore4thWord(address);
-  const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
-  const Button = props.Button;
+  // const Button = props.Button;
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -54,26 +52,26 @@ export default function ClientServiceCard(props) {
       }
     } // Split the string by space
   }
-  function separateStringAfterFirstWord(inputString) {
-    const words = inputString.split(' ');
+  const capitalizeFirstLetter = string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
-    if (words.length > 1) {
-      const firstWord = words[0];
-      const restOfTheString = words.slice(1).join(' ');
-      return [firstWord, restOfTheString];
-    } else {
-      // If there is only one word, return it as the first part and an empty string as the second part.
-      return [inputString, ''];
-    }
-  }
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
-      <View style={{flexDirection: 'row', marginVertical: heightToDp(2)}}>
+      <View style={{flexDirection: 'row', marginVertical: heightToDp(1)}}>
         <View>
-          <View style={{flex: 1}}>
-            <ImageBackground source={props.source} style={styles.cardImage}>
-              <ClientTimeCard task={props.task} />
-            </ImageBackground>
+          <View
+            style={{
+              marginHorizontal: widthToDp(2),
+              marginVertical: widthToDp(2),
+            }}>
+            <Image source={props.source} style={styles.cardImage} />
+            <ClientTimeCard
+              task={props.task}
+              dateofBooking={props.dateofBooking}
+              timeofBooking={props.timeofBooking}
+              createdAt={props.createdAt}
+            />
           </View>
         </View>
         <View
@@ -85,8 +83,7 @@ export default function ClientServiceCard(props) {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              marginTop: heightToDp(2),
-              width: widthToDp(60),
+              width: widthToDp(55),
             }}>
             <View>
               <Text style={styles.nameHeading}>{props?.agentName}</Text>
@@ -130,7 +127,6 @@ export default function ClientServiceCard(props) {
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                width: widthToDp(55),
                 marginLeft: heightToDp(1),
               }}>
               <Text style={styles.distanceStyles}>0.5 Miles</Text>
@@ -141,10 +137,9 @@ export default function ClientServiceCard(props) {
           <View
             style={{
               flexDirection: 'row',
-              width: widthToDp(55),
               justifyContent: 'space-between',
-              margin: heightToDp(2),
-              marginTop: heightToDp(4),
+              marginLeft: heightToDp(1),
+              paddingTop: heightToDp(2),
             }}>
             <Text
               style={[
@@ -152,55 +147,90 @@ export default function ClientServiceCard(props) {
                 props.leftSideStyles,
                 {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
               ]}>
-              {props.bottomLeftText}
+              ${props.bottomLeftText}
             </Text>
-            {Button && (
-              <View>
-                {Work ? (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-evenly',
-                    }}>
-                    {props?.Canceled || false ? (
-                      <Image source={require('../../../assets/pending.png')} />
-                    ) : (
-                      <Image
-                        source={require('../../../assets/greenIcon.png')}
-                      />
-                    )}
-                    <Text
-                      style={[
-                        styles.distanceStyles,
-                        {
-                          fontSize: widthToDp(4.5),
-                          marginHorizontal: widthToDp(2),
-                        },
-                      ]}>
-                      {props?.WorkStatus || (props?.Canceled && 'Canceled')}
-                    </Text>
-                  </View>
-                ) : (
-                  <MainButton
-                    Title="Accept"
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    GradiStyles={{
-                      borderRadius: 5,
-                      paddingHorizontal: widthToDp(1),
-                    }}
-                    styles={{
-                      paddingHorizontal: widthToDp(4),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(4),
-                    }}
-                    onPress={() => navigation.navigate('CompletionScreen')}
-                  />
-                )}
+
+            {props?.status === 'rejected' && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-evenly',
+                }}>
+                <Image source={require('../../../assets/pending.png')} />
+
+                <Text
+                  style={[
+                    styles.distanceStyles,
+                    {
+                      fontSize: widthToDp(4.5),
+                      marginHorizontal: widthToDp(2),
+                    },
+                  ]}>
+                  {capitalizeFirstLetter(props?.status)}
+                </Text>
               </View>
+            )}
+
+            {props?.status === 'completed' && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-evenly',
+                }}>
+                <Image source={require('../../../assets/greenIcon.png')} />
+                <Text
+                  style={[
+                    styles.distanceStyles,
+                    {
+                      fontSize: widthToDp(4.5),
+                      marginHorizontal: widthToDp(2),
+                    },
+                  ]}>
+                  {capitalizeFirstLetter(props?.status)}
+                </Text>
+              </View>
+            )}
+            {props?.status === 'accepted' && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-evenly',
+                }}>
+                <Image source={require('../../../assets/greenIcon.png')} />
+                <Text
+                  style={[
+                    styles.distanceStyles,
+                    {
+                      fontSize: widthToDp(4.5),
+                      marginHorizontal: widthToDp(2),
+                    },
+                  ]}>
+                  {capitalizeFirstLetter(props?.status)}
+                </Text>
+              </View>
+            )}
+            {props?.status === 'pending' && (
+              <MainButton
+                Title="Accept"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  borderRadius: 5,
+                  paddingHorizontal: widthToDp(1),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(4),
+                  paddingVertical: widthToDp(1),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() =>
+                  navigation.navigate('ClientDetailsScreen', {
+                    clientDetail: props?.clientDetail,
+                  })
+                }
+              />
             )}
           </View>
         </View>
@@ -212,7 +242,9 @@ export default function ClientServiceCard(props) {
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: Colors.white,
-    elevation: 30,
+    elevation: 10,
+    // borderWidth: 1,
+    // borderColor: Colors.DullTextColor,
     borderRadius: 10,
     marginVertical: widthToDp(2),
     marginHorizontal: heightToDp(5),
@@ -230,12 +262,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
   },
   cardImage: {
-    flex: 1,
-    justifyContent: 'center',
-    margin: widthToDp(2),
-    width: widthToDp(25),
-    borderRadius: 6,
-    overflow: 'hidden',
+    width: widthToDp(30),
+    height: heightToDp(25),
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
   },
   address: {
     color: Colors.TextColor,
@@ -259,12 +289,14 @@ const styles = StyleSheet.create({
     height: heightToDp(6),
   },
   orangeline: {
+    flex: 0.5,
+    marginBottom: heightToDp(5),
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: widthToDp(65),
-    right: widthToDp(4),
-    zIndex: -1,
-    paddingVertical: heightToDp(1),
+    width: widthToDp(60),
+    right: widthToDp(5),
+    zIndex: -2,
+    paddingVertical: heightToDp(2),
   },
   totalStyles: {
     color: Colors.TextColor,
@@ -275,3 +307,4 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
   },
 });
+//

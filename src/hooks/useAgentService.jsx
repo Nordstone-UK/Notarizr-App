@@ -47,9 +47,9 @@ const useAgentService = () => {
         location: [location],
       },
     };
-    console.log('Variables sent to API', request);
+    // console.log('Variables sent to API', request);
     const {data} = await createService(request);
-    console.log('wdawd', data);
+    // console.log('wdawd', data);
     if (data.createService.status === '201') {
       navigation.navigate('ProfilePreferenceCompletion');
     } else {
@@ -86,9 +86,9 @@ const useAgentService = () => {
         name: first_name + ' ' + last_name,
       },
     };
-    console.log(request);
+    // console.log(request);
     const {data} = await createService(request);
-    console.log('wdawd', data);
+    // console.log('wdawd', data);
     if (data.createService.status === '201') {
       navigation.navigate('ProfilePreferenceCompletion');
     } else {

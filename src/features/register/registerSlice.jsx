@@ -19,7 +19,7 @@ export const registerSlice = createSlice({
   reducers: {
     emailSet: (state, action) => {
       state.email = action.payload;
-      console.log('Redux email', state.email);
+      // console.log('Redux email', state.email);
     },
     ceredentailSet: (state, action) => {
       state.email = action.payload.email;
@@ -28,15 +28,15 @@ export const registerSlice = createSlice({
       state.phoneNumber = action.payload.phoneNumber;
       state.gender = action.payload.gender;
       state.location = action.payload.location;
-      console.log('Redux ', state);
+      // console.log('Redux ', state);
     },
     profilePictureSet: (state, action) => {
       state.profilePicture = action.payload;
-      console.log('Redux profilePciture', state);
+      // console.log('Redux profilePciture', state);
     },
     accountTypeSet: (state, action) => {
       state.accountType = action.payload;
-      console.log('Redux accountType', state.accountType);
+      // console.log('Redux accountType', state.accountType);
     },
   },
 });

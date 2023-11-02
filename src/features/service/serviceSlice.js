@@ -10,7 +10,7 @@ export const serviceSlice = createSlice({
   reducers: {
     serviceCheck: state => {
       state.service = !state.service;
-      console.log(state.service);
+      // console.log(state.service);
     },
   },
 });

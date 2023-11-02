@@ -7,14 +7,14 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 import SettingOptions from '../../components/SettingOptions/SettingOptions';
 import {useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import useFetchUser from '../../hooks/useFetchUser';
 export default function ProfileInfoScreen({navigation}) {
   const accountType = useSelector(state => state.register.accountType);
   const {first_name, profile_picture} = useSelector(state => state.user.user);
@@ -35,6 +35,11 @@ export default function ProfileInfoScreen({navigation}) {
     });
   };
 
+  // useEffect(() => {
+  //   if (isFocused) {
+  //     fetchUserInfo(); // Call the fetchUserInfo function when the screen is focused
+  //   }
+  // }, [useIsFocused, navigation]);
   return (
     <SafeAreaView style={styles.container}>
       <Image source={{uri: profile_picture}} style={styles.picture} />

@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import {widthToDp} from '../../utils/Responsive';
+import {width, widthToDp} from '../../utils/Responsive';
 
 export default function GradientButton(props) {
   return (

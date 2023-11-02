@@ -43,11 +43,12 @@ export default function Ionicons(props) {
           }}>
           <Image
             source={imagePath}
-            style={
+            style={[
               props.focused
                 ? {tintColor: Colors.white}
-                : {tintColor: Colors.DullTextColor}
-            }
+                : {tintColor: Colors.DullTextColor},
+              styles.Icon,
+            ]}
           />
         </View>
       </LinearGradient>
@@ -68,5 +69,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
     alignSelf: 'center',
+  },
+  Icon: {
+    height: heightToDp(6),
+    width: widthToDp(6),
   },
 });
