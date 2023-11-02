@@ -88,9 +88,9 @@ export default function ClientServiceCard(props) {
             <View>
               <Text style={styles.nameHeading}>{props?.agentName}</Text>
             </View>
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <Image source={require('../../../assets/option.png')} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <View
             style={{

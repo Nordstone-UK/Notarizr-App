@@ -213,13 +213,12 @@ export default function AllBookingScreen({route, navigation}) {
               ) : (
                 <View
                   style={{
-                    flex: 1,
+                    height: heightToDp(100),
                     justifyContent: 'center',
                     alignItems: 'center',
-                    marginTop: widthToDp(10),
                   }}>
                   <Image
-                    source={require('../../../assets/mainLogo.png')}
+                    source={require('../../../assets/emptyBox.png')}
                     style={styles.picture}
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>

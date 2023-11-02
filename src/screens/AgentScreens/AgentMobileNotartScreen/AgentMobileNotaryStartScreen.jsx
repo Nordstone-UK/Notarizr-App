@@ -10,7 +10,12 @@ import {
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
-import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
+import {
+  formatDateTime,
+  heightToDp,
+  width,
+  widthToDp,
+} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
@@ -23,36 +28,34 @@ import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {BottomSheet} from '@rneui/base';
 import ReviewPopup from '../../../components/ReviewPopup/ReviewPopup';
 import {useFocusEffect} from '@react-navigation/native';
-import {paymentCheck} from '../../../features/review/reviewSlice';
+// import {paymentCheck} from '../../../features/review/reviewSlice';
 
 export default function AgentMobileNotaryStartScreen({navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
-  const payment = useSelector(state => state.payment.payment);
-  const {uploadFiles, uploadMultipleFiles} = useRegister();
+  // const payment = useSelector(state => state.payment.payment);
+  const {uploadMultipleFiles} = useRegister();
   const booking = useSelector(state => state.booking.booking);
-  // console.log('booking id for API', booking._id);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState();
   const {booked_by} = booking;
   const [notary, setNotary] = useState();
   const [documents, setDocuments] = useState(null);
   const [showNotes, setShowNotes] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  //const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // const dispatch = useDispatch();
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     setIsVisible(payment);
+  //   }, [payment]),
+  // );
 
-  const dispatch = useDispatch();
-  useFocusEffect(
-    React.useCallback(() => {
-      setIsVisible(payment);
-    }, [payment]),
-  );
-
-  const handleReduxPayment = () => {
-    setIsVisible(false);
-    dispatch(paymentCheck());
-    navigation.navigate('HomeScreen');
-  };
+  // const handleReduxPayment = () => {
+  //   setIsVisible(false);
+  //   dispatch(paymentCheck());
+  //   navigation.navigate('HomeScreen');
+  // };
   function capitalizeFirstLetter(str) {
     if (typeof str !== 'string' || str.length === 0) {
       return str;
@@ -90,7 +93,6 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
     setDocuments(response);
     // console.log('Uploaded Files', response);
   };
-
   const deleteDocument = index => {
     const updatedUris = [...documents];
     updatedUris.splice(index, 1);
@@ -170,9 +172,11 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 source={require('../../../../assets/calenderIcon.png')}
                 style={styles.locationImage}
               />
-              <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
+              <Text style={styles.detail}>
+                {formatDateTime(booking?.createdAt)}
+              </Text>
             </View>
-            <Text style={styles.preference}>Notes:</Text>
+            {/* <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
@@ -181,7 +185,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
             </Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
-            </Text>
+            </Text> */}
             {documents &&
               documents.map(index => (
                 <DocumentComponent
@@ -265,11 +269,11 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
             ) : null}
           </View>
         </ScrollView>
-        {isVisible ? (
+        {/* {isVisible ? (
           <BottomSheet modalProps={{}} isVisible={isVisible}>
             <ReviewPopup onPress={() => handleReduxPayment()} />
           </BottomSheet>
-        ) : null}
+        ) : null} */}
       </BottomSheetStyle>
     </SafeAreaView>
   );
@@ -351,7 +355,8 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {},
   locationImage: {
-    tintColor: Colors.DullTextColor,
+    width: widthToDp(7),
+    height: heightToDp(7),
   },
   addressView: {
     flexDirection: 'row',

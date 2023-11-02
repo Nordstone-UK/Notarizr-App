@@ -298,7 +298,8 @@ const styles = StyleSheet.create({
 
   sheetContainer: {},
   locationImage: {
-    tintColor: Colors.DullTextColor,
+    width: widthToDp(7),
+    height: heightToDp(7),
   },
   addressView: {
     flexDirection: 'row',

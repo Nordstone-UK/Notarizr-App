@@ -78,7 +78,7 @@ export default function AgentMobileNotarySummaryScreen() {
               />
               <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
             </View>
-            <Text style={styles.preference}>Notes:</Text>
+            {/* <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
@@ -87,7 +87,7 @@ export default function AgentMobileNotarySummaryScreen() {
             </Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
-            </Text>
+            </Text> */}
             <Text
               style={[styles.insideHeading, {marginHorizontal: widthToDp(5)}]}>
               Agent Summary
@@ -181,7 +181,8 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {},
   locationImage: {
-    tintColor: Colors.DullTextColor,
+    width: widthToDp(7),
+    height: heightToDp(7),
   },
   addressView: {
     flexDirection: 'row',

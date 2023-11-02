@@ -84,9 +84,9 @@ export default function AgentCard(props) {
             <View>
               <Text style={styles.nameHeading}>{name}</Text>
             </View>
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <Image source={require('../../../assets/option.png')} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <View
             style={{

@@ -77,9 +77,9 @@ export default function AgentReviewCard(props) {
                   {name}
                 </Text>
               </View>
-              <TouchableOpacity>
+              {/* <TouchableOpacity>
                 <Image source={require('../../../assets/option.png')} />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
             <View
               style={{
@@ -89,7 +89,7 @@ export default function AgentReviewCard(props) {
                 source={
                   require('../../../assets/locationIcon.png') || props?.image
                 }
-                style={{tintColor: Colors.Black}}
+                style={{width: widthToDp(5), height: heightToDp(5)}}
               />
               <View
                 style={{

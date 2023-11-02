@@ -73,7 +73,7 @@ export default function AgentLocalClientReviewScreen({navigation}) {
           />
           <View style={styles.sheetContainer}>
             <Text style={[styles.insideHeading]}>Booking Preferences</Text>
-            <Text style={styles.preference}>Notes:</Text>
+            {/* <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
@@ -82,7 +82,7 @@ export default function AgentLocalClientReviewScreen({navigation}) {
             </Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
-            </Text>
+            </Text> */}
             <Text style={[styles.insideHeading]}>Booking Date & Time</Text>
             <View
               style={{flexDirection: 'row', justifyContent: 'space-between'}}>

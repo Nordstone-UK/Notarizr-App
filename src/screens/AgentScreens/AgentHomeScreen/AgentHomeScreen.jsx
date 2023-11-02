@@ -128,7 +128,7 @@ export default function AgentHomeScreen({navigation}) {
                     marginTop: widthToDp(10),
                   }}>
                   <Image
-                    source={require('../../../../assets/mainLogo.png')}
+                    source={require('../../../../assets/emptyBox.png')}
                     style={styles.picture}
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>

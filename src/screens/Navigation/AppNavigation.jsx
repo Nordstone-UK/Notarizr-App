@@ -91,6 +91,7 @@ import Splash_Screen from '../SplashScreen/Splash_Screen';
 import MedicalDocScreen from '../LegalDocumentsScren/MedicalDocScreen';
 import RONAgentReviewScreen from '../RONAgentReviewScreen/RONAgentReviewScreen';
 import MapScreen from '../MapScreen/MapScreen';
+import CompletePayment from '../CompletionScreen/CompletePayment';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -213,6 +214,7 @@ export default function AppNavigation() {
             name="RealEstateDocScreen"
             component={RealEstateDocScreen}
           />
+          <Stack.Screen name="CompletePayment" component={CompletePayment} />
           <Stack.Screen
             name="BusinessDocScreen"
             component={BusinessDocScreen}

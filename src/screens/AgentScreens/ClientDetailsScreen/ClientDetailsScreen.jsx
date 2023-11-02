@@ -9,7 +9,7 @@ import {
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
+import {formatDateTime, heightToDp, widthToDp} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
@@ -27,7 +27,7 @@ import {
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const {clientDetail} = route.params;
-  // console.log('clientDetail:', clientDetail);
+  console.log('clientDetail:', clientDetail);
   const dispatch = useDispatch();
   const capitalizeFirstLetter = string => {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -96,22 +96,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                Start Time: {clientDetail?.service?.availability.startTime}
-              </Text>
-              <Text style={styles.detail}>
-                End Time: {clientDetail?.service?.availability.endTime}
+                {formatDateTime(clientDetail?.createdAt)}
               </Text>
             </View>
-            <Text style={styles.preference}>WeekDays:</Text>
-            <Text style={styles.preference}>
-              {clientDetail?.service?.availability.weekdays?.map(
-                (day, index) => (
-                  <Text key={index} style={styles.dayText}>
-                    {capitalizeFirstLetter(day)}
-                  </Text>
-                ),
-              )}
-            </Text>
           </View>
         </ScrollView>
         <View style={styles.buttonBottom}>
@@ -226,7 +213,8 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {},
   locationImage: {
-    tintColor: Colors.DullTextColor,
+    width: widthToDp(7),
+    height: heightToDp(7),
   },
   addressView: {
     flexDirection: 'row',

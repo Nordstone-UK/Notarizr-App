@@ -62,10 +62,7 @@ export default function AgentAllBookingScreen({navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           contentContainerStyle={styles.contentContainer}>
-          <ScrollView
-            horizontal={true}
-            contentContainerStyle={{}}
-            showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
             <View
               style={{
                 flexDirection: 'row',
@@ -169,7 +166,12 @@ export default function AgentAllBookingScreen({navigation}) {
               />
             </View>
           </ScrollView>
-          <View style={{flex: 1, marginVertical: widthToDp(3)}}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              marginVertical: widthToDp(3),
+            }}>
             {Booking ? (
               Booking.length !== 0 ? (
                 <FlatList
@@ -205,14 +207,13 @@ export default function AgentAllBookingScreen({navigation}) {
               ) : (
                 <View
                   style={{
-                    flex: 1,
+                    height: heightToDp(100),
                     justifyContent: 'center',
                     alignItems: 'center',
-                    marginTop: widthToDp(10),
                   }}>
                   <Image
-                    source={require('../../../../assets/mainLogo.png')}
-                    style={styles.picture}
+                    source={require('../../../../assets/emptyBox.png')}
+                    style={[styles.picture]}
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>
                 </View>
@@ -231,6 +232,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+    // justifyContent: 'center',
+    // alignContent: 'center',
   },
   Heading: {
     fontSize: widthToDp(6.5),
