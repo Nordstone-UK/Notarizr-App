@@ -11,7 +11,7 @@ export default function AgentChatContactScreen({navigation}) {
       <AgentHomeHeader
         Title="Find all your messages with your clients here"
         Switch={true}
-        SearchEnabled={true}
+        // SearchEnabled={true}
       />
       <BottomSheetStyle>
         <ScrollView>

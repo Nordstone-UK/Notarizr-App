@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,6 +20,7 @@ import {Linking} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {ScrollView} from 'react-native-virtualized-view';
 import useFetchBooking from '../../hooks/useFetchBooking';
+import {WebView} from 'react-native-webview';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -29,14 +31,22 @@ export default function HomeScreen({navigation}) {
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
-  useEffect(() => {
-    const init = async status => {
-      const bookingDetail = await fetchBookingInfo(status);
-      console.log('bookingDetail', bookingDetail);
-      setBooking(bookingDetail);
-    };
+  const [refreshing, setRefreshing] = useState(false);
+  const init = async status => {
+    const bookingDetail = await fetchBookingInfo(status);
+    // console.log('bookingDetail', bookingDetail);
+    setBooking(bookingDetail);
+  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
     init('pending');
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
   }, []);
+  useEffect(() => {
+    init('pending');
+  }, [navigation]);
   const openLinkInBrowser = () => {
     const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
     Linking.openURL(url).catch(err =>
@@ -58,22 +68,24 @@ export default function HomeScreen({navigation}) {
         <ScrollView
           style={{flex: 1}}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.contentContainer}>
+          contentContainerStyle={styles.contentContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
           <Text style={styles.MainHeading}>
             Know how Notarizr helps you in notarizing your documents
           </Text>
-          <TouchableOpacity onPress={openLinkInBrowser} style={{}}>
-            <Image
-              source={require('../../../assets/videoIcon.png')}
-              style={{
-                alignSelf: 'center',
-                width: widthToDp(90),
-                height: heightToDp(40),
-                borderRadius: 15,
-                marginTop: heightToDp(3),
-              }}
-            />
-          </TouchableOpacity>
+          <WebView
+            source={{uri: 'https://www.youtube.com/watch?v=SgD7g0COp-I'}}
+            style={{
+              flex: 1,
+              width: widthToDp(95),
+              height: heightToDp(52),
+              alignSelf: 'center',
+              marginVertical: heightToDp(3),
+            }}
+          />
+
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Categories</Text>
             <TouchableOpacity

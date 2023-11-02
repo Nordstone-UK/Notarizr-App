@@ -110,6 +110,7 @@ export default function MapScreen({route, navigation}) {
             horizontal
             data={agents}
             renderItem={renderItem}
+            showsHorizontalScrollIndicator={false}
             keyExtractor={item => item._id}
           />
         </View>

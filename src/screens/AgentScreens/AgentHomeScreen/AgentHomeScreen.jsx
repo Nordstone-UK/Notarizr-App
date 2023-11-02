@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
@@ -24,28 +25,31 @@ import {
   setBookingInfoState,
   setCoordinates,
 } from '../../../features/booking/bookingSlice';
+import WebView from 'react-native-webview';
 
 export default function AgentHomeScreen({navigation}) {
-  const openLinkInBrowser = () => {
-    const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
-    Linking.openURL(url).catch(err =>
-      console.error('An error occurred: ', err),
-    );
-  };
+  const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   const {fetchAgentBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState([]);
+  const init = async status => {
+    const bookingDetail = await fetchAgentBookingInfo(status);
+    // console.log(bookingDetail);
+    setBooking(bookingDetail);
+  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    init('pending');
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
   useEffect(() => {
-    const init = async status => {
-      const bookingDetail = await fetchAgentBookingInfo(status);
-      // console.log(bookingDetail);
-      setBooking(bookingDetail);
-    };
     init('pending');
   }, []);
   const handleNavigation = item => {
     navigation.navigate('ClientDetailsScreen', {clientDetail: item});
-    console.log('Redux sending item: ', item);
+    // console.log('Redux sending item: ', item);
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
     dispatch(setBookingInfoState(item.booked_by));
   };
@@ -55,22 +59,24 @@ export default function AgentHomeScreen({navigation}) {
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.Heading}>
+          <Text style={styles.mainHeading}>
             Know how Notarizr helps you in getting more oppurtunities
           </Text>
-          <TouchableOpacity onPress={openLinkInBrowser}>
-            <Image
-              source={require('../../../../assets/videoIcon.png')}
-              style={{
-                alignSelf: 'center',
-                marginTop: heightToDp(3),
-                width: widthToDp(90),
-                height: heightToDp(40),
-                borderRadius: 15,
-              }}
-            />
-          </TouchableOpacity>
+          <WebView
+            source={{uri: 'https://www.youtube.com/watch?v=SgD7g0COp-I'}}
+            style={{
+              flex: 1,
+              width: widthToDp(95),
+              height: heightToDp(52),
+              alignSelf: 'center',
+              marginVertical: heightToDp(3),
+            }}
+          />
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
               Title="Select a service"
@@ -143,11 +149,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
-  Heading: {
+  mainHeading: {
     fontSize: widthToDp(6.5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginHorizontal: widthToDp(3),
+  },
+  Heading: {
+    fontSize: widthToDp(6.5),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
   },
   contentContainer: {
     paddingVertical: heightToDp(5),
@@ -156,11 +167,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginRight: widthToDp(5),
+    marginHorizontal: widthToDp(3),
   },
   subheaing: {
+    fontSize: widthToDp(4),
+    fontWeight: '700',
     color: Colors.TextColor,
-    fontFamily: 'Manrope-SemiBold',
+    alignSelf: 'center',
   },
   subheading: {
     fontSize: widthToDp(4),

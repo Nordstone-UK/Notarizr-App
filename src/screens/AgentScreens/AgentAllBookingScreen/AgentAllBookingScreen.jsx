@@ -6,6 +6,7 @@ import {
   FlatList,
   SafeAreaView,
   Image,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -21,10 +22,11 @@ export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchAgentBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState();
+  const [refreshing, setRefreshing] = useState(false);
 
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
-    console.log('bookingDetail', bookingDetail);
+    // console.log('bookingDetail', bookingDetail);
     setBooking(bookingDetail);
   };
   useEffect(() => {
@@ -36,16 +38,29 @@ export default function AgentAllBookingScreen({navigation}) {
     setIsFocused(status);
     init(status);
   };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setBooking(null);
+    init('accepted');
+    setIsFocused('accepted');
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
         Title="One Click and Select our services."
-        SearchEnabled={true}
+        // SearchEnabled={true}
         Switch={true}
       />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           contentContainerStyle={styles.contentContainer}>
           <ScrollView
             horizontal={true}
@@ -154,7 +169,7 @@ export default function AgentAllBookingScreen({navigation}) {
               />
             </View>
           </ScrollView>
-          <View style={{flex: 1}}>
+          <View style={{flex: 1, marginVertical: widthToDp(3)}}>
             {Booking ? (
               Booking.length !== 0 ? (
                 <FlatList

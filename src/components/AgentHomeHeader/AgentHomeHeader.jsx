@@ -63,12 +63,15 @@ export default function AgentHomeHeader(props) {
           {props?.SearchEnabled && (
             <Image
               source={require('../../../assets/Search.png')}
-              style={styles.Icon}
+              style={{
+                width: widthToDp(5),
+                height: heightToDp(5),
+              }}
             />
           )}
           <Image
             source={require('../../../assets/bellIcon.png')}
-            style={styles.Icon}
+            style={styles.backIcon}
           />
         </View>
       </View>
@@ -92,18 +95,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: widthToDp(5),
     justifyContent: 'space-between',
-    width: '90%',
+    // borderWidth: 1,
   },
   nameFlex: {
     flexDirection: 'row',
     alignItems: 'center',
+    // borderWidth: 1,
   },
   IconFlex: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    // borderWidth: 1,
+    // width: widthToDp(20),
   },
-  Icon: {
-    marginHorizontal: widthToDp(2),
+  backIcon: {
+    width: widthToDp(6),
+    height: heightToDp(6),
+    marginLeft: widthToDp(2),
   },
   textHeading: {
     fontSize: widthToDp(6),

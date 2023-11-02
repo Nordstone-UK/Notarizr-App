@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Image,
   Text,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -32,6 +33,8 @@ import {useStripe} from '@stripe/stripe-react-native';
 export default function AllBookingScreen({route, navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchBookingInfo} = useFetchBooking();
+  const [refreshing, setRefreshing] = useState(false);
+
   const [booking, setBooking] = useState();
   const dispatch = useDispatch();
   const init = async status => {
@@ -40,6 +43,13 @@ export default function AllBookingScreen({route, navigation}) {
   };
   useEffect(() => {
     init('accepted');
+  }, []);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    init('pending');
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
   }, []);
   const callBookingsAPI = async status => {
     setBooking(null);
@@ -60,6 +70,9 @@ export default function AllBookingScreen({route, navigation}) {
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.contentContainer}>
           <ScrollView

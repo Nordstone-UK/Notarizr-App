@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     padding: widthToDp(1),
-    elevation: 30,
+    elevation: 10,
   },
   nameContainer: {
     flexDirection: 'row',

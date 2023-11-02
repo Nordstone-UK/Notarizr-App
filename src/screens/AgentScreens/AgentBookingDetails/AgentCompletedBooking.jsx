@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   SafeAreaView,
+  RefreshControl,
   Image,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -19,6 +20,7 @@ import {ScrollView} from 'react-native-virtualized-view';
 export default function AgentCompletedBooking({navigation}) {
   const {fetchAgentBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState();
+  const [refreshing, setRefreshing] = useState(false);
 
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
@@ -27,10 +29,14 @@ export default function AgentCompletedBooking({navigation}) {
   useEffect(() => {
     init('completed');
   }, []);
-  // const callBookingsAPI = async status => {
-  //   setBooking(null);
-  //   setIsFocused(status);
-  // };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setBooking(null);
+    init('completed');
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -41,6 +47,10 @@ export default function AgentCompletedBooking({navigation}) {
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           contentContainerStyle={styles.contentContainer}>
           <Text style={styles.Heading}>Completed Booking</Text>
           <View style={{flex: 1}}>

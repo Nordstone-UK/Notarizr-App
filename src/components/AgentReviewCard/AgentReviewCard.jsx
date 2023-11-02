@@ -145,9 +145,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
     backgroundColor: Colors.white,
-    // elevation: 30,
-    borderWidth: 1,
-    borderColor: Colors.DullTextColor,
+    elevation: 10,
     borderRadius: 10,
     // paddingBottom: heightToDp(10),
     marginHorizontal: heightToDp(5),

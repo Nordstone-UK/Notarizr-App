@@ -15,7 +15,7 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import Colors from '../../themes/Colors';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 
-export default function LabelTextInput(props) {
+export default function MultiLineTextInput(props) {
   const [isFocused, setIsFocused] = useState(false);
   const handleFocus = () => {
     setIsFocused(true);
@@ -26,7 +26,11 @@ export default function LabelTextInput(props) {
       setIsFocused(false);
     }
   };
+  const [inputHeight, setInputHeight] = useState(40);
 
+  const handleContentSizeChange = event => {
+    setInputHeight(event.nativeEvent.contentSize.height);
+  };
   return (
     <View style={[styles.container, props.container]}>
       <View
@@ -40,9 +44,11 @@ export default function LabelTextInput(props) {
         )}
         <TextInput
           onFocus={handleFocus}
+          multiline={true}
+          onContentSizeChange={handleContentSizeChange}
           onBlur={handleBlur}
           editable={!props.editable || true}
-          style={[styles.input, props.InputStyles]}
+          style={[styles.input, props.InputStyles, {height: inputHeight}]}
           keyboardType={props.keyboardType || 'default'}
           secureTextEntry={secureText || false}
           placeholder={props.placeholder}
@@ -120,6 +126,7 @@ const styles = StyleSheet.create({
     padding: widthToDp(6),
     width: widthToDp(80),
     fontSize: 18,
+
     backgroundColor: 'transparent',
     color: Colors.Black,
   },
