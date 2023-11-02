@@ -21,7 +21,7 @@ import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 export default function MedicalDocScreen({route, navigation}) {
   const documents = [
     {
-      name: 'Medical Power of Attorney',
+      name: 'Power of Attorney',
       price: 500,
     },
     {
@@ -33,7 +33,7 @@ export default function MedicalDocScreen({route, navigation}) {
       price: 600,
     },
     {
-      name: 'HIPAA Authorization Form',
+      name: 'HIPAA  Form',
       price: 600,
     },
     {
@@ -87,7 +87,7 @@ export default function MedicalDocScreen({route, navigation}) {
                 <LegalDocumentCard
                   key={index}
                   Title={item.name}
-                  source={require('../../../assets/docPicture.jpg')}
+                  source={require('../../../assets/docPicture.png')}
                   Price={item.price}
                   onPress={() => {
                     navigation.navigate('MainBookingScreen', {

@@ -88,7 +88,7 @@ export default function BusinessDocScreen({route, navigation}) {
                   key={index}
                   Title={item.name}
                   Price={item.price}
-                  source={require('../../../assets/businessDoc.jpg')}
+                  source={require('../../../assets/businessDoc.png')}
                   onPress={() => {
                     navigation.navigate('MainBookingScreen', {
                       name: 'Business Documents',

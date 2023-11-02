@@ -32,12 +32,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    margin: widthToDp(2),
+    marginVertical: widthToDp(2),
+    marginHorizontal: widthToDp(3),
     borderRadius: 10,
     alignItems: 'center',
     padding: widthToDp(1),
-    borderColor: Colors.DullTextColor,
-    borderWidth: 1,
+    elevation: 30,
   },
   nameContainer: {
     flexDirection: 'row',
@@ -46,15 +46,14 @@ const styles = StyleSheet.create({
     width: widthToDp(70),
   },
   cardPic: {
-    width: widthToDp(20),
+    width: widthToDp(),
     height: widthToDp(20),
     resizeMode: 'contain',
     marginVertical: widthToDp(1),
     padding: widthToDp(10),
-    // borderRadius: 35,
   },
   textstyle: {
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(4.5),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),

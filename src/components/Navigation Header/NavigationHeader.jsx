@@ -22,7 +22,10 @@ export default function NavigationHeader(props) {
                 : navigation.goBack()
             }
             style={styles.touchContainer}>
-            <Image source={require('../../../assets/backIcon.png')} />
+            <Image
+              source={require('../../../assets/backIcon.png')}
+              style={styles.backIcon}
+            />
           </TouchableOpacity>
           {props.ProfilePic && (
             <Image source={props.ProfilePic} style={styles.profilePic} />
@@ -33,15 +36,12 @@ export default function NavigationHeader(props) {
           <View style={styles.iconContainer}>
             {props.midImg && (
               <TouchableOpacity onPress={props.midImgPress}>
-                <Image source={props.midImg} />
+                <Image source={props.midImg} style={styles.backIcon} />
               </TouchableOpacity>
             )}
             {props.lastImg && (
               <TouchableOpacity onPress={props.lastImgPress}>
-                <Image
-                  source={props.lastImg}
-                  style={{tintColor: Colors.TextColor}}
-                />
+                <Image source={props.lastImg} style={styles.backIcon} />
               </TouchableOpacity>
             )}
           </View>
@@ -96,5 +96,9 @@ const styles = StyleSheet.create({
     width: widthToDp(10),
     height: heightToDp(10),
     borderRadius: 25,
+  },
+  backIcon: {
+    width: widthToDp(6),
+    height: heightToDp(6),
   },
 });

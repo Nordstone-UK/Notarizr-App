@@ -169,52 +169,53 @@ export default function AllBookingScreen({route, navigation}) {
               />
             </View>
           </ScrollView>
-
-          {booking ? (
-            booking.length !== 0 ? (
-              <FlatList
-                data={booking}
-                keyExtractor={item => item._id}
-                renderItem={({item}) => {
-                  return (
-                    <TouchableOpacity onPress={() => handleAgentData(item)}>
-                      <AgentCard
-                        source={{uri: item.agent.profile_picture}}
-                        bottomRightText={item.document_type.price}
-                        bottomLeftText="Total"
-                        image={require('../../../assets/agentLocation.png')}
-                        agentName={
-                          item.agent.first_name + ' ' + item.agent.last_name
-                        }
-                        agentAddress={item.agent.location}
-                        task={item.status}
-                        OrangeText={'At Office'}
-                        dateofBooking={item.date_of_booking}
-                        timeofBooking={item.time_of_booking}
-                        createdAt={item.createdAt}
-                      />
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: widthToDp(10),
-                }}>
-                <Image
-                  source={require('../../../assets/mainLogo.png')}
-                  style={styles.picture}
+          <View style={styles.bookingContainer}>
+            {booking ? (
+              booking.length !== 0 ? (
+                <FlatList
+                  data={booking}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}) => {
+                    return (
+                      <TouchableOpacity onPress={() => handleAgentData(item)}>
+                        <AgentCard
+                          source={{uri: item.agent.profile_picture}}
+                          bottomRightText={item.document_type.price}
+                          bottomLeftText="Total"
+                          image={require('../../../assets/agentLocation.png')}
+                          agentName={
+                            item.agent.first_name + ' ' + item.agent.last_name
+                          }
+                          agentAddress={item.agent.location}
+                          task={item.status}
+                          OrangeText={'At Office'}
+                          dateofBooking={item.date_of_booking}
+                          timeofBooking={item.time_of_booking}
+                          createdAt={item.createdAt}
+                        />
+                      </TouchableOpacity>
+                    );
+                  }}
                 />
-                <Text style={styles.subheading}>No Booking Found...</Text>
-              </View>
-            )
-          ) : (
-            <ActivityIndicator size="large" color={Colors.Orange} />
-          )}
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: widthToDp(10),
+                  }}>
+                  <Image
+                    source={require('../../../assets/mainLogo.png')}
+                    style={styles.picture}
+                  />
+                  <Text style={styles.subheading}>No Booking Found...</Text>
+                </View>
+              )
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )}
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -257,5 +258,9 @@ const styles = StyleSheet.create({
   },
   CategoryPictures: {
     marginVertical: heightToDp(2),
+  },
+  bookingContainer: {
+    // borderWidth: 1,
+    marginVertical: widthToDp(3),
   },
 });

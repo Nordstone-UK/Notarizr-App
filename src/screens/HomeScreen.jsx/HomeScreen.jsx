@@ -59,7 +59,7 @@ export default function HomeScreen({navigation}) {
           style={{flex: 1}}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.Heading}>
+          <Text style={styles.MainHeading}>
             Know how Notarizr helps you in notarizing your documents
           </Text>
           <TouchableOpacity onPress={openLinkInBrowser} style={{}}>
@@ -84,49 +84,41 @@ export default function HomeScreen({navigation}) {
           <View style={styles.CategoryPictures}>
             <View style={styles.PictureBar}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('LegalDocScreen')}>
+                onPress={() => navigation.navigate('LegalDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.LongImage}>Legal Documents</Text>
                 <Image
-                  source={require('../../../assets/Group1.png')}
-                  style={{
-                    width: widthToDp(60),
-                    height: heightToDp(30),
-                    borderRadius: 10,
-                  }}
+                  source={require('../../../assets/legalDocIcon.png')}
+                  style={styles.ImageLong}
                 />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('RealEstateDocScreen')}>
+                onPress={() => navigation.navigate('RealEstateDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.ShortImage}>Real Estate Documents</Text>
                 <Image
-                  source={require('../../../assets/Group2.png')}
-                  style={{
-                    width: widthToDp(30),
-                    height: heightToDp(30),
-                    borderRadius: 10,
-                  }}
+                  source={require('../../../assets/estateDocIcon.png')}
+                  style={styles.ImageShort}
                 />
               </TouchableOpacity>
             </View>
             <View style={styles.PictureBar}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('MedicalDocScreen')}>
+                onPress={() => navigation.navigate('MedicalDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.ShortImage}>Medical Documents</Text>
                 <Image
-                  source={require('../../../assets/Group3.png')}
-                  style={{
-                    width: widthToDp(30),
-                    height: heightToDp(30),
-                    borderRadius: 10,
-                  }}
+                  source={require('../../../assets/medicalDocIcon.png')}
+                  style={styles.ImageShort}
                 />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('BusinessDocScreen')}>
+                onPress={() => navigation.navigate('BusinessDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.LongImage}>Business Documents</Text>
                 <Image
-                  source={require('../../../assets/Group4.png')}
-                  style={{
-                    width: widthToDp(60),
-                    height: heightToDp(30),
-                    borderRadius: 10,
-                  }}
+                  source={require('../../../assets/businessDocIcon.png')}
+                  style={styles.ImageLong}
                 />
               </TouchableOpacity>
             </View>
@@ -198,11 +190,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.PinkBackground,
   },
+  MainHeading: {
+    fontSize: widthToDp(6.5),
+    fontWeight: '700',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(4),
+  },
+  LongImage: {
+    position: 'absolute',
+    zIndex: 99,
+    margin: widthToDp(2),
+    fontSize: widthToDp(5.5),
+    marginTop: widthToDp(1),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginRight: widthToDp(20),
+  },
+  ShortImage: {
+    position: 'absolute',
+    zIndex: 1,
+    margin: widthToDp(2),
+    fontSize: widthToDp(4),
+    marginTop: widthToDp(1),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+  },
+  ImageShort: {
+    width: widthToDp(30),
+    height: heightToDp(30),
+    borderRadius: 10,
+  },
+  ImageLong: {
+    width: widthToDp(60),
+    height: heightToDp(30),
+    borderRadius: 10,
+  },
   Heading: {
     fontSize: widthToDp(6.5),
     fontWeight: '700',
     color: Colors.TextColor,
-    paddingLeft: widthToDp(2),
   },
   contentContainer: {
     paddingVertical: heightToDp(5),
@@ -216,7 +242,9 @@ const styles = StyleSheet.create({
   CategoryBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
+    marginTop: heightToDp(3),
+    marginHorizontal: widthToDp(4),
+    alignItems: 'center',
   },
   PictureBar: {
     flexDirection: 'row',
