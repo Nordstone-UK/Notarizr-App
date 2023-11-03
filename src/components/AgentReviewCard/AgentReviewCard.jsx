@@ -8,35 +8,41 @@ import {
   ImageBackground,
 } from 'react-native';
 import React from 'react';
-import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {
+  capitalizeFirstLetter,
+  heightToDp,
+  widthToDp,
+} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LinearGradient from 'react-native-linear-gradient';
 import AgentReviewComponent from '../AgentCard/AgentReviewComponent';
 
 export default function AgentReviewCard(props) {
-  const address = props?.agentAddress;
+  const address = capitalizeFirstLetter(props?.agentAddress);
   const name = props?.agentName;
 
-  const [firstPart, secondPart] = splitStringBefore4thWord(address);
+  const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   // console.log(props.source);
-  function splitStringBefore4thWord(inputString) {
+  function splitStringBefore2ndWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
 
-      // Check if there are at least 4 words
-      if (words.length >= 4) {
-        // Join the first three words with space
-        const firstPart = words.slice(0, 3).join(' ');
+      // Check if there are at least 2 words
+      if (words.length >= 2) {
+        // Join the first two words with space
+        const firstPart = words.slice(0, 2).join(' ');
 
         // Join the remaining words with space
-        const secondPart = words.slice(3).join(' ');
+        const secondPart = words.slice(2).join(' ');
 
         return [firstPart, secondPart];
       } else {
-        // If there are fewer than 4 words, return the original string as the first part
+        // If there are fewer than 2 words, return the original string as the first part
         return [inputString, ''];
       }
-    } // Split the string by space
+    } else {
+      return ['', '']; // Return empty strings if the inputString is empty
+    }
   }
   function separateStringAfterFirstWord(inputString) {
     const words = inputString.split(' ');
@@ -64,7 +70,7 @@ export default function AgentReviewCard(props) {
         <View>
           <View
             style={{
-              width: widthToDp(60),
+              width: widthToDp(50),
               marginTop: heightToDp(2),
             }}>
             <View
@@ -83,13 +89,14 @@ export default function AgentReviewCard(props) {
             </View>
             <View
               style={{
+                marginTop: heightToDp(2),
                 flexDirection: 'row',
               }}>
               <Image
                 source={
                   require('../../../assets/locationIcon.png') || props?.image
                 }
-                style={{width: widthToDp(5), height: heightToDp(5)}}
+                style={{width: widthToDp(4), height: heightToDp(4)}}
               />
               <View
                 style={{
@@ -99,7 +106,7 @@ export default function AgentReviewCard(props) {
               </View>
             </View>
             <View>
-              <Text style={[styles.address, {marginLeft: widthToDp(6)}]}>
+              <Text style={[styles.address, {marginLeft: widthToDp(5)}]}>
                 {secondPart}
               </Text>
             </View>
@@ -108,30 +115,30 @@ export default function AgentReviewCard(props) {
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                marginHorizontal: widthToDp(2),
-                paddingTop: heightToDp(5),
+                marginRight: widthToDp(3),
+                paddingTop: heightToDp(3),
               }}>
               <Text
                 style={[
                   styles.totalStyles,
                   props.leftSideStyles,
                   {
-                    fontSize: widthToDp(4.5),
+                    fontSize: widthToDp(4),
                     fontFamily: 'Manrope-Regular',
                   },
                 ]}>
-                {props.bottomLeftText}
+                {props.bottomLeftText || '0.5 Miles'}
               </Text>
               <Text
                 style={[
                   styles.paymentStyle,
                   props.rightSideStyles,
                   {
-                    fontSize: widthToDp(4.5),
+                    fontSize: widthToDp(4),
                     fontFamily: 'Manrope-Regular',
                   },
                 ]}>
-                {props.bottomRightText}
+                {props.bottomRightText || '30 Minutes'}
               </Text>
             </View>
           </View>
@@ -147,16 +154,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     elevation: 10,
     borderRadius: 10,
-    // paddingBottom: heightToDp(10),
     marginHorizontal: heightToDp(5),
     marginVertical: heightToDp(2),
   },
   cardImage: {
-    marginHorizontal: widthToDp(2),
-    width: widthToDp(25),
-    height: heightToDp(25),
+    width: widthToDp(23),
+    height: heightToDp(17),
     borderTopLeftRadius: 6,
     borderTopRightRadius: 6,
+    resizeMode: 'contain',
   },
   nameHeading: {
     fontSize: widthToDp(4),
@@ -171,10 +177,10 @@ const styles = StyleSheet.create({
   orangeline: {
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: widthToDp(65),
+    width: widthToDp(55),
     right: widthToDp(5),
     zIndex: -2,
-    paddingVertical: heightToDp(2),
+    paddingBottom: heightToDp(3),
   },
   totalStyles: {
     color: Colors.TextColor,

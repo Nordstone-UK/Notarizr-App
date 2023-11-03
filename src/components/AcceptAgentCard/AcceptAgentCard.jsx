@@ -19,27 +19,29 @@ export default function AcceptAgentCard(props) {
   const address = props?.agentAddress;
   const name = props?.agentName;
 
-  const [firstPart, secondPart] = splitStringBefore4thWord(address);
+  const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
 
-  function splitStringBefore4thWord(inputString) {
+  function splitStringBefore2ndWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
 
-      // Check if there are at least 4 words
-      if (words.length >= 4) {
-        // Join the first three words with space
-        const firstPart = words.slice(0, 3).join(' ');
+      // Check if there are at least 2 words
+      if (words.length >= 2) {
+        // Join the first two words with space
+        const firstPart = words.slice(0, 2).join(' ');
 
         // Join the remaining words with space
-        const secondPart = words.slice(3).join(' ');
+        const secondPart = words.slice(2).join(' ');
 
         return [firstPart, secondPart];
       } else {
-        // If there are fewer than 4 words, return the original string as the first part
+        // If there are fewer than 2 words, return the original string as the first part
         return [inputString, ''];
       }
-    } // Split the string by space
+    } else {
+      return ['', '']; // Return empty strings if the inputString is empty
+    }
   }
   function separateStringAfterFirstWord(inputString) {
     const words = inputString.split(' ');

@@ -6,19 +6,46 @@ import {
   SafeAreaView,
   ImageBackground,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {useDispatch, useSelector} from 'react-redux';
+import {useFocusEffect} from '@react-navigation/native';
+import {paymentCheck} from '../../features/review/reviewSlice';
 
 export default function CompletePayment({navigation}) {
-  //   useEffect(() => {
-  //     const delay = 3000;
-  //     const timer = setTimeout(() => {
-  //       navigation.navigate('HomeScreen');
-  //     }, delay);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const delay = 3000;
+    const timer = setTimeout(() => {
+      dispatch(paymentCheck(true));
 
-  //     return () => clearTimeout(timer);
-  //   }, [navigation]);
+      navigation.navigate('MedicalBookingScreen');
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
+  // const [isVisible, setIsVisible] = useState(false);
+  // const payment = useSelector(state => state.payment.payment);
+  // const dispatch = useDispatch();
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     setIsVisible(payment);
+  //   }, [payment]),
+  // );
+
+  // const handleReduxPayment = () => {
+  //   setIsVisible(false);
+  //   dispatch(paymentCheck());
+  //   navigation.navigate('HomeScreen');
+  // };
+  {
+    /* {isVisible ? (
+          <BottomSheet modalProps={{}} isVisible={isVisible}>
+            <ReviewPopup onPress={() => handleReduxPayment()} />
+          </BottomSheet>
+        ) : null} */
+  }
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
@@ -29,7 +56,6 @@ export default function CompletePayment({navigation}) {
             source={require('../../../assets/completedIcon.png')}
             style={styles.icon}
           />
-
           <Text style={styles.text}>Success,{'\n'} Payment completed.</Text>
         </View>
         <Image

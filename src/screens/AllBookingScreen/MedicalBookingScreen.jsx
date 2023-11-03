@@ -23,7 +23,7 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 import {useDispatch, useSelector} from 'react-redux';
-import {BottomSheet, Button, ListItem} from '@rneui/themed';
+import {BottomSheet} from '@rneui/themed';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 import {useFocusEffect} from '@react-navigation/native';
 import {paymentCheck} from '../../features/review/reviewSlice';
@@ -33,8 +33,11 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 export default function MedicalBookingScreen({route, navigation}) {
   const {handlegetBookingStatus} = useBookingStatus();
   const payment = useSelector(state => state.payment.payment);
-  const item = route.params.item;
-  // console.log('item', item);
+  const dispatch = useDispatch();
+  const item = route?.params?.item;
+  const bookingDetail = useSelector(state => state.booking.booking);
+  console.log('payment', payment);
+
   const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [status, setStatus] = useState();
@@ -45,26 +48,26 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
-  const dispatch = useDispatch();
-  useFocusEffect(
-    React.useCallback(() => {
-      setIsVisible(payment);
-    }, [payment]),
-  );
   const getBookingStatus = async () => {
     try {
-      const status = await handlegetBookingStatus(item._id);
+      const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
       console.error('Error retrieving booking status:', error);
     }
   };
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsVisible(payment);
+    }, [payment]),
+  );
   useEffect(() => {
     getBookingStatus();
   }, [status]);
   const handleReduxPayment = () => {
     setIsVisible(false);
     dispatch(paymentCheck());
+    navigation.navigate('HomeScreen');
   };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -104,42 +107,48 @@ export default function MedicalBookingScreen({route, navigation}) {
               <Text style={styles.insideText}>{status}</Text>
             </View>
           </View>
-          {status !== 'Completed' ? (
-            <AgentCard
-              source={{uri: item.agent.profile_picture}}
-              bottomRightText={item?.document_type?.price}
-              bottomLeftText="Total"
-              image={require('../../../assets/agentLocation.png')}
-              agentName={item.agent.first_name + ' ' + item.agent.last_name}
-              agentAddress={item.agent.location}
-              task={item.status}
-              OrangeText={'At Office'}
-              dateofBooking={item.date_of_booking}
-              timeofBooking={item.time_of_booking}
-              createdAt={item.createdAt}
-            />
-          ) : (
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-start',
-                marginHorizontal: widthToDp(5),
-                marginVertical: widthToDp(2),
-              }}>
-              <Image
-                source={{uri: item.agent.profile_picture}}
-                style={{
-                  width: widthToDp(15),
-                  height: widthToDp(15),
-                  borderRadius: widthToDp(5),
-                }}
+          {bookingDetail &&
+            (status !== 'Completed' ? (
+              <AgentCard
+                source={{uri: bookingDetail?.agent?.profile_picture}}
+                bottomRightText={bookingDetail?.document_type?.price}
+                bottomLeftText="Total"
+                image={require('../../../assets/agentLocation.png')}
+                agentName={
+                  bookingDetail?.agent?.first_name +
+                  ' ' +
+                  bookingDetail?.agent?.last_name
+                }
+                agentAddress={bookingDetail?.agent?.location}
+                task={bookingDetail?.status}
+                OrangeText={'At Office'}
+                dateofBooking={bookingDetail?.date_of_booking}
+                timeofBooking={bookingDetail?.time_of_booking}
+                createdAt={bookingDetail?.createdAt}
               />
-              <Text style={[styles.insideHeading, {fontSize: widthToDp(4)}]}>
-                {item.agent.first_name + ' ' + item.agent.last_name}
-              </Text>
-            </View>
-          )}
-
+            ) : (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  marginHorizontal: widthToDp(5),
+                  marginVertical: widthToDp(2),
+                }}>
+                <Image
+                  source={{uri: bookingDetail?.agent?.profile_picture}}
+                  style={{
+                    width: widthToDp(15),
+                    height: widthToDp(15),
+                    borderRadius: widthToDp(5),
+                  }}
+                />
+                <Text style={[styles.insideHeading, {fontSize: widthToDp(4)}]}>
+                  {bookingDetail?.agent?.first_name +
+                    ' ' +
+                    bookingDetail?.agent?.last_name}
+                </Text>
+              </View>
+            ))}
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
             <View style={styles.addressView}>
@@ -148,7 +157,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                {capitalizeFirstLetter(item?.agent?.location)}
+                {capitalizeFirstLetter(bookingDetail?.agent?.location)}
               </Text>
             </View>
             <View style={styles.addressView}>
@@ -157,7 +166,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                {formatDateTime(item.createdAt)}
+                {formatDateTime(bookingDetail?.createdAt)}
               </Text>
             </View>
           </View>

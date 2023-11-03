@@ -28,12 +28,12 @@ import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {BottomSheet} from '@rneui/base';
 import ReviewPopup from '../../../components/ReviewPopup/ReviewPopup';
 import {useFocusEffect} from '@react-navigation/native';
-// import {paymentCheck} from '../../../features/review/reviewSlice';
 
 export default function AgentMobileNotaryStartScreen({navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
-  // const payment = useSelector(state => state.payment.payment);
+  const payment = useSelector(state => state.payment.payment);
+
   const {uploadMultipleFiles} = useRegister();
   const booking = useSelector(state => state.booking.booking);
   const [loading, setLoading] = useState(false);
@@ -42,20 +42,8 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
   const [notary, setNotary] = useState();
   const [documents, setDocuments] = useState(null);
   const [showNotes, setShowNotes] = useState(false);
-  //const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  // const dispatch = useDispatch();
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     setIsVisible(payment);
-  //   }, [payment]),
-  // );
 
-  // const handleReduxPayment = () => {
-  //   setIsVisible(false);
-  //   dispatch(paymentCheck());
-  //   navigation.navigate('HomeScreen');
-  // };
   function capitalizeFirstLetter(str) {
     if (typeof str !== 'string' || str.length === 0) {
       return str;
@@ -68,14 +56,14 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
       const status = await handlegetBookingStatus(booking._id);
       setNotary(capitalizeFirstLetter(status));
       setStatus(capitalizeFirstLetter(status));
-      // console.log(status);
+      console.log('status', booking._id, status);
     } catch (error) {
       console.error('Error retrieving booking status:', error);
     }
   };
   useEffect(() => {
     getBookingStatus();
-    console.log('adwwadaawd', notary, status);
+    // console.log('adwwadaawd', notary, status);
   }, [status]);
 
   const handleStatusChange = async string => {
@@ -110,12 +98,16 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
     }, 2000);
   }, []);
   const handleRequestPayment = () => {
-    setShowNotes(false);
     navigation.navigate('PaymentCompletionScreen');
   };
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Booking" payment={payment} />
+      <NavigationHeader
+        Title="Booking"
+        payment={payment}
+        lastImg={require('../../../../assets/chatIcon.png')}
+        lastImgPress={() => navigation.navigate('ChatScreen')}
+      />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
@@ -165,7 +157,9 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 source={require('../../../../assets/locationIcon.png')}
                 style={styles.locationImage}
               />
-              <Text style={styles.detail}>{booked_by?.location}</Text>
+              <Text style={styles.detail}>
+                {capitalizeFirstLetter(booked_by?.location)}
+              </Text>
             </View>
             <View style={styles.addressView}>
               <Image
@@ -176,16 +170,6 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 {formatDateTime(booking?.createdAt)}
               </Text>
             </View>
-            {/* <Text style={styles.preference}>Notes:</Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text>
-            <Text style={styles.preference}>
-              Please provide us with your booking preferences
-            </Text> */}
             {documents &&
               documents.map(index => (
                 <DocumentComponent
@@ -269,11 +253,6 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
             ) : null}
           </View>
         </ScrollView>
-        {/* {isVisible ? (
-          <BottomSheet modalProps={{}} isVisible={isVisible}>
-            <ReviewPopup onPress={() => handleReduxPayment()} />
-          </BottomSheet>
-        ) : null} */}
       </BottomSheetStyle>
     </SafeAreaView>
   );

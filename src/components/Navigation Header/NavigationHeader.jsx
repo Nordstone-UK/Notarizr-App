@@ -50,7 +50,7 @@ export default function NavigationHeader(props) {
             )}
             {props.lastImg && (
               <TouchableOpacity onPress={props.lastImgPress}>
-                <Image source={props.lastImg} style={styles.backIcon} />
+                <Image source={props.lastImg} style={[styles.backIcon]} />
               </TouchableOpacity>
             )}
           </View>
@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: widthToDp(15),
     justifyContent: 'space-between',
     marginRight: widthToDp(2),
   },
@@ -109,5 +108,6 @@ const styles = StyleSheet.create({
   backIcon: {
     width: widthToDp(6),
     height: heightToDp(6),
+    marginLeft: widthToDp(2),
   },
 });

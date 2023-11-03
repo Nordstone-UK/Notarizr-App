@@ -1,6 +1,5 @@
 import {
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   FlatList,
@@ -22,6 +21,7 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import useCreateBooking from '../../hooks/useCreateBooking';
+import {ScrollView} from 'react-native-virtualized-view';
 
 export default function AgentReviewScreen({route, navigation}, props) {
   const {BookingData, handleBookingCreation, consoleData, setBookingData} =
@@ -53,7 +53,7 @@ export default function AgentReviewScreen({route, navigation}, props) {
   return (
     <SafeAreaView style={styles.contianer}>
       <NavigationHeader Title="Agent Review" />
-      <ScrollView contentContainerStyle={{flex: 1}}>
+      <View style={{flex: 1}}>
         <Image
           source={{uri: description?.profile_picture}}
           style={styles.picture}
@@ -73,9 +73,9 @@ export default function AgentReviewScreen({route, navigation}, props) {
         </View>
         <View style={{marginTop: heightToDp(2)}} />
         <BottomSheetStyle>
-          <ScrollView contentContainerStyle={{flex: 1}}>
+          <ScrollView contentContainerStyle={{paddingBottom: heightToDp(2)}}>
             <View style={styles.sheetContainer}>
-              <Text style={styles.heading}>Description</Text>
+              <Text style={styles.MainHeading}>Description: </Text>
               <Text style={styles.heading}>Email : </Text>
               <Text style={styles.preference}>{description?.email}</Text>
               <Text style={styles.heading}>Availability : </Text>
@@ -129,7 +129,7 @@ export default function AgentReviewScreen({route, navigation}, props) {
             </View>
           </ScrollView>
         </BottomSheetStyle>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -161,11 +161,18 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     color: Colors.OrangeGradientEnd,
   },
-  heading: {
+  MainHeading: {
     fontSize: widthToDp(5),
     color: Colors.TextColor,
     marginLeft: widthToDp(3),
     fontFamily: 'Manrope-Bold',
+  },
+  heading: {
+    fontSize: widthToDp(4),
+    color: Colors.TextColor,
+    marginLeft: widthToDp(3),
+    fontFamily: 'Manrope-Bold',
+    marginTop: heightToDp(3),
   },
   rating: {
     alignSelf: 'center',
@@ -180,7 +187,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
   },
   weekdays: {
-    // marginLeft: widthToDp(3),
     paddingHorizontal: widthToDp(3),
     fontSize: widthToDp(4),
     color: Colors.white,
@@ -210,9 +216,7 @@ const styles = StyleSheet.create({
     color: Colors.DullTextColor,
   },
   button: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginVertical: widthToDp(5),
+    marginTop: widthToDp(5),
   },
   locationStyle: {
     borderRadius: 20,

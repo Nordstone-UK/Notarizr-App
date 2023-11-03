@@ -97,9 +97,12 @@ export default function MapArrivalScreen({navigation}, props) {
           )}
         </MapView>
       )}
+      <View style={{marginTop: widthToDp(2)}} />
       <NavigationHeader
         Title={clientData?.first_name + ' ' + clientData?.last_name}
         ProfilePic={{uri: clientData?.profile_picture}}
+        lastImg={require('../../../assets/chatIcon.png')}
+        lastImgPress={() => navigation.navigate('ChatScreen')}
       />
       {user !== 'client' && (
         <View style={styles.button}>

@@ -94,8 +94,10 @@ export default function AgentTimeCard(props) {
 
 const styles = StyleSheet.create({
   dateContainer: {
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+    alignItems: 'center',
+    padding: widthToDp(1.5),
   },
   ImageProces: {
     paddingVertical: widthToDp(1),
@@ -112,5 +114,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
     textAlign: 'center',
     height: heightToDp(5),
+    marginVertical: heightToDp(-1),
   },
 });

@@ -41,9 +41,16 @@ export default function AllBookingScreen({route, navigation}) {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);
   };
+
   useEffect(() => {
-    init('accepted');
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('sending...');
+      init('accepted');
+      setIsFocused('accepted');
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     init('pending');
@@ -195,7 +202,7 @@ export default function AllBookingScreen({route, navigation}) {
                           source={{uri: item.agent.profile_picture}}
                           bottomRightText={item.document_type.price}
                           bottomLeftText="Total"
-                          image={require('../../../assets/agentLocation.png')}
+                          image={require('../../../assets/locationIcon.png')}
                           agentName={
                             item.agent.first_name + ' ' + item.agent.last_name
                           }

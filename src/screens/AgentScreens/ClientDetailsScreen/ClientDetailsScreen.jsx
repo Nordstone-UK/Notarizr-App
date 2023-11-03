@@ -15,8 +15,6 @@ import MainButton from '../../../components/MainGradientButton/MainButton';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
-
-import ModalCheck from '../../../components/ModalComponent/ModalCheck';
 import useBookingStatus from '../../../hooks/useBookingStatus';
 import {useDispatch} from 'react-redux';
 import {
@@ -27,7 +25,6 @@ import {
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const {clientDetail} = route.params;
-  console.log('clientDetail:', clientDetail);
   const dispatch = useDispatch();
   const capitalizeFirstLetter = string => {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -43,7 +40,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Booking" />
+      <NavigationHeader
+        Title="Booking"
+        lastImg={require('../../../../assets/chatIcon.png')}
+        lastImgPress={() => navigation.navigate('ChatScreen')}
+      />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
@@ -57,14 +58,15 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             source={{uri: clientDetail.booked_by.profile_picture}}
-            bottomLeftText={clientDetail.document_type.price}
+            bottomRightText={clientDetail.document_type.price}
+            bottomLeftText="Total"
             agentName={
               clientDetail.booked_by.first_name +
               ' ' +
               clientDetail.booked_by.last_name
             }
             agentAddress={clientDetail.booked_by.location}
-            task="Mobile"
+            task={clientDetail?.status}
             OrangeText="At Home"
             onPress={() =>
               navigation.navigate('ClientDetailsScreen', {

@@ -20,7 +20,7 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
-  console.log('bookingDetail payment', bookingDetail);
+  // console.log('bookingDetail payment', bookingDetail);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
@@ -88,7 +88,7 @@ export default function PaymentScreen({navigation}) {
                 source={require('../../../assets/creditCard.png')}
                 style={styles.applePay}
               />
-              <Text style={styles.textPay}>Credit Card</Text>
+              <Text style={styles.textPay}>Card</Text>
             </View>
             <Image
               source={require('../../../assets/greenIcon.png')}

@@ -45,8 +45,12 @@ export default function AgentHomeScreen({navigation}) {
     }, 2000);
   }, []);
   useEffect(() => {
-    init('pending');
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('Home screen sending...');
+      init('pending');
+    });
+    return unsubscribe;
+  }, [navigation]);
   const handleNavigation = item => {
     navigation.navigate('ClientDetailsScreen', {clientDetail: item});
     // console.log('Redux sending item: ', item);
@@ -79,14 +83,17 @@ export default function AgentHomeScreen({navigation}) {
           />
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
-              Title="Select a service"
+              Title="Service Preferences"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               onPress={() => navigation.navigate('AgentMainBookingScreen')}
             />
           </View>
           <View style={styles.flexContainer}>
             <Text style={styles.Heading}>Service requests</Text>
-            <Text style={styles.subheaing}>View All</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AllBookingScreen')}>
+              <Text style={styles.subheaing}>View All</Text>
+            </TouchableOpacity>
           </View>
           <View style={{flex: 1}}>
             {Booking ? (
@@ -99,14 +106,15 @@ export default function AgentHomeScreen({navigation}) {
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
                         source={{uri: item.booked_by.profile_picture}}
-                        bottomLeftText={item.document_type.price}
+                        bottomRightText={item.document_type.price}
+                        bottomLeftText="Total"
                         agentName={
                           item.booked_by.first_name +
                           ' ' +
                           item.booked_by.last_name
                         }
                         agentAddress={item.booked_by.location}
-                        task="Mobile"
+                        task={item?.status}
                         OrangeText="At Home"
                         Button={true}
                         clientDetail={item}

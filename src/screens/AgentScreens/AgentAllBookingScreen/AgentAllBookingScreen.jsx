@@ -17,22 +17,34 @@ import Colors from '../../../themes/Colors';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import {ScrollView} from 'react-native-virtualized-view';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  setBookingInfoState,
+  setCoordinates,
+  setUser,
+} from '../../../features/booking/bookingSlice';
 
 export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchAgentBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState();
   const [refreshing, setRefreshing] = useState(false);
-
+  const account_type = useSelector(state => state.user.user.account_type);
+  const dispatch = useDispatch();
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
     // console.log('bookingDetail', bookingDetail);
     setBooking(bookingDetail);
   };
+
   useEffect(() => {
-    init('accepted');
-    setIsFocused('accepted');
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('sending...');
+      init('accepted');
+      setIsFocused('accepted');
+    });
+    return unsubscribe;
+  }, [navigation]);
   const callBookingsAPI = async status => {
     setBooking(null);
     setIsFocused(status);
@@ -47,6 +59,22 @@ export default function AgentAllBookingScreen({navigation}) {
       setRefreshing(false);
     }, 1000);
   }, []);
+  const checkStatusNavigation = (status, item) => {
+    console.log('item?.status', item._id, item?.status);
+    if (status === 'accepted') {
+      dispatch(setBookingInfoState(item));
+      dispatch(setUser(item?.booked_by));
+      dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
+      navigation.navigate('MapArrivalScreen');
+    } else if (status === 'ongoing') {
+      navigation.navigate('AgentMobileNotaryStartScreen');
+      dispatch(setBookingInfoState(item));
+    } else {
+      navigation.navigate('ClientDetailsScreen', {
+        clientDetail: item,
+      });
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -62,15 +90,16 @@ export default function AgentAllBookingScreen({navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           contentContainerStyle={styles.contentContainer}>
-          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{}}>
             <View
               style={{
                 flexDirection: 'row',
-                justifyContent: 'space-around',
-                alignItems: 'center',
-                alignContent: 'center',
                 columnGap: widthToDp(5),
-                marginHorizontal: widthToDp(5),
+                marginHorizontal: widthToDp(10),
+                alignSelf: 'center',
               }}>
               <MainButton
                 Title="Active"
@@ -118,29 +147,31 @@ export default function AgentAllBookingScreen({navigation}) {
                 }
                 onPress={() => callBookingsAPI('pending')}
               />
-              <MainButton
-                Title="Completed"
-                colors={
-                  isFocused === 'completed'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'completed'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                }
-                onPress={() => callBookingsAPI('completed')}
-              />
+              {account_type === 'client' && (
+                <MainButton
+                  Title="Completed"
+                  colors={
+                    isFocused === 'completed'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  styles={
+                    isFocused === 'completed'
+                      ? {
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                      : {
+                          color: Colors.TextColor,
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                  }
+                  onPress={() => callBookingsAPI('completed')}
+                />
+              )}
               <MainButton
                 Title="Rejected"
                 colors={
@@ -182,19 +213,21 @@ export default function AgentAllBookingScreen({navigation}) {
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
                         source={{uri: item.booked_by.profile_picture}}
-                        bottomLeftText={item.document_type.price}
+                        bottomRightText={item.document_type.price}
+                        bottomLeftText="Total"
                         agentName={
                           item.booked_by.first_name +
                           ' ' +
                           item.booked_by.last_name
                         }
                         agentAddress={item.booked_by.location}
-                        task="Mobile"
+                        task={item?.status}
                         OrangeText="At Home"
-                        onPress={() =>
-                          navigation.navigate('ClientDetailsScreen', {
-                            clientDetail: item,
-                          })
+                        onPress={
+                          () => checkStatusNavigation(item?.status, item)
+                          // navigation.navigate('ClientDetailsScreen', {
+                          //   clientDetail: item,
+                          // })
                         }
                         dateofBooking={item.date_of_booking}
                         timeofBooking={item.time_of_booking}

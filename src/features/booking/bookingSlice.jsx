@@ -12,7 +12,7 @@ export const bookingSlice = createSlice({
   reducers: {
     setBookingInfoState: (state, action) => {
       state.booking = action.payload;
-      // console.log('Booking Info Set in Redux', state.booking);
+      console.log('Booking Info Set in Redux', state.booking);
     },
     setCoordinates: (state, action) => {
       state.coordinates = action.payload;
