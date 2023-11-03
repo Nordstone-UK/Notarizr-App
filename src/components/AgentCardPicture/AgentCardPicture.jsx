@@ -25,9 +25,10 @@ export default function AgentCardPicture(props) {
 
 const styles = StyleSheet.create({
   cardImage: {
-    width: widthToDp(30),
-    height: heightToDp(25),
+    width: widthToDp(25),
+    height: heightToDp(17),
     borderTopLeftRadius: 6,
     borderTopRightRadius: 6,
+    resizeMode: 'contain',
   },
 });

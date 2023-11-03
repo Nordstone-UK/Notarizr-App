@@ -21,6 +21,7 @@ export default function MapScreen({route, navigation}) {
   const handleGetLocation = async () => {
     try {
       const coordinates = await getLocation();
+      console.log('location', coordinates);
       setLocation(coordinates);
     } catch (error) {
       console.log(error);
@@ -32,7 +33,7 @@ export default function MapScreen({route, navigation}) {
     console.log('location', location);
   }, []);
   const {agents, documents} = route.params;
-
+  console.log('client location', agents.current_location);
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
@@ -96,10 +97,7 @@ export default function MapScreen({route, navigation}) {
       )}
 
       <NavigationHeader Title="Nearby" />
-      <Marker
-        coordinate={{latitude: 31.512606, longitude: 74.286523}}
-        title={'Test'}
-      />
+
       <View
         style={{
           flex: 1,
@@ -129,7 +127,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   cardContainer: {
-    marginHorizontal: 10,
+    // marginHorizontal: 10,
   },
   map: {
     flex: 1,

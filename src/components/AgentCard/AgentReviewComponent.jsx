@@ -6,10 +6,7 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 
 export default function AgentReviewComponent(props) {
   return (
-    <View
-      style={{
-        marginHorizontal: widthToDp(2),
-      }}>
+    <View style={{}}>
       {props.task && (
         <View
           style={[
@@ -55,22 +52,26 @@ export default function AgentReviewComponent(props) {
 
 const styles = StyleSheet.create({
   dateContainer: {
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
     alignItems: 'center',
+    padding: widthToDp(1),
   },
   star: {
-    width: widthToDp(20),
+    width: widthToDp(15),
+    height: widthToDp(2),
+    resizeMode: 'contain',
   },
   dateStyle: {
     color: Colors.white,
     fontFamily: 'Poppins-Bold',
-    fontSize: widthToDp(5.5),
+    fontSize: widthToDp(6),
+    marginVertical: heightToDp(-1),
   },
   rating: {
     color: Colors.white,
-    fontFamily: 'Poppins-Light',
-    fontSize: widthToDp(3),
+    fontFamily: 'Poppins-Regular',
+    fontSize: widthToDp(3.5),
   },
   ImageProces: {
     paddingVertical: widthToDp(1),
@@ -80,5 +81,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Poppins-SemiBold',
     fontSize: widthToDp(3),
+    marginVertical: heightToDp(-1),
   },
 });

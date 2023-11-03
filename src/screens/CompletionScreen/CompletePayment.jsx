@@ -3,41 +3,49 @@ import {
   Text,
   View,
   Image,
-  ImageBackground,
   SafeAreaView,
+  ImageBackground,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {useFocusEffect} from '@react-navigation/native';
 import {paymentCheck} from '../../features/review/reviewSlice';
 
-export default function PaymentCompletionScreen({navigation}, props) {
-  const message = 'Congratulations, your booking is completed!';
-  const [firstMsg, secondMsg] = separateStringAfterFirstWord(message);
-  function separateStringAfterFirstWord(inputString) {
-    const words = inputString.split(' ');
-
-    if (words.length > 1) {
-      const firstWord = words[0];
-      const restOfTheString = words.slice(1).join(' ');
-      return [firstWord, restOfTheString];
-    } else {
-      return [inputString, ''];
-    }
-  }
+export default function CompletePayment({navigation}) {
   const dispatch = useDispatch();
-
   useEffect(() => {
-    dispatch(paymentCheck());
-
     const delay = 3000;
     const timer = setTimeout(() => {
-      navigation.navigate('HomeScreen');
+      dispatch(paymentCheck(true));
+
+      navigation.navigate('MedicalBookingScreen');
     }, delay);
 
     return () => clearTimeout(timer);
   }, [navigation]);
+  // const [isVisible, setIsVisible] = useState(false);
+  // const payment = useSelector(state => state.payment.payment);
+  // const dispatch = useDispatch();
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     setIsVisible(payment);
+  //   }, [payment]),
+  // );
+
+  // const handleReduxPayment = () => {
+  //   setIsVisible(false);
+  //   dispatch(paymentCheck());
+  //   navigation.navigate('HomeScreen');
+  // };
+  {
+    /* {isVisible ? (
+          <BottomSheet modalProps={{}} isVisible={isVisible}>
+            <ReviewPopup onPress={() => handleReduxPayment()} />
+          </BottomSheet>
+        ) : null} */
+  }
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
@@ -48,9 +56,7 @@ export default function PaymentCompletionScreen({navigation}, props) {
             source={require('../../../assets/completedIcon.png')}
             style={styles.icon}
           />
-
-          <Text style={styles.text}>{firstMsg}</Text>
-          <Text style={styles.text}>{secondMsg}</Text>
+          <Text style={styles.text}>Success,{'\n'} Payment completed.</Text>
         </View>
         <Image
           source={require('../../../assets/complete.png')}
@@ -67,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
-    marginTop: heightToDp(30),
+    marginTop: heightToDp(25),
   },
   groupimage: {
     flex: 1,
@@ -75,13 +81,15 @@ const styles = StyleSheet.create({
   icon: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
+    width: widthToDp(50),
+    height: widthToDp(50),
+    resizeMode: 'contain',
   },
   text: {
-    // marginHorizontal: widthToDp(21),
     textAlign: 'center',
     color: Colors.TextColor,
-    fontSize: 25,
-    fontWeight: '700',
+    fontSize: widthToDp(7),
+    fontFamily: 'Manrope-Bold',
   },
 
   complete: {

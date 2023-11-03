@@ -41,9 +41,16 @@ export default function AllBookingScreen({route, navigation}) {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);
   };
+
   useEffect(() => {
-    init('accepted');
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('sending...');
+      init('accepted');
+      setIsFocused('accepted');
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     init('pending');
@@ -195,7 +202,7 @@ export default function AllBookingScreen({route, navigation}) {
                           source={{uri: item.agent.profile_picture}}
                           bottomRightText={item.document_type.price}
                           bottomLeftText="Total"
-                          image={require('../../../assets/agentLocation.png')}
+                          image={require('../../../assets/locationIcon.png')}
                           agentName={
                             item.agent.first_name + ' ' + item.agent.last_name
                           }
@@ -213,13 +220,12 @@ export default function AllBookingScreen({route, navigation}) {
               ) : (
                 <View
                   style={{
-                    flex: 1,
+                    height: heightToDp(100),
                     justifyContent: 'center',
                     alignItems: 'center',
-                    marginTop: widthToDp(10),
                   }}>
                   <Image
-                    source={require('../../../assets/mainLogo.png')}
+                    source={require('../../../assets/emptyBox.png')}
                     style={styles.picture}
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>

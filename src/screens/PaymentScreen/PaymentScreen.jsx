@@ -25,12 +25,12 @@ export default function PaymentScreen({navigation}) {
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
   const DocumentPrice = bookingDetail?.document_type?.price;
-  const Fee = bookingDetail?.document_type?.price * 0.1;
-  const TotalAmount = DocumentPrice + Fee + 2;
+  // const Fee = bookingDetail?.document_type?.price * 0.1;
+  // const TotalAmount = DocumentPrice + Fee + 2;
   const initializePaymentSheet = async () => {
     setLoading(true);
     const response = await fetchPaymentSheetParams(
-      TotalAmount * 100,
+      DocumentPrice * 100,
       bookingDetail._id,
     );
     const {customer_id, ephemeralKey, paymentIntent} =
@@ -46,11 +46,11 @@ export default function PaymentScreen({navigation}) {
       customerId: customer_id,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
-      // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
-      //methods that complete payment after a delay, like SEPA Debit and Sofort.
-      // allowsDelayedPaymentMethods: true,
       defaultBillingDetails: {
-        name: 'Jane Doe',
+        name:
+          bookingDetail?.booked_by?.first_name +
+          ' ' +
+          bookingDetail?.booked_by?.last_name,
       },
     });
     if (!error) {
@@ -67,8 +67,8 @@ export default function PaymentScreen({navigation}) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('error.message', error.message);
     } else {
-      Alert.alert('Payment Completed!');
-      navigation.navigate('HomeScreen');
+      // Alert.alert('Payment Completed!');
+      navigation.navigate('CompletePayment');
     }
     setLoading(false);
   };
@@ -81,66 +81,27 @@ export default function PaymentScreen({navigation}) {
       <NavigationHeader Title="Payment Method" />
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
-          {/* <View style={styles.insideContainer}>
-            <Text style={styles.insideHeading}>
-              Please find all your added cards here
-            </Text>
-            <ScrollView
-              contentContainerStyle={styles.cardContainer}
-              showsHorizontalScrollIndicator={false}
-              horizontal={true}>
-              <Image source={require('../../../assets/Card.png')} />
-              <Image source={require('../../../assets/Card.png')} />
-            </ScrollView>
-          </View> */}
-          <TouchableOpacity style={styles.addContainer}>
-            <Text style={styles.addMore}>Add more</Text>
-            <Image
-              source={require('../../../assets/addIcon.png')}
-              style={styles.addIcon}
-            />
-          </TouchableOpacity>
-          <Text style={styles.paymentOptions}>More Payment options</Text>
+          <Text style={styles.paymentOptions}>Payment options</Text>
           <TouchableOpacity style={styles.PaymentContainer}>
             <View style={styles.PaymentContainer}>
               <Image
-                source={require('../../../assets/applePay.png')}
+                source={require('../../../assets/creditCard.png')}
                 style={styles.applePay}
               />
-              <Text style={styles.textPay}>Apple pay</Text>
+              <Text style={styles.textPay}>Card</Text>
             </View>
             <Image
               source={require('../../../assets/greenIcon.png')}
               style={styles.greenIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.PaymentContainer}>
-            <View style={styles.PaymentContainer}>
-              <Image
-                source={require('../../../assets/googlePay.png')}
-                style={styles.applePay}
-              />
-              <Text style={styles.textPay}>Google pay</Text>
-            </View>
-            <Image
-              source={require('../../../assets/unSelected.png')}
-              style={styles.greenIcon}
-            />
-          </TouchableOpacity>
+
           <View style={{marginVertical: heightToDp(2)}}>
             <View style={styles.docsContainer}>
               <Text style={styles.textPay}>
                 {bookingDetail?.document_type?.name}
               </Text>
               <Text style={styles.textPay}>${DocumentPrice}</Text>
-            </View>
-            <View style={styles.docsContainer}>
-              <Text style={styles.textPay}>Tax 10%</Text>
-              <Text style={styles.textPay}>${Fee}</Text>
-            </View>
-            <View style={styles.docsContainer}>
-              <Text style={styles.textPay}>Fees</Text>
-              <Text style={styles.textPay}>$2</Text>
             </View>
           </View>
           <View
@@ -154,7 +115,7 @@ export default function PaymentScreen({navigation}) {
           />
           <View style={styles.docsContainer}>
             <Text style={styles.textPay}>Total Amount</Text>
-            <Text style={styles.textPay}>${DocumentPrice + Fee + 2}</Text>
+            <Text style={styles.textPay}>${DocumentPrice}</Text>
           </View>
           <View
             style={{
@@ -230,8 +191,8 @@ const styles = StyleSheet.create({
   },
   applePay: {
     marginHorizontal: widthToDp(5),
-    width: widthToDp(5),
-    height: heightToDp(6),
+    width: widthToDp(9),
+    height: heightToDp(9),
   },
   greenIcon: {
     marginHorizontal: widthToDp(8),
@@ -245,3 +206,51 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 });
+{
+  /* <View style={styles.docsContainer}>
+              <Text style={styles.textPay}>Tax 10%</Text>
+              <Text style={styles.textPay}>${Fee}</Text>
+            </View>
+            <View style={styles.docsContainer}>
+              <Text style={styles.textPay}>Fees</Text>
+              <Text style={styles.textPay}>$2</Text>
+            </View> */
+}
+{
+  /* <TouchableOpacity style={styles.PaymentContainer}>
+            <View style={styles.PaymentContainer}>
+              <Image
+                source={require('../../../assets/googlePay.png')}
+                style={styles.applePay}
+              />
+              <Text style={styles.textPay}>Google pay</Text>
+            </View>
+            <Image
+              source={require('../../../assets/unSelected.png')}
+              style={styles.greenIcon}
+            />
+          </TouchableOpacity> */
+}
+{
+  /* <View style={styles.insideContainer}>
+            <Text style={styles.insideHeading}>
+              Please find all your added cards here
+            </Text>
+            <ScrollView
+              contentContainerStyle={styles.cardContainer}
+              showsHorizontalScrollIndicator={false}
+              horizontal={true}>
+              <Image source={require('../../../assets/Card.png')} />
+              <Image source={require('../../../assets/Card.png')} />
+            </ScrollView>
+          </View> */
+}
+{
+  /* <TouchableOpacity style={styles.addContainer}>
+            <Text style={styles.addMore}>Add more</Text>
+            <Image
+              source={require('../../../assets/addIcon.png')}
+              style={styles.addIcon}
+            />
+          </TouchableOpacity> */
+}

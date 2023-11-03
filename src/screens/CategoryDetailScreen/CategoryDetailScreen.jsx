@@ -21,6 +21,7 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import {Linking} from 'react-native';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
+import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
 
 export default function CategoryDetailScreen({navigation}) {
   const images = [
@@ -56,39 +57,7 @@ export default function CategoryDetailScreen({navigation}) {
         return require('../../../assets/legalDocIcon.png'); // Return a default image source or handle the case as per your requirements
     }
   };
-  const renderItem = ({item, index}) => {
-    let imageSource;
-    let imageStyle;
 
-    if (index % 2 === 0) {
-      // Even index, render a longer image
-      imageSource = getRandomLongerImage();
-      imageStyle = styles.longImage;
-    } else {
-      // Odd index, render a smaller image
-      imageSource = getRandomSmallerImage();
-      imageStyle = styles.smallImage;
-    }
-    return (
-      <View style={styles.column}>
-        <ImageBackground
-          source={imageSource}
-          imageStyle={{borderRadius: 10}}
-          style={imageStyle}>
-          <Text
-            style={{
-              margin: heightToDp(2),
-              width: widthToDp(30),
-              fontSize: widthToDp(5),
-              fontFamily: 'Manrope-Bold',
-              color: Colors.TextColor,
-            }}>
-            {item.title}
-          </Text>
-        </ImageBackground>
-      </View>
-    );
-  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Categories" />
@@ -106,95 +75,44 @@ export default function CategoryDetailScreen({navigation}) {
           </View>
           <View style={styles.CategoryPictures}>
             <View style={styles.PictureBar}>
-              <FlatList
-                data={images}
-                renderItem={renderItem}
-                keyExtractor={() => Math.random().toString()}
-                numColumns={2}
-                columnWrapperStyle={styles.columnWrapper}
-              />
-              {/* <View style={styles.column}>
-                <ImageBackground
+              <TouchableOpacity
+                onPress={() => navigation.navigate('LegalDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.LongImage}>Legal Documents</Text>
+                <Image
                   source={require('../../../assets/legalDocIcon.png')}
-                  imageStyle={{resizeMode: 'cover', borderRadius: 10}}
-                  style={{
-                    flex: 1,
-                    width: widthToDp(60),
-                    height: heightToDp(30),
-                  }}>
-                  <Text
-                    style={{
-                      margin: heightToDp(2),
-                      width: widthToDp(30),
-                      fontSize: widthToDp(5),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Legal Documents
-                  </Text>
-                </ImageBackground>
-              </View>
-              <View style={styles.column}>
-                <ImageBackground
+                  style={styles.ImageLong}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('RealEstateDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.ShortImage}>Real Estate Documents</Text>
+                <Image
                   source={require('../../../assets/estateDocIcon.png')}
-                  imageStyle={{resizeMode: 'cover', borderRadius: 10}}
-                  style={{
-                    width: widthToDp(30),
-                    height: heightToDp(30),
-                  }}>
-                  <Text
-                    style={{
-                      margin: heightToDp(2),
-                      fontSize: widthToDp(4),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Legal Documents
-                  </Text>
-                </ImageBackground>
-              </View>
-              <View style={styles.column}>
-                <ImageBackground
+                  style={styles.ImageShort}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.PictureBar}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('MedicalDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.ShortImage}>Medical Documents</Text>
+                <Image
                   source={require('../../../assets/medicalDocIcon.png')}
-                  imageStyle={{resizeMode: 'cover', borderRadius: 10}}
-                  style={{
-                    width: widthToDp(30),
-                    height: heightToDp(30),
-                    borderRadius: 20,
-                  }}>
-                  <Text
-                    style={{
-                      margin: heightToDp(2),
-                      width: widthToDp(30),
-                      fontSize: widthToDp(4),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Legal Documents
-                  </Text>
-                </ImageBackground>
-              </View>
-              <View style={styles.column}>
-                <ImageBackground
+                  style={styles.ImageShort}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('BusinessDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.LongImage}>Business Documents</Text>
+                <Image
                   source={require('../../../assets/businessDocIcon.png')}
-                  imageStyle={{resizeMode: 'cover', borderRadius: 10}}
-                  style={{
-                    width: widthToDp(60),
-                    height: heightToDp(30),
-                    borderRadius: 20,
-                  }}>
-                  <Text
-                    style={{
-                      margin: heightToDp(2),
-                      width: widthToDp(30),
-                      fontSize: widthToDp(5),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Legal Documents
-                  </Text>
-                </ImageBackground>
-              </View> */}
+                  style={styles.ImageLong}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -233,10 +151,8 @@ const styles = StyleSheet.create({
   },
   PictureBar: {
     flexDirection: 'row',
-    justifyContent: 'left',
+    justifyContent: 'space-evenly',
     marginVertical: heightToDp(1),
-    flexWrap: 'wrap',
-    margin: 10,
   },
   column: {
     padding: widthToDp(1), // Column gap
@@ -244,14 +160,85 @@ const styles = StyleSheet.create({
   CategoryPictures: {
     marginVertical: heightToDp(2),
   },
-  smallImage: {
-    flex: 1,
-    height: heightToDp(30),
-    width: widthToDp(30),
+  LongImage: {
+    position: 'absolute',
+    zIndex: 99,
+    margin: widthToDp(2),
+    fontSize: widthToDp(5.5),
+    marginTop: widthToDp(1),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginRight: widthToDp(20),
   },
-  longImage: {
-    flex: 1,
+  ShortImage: {
+    position: 'absolute',
+    zIndex: 1,
+    margin: widthToDp(2),
+    fontSize: widthToDp(4),
+    marginTop: widthToDp(1),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+  },
+  ImageShort: {
+    width: widthToDp(30),
     height: heightToDp(30),
+    borderRadius: 10,
+  },
+  ImageLong: {
     width: widthToDp(60),
+    height: heightToDp(30),
+    borderRadius: 10,
   },
 });
+
+{
+  /* <FlatList
+                data={images}
+                renderItem={renderItem}
+                keyExtractor={() => Math.random().toString()}
+                numColumns={2}
+                columnWrapperStyle={styles.columnWrapper}
+              /> */
+}
+// const renderItem = ({item, index}) => {
+//   let imageSource;
+//   let imageStyle;
+
+//   if (index % 2 === 0) {
+//     // Even index, render a longer image
+//     imageSource = getRandomLongerImage();
+//     imageStyle = styles.longImage;
+//   } else {
+//     // Odd index, render a smaller image
+//     imageSource = getRandomSmallerImage();
+//     imageStyle = styles.smallImage;
+//   }
+//   return (
+//     <View style={styles.column}>
+//       <ImageBackground
+//         source={imageSource}
+//         imageStyle={{borderRadius: 10}}
+//         style={imageStyle}>
+//         <Text
+//           style={{
+//             margin: heightToDp(2),
+//             width: widthToDp(30),
+//             fontSize: widthToDp(5),
+//             fontFamily: 'Manrope-Bold',
+//             color: Colors.TextColor,
+//           }}>
+//           {item.title}
+//         </Text>
+//       </ImageBackground>
+//     </View>
+//   );
+// };
+{
+  /* <MultiLineTextInput
+            leftImageSoucre={require('../../../assets/NameIcon.png')}
+            placeholder={'Enter your first name'}
+            Label={true}
+            LabelTextInput={'First Name'}
+            onChangeText={text => setfirstName(text)}
+          /> */
+}

@@ -64,7 +64,7 @@ export default function FinalBookingScreen({navigation}) {
               />
               <Text style={styles.detail}>02/08/1995 , 04:30 PM</Text>
             </View>
-            <Text style={styles.preference}>Notes:</Text>
+            {/* <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences.
             </Text>
@@ -73,7 +73,7 @@ export default function FinalBookingScreen({navigation}) {
             </Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences.
-            </Text>
+            </Text> */}
           </View>
           <DocumentComponent image={require('../../../assets/Pdf.png')} />
           <DocumentComponent image={require('../../../assets/doc.png')} />
@@ -166,7 +166,8 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(4),
   },
   locationImage: {
-    tintColor: Colors.DullTextColor,
+    width: widthToDp(7),
+    height: heightToDp(7),
   },
   detail: {
     marginLeft: widthToDp(2),

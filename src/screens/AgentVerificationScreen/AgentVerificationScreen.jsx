@@ -53,29 +53,21 @@ export default function AgentVerificationScreen({navigation}, props) {
     if (photoID && Certificate) {
       const photeBlob = await handleCompression(photoID);
       const CertificateBlob = await uriToBlob(Certificate);
-      Toast.show({
-        type: 'warning',
-        text1: 'Item changed to BOLB!',
-      });
+
       const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
       const CertificateURL = await uploadFilestoS3(
         CertificateBlob,
         variables.firstName,
       );
-      Toast.show({
-        type: 'warning',
-        text1: 'Items uploaded to AWS!',
-      });
+
       const params = {
         ...variables,
         certificateUrl: CertificateURL,
         photoId: photoURL,
       };
-      // console.log('qqwq', photoURL);
-      // console.log('qqwq', CertificateURL);
+
       const isRegister = await handleRegister(params);
       setLoading(false);
-      // console.log('Is it working?', isRegister);
 
       if (isRegister) {
         setLoading(false);

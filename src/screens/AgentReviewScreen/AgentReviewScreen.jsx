@@ -1,6 +1,5 @@
 import {
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   FlatList,
@@ -11,13 +10,18 @@ import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {
+  capitalizeFirstLetter,
+  heightToDp,
+  widthToDp,
+} from '../../utils/Responsive';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import SplashScreen from 'react-native-splash-screen';
 import useCreateBooking from '../../hooks/useCreateBooking';
+import {ScrollView} from 'react-native-virtualized-view';
 
 export default function AgentReviewScreen({route, navigation}, props) {
   const {BookingData, handleBookingCreation, consoleData, setBookingData} =
@@ -49,7 +53,7 @@ export default function AgentReviewScreen({route, navigation}, props) {
   return (
     <SafeAreaView style={styles.contianer}>
       <NavigationHeader Title="Agent Review" />
-      <ScrollView contentContainerStyle={{flex: 1}}>
+      <View style={{flex: 1}}>
         <Image
           source={{uri: description?.profile_picture}}
           style={styles.picture}
@@ -69,33 +73,51 @@ export default function AgentReviewScreen({route, navigation}, props) {
         </View>
         <View style={{marginTop: heightToDp(2)}} />
         <BottomSheetStyle>
-          <ScrollView contentContainerStyle={{flex: 1}}>
+          <ScrollView contentContainerStyle={{paddingBottom: heightToDp(2)}}>
             <View style={styles.sheetContainer}>
-              <Text style={styles.heading}>Description</Text>
+              <Text style={styles.MainHeading}>Description: </Text>
+              <Text style={styles.heading}>Email : </Text>
+              <Text style={styles.preference}>{description?.email}</Text>
+              <Text style={styles.heading}>Availability : </Text>
               <Text style={styles.preference}>
-                Email : {description?.email}
-              </Text>
-              <Text style={styles.preference}>
-                Availability : {service?.availability?.startTime} to{' '}
+                {service?.availability?.startTime} to{' '}
                 {service?.availability?.endTime}
               </Text>
               <View>
-                <Text style={styles.preference}>Weekdays : </Text>
-                <FlatList
-                  horizontal
-                  data={service?.availability?.weekdays}
-                  renderItem={({item}) => (
-                    <Text style={styles.preference}>{item.toUpperCase()}</Text>
-                  )}
-                  keyExtractor={(item, index) => index.toString()}
-                />
+                <Text style={styles.heading}>Weekdays : </Text>
+                <View
+                  style={{
+                    marginHorizontal: widthToDp(3),
+                  }}>
+                  <FlatList
+                    horizontal
+                    data={service?.availability?.weekdays}
+                    renderItem={({item}) => (
+                      <LinearGradient
+                        style={styles.locationStyle}
+                        colors={[
+                          Colors.OrangeGradientStart,
+                          Colors.OrangeGradientEnd,
+                        ]}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 0}}>
+                        <Text style={styles.weekdays}>
+                          {capitalizeFirstLetter(item)}
+                        </Text>
+                      </LinearGradient>
+                    )}
+                    keyExtractor={(item, index) => index.toString()}
+                  />
+                </View>
               </View>
               <View style={styles.addressView}>
                 <Image
                   source={require('../../../assets/locationIcon.png')}
                   style={styles.locationImage}
                 />
-                <Text style={styles.detail}>{description?.location}</Text>
+                <Text style={styles.detail}>
+                  {capitalizeFirstLetter(description?.location)}
+                </Text>
               </View>
             </View>
             <View style={styles.button}>
@@ -107,7 +129,7 @@ export default function AgentReviewScreen({route, navigation}, props) {
             </View>
           </ScrollView>
         </BottomSheetStyle>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -137,12 +159,20 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(7),
     fontWeight: '900',
     alignSelf: 'center',
+    color: Colors.OrangeGradientEnd,
   },
-  heading: {
+  MainHeading: {
     fontSize: widthToDp(5),
     color: Colors.TextColor,
     marginLeft: widthToDp(3),
     fontFamily: 'Manrope-Bold',
+  },
+  heading: {
+    fontSize: widthToDp(4),
+    color: Colors.TextColor,
+    marginLeft: widthToDp(3),
+    fontFamily: 'Manrope-Bold',
+    marginTop: heightToDp(3),
   },
   rating: {
     alignSelf: 'center',
@@ -156,6 +186,12 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
   },
+  weekdays: {
+    paddingHorizontal: widthToDp(3),
+    fontSize: widthToDp(4),
+    color: Colors.white,
+    fontFamily: 'Manrope-Bold',
+  },
   star: {
     alignSelf: 'center',
     marginVertical: heightToDp(2),
@@ -164,12 +200,12 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(4),
   },
   locationImage: {
-    tintColor: Colors.Black,
+    width: widthToDp(5),
+    height: heightToDp(5),
   },
   addressView: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: heightToDp(8),
     marginLeft: widthToDp(4),
   },
   detail: {
@@ -180,8 +216,13 @@ const styles = StyleSheet.create({
     color: Colors.DullTextColor,
   },
   button: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginVertical: widthToDp(5),
+    marginTop: widthToDp(5),
+  },
+  locationStyle: {
+    borderRadius: 20,
+    marginRight: widthToDp(2),
+    // width: widthToDp(15),
+    marginTop: widthToDp(2),
+    alignItems: 'center',
   },
 });

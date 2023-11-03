@@ -7,7 +7,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React from 'react';
-import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {
+  capitalizeFirstLetter,
+  height,
+  heightToDp,
+  width,
+  widthToDp,
+} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LinearGradient from 'react-native-linear-gradient';
 import AgentCardPicture from '../AgentCardPicture/AgentCardPicture';
@@ -26,27 +32,29 @@ export default function AgentCard(props) {
   };
   const address = props?.agentAddress;
   const name = props?.agentName;
-  const [firstPart, secondPart] = splitStringBefore4thWord(address);
+  const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   // const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
 
-  function splitStringBefore4thWord(inputString) {
+  function splitStringBefore2ndWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
 
-      // Check if there are at least 4 words
-      if (words.length >= 4) {
-        // Join the first three words with space
-        const firstPart = words.slice(0, 3).join(' ');
+      // Check if there are at least 2 words
+      if (words.length >= 2) {
+        // Join the first two words with space
+        const firstPart = words.slice(0, 2).join(' ');
 
         // Join the remaining words with space
-        const secondPart = words.slice(3).join(' ');
+        const secondPart = words.slice(2).join(' ');
 
         return [firstPart, secondPart];
       } else {
-        // If there are fewer than 4 words, return the original string as the first part
+        // If there are fewer than 2 words, return the original string as the first part
         return [inputString, ''];
       }
-    } // Split the string by space
+    } else {
+      return ['', '']; // Return empty strings if the inputString is empty
+    }
   }
   function separateStringAfterFirstWord(inputString) {
     const words = inputString.split(' ');
@@ -84,15 +92,19 @@ export default function AgentCard(props) {
             <View>
               <Text style={styles.nameHeading}>{name}</Text>
             </View>
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <Image source={require('../../../assets/option.png')} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <View
             style={{
               flexDirection: 'row',
+              marginTop: heightToDp(3),
             }}>
-            <Image source={props.image} />
+            <Image
+              source={props.image}
+              style={{width: widthToDp(4), height: heightToDp(4)}}
+            />
             {props?.dateofBooking
               ? OrangeGradient('At Office')
               : OrangeGradient('At Home')}
@@ -100,7 +112,9 @@ export default function AgentCard(props) {
               style={{
                 marginLeft: widthToDp(1),
               }}>
-              <Text style={styles.address}>{firstPart}</Text>
+              <Text style={styles.address}>
+                {capitalizeFirstLetter(firstPart)}
+              </Text>
             </View>
           </View>
           <View>
@@ -148,7 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     elevation: 10,
     borderRadius: 10,
-    marginHorizontal: heightToDp(5),
+    marginHorizontal: heightToDp(8),
     marginVertical: heightToDp(2),
   },
   nameHeading: {
@@ -176,9 +190,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
     width: widthToDp(60),
-    right: widthToDp(5),
+    right: widthToDp(6),
     zIndex: -2,
-    paddingVertical: heightToDp(2),
+    // paddingVertical: heightToDp(2),
   },
   totalStyles: {
     color: Colors.TextColor,

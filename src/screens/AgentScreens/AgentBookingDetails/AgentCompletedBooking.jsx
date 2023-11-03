@@ -27,8 +27,12 @@ export default function AgentCompletedBooking({navigation}) {
     setBooking(bookingDetail);
   };
   useEffect(() => {
-    init('completed');
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('Completed sending...');
+      init('completed');
+    });
+    return unsubscribe;
+  }, [navigation]);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setBooking(null);
@@ -64,14 +68,15 @@ export default function AgentCompletedBooking({navigation}) {
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
                         source={{uri: item.booked_by.profile_picture}}
-                        bottomLeftText={item.document_type.price}
+                        bottomRightText={item.document_type.price}
+                        bottomLeftText="Total"
                         agentName={
                           item.booked_by.first_name +
                           ' ' +
                           item.booked_by.last_name
                         }
                         agentAddress={item.booked_by.location}
-                        task="Mobile"
+                        task={item?.status}
                         OrangeText="At Home"
                         onPress={() =>
                           navigation.navigate('ClientDetailsScreen', {
@@ -95,7 +100,7 @@ export default function AgentCompletedBooking({navigation}) {
                     marginTop: widthToDp(10),
                   }}>
                   <Image
-                    source={require('../../../../assets/mainLogo.png')}
+                    source={require('../../../../assets/emptyBox.png')}
                     style={styles.picture}
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>

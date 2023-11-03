@@ -46,7 +46,7 @@ export default function AgentBookingClientDetail({navigation}) {
           />
           <View style={styles.sheetContainer}>
             <Text style={[styles.insideHeading]}>Booking Preferences</Text>
-            <Text style={styles.preference}>Notes:</Text>
+            {/* <Text style={styles.preference}>Notes:</Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
             </Text>
@@ -55,7 +55,7 @@ export default function AgentBookingClientDetail({navigation}) {
             </Text>
             <Text style={styles.preference}>
               Please provide us with your booking preferences
-            </Text>
+            </Text> */}
           </View>
           <DocumentComponent image={require('../../../../assets/Pdf.png')} />
           <DocumentComponent image={require('../../../../assets/doc.png')} />

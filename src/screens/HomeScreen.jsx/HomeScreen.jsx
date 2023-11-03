@@ -44,8 +44,13 @@ export default function HomeScreen({navigation}) {
       setRefreshing(false);
     }, 2000);
   }, []);
+
   useEffect(() => {
-    init('pending');
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('Home screen sending...');
+      init('pending');
+    });
+    return unsubscribe;
   }, [navigation]);
   const openLinkInBrowser = () => {
     const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
@@ -84,6 +89,9 @@ export default function HomeScreen({navigation}) {
               alignSelf: 'center',
               marginVertical: heightToDp(3),
             }}
+            allowFileAccess={true}
+            scalesPageToFit={true}
+            originWhitelist={['*']}
           />
 
           <View style={styles.CategoryBar}>
@@ -181,7 +189,7 @@ export default function HomeScreen({navigation}) {
                     marginTop: widthToDp(10),
                   }}>
                   <Image
-                    source={require('../../../assets/mainLogo.png')}
+                    source={require('../../../assets/emptyBox.png')}
                     style={styles.picture}
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>
