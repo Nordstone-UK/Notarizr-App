@@ -15,14 +15,21 @@ import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import MainButton from '../../components/MainGradientButton/MainButton';
+import {useNavigation} from '@react-navigation/native';
 
-export default function LocalNotaryBookingScreen() {
+export default function LocalNotaryBookingScreen({navigation}) {
+  const goBackToStart = () => {
+    const navigation = useNavigation();
+    navigation.navigate('HomeScreen');
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Booking"
         midImg={require('../../../assets/locationIcon.png')}
         lastImg={require('../../../assets/chatIcon.png')}
+        // ExtraNavigation={goBackToStart}
+        payment={true}
       />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
