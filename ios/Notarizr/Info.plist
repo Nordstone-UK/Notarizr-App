@@ -14,16 +14,6 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-	<key>NSCameraUsageDescription</key>
-<string>We need access to your camera to capture photos for document notarization.</string>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>We need access to your location to verify document notarization locations.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We need access to your photo library to allow you to upload photos and customize your experience.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We require your location to provide personalized content based on your current location.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show nearby places of interest and improve your user experience.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -43,20 +33,21 @@
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
-
-			<key>3.13.41.233</key>
-			<dict>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to capture photos for document notarization.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need access to your location to provide you with personalized recommendations and services based on your current location. Your location data will only be used within the app and will not be shared with any third parties.</string>
+	<string>We need access to your location to verify document notarization locations.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to allow you to upload photos and customize your experience.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We require your location to provide personalized content based on your current location.</string>
+	
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
 	<key>UILaunchStoryboardName</key>
-	<stringN>LaunchScreen</stringN>
+	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

@@ -51,13 +51,23 @@ export default function AgentVerificationScreen({navigation}, props) {
   const submitRegister = async () => {
     setLoading(true);
     if (photoID && Certificate) {
-      const photeBlob = await handleCompression(photoID);
+       const photeBlob = await uriToBlob(photoID);
+       console.log('====================================');
+       console.log("photoblob",photeBlob);
+       console.log('====================================');
       const CertificateBlob = await uriToBlob(Certificate);
 
-      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
+      console.log('====================================');
+      console.log("CertificateBlob",CertificateBlob);
+      console.log('====================================');
+
+    
+
+      const photoURL = await uploadFilestoS3(photeBlob,variables.firstName);
       const CertificateURL = await uploadFilestoS3(
         CertificateBlob,
-        variables.firstName,
+        variables.firstName
+      
       );
 
       const params = {
