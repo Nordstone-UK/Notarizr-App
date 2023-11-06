@@ -82,8 +82,9 @@ const useRegister = () => {
 
   const uploadFiles = useCallback(async () => {
     try {
-      const response = await DocumentPicker.pickSingle({
+      const response = await DocumentPicker.pick({
         presentationStyle: 'fullScreen',
+        allowMultiSelection: false,
       });
       console.log('Document Picker: ', response);
       return response.uri;
