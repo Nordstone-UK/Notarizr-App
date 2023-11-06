@@ -6,7 +6,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
@@ -14,14 +14,27 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import AddressCard from '../../components/AddressCard/AddressCard';
+import useFetchUser from '../../hooks/useFetchUser';
+import {useSelector} from 'react-redux';
 
 export default function AddressDetails({navigation}) {
+  const {fetchUserInfo} = useFetchUser();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('Home screen sending...');
+      fetchUserInfo();
+    });
+    return unsubscribe;
+  }, [navigation]);
+  const {location} = useSelector(state => state.user.user);
+  console.log(location);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Address" />
       <Text style={styles.textheading}>Please find all your addresses</Text>
       <BottomSheetStyle>
-        <AddressCard />
+        <AddressCard location={location} />
         <View
           style={{
             flex: 1,

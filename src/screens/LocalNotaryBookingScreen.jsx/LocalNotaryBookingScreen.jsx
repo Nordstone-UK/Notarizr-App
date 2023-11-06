@@ -19,7 +19,11 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 export default function LocalNotaryBookingScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Booking" />
+      <NavigationHeader
+        Title="Booking"
+        midImg={require('../../../assets/locationIcon.png')}
+        lastImg={require('../../../assets/chatIcon.png')}
+      />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
         <Text style={styles.Heading}>Medical documents</Text>
@@ -38,12 +42,14 @@ export default function LocalNotaryBookingScreen() {
           </View>
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
-            source={require('../../../assets/agentCardPic.png')}
+            source={require('../../../assets/agentReactanelPic.png')}
             bottomRightText="30 minutes"
             bottomLeftText="0.5 Miles"
             agentName={'Advocate Parimal M. Trivedi'}
             agentAddress={'Shop 28, jigara Kalakand Road'}
             Review={true}
+            createdAt={'2023-11-02T11:08:32.776+00:00'}
+            task={'Pending'}
           />
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
@@ -68,7 +74,7 @@ export default function LocalNotaryBookingScreen() {
               Please provide us with your booking preferences
             </Text>
           </View>
-          <View style={styles.buttonFlex}>
+          {/* <View style={styles.buttonFlex}>
             <MainButton
               Title="Cancel Booking"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -98,7 +104,7 @@ export default function LocalNotaryBookingScreen() {
                 fontSize: widthToDp(4),
               }}
             />
-          </View>
+          </View> */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

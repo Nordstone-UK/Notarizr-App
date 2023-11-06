@@ -7,6 +7,7 @@ import {
   useColorScheme,
   TouchableOpacity,
   SafeAreaView,
+  Switch,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -22,18 +23,21 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
 import moment from 'moment';
 import useCreateBooking from '../../hooks/useCreateBooking';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
 
 export default function LocalNotaryDateScreen({route, navigation}) {
-  const {description, documentType} = route.params;
-  const {agent} = description;
+  // const {description, documentType} = route.params;
+  // const {agent} = description;
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [isEnabled, setIsEnabled] = useState(false);
+  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const {
     setLocalBookingData,
     handleLocalNotaryBookingCreation,
     LocalBookingData,
   } = useCreateBooking();
-  console.log(documentType);
+  // console.log(documentType);
   function generateTimeSlots(openTime, closeTime) {
     let startTime = moment(openTime, 'hh:mm A');
     let endTime = moment(closeTime, 'hh:mm A');
@@ -52,13 +56,13 @@ export default function LocalNotaryDateScreen({route, navigation}) {
     return timeSlots;
   }
   useEffect(() => {
-    setLocalBookingData({
-      ...LocalBookingData,
-      serviceType: description.service_type,
-      service: description._id,
-      agent: description.agent._id,
-      documentType: documentType,
-    });
+    // setLocalBookingData({
+    //   ...LocalBookingData,
+    //   serviceType: description.service_type,
+    //   service: description._id,
+    //   agent: description.agent._id,
+    //   documentType: documentType,
+    // });
   }, []);
   const handleLocalBooking = async () => {
     const data = await handleLocalNotaryBookingCreation(
@@ -66,23 +70,20 @@ export default function LocalNotaryDateScreen({route, navigation}) {
       selectedTime,
     );
   };
-  const TimeAvailable = generateTimeSlots(
-    description.availability.startTime,
-    description.availability.endTime,
-  );
-
+  const TimeAvailable = generateTimeSlots('08:00 AM', '5:00 PM');
   return (
     <SafeAreaView style={styles.container}>
       <View>
         <View style={styles.namebar}>
           <View style={styles.flexContainer}>
             <Image
-              source={{uri: agent.profile_picture}}
+              // source={{uri: agent.profile_picture}}
+              source={require('../../../assets/agentReview.png')}
               style={styles.imagestyles}
             />
-            <Text style={[styles.textHeading]}>
-              {agent.first_name} {agent.last_name}
-            </Text>
+            <Text style={[styles.textHeading]}>Mary Smith</Text>
+
+            {/* {agent.first_name} {agent.last_name} */}
           </View>
           <View style={styles.flexContainer}>
             <TouchableOpacity
@@ -136,37 +137,38 @@ export default function LocalNotaryDateScreen({route, navigation}) {
               </TouchableOpacity>
             ))}
           </View>
-          <View style={styles.buttonFlex}>
-            <MainButton
-              Title="Back"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(5),
-              }}
-              styles={{
-                paddingHorizontal: widthToDp(10),
-                paddingVertical: widthToDp(3),
-                fontSize: widthToDp(5),
-              }}
-              onPress={() => navigation.navigate('LocalNotaryMapScreen')}
-            />
-            <MainButton
-              Title="Book"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(5),
-              }}
-              styles={{
-                paddingHorizontal: widthToDp(10),
-                paddingVertical: widthToDp(3),
-                fontSize: widthToDp(5),
-              }}
-              onPress={
-                () => handleLocalBooking()
-                // () => navigation.navigate('AgentBookCompletion')
-              }
-            />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            <Text style={styles.insideText}>
+              Do you want us to print the document?
+            </Text>
+            <View
+              style={{
+                flex: 1,
+              }}>
+              <Switch
+                trackColor={{false: '#767577', true: Colors.Orange}}
+                thumbColor={isEnabled ? Colors.Orange : '#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+                onValueChange={toggleSwitch}
+                value={isEnabled}
+              />
+            </View>
           </View>
+          <GradientButton
+            Title="Book a Service"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            GradiStyles={{
+              marginVertical: heightToDp(5),
+            }}
+            styles={{
+              fontSize: widthToDp(5),
+            }}
+            onPress={() => navigation.navigate('NearbyLoadingScreen')}
+          />
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -237,6 +239,8 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginLeft: widthToDp(5),
+    width: widthToDp(7),
+    height: heightToDp(7),
   },
   textHeading: {
     alignSelf: 'center',

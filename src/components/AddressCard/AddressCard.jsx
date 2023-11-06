@@ -1,10 +1,14 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {
+  heightToDp,
+  splitStringBefore2ndWord,
+  widthToDp,
+} from '../../utils/Responsive';
 
-export default function AddressCard() {
+export default function AddressCard(props) {
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -22,10 +26,9 @@ export default function AddressCard() {
       <View style={styles.textContainer}>
         {OrangeGradient('Home')}
         <Text style={styles.text}>
-          Flat no.101, James Street, New York, 123456
+          {splitStringBefore2ndWord(props.location)}
         </Text>
       </View>
-      <Image source={require('../../../assets/option.png')} />
     </View>
   );
 }
@@ -33,11 +36,12 @@ export default function AddressCard() {
 const styles = StyleSheet.create({
   flexContainer: {
     flexDirection: 'row',
-    padding: widthToDp(5),
+    margin: widthToDp(5),
+    padding: widthToDp(2),
     marginHorizontal: widthToDp(2),
-    borderColor: Colors.DullWhite,
-    borderWidth: 2,
     borderRadius: 10,
+    backgroundColor: Colors.white,
+    elevation: 10,
   },
   placestyle: {
     color: Colors.white,
@@ -55,7 +59,7 @@ const styles = StyleSheet.create({
     marginHorizontal: widthToDp(3),
   },
   text: {
-    width: widthToDp(45),
+    width: widthToDp(55),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     marginLeft: widthToDp(2),

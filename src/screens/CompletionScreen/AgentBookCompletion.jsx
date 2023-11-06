@@ -15,7 +15,7 @@ export default function AgentBookCompletion({navigation}) {
     const delay = 3000;
 
     const timer = setTimeout(() => {
-      navigation.navigate('HomeScreen');
+      navigation.navigate('LocalNotaryBookingScreen');
     }, delay);
 
     return () => clearTimeout(timer);

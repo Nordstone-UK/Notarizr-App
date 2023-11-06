@@ -45,7 +45,6 @@ export default function AgentVerificationScreen({navigation}, props) {
   };
   const selectCertificate = async () => {
     const response = await uploadFiles();
-    // console.log(response);
     setCertificate(response);
   };
   const submitRegister = async () => {

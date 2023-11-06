@@ -26,9 +26,6 @@ import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentUpdateScreen({navigation}, props) {
   const {handleStripeCreation} = useStripeApi();
 
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
   const user = useSelector(state => state.user.user.account_type);
   console.log('user', user);
   const [Link, setLink] = useState();

@@ -31,9 +31,6 @@ import useRegister from '../../hooks/useRegister';
 import Toast from 'react-native-toast-message';
 
 export default function ProfilePictureScreen({navigation}) {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
   const [image, setImage] = useState();
   const [errorMessage, setErrorMessage] = useState('');
   const [tempLoading, settempLoading] = useState(false);

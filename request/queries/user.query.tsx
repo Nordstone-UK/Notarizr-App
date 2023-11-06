@@ -13,9 +13,16 @@ export const FETCH_USER_INFO = gql`
       isBlocked
       chatPrivacy
       location
+      rating
       subscriptionType
       isVerified
       account_type
+      online_status
+      current_location {
+        type
+        coordinates
+      }
+      description
     }
   }
 `;

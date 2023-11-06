@@ -11,12 +11,10 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
-import {Linking} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {ScrollView} from 'react-native-virtualized-view';
 import useFetchBooking from '../../hooks/useFetchBooking';
@@ -26,6 +24,7 @@ import {
   setCoordinates,
   setUser,
 } from '../../features/booking/bookingSlice';
+import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 
 export default function HomeScreen({navigation}) {
   const {fetchBookingInfo} = useFetchBooking();
@@ -34,7 +33,6 @@ export default function HomeScreen({navigation}) {
   const [refreshing, setRefreshing] = useState(false);
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
-    // console.log('bookingDetail', bookingDetail);
     setBooking(bookingDetail);
   };
   const onRefresh = React.useCallback(() => {
@@ -52,12 +50,7 @@ export default function HomeScreen({navigation}) {
     });
     return unsubscribe;
   }, [navigation]);
-  const openLinkInBrowser = () => {
-    const url = 'https://www.youtube.com/watch?v=SgD7g0COp-I';
-    Linking.openURL(url).catch(err =>
-      console.error('An error occurred: ', err),
-    );
-  };
+
   const handleAgentData = item => {
     navigation.navigate('MedicalBookingScreen', {
       item: item,
@@ -77,31 +70,27 @@ export default function HomeScreen({navigation}) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
-          <Text style={styles.MainHeading}>
-            Know how Notarizr helps you in notarizing your documents
-          </Text>
-          <WebView
-            source={{uri: 'https://www.youtube.com/watch?v=SgD7g0COp-I'}}
-            style={{
-              flex: 1,
-              width: widthToDp(95),
-              height: heightToDp(52),
-              alignSelf: 'center',
-              marginVertical: heightToDp(3),
-            }}
-            allowFileAccess={true}
-            scalesPageToFit={true}
-            originWhitelist={['*']}
-          />
-
           <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>Categories</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CategoryDetailScreen')}>
-              <Text style={styles.subheading}>View all</Text>
-            </TouchableOpacity>
+            <Text style={styles.Heading}>
+              Please choose the mode of service you wish to avail
+            </Text>
           </View>
-          <View style={styles.CategoryPictures}>
+          <TypesofServiceButton
+            backgroundColor={{backgroundColor: Colors.Pink}}
+            Title="Mobile Notary"
+            Image={require('../../../assets/service1Pic.png')}
+            onPress={() => navigation.navigate('ServiceDetailScreen')}
+            // isDisabled={isDisabled}
+          />
+          <TypesofServiceButton
+            backgroundColor={{backgroundColor: Colors.LightBlue}}
+            Title="Remote Online Notary"
+            Image={require('../../../assets/service2Pic.png')}
+            onPress={() =>
+              navigation.navigate('OnlineNotaryScreen', documentType)
+            }
+          />
+          {/* <View style={styles.CategoryPictures}>
             <View style={styles.PictureBar}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('LegalDocScreen')}
@@ -142,7 +131,7 @@ export default function HomeScreen({navigation}) {
                 />
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
             <TouchableOpacity
@@ -216,34 +205,12 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     marginHorizontal: widthToDp(4),
   },
-  LongImage: {
-    position: 'absolute',
-    zIndex: 99,
-    margin: widthToDp(2),
-    fontSize: widthToDp(5.5),
-    marginTop: widthToDp(1),
-    fontFamily: 'Manrope-Bold',
+  insideHeading: {
     color: Colors.TextColor,
-    marginRight: widthToDp(20),
-  },
-  ShortImage: {
-    position: 'absolute',
-    zIndex: 1,
-    margin: widthToDp(2),
-    fontSize: widthToDp(4),
-    marginTop: widthToDp(1),
+    fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-  },
-  ImageShort: {
-    width: widthToDp(30),
-    height: heightToDp(30),
-    borderRadius: 10,
-  },
-  ImageLong: {
-    width: widthToDp(60),
-    height: heightToDp(30),
-    borderRadius: 10,
+    marginVertical: widthToDp(3),
+    marginHorizontal: widthToDp(5),
   },
   Heading: {
     fontSize: widthToDp(6.5),

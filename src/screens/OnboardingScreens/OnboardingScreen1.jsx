@@ -17,9 +17,6 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
 
 export default function OnboardingScreen1({navigation}, props) {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <Image

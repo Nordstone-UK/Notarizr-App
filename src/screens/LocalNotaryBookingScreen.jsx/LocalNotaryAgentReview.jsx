@@ -25,8 +25,6 @@ export default function LocalNotaryAgentReview({route, navigation}, props) {
   const {agent} = description;
   console.log('agent', description);
 
-  useEffect(() => {}, []);
-
   const GradientText = props => {
     return (
       <MaskedView maskElement={<Text {...props} />}>

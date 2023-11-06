@@ -134,7 +134,10 @@ export default function AgentCard(props) {
                 styles.totalStyles,
                 props.leftSideStyles,
 
-                {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
+                {
+                  // fontFamily: 'Poppins-Bold',
+                  fontSize: widthToDp(4.5),
+                },
               ]}>
               {props.bottomLeftText}
             </Text>
@@ -143,11 +146,11 @@ export default function AgentCard(props) {
                 styles.paymentStyle,
                 props.rightSideStyles,
                 {
-                  fontFamily: 'Poppins-Bold',
+                  // fontFamily: 'Poppins-Bold',
                   fontSize: widthToDp(4.5),
                 },
               ]}>
-              ${props.bottomRightText}
+              {props.bottomRightText}
             </Text>
           </View>
         </View>

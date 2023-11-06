@@ -8,17 +8,25 @@ import MainBookingScreen from '../MainBookingScreen/MainBookingScreen';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {ScrollView} from 'react-native';
 import {useLazyQuery} from '@apollo/client';
-import {VERIFY_EMAIL_OTP} from '../../../request/queries/verifyEmailOTP.query';
-import {RESEND_EMAIL_OTP} from '../../../request/queries/resendEmailOTP.query';
+
 import {useDispatch, useSelector} from 'react-redux';
 import {VERIFY_PHONE_OTP} from '../../../request/queries/verifyPhoneOTP.query';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {ceredentailSet} from '../../features/register/registerSlice';
+import {SafeAreaView} from 'react-native';
 
-export default function EmailVerification({route, navigation}) {
-  const {ceredentials, message} = route.params;
-  // console.log(ceredentials);
-  const email = useSelector(state => state.register.email);
+export default function SignPhoneVerification({route, navigation}) {
+  const {
+    description,
+    email,
+    firstName,
+    lastName,
+    location,
+    gender,
+    phoneNumber,
+  } = route.params;
+  // console.log('route.params', route.params);
+  // const Statemail = useSelector(state => state.register.email);
   const [otp, setOTPcode] = useState('');
   const [verifYOTP, {loading: verifyLoading}] = useLazyQuery(VERIFY_PHONE_OTP);
   const [getPhoneOtp, {loading: phoneLoading}] = useLazyQuery(GET_PHONE_OTP);
@@ -28,9 +36,18 @@ export default function EmailVerification({route, navigation}) {
       variables: {email, otp},
     })
       .then(response => {
-        // console.log(response?.data);
-        // Alert.alert(response?.data?.verifyPhoneOTP?.message);
-        // dispatch(ceredentailSet({firstName, lastName, number, city, email}));
+        navigation.navigate('ProfilePictureScreen');
+        dispatch(
+          ceredentailSet({
+            firstName,
+            lastName,
+            location,
+            gender,
+            email,
+            phoneNumber,
+            description,
+          }),
+        );
         navigation.navigate('ProfilePictureScreen');
       })
       .catch(error => {
@@ -60,58 +77,60 @@ export default function EmailVerification({route, navigation}) {
     }
   };
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.subContainer}>
-        <Text style={styles.heading}>Enter OTP to Verify</Text>
-        <Image source={require('../../../assets/otp.png')} />
-        <OTPInputView
-          style={{
-            width: widthToDp(80),
-            height: heightToDp(50),
-            color: Colors.TextColor,
-          }}
-          pinCount={4}
-          onCodeChanged={code => {
-            setOTPcode(code);
-          }}
-          codeInputFieldStyle={styles.underlineStyleBase}
-          codeInputHighlightStyle={styles.underlineStyleHighLighted}
-          onCodeFilled={code => {
-            // handleOtpVerification();
-            console.log(`Code is ${code}, you are good to go!`);
-          }}
-        />
-        <Text style={styles.subheading}>
-          We have sent an OTP on this number:
-        </Text>
-        <Text style={styles.subheading}>{message}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.subContainer}>
+          <Text style={styles.heading}>Enter OTP to Verify</Text>
+          <Image source={require('../../../assets/otp.png')} />
+          <OTPInputView
+            style={{
+              width: widthToDp(80),
+              height: heightToDp(50),
+              color: Colors.TextColor,
+            }}
+            code={otp}
+            autoFocusOnLoad={false}
+            editable={true}
+            pinCount={4}
+            onCodeChanged={code => {
+              setOTPcode(code);
+            }}
+            codeInputFieldStyle={styles.underlineStyleBase}
+            codeInputHighlightStyle={styles.underlineStyleHighLighted}
+          />
+          <Text style={styles.subheading}>
+            We have sent an OTP on this number:
+          </Text>
+          <Text style={styles.subheading}>{phoneNumber}</Text>
 
+          <View style={{marginVertical: heightToDp(5)}}>
+            <MainButton
+              Title="Resend OTP"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                width: widthToDp(40),
+                marginTop: heightToDp(2),
+                paddingVertical: heightToDp(2),
+              }}
+              // loading={resendloading}
+              styles={{
+                padding: 0,
+                fontSize: widthToDp(4),
+              }}
+              // onPress={() => handleResend()}
+            />
+          </View>
+        </View>
         <View style={{marginVertical: heightToDp(5)}}>
-          <MainButton
-            Title="Resend OTP"
+          <GradientButton
+            Title="Verify OTP"
+            loading={verifyLoading || phoneLoading}
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              width: widthToDp(40),
-              paddingVertical: heightToDp(2),
-            }}
-            loading={phoneLoading}
-            styles={{
-              padding: 0,
-              fontSize: widthToDp(4),
-            }}
-            onPress={() => handleResendOtp()}
+            onPress={() => handleOtpVerification()}
           />
         </View>
-      </View>
-      <View style={{marginVertical: heightToDp(5)}}>
-        <GradientButton
-          Title="Verify OTP"
-          loading={verifyLoading}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={() => handleOtpVerification()}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

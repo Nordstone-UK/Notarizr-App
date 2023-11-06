@@ -25,10 +25,6 @@ import {
 } from 'react-native-credit-card-input';
 
 export default function AddCardScreen({navigation}, props) {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
-
   _onFocus = field => console.log('focusing', field);
   _onChange = form => console.log(JSON.stringify(form, null, ' '));
   return (

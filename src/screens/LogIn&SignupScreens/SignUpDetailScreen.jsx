@@ -24,14 +24,11 @@ import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
 import {Picker} from '@react-native-picker/picker';
 import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 import Toast from 'react-native-toast-message';
-import CustomToast from '../../components/CustomToast/CustomToast';
-// import Geolocation from '@react-native-community/geolocation';
-import GooglePlacesInput from '../../components/GooglePlacesInput/GooglePlacesInput';
-// import {ScrollView} from 'react-native-virtualized-view';
+import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
+import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
+import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
 
 export default function SignUpDetailScreen({navigation}, props) {
-  navigator.geolocation = require('@react-native-community/geolocation');
-
   const [firstName, setfirstName] = useState('');
   const [lastName, setlastName] = useState('');
   const [phoneNumber, setNumber] = useState('');
@@ -39,16 +36,16 @@ export default function SignUpDetailScreen({navigation}, props) {
   const [email, setEmail] = useState('');
   const [emailValid, setEmailValid] = useState();
   const [gender, setgender] = useState('');
+  const [description, setDescription] = useState('');
   const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
-  const dispatch = useDispatch();
+  const [getPhoneOtp, {loading: PhoneLoading}] =
+    useLazyQuery(GET_VALID_PHONE_OTP);
 
+  const dispatch = useDispatch();
+  const variables = useSelector(state => state.register.accountType);
   const handleGenderChange = value => {
     setgender(value);
   };
-  useEffect(() => {
-    SplashScreen.hide();
-    // Geolocation.getCurrentPosition(info => console.log(info));
-  }, []);
 
   const handleEmailValid = async () => {
     if (
@@ -73,7 +70,6 @@ export default function SignUpDetailScreen({navigation}, props) {
             setEmailValid(response?.data?.isEmailValid?.emailTaken);
 
             if (response?.data?.isEmailValid?.emailTaken) {
-              // Alert.alert('This email is already taken');
               Toast.show({
                 type: 'error',
                 text1: 'This email is already taken!',
@@ -81,17 +77,19 @@ export default function SignUpDetailScreen({navigation}, props) {
               });
             } else {
               setEmailValid(false);
-              dispatch(
-                ceredentailSet({
-                  firstName,
-                  lastName,
-                  location,
-                  gender,
-                  email,
-                  phoneNumber,
-                }),
-              );
-              navigation.navigate('ProfilePictureScreen');
+              handleGetPhoneOtp();
+              // dispatch(
+              //   ceredentailSet({
+              //     firstName,
+              //     lastName,
+              //     location,
+              //     gender,
+              //     email,
+              //     phoneNumber,
+              //     description,
+              //   }),
+              // );
+              // navigation.navigate('ProfilePictureScreen');
             }
           });
         } catch (error) {
@@ -100,7 +98,58 @@ export default function SignUpDetailScreen({navigation}, props) {
       });
     }
   };
-
+  const handleGetPhoneOtp = () => {
+    dispatch(emailSet(email));
+    try {
+      getPhoneOtp({
+        variables: {phoneNumber},
+      }).then(response => {
+        console.log('dawdads', response.data);
+        if (response?.data?.getValidPhoneOtp?.status === '403') {
+          Toast.show({
+            type: 'error',
+            text1: 'We are Sorry!',
+            text2: 'This User is Blocked',
+          });
+        } else if (response?.data?.getValidPhoneOtp?.status !== '200') {
+          Toast.show({
+            type: 'error',
+            text1: 'OTP not sent!',
+            text2: 'We encountered a problem please try again',
+          });
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: `OTP Sent on ${response.data.getValidPhoneOtp.phoneNumber}`,
+            text2: '',
+          });
+          navigation.navigate('SignPhoneVerification', {
+            firstName,
+            lastName,
+            location,
+            gender,
+            email,
+            phoneNumber,
+            description,
+          });
+          // dispatch(
+          //   ceredentailSet({
+          //     firstName,
+          //     lastName,
+          //     location,
+          //     gender,
+          //     email,
+          //     phoneNumber,
+          //     description,
+          //   }),
+          // );
+          // navigation.navigate('ProfilePictureScreen');
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -123,12 +172,14 @@ export default function SignUpDetailScreen({navigation}, props) {
                 leftImageSoucre={require('../../../assets/NameIcon.png')}
                 placeholder={'Enter your first name'}
                 Label={true}
+                defaultValue={firstName}
                 LabelTextInput={'First Name'}
                 onChangeText={text => setfirstName(text)}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/NameIcon.png')}
                 placeholder={'Enter your last name'}
+                defaultValue={lastName}
                 Label={true}
                 LabelTextInput={'Last Name'}
                 onChangeText={text => setlastName(text)}
@@ -152,7 +203,6 @@ export default function SignUpDetailScreen({navigation}, props) {
                 Label={true}
                 placeholder={'XXXXXXXXXXX'}
               />
-
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}
                 Label={true}
@@ -160,6 +210,15 @@ export default function SignUpDetailScreen({navigation}, props) {
                 LabelTextInput={'City'}
                 onChangeText={text => setlocation(text)}
               />
+              {variables !== 'client' && (
+                <MultiLineTextInput
+                  Label={true}
+                  placeholder={'Enter description here'}
+                  defaultValue={description}
+                  LabelTextInput={'Description'}
+                  onChangeText={text => setDescription(text)}
+                />
+              )}
               {/* <View>
               <GooglePlacesInput />
             </View> */}
@@ -185,7 +244,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                     Colors.OrangeGradientEnd,
                   ]}
                   Title="Continue"
-                  loading={validLoading}
+                  loading={validLoading || PhoneLoading}
                   onPress={() => handleEmailValid()}
                 />
               </View>

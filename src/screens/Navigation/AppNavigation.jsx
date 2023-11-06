@@ -68,7 +68,6 @@ import ProfilePreferenceCompletion from '../CompletionScreen/ProfilePreferenceCo
 import AgentServicePereference from '../AgentScreens/AgentServicePerference/AgentServicePerference';
 import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificationScreen';
 import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
-import CategoryDetailScreen from '../CategoryDetailScreen/CategoryDetailScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
 import NotaryCallScreen from '../NotaryCallScreen.jsx/NotaryCallScreen';
@@ -80,7 +79,7 @@ import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/Agen
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
 import MapArrivalScreen from '../MapArrivalScreen/MapArrivalScreen';
-import EmailVerification from '../LogIn&SignupScreens/EmailVerification';
+import SignPhoneVerification from '../LogIn&SignupScreens/SignPhoneVerification';
 import PhoneVerification from '../LogIn&SignupScreens/PhoneVerification';
 import AgentVerfiedScreen from '../CompletionScreen/AgentVerifiedScreen';
 import CustomToast from '../../components/CustomToast/CustomToast';
@@ -92,6 +91,7 @@ import MedicalDocScreen from '../LegalDocumentsScren/MedicalDocScreen';
 import RONAgentReviewScreen from '../RONAgentReviewScreen/RONAgentReviewScreen';
 import MapScreen from '../MapScreen/MapScreen';
 import CompletePayment from '../CompletionScreen/CompletePayment';
+import ServiceDetailScreen from '../ServiceDetailScreen/ServiceDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -155,7 +155,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash_Screen"
+          initialRouteName="LocalNotaryBookingScreen"
           screenOptions={{
             headerShown: false,
           }}>
@@ -185,8 +185,8 @@ export default function AppNavigation() {
           />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen
-            name="EmailVerification"
-            component={EmailVerification}
+            name="SignPhoneVerification"
+            component={SignPhoneVerification}
           />
           <Stack.Screen
             name="PhoneVerification"
@@ -203,8 +203,8 @@ export default function AppNavigation() {
           <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
           <Stack.Screen name="MedicalDocScreen" component={MedicalDocScreen} />
           <Stack.Screen
-            name="CategoryDetailScreen"
-            component={CategoryDetailScreen}
+            name="ServiceDetailScreen"
+            component={ServiceDetailScreen}
           />
           <Stack.Screen
             name="ActiveServicesScreen"

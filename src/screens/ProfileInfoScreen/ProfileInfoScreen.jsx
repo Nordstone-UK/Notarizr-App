@@ -18,6 +18,7 @@ import useFetchUser from '../../hooks/useFetchUser';
 export default function ProfileInfoScreen({navigation}) {
   const accountType = useSelector(state => state.register.accountType);
   const {first_name, profile_picture} = useSelector(state => state.user.user);
+  const {fetchUserInfo} = useFetchUser();
   const clearTokenFromStorage = async () => {
     try {
       await AsyncStorage.removeItem('token');
@@ -34,12 +35,13 @@ export default function ProfileInfoScreen({navigation}) {
       routes: [{name: 'LoginScreen'}],
     });
   };
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUserInfo();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
-  // useEffect(() => {
-  //   if (isFocused) {
-  //     fetchUserInfo(); // Call the fetchUserInfo function when the screen is focused
-  //   }
-  // }, [useIsFocused, navigation]);
   return (
     <SafeAreaView style={styles.container}>
       <Image source={{uri: profile_picture}} style={styles.picture} />

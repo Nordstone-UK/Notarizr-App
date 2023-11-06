@@ -6,16 +6,18 @@ export const UPDATE_PROFILE_INFO = gql`
     $lastName: String!
     $phoneNumber: String!
     $profilePicture: String!
-    $gender: String!
     $location: String!
+    $gender: String!
+    $description: String!
   ) {
     update(
       first_name: $firstName
       last_name: $lastName
       phone_number: $phoneNumber
       profile_picture: $profilePicture
-      gender: $gender
       location: $location
+      gender: $gender
+      description: $description
     ) {
       message
       status

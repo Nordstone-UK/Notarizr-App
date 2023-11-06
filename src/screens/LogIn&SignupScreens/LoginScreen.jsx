@@ -31,10 +31,6 @@ export default function LoginScreen({navigation}, props) {
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
   const dispath = useDispatch();
 
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
-
   const handleGetPhoneOtp = () => {
     dispath(emailSet(email));
     try {

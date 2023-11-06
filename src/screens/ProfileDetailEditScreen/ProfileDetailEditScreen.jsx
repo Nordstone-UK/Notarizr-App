@@ -28,6 +28,7 @@ import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import useUpdate from '../../hooks/useUpdate';
 import useRegister from '../../hooks/useRegister';
 import useFetchUser from '../../hooks/useFetchUser';
+import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
 
 export default function ProfileDetailEditScreen({navigation}, props) {
   const {
@@ -38,6 +39,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     last_name,
     email: oldEmail,
     phone_number,
+    description: oldDescription,
   } = useSelector(state => state.user.user);
   const [firstName, setfirstName] = useState(first_name);
   const [lastName, setlastName] = useState(last_name);
@@ -46,57 +48,16 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const [email, setEmail] = useState(oldEmail);
   const [gender, setGender] = useState(oldGender);
   const [emailValid, setEmailValid] = useState();
-  const [image, setImage] = useState();
+  const [image, setImage] = useState(profile_picture);
+  const [description, setDescription] = useState(oldDescription);
   const [tempLoading, settempLoading] = useState(false);
   const [profilePicture, setProfilePicure] = useState(profile_picture);
   const accountType = useSelector(state => state.register.accountType);
   const {fetchUserInfo} = useFetchUser();
 
-  const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
+  // const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
   const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
   const {handleProfileUpdate} = useUpdate();
-  // const handleEmailValid = async () => {
-  //   console.log(email, location, firstName, lastName, gender);
-  //   if (!email || !location || !phoneNumber || !firstName || !lastName) {
-  //     Toast.show({
-  //       type: 'warning',
-  //       text1: 'Warning!',
-  //       text2: 'Please fill all the fields before submitting.',
-  //     });
-  //   } else {
-  //     return new Promise(() => {
-  //       try {
-  //         isEmailValid({
-  //           variables: {email},
-  //         }).then(response => {
-  //           setEmailValid(response?.data?.isEmailValid?.emailTaken);
-
-  //           if (response?.data?.isEmailValid?.emailTaken) {
-  //             Toast.show({
-  //               type: 'error',
-  //               text1: 'This email is already taken!',
-  //               text2: 'Please enter other email address',
-  //             });
-  //           } else {
-  //             setEmailValid(false);
-  //             submitRegister({
-  //               firstName,
-  //               lastName,
-  //               email,
-  //               phoneNumber,
-  //               location,
-  //               profilePicture,
-  //               gender,
-  //             });
-  //             console.log('Email is Valid');
-  //           }
-  //         });
-  //       } catch (error) {
-  //         console.log(error);
-  //       }
-  //     });
-  //   }
-  // };
   const showCameraGalleryAlert = () => {
     Alert.alert(
       'Choose an option',
@@ -113,6 +74,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
           text: 'Gallery',
           onPress: async () => {
             const uri = await chooseFile('photo');
+            console.log(uri);
+            setProfilePicure(uri);
             setImage(uri);
           },
         },
@@ -133,7 +96,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     if (image) {
       const imageBlob = await handleCompression(image);
       const url = await uploadBlobToS3(imageBlob);
-      setProfilePicure(url);
+      setImage(url);
+      // console.log('conversion: ', url);
     }
 
     const params = {
@@ -142,10 +106,10 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       email: email,
       phoneNumber: phoneNumber,
       location: location,
-      profilePicture: profilePicture,
+      profilePicture: image,
       gender: gender,
+      description: description,
     };
-    console.log(params);
     const isUpdated = await handleProfileUpdate(params);
     if (isUpdated) {
       await fetchUserInfo();
@@ -170,7 +134,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       <NavigationHeader Title="Profile Details" />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View>
-          <Image source={{uri: profile_picture}} style={styles.picture} />
+          <Image source={{uri: profilePicture}} style={styles.picture} />
           <TouchableOpacity
             style={styles.camera}
             onPress={() => showCameraGalleryAlert()}>
@@ -217,7 +181,6 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               value={phone_number}
               placeholder={'XXXXXXXXXXX'}
             />
-
             <LabelTextInput
               leftImageSoucre={require('../../../assets/locationIcon.png')}
               Label={true}
@@ -225,6 +188,13 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               defaultValue={oldLocation}
               LabelTextInput={'City'}
               onChangeText={text => setlocation(text)}
+            />
+            <MultiLineTextInput
+              Label={true}
+              placeholder={'Enter description here'}
+              defaultValue={description}
+              LabelTextInput={'Description'}
+              onChangeText={text => setDescription(text)}
             />
             <View
               style={{
@@ -234,7 +204,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 Title="Save Details"
                 onPress={() => submitRegister()}
-                // loading={tempLoading || validLoading}
+                loading={tempLoading}
               />
             </View>
           </View>
@@ -285,3 +255,45 @@ const styles = StyleSheet.create({
     marginBottom: heightToDp(2),
   },
 });
+// const handleEmailValid = async () => {
+//   console.log(email, location, firstName, lastName, gender);
+//   if (!email || !location || !phoneNumber || !firstName || !lastName) {
+//     Toast.show({
+//       type: 'warning',
+//       text1: 'Warning!',
+//       text2: 'Please fill all the fields before submitting.',
+//     });
+//   } else {
+//     return new Promise(() => {
+//       try {
+//         isEmailValid({
+//           variables: {email},
+//         }).then(response => {
+//           setEmailValid(response?.data?.isEmailValid?.emailTaken);
+
+//           if (response?.data?.isEmailValid?.emailTaken) {
+//             Toast.show({
+//               type: 'error',
+//               text1: 'This email is already taken!',
+//               text2: 'Please enter other email address',
+//             });
+//           } else {
+//             setEmailValid(false);
+//             submitRegister({
+//               firstName,
+//               lastName,
+//               email,
+//               phoneNumber,
+//               location,
+//               profilePicture,
+//               gender,
+//             });
+//             console.log('Email is Valid');
+//           }
+//         });
+//       } catch (error) {
+//         console.log(error);
+//       }
+//     });
+//   }
+// };

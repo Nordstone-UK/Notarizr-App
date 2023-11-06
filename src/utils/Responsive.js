@@ -26,6 +26,27 @@ export function formatDateTime(dateTimeString) {
   );
   return formattedDateTime;
 }
+export function splitStringBefore2ndWord(inputString) {
+  if (inputString) {
+    const words = inputString.split(' ');
+
+    // Check if there are at least 2 words
+    if (words.length >= 2) {
+      // Join the first two words with space
+      const firstPart = words.slice(0, 2).join(' ');
+
+      // Join the remaining words with space
+      const secondPart = words.slice(2).join(' ');
+
+      return [firstPart, secondPart];
+    } else {
+      // If there are fewer than 2 words, return the original string as the first part
+      return [inputString, ''];
+    }
+  } else {
+    return ['', '']; // Return empty strings if the inputString is empty
+  }
+}
 export const ITEM_WIDTH = width * 0.71;
 export const ITEM_HEIGHT = height * 0.2;
 export const SPACING = 16;

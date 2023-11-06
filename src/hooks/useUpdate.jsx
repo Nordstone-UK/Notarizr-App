@@ -12,7 +12,6 @@ const useUpdate = () => {
     console.log(request);
     try {
       const response = await update(request);
-      console.log('Updated Profile:', response);
       if (response?.data?.update?.status === '200') {
         return true;
       } else {

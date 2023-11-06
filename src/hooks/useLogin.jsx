@@ -24,6 +24,7 @@ const useLogin = () => {
     })
       .then(response => {
         console.log(response?.data);
+        console.log(response);
         if (response?.data?.verifyPhoneOTP?.status !== '200') {
           Toast.show({
             type: 'error',

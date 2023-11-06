@@ -40,6 +40,66 @@ export default function LegalDocScreen({route, navigation}) {
       name: 'Court Documents',
       price: 200,
     },
+    {
+      name: 'Power of Attorney',
+      price: 500,
+    },
+    {
+      name: 'Living Will',
+      price: 550,
+    },
+    {
+      name: 'Healthcare Directive',
+      price: 600,
+    },
+    {
+      name: 'HIPAA  Form',
+      price: 600,
+    },
+    {
+      name: 'Medical Consent Form',
+      price: 200,
+    },
+    {
+      name: 'Deeds',
+      price: 500,
+    },
+    {
+      name: 'Lease Agreements',
+      price: 550,
+    },
+    {
+      name: 'Property Easements',
+      price: 600,
+    },
+    {
+      name: 'Mortgage Documents',
+      price: 600,
+    },
+    {
+      name: 'Real Estate Contracts',
+      price: 200,
+    },
+    {
+      name: 'Articles of Incorporation',
+      price: 500,
+    },
+    {
+      name: 'Corporate Bylaws',
+      price: 550,
+    },
+    {
+      name: 'Operating Agreements',
+      price: 600,
+    },
+    {
+      name: 'Partnership Agreements',
+      price: 600,
+    },
+    {
+      name: 'Commercial Leases',
+      price: 200,
+    },
   ];
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +127,7 @@ export default function LegalDocScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
-        Title="Legal Document"
+        Title="All Documents"
         lastImg={require('../../../assets/bellIcon.png')}
         lastImgPress={() => navigation.navigate('NotificationScreen')}
         midImg={require('../../../assets/Search.png')}
@@ -91,10 +151,7 @@ export default function LegalDocScreen({route, navigation}) {
                   Title={item.name}
                   Price={item.price}
                   onPress={() => {
-                    navigation.navigate('MainBookingScreen', {
-                      name: 'Legal Documents',
-                      documentType: item,
-                    });
+                    navigation.navigate('LocalNotaryDateScreen');
                   }}
                   searchQuery={searchQuery}
                 />
@@ -105,10 +162,7 @@ export default function LegalDocScreen({route, navigation}) {
                   Title={item.name}
                   Price={item.price}
                   onPress={() => {
-                    navigation.navigate('MainBookingScreen', {
-                      name: 'Legal Documents',
-                      documentType: item,
-                    });
+                    navigation.navigate('LocalNotaryDateScreen');
                   }}
                 />
               ))}

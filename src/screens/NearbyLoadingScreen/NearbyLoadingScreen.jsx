@@ -6,11 +6,18 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import useGetService from '../../hooks/useGetService';
 
 export default function NearbyLoadingScreen({route, navigation}) {
-  const {documentType} = route.params;
+  // const {documentType} = route.params;
   const {RONfetchAPI} = useGetService();
 
   useEffect(() => {
-    RONfetchAPI(documentType);
+    // RONfetchAPI(documentType);
+    const delay = 3000;
+
+    const timer = setTimeout(() => {
+      navigation.navigate('AgentBookCompletion');
+    }, delay);
+
+    return () => clearTimeout(timer);
   }, []);
   return (
     <SafeAreaView style={styles.container}>
@@ -19,7 +26,7 @@ export default function NearbyLoadingScreen({route, navigation}) {
         source={require('../../../assets/Loading.png')}
         style={styles.loading}
       />
-      <Text style={styles.heading}>Wait for the available agents</Text>
+      <Text style={styles.heading}>Waiting for the available agents</Text>
       <Text style={styles.subhheading}>We will automatically match agents</Text>
     </SafeAreaView>
   );
