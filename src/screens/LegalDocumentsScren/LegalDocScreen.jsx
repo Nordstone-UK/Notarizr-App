@@ -6,7 +6,7 @@ import {
   SafeAreaView,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -17,8 +17,19 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
+import {
+  ReverseGeoCode,
+  callGeocodingAPI,
+  getLocation,
+  handleGetLocation,
+} from '../../utils/Geocode';
+import Geolocation from '@react-native-community/geolocation';
+// import Geocoder from 'react-native-geocoding';
+// Geocoder.init('AIzaSyD-37BrXPOukTIamUnrNDrbeZoUe0732Yk');
 
 export default function LegalDocScreen({route, navigation}) {
+  const [location, setLocation] = useState();
+  const [countryState, setCountryState] = useState();
   const documents = [
     {
       name: 'Affidavit',
@@ -101,7 +112,38 @@ export default function LegalDocScreen({route, navigation}) {
       price: 200,
     },
   ];
+  const handleGetLocation = async () => {
+    try {
+      const coordinates = await getLocation();
+      const response = await callGeocodingAPI(
+        coordinates.latitude,
+        coordinates.longitude,
+      );
+      setCountryState(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getLocation = () => {
+    return new Promise((resolve, reject) => {
+      Geolocation.getCurrentPosition(
+        position => {
+          const {latitude, longitude} = position.coords;
+          resolve({latitude, longitude});
+        },
+        error => {
+          reject(error);
+        },
+        Platform.OS === 'android'
+          ? {}
+          : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+      );
+    });
+  };
 
+  useEffect(() => {
+    handleGetLocation();
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isVisible, setIsVisible] = useState('');

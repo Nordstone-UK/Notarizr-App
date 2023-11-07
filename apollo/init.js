@@ -9,6 +9,8 @@ import {PermissionsAndroid, Platform} from 'react-native';
 import {setContext} from 'apollo-link-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+import {useDispatch} from 'react-redux';
+import {setLiveCoordinates} from '../src/features/user/userSlice';
 
 const DEV_LIVE = 'http://3.13.41.233:8080/api/v1/app';
 
@@ -34,10 +36,10 @@ const init = () => {
       reactNative: {textStreaming: true},
     },
   });
+
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
     const {latitude, longitude} = await getCurrentLocation();
-    // console.log('Coords: ', token);
     return {
       headers: {
         ...headers,

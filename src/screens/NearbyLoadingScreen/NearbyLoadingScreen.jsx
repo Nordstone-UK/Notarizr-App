@@ -1,18 +1,23 @@
 import {Image, StyleSheet, Text, SafeAreaView} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import useGetService from '../../hooks/useGetService';
+import LottieView from 'lottie-react-native';
 
 export default function NearbyLoadingScreen({route, navigation}) {
+  const animationRef = useRef(null);
+
   // const {documentType} = route.params;
   const {RONfetchAPI} = useGetService();
 
   useEffect(() => {
     // RONfetchAPI(documentType);
-    const delay = 3000;
+    const delay = 7000;
+    animationRef.current?.play();
 
+    animationRef.current?.play(30, 120);
     const timer = setTimeout(() => {
       navigation.navigate('AgentBookCompletion');
     }, delay);
@@ -22,9 +27,12 @@ export default function NearbyLoadingScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Loading" />
-      <Image
-        source={require('../../../assets/Loading.png')}
-        style={styles.loading}
+
+      <LottieView
+        source={require('../../../assets/loadingAnimation.json')}
+        autoPlay
+        loop
+        style={{width: widthToDp(100), height: heightToDp(100)}}
       />
       <Text style={styles.heading}>
         We are allocating our best agents to perform the job

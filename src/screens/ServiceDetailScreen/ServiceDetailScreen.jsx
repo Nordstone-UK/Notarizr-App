@@ -78,7 +78,7 @@ export default function ServiceDetailScreen({route, navigation}) {
           {serviceFor === 'self' ? (
             <View>
               <Text style={styles.insideHeading}>
-                Current Avaialable addresses:
+                Current Available addresses:
               </Text>
               <AddressCard location={'Building 5  Street 4 New York'} />
               <AddressCard location={'Flat 444  Block 9 New York'} />

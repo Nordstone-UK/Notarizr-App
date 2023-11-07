@@ -2,6 +2,7 @@ import {createSlice} from '@reduxjs/toolkit';
 
 const initialState = {
   user: null,
+  LiveCoordinates: null,
 };
 
 export const userSlice = createSlice({
@@ -12,9 +13,13 @@ export const userSlice = createSlice({
       state.user = action.payload;
       // console.log(state.user);
     },
+    setLiveCoordinates: (state, action) => {
+      state.LiveCoordinates = action.payload;
+      console.log('Redux coordinates', state.LiveCoordinates);
+    },
   },
 });
 
-export const {saveUserInfo} = userSlice.actions;
+export const {saveUserInfo, setLiveCoordinates} = userSlice.actions;
 
 export default userSlice.reducer;

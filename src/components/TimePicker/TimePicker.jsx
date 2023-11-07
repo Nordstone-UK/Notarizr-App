@@ -18,14 +18,17 @@ export default function TimePicker(props) {
   return (
     <View>
       <TouchableOpacity onPress={() => setOpen(true)}>
-        <Text
-          style={{
-            fontFamily: 'Manrope-Bold',
-            fontSize: widthToDp(4),
-            color: Colors.TextColor,
-          }}>
-          {props.Text}
-        </Text>
+        {props.Text && (
+          <Text
+            style={{
+              fontFamily: 'Manrope-Bold',
+              fontSize: widthToDp(4),
+              color: Colors.TextColor,
+              borderWidth: 1,
+            }}>
+            {props.Text}
+          </Text>
+        )}
         <Text
           style={{
             color: Colors.Orange,
@@ -54,5 +57,3 @@ export default function TimePicker(props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({});

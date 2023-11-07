@@ -23,6 +23,11 @@ export const FETCH_USER_INFO = gql`
         coordinates
       }
       description
+      state
+      addresses {
+        tag
+        location
+      }
     }
   }
 `;

@@ -13,10 +13,9 @@ const useStripeApi = () => {
   const handleStripeCreation = async () => {
     try {
       const response = await createStripeAccount();
-      console.log('response', response);
+      console.log('response', response.data);
       if (response?.data?.createStripeAccount?.status) {
         const response = await handleOnboardingLink();
-        // console.log('In API link', response);
         return response;
       }
     } catch (error) {

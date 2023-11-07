@@ -61,24 +61,17 @@ export default function MobileNotaryDateScreen({route, navigation}) {
       <Text style={styles.heading}>Please select Date and Time</Text>
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
-          <View style={{marginVertical: heightToDp(5)}}>
-            <Text style={styles.heading}>Date:</Text>
+          <View style={{marginVertical: heightToDp(2)}}>
+            <CustomCalendar
+              selected={selectedDate}
+              onDayPress={day => setSelectedDate(day)}
+            />
           </View>
-          <CustomCalendar
-            selected={selectedDate}
-            onDayPress={day => setSelectedDate(day)}
-          />
           <Text style={styles.headingContainer}>Time:</Text>
           <View style={styles.buttonFlex}>
             <TimePicker
               onConfirm={date => setStartTime(date)}
-              Text="Start Time"
               date={startTime}
-            />
-            <TimePicker
-              onConfirm={date => setEndTime(date)}
-              Text="End Time"
-              date={endTime}
             />
           </View>
           {/* <View style={styles.dateContainer}>
@@ -284,7 +277,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(6),
-    marginVertical: widthToDp(4),
+    // marginVertical: widthToDp(4),
   },
   insideText: {
     marginHorizontal: widthToDp(6),
@@ -339,9 +332,7 @@ const styles = StyleSheet.create({
   },
   buttonFlex: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-around',
-    // marginTop: heightToDp(2),
     marginBottom: heightToDp(2),
   },
   dottedContianer: {

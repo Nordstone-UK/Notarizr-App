@@ -111,16 +111,9 @@ export default function NewAddressScreen({navigation}, props) {
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/locationIcon.png')}
-            placeholder={'Enter your PIN code'}
-            LabelTextInput={'PIN Code'}
+            placeholder={'Enter your POST code'}
+            LabelTextInput={'POST Code'}
             onChangeText={text => setPin(text)}
-            Label={true}
-          />
-          <LabelTextInput
-            leftImageSoucre={require('../../../assets/locationIcon.png')}
-            placeholder={'Enter a landmark near your address'}
-            LabelTextInput={'Landmark'}
-            onChangeText={text => setLandmark(text)}
             Label={true}
           />
           <View

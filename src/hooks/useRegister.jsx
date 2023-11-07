@@ -87,7 +87,7 @@ const useRegister = () => {
         allowMultiSelection: false,
       });
       console.log('Document Picker: ', response);
-      return response.uri;
+      return response[0].uri;
     } catch (err) {
       console.warn(err);
     }

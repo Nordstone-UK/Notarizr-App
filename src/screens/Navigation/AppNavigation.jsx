@@ -156,7 +156,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="NearbyLoadingScreen"
+          initialRouteName="Splash_Screen"
           screenOptions={{
             headerShown: false,
           }}>

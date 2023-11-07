@@ -26,9 +26,7 @@ export default function LocalNotaryBookingScreen({navigation}) {
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Booking"
-        midImg={require('../../../assets/locationIcon.png')}
         lastImg={require('../../../assets/chatIcon.png')}
-        // ExtraNavigation={goBackToStart}
         payment={true}
       />
       <View style={styles.headingContainer}>
@@ -81,15 +79,13 @@ export default function LocalNotaryBookingScreen({navigation}) {
               Please provide us with your booking preferences
             </Text>
           </View>
-          {/* <View style={styles.buttonFlex}>
+          <View style={styles.buttonFlex}>
             <MainButton
-              Title="Cancel Booking"
+              Title="Track"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={
-                {
-                  // paddingHorizontal: widthToDp(2),
-                }
-              }
+              GradiStyles={{
+                width: widthToDp(40),
+              }}
               styles={{
                 paddingHorizontal: widthToDp(5),
                 paddingVertical: widthToDp(4),
@@ -97,13 +93,11 @@ export default function LocalNotaryBookingScreen({navigation}) {
               }}
             />
             <MainButton
-              Title="Reschedule Booking"
+              Title="Start Notary"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={
-                {
-                  // paddingHorizontal: widthToDp(2),
-                }
-              }
+              GradiStyles={{
+                width: widthToDp(40),
+              }}
               styles={{
                 paddingHorizontal: widthToDp(5),
                 paddingVertical: widthToDp(4),
@@ -111,7 +105,7 @@ export default function LocalNotaryBookingScreen({navigation}) {
                 fontSize: widthToDp(4),
               }}
             />
-          </View> */}
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -194,7 +188,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    marginTop: heightToDp(2),
+    marginTop: heightToDp(5),
     marginBottom: heightToDp(2),
   },
 });

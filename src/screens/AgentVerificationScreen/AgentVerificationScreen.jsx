@@ -23,7 +23,7 @@ import useRegister from '../../hooks/useRegister';
 import {useSelector} from 'react-redux';
 import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
-import NetInfo from '@react-native-community/netinfo';
+import {UniqueDirectiveNamesRule} from 'graphql';
 
 export default function AgentVerificationScreen({navigation}, props) {
   const variables = useSelector(state => state.register);
@@ -40,33 +40,48 @@ export default function AgentVerificationScreen({navigation}, props) {
   };
   const selectPhotoID = async () => {
     const response = await uploadFiles();
-    // console.log(response);
-    setphotoID(response);
+
+    if (response) {
+      console.log('Send: ', response);
+      setphotoID(response);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please try again ',
+      });
+      setphotoID(null);
+    }
   };
   const selectCertificate = async () => {
     const response = await uploadFiles();
-    setCertificate(response);
+    if (response) {
+      console.log('Send: ', response);
+      setCertificate(response);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please try again ',
+      });
+      setCertificate(null);
+    }
   };
   const submitRegister = async () => {
     setLoading(true);
     if (photoID && Certificate) {
-       const photeBlob = await uriToBlob(photoID);
-       console.log('====================================');
-       console.log("photoblob",photeBlob);
-       console.log('====================================');
+      const photeBlob = await uriToBlob(photoID);
+      console.log('====================================');
+      console.log('photoblob', photeBlob);
+      console.log('====================================');
       const CertificateBlob = await uriToBlob(Certificate);
 
       console.log('====================================');
-      console.log("CertificateBlob",CertificateBlob);
+      console.log('CertificateBlob', CertificateBlob);
       console.log('====================================');
 
-    
-
-      const photoURL = await uploadFilestoS3(photeBlob,variables.firstName);
+      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
       const CertificateURL = await uploadFilestoS3(
         CertificateBlob,
-        variables.firstName
-      
+        variables.firstName,
       );
 
       const params = {

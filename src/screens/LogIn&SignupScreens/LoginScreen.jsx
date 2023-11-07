@@ -89,9 +89,8 @@ export default function LoginScreen({navigation}, props) {
               placeholder={'Enter your email address'}
               LabelTextInput={'Email Address'}
               onChangeText={text => setEmail(text)}
-              // Label={true}
-              // labelStyle={emailValid && {color: Colors.Red}}
-              // AdjustWidth={emailValid && {borderColor: Colors.Red}}
+              keyboardType={'email-address'}
+              Label={true}
             />
             <View
               style={{
