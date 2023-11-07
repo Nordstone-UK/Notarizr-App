@@ -25,7 +25,7 @@ export default function AgentTimeCard(props) {
     'Dec',
   ];
   // if (props.dateofBooking === null && props.timeofBooking === null) {
-  console.log('Working');
+  // console.log('Working');
   date = moment(props.createdAt).format('D');
   month = moment(props.createdAt).format('MMM');
   time = moment(props.createdAt).format('h:mm A');

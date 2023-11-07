@@ -45,7 +45,6 @@ export default function HomeScreen({navigation}) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      console.log('Home screen sending...');
       init('pending');
     });
     return unsubscribe;
@@ -90,48 +89,6 @@ export default function HomeScreen({navigation}) {
               navigation.navigate('OnlineNotaryScreen', documentType)
             }
           />
-          {/* <View style={styles.CategoryPictures}>
-            <View style={styles.PictureBar}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('LegalDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.LongImage}>Legal Documents</Text>
-                <Image
-                  source={require('../../../assets/legalDocIcon.png')}
-                  style={styles.ImageLong}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('RealEstateDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.ShortImage}>Real Estate Documents</Text>
-                <Image
-                  source={require('../../../assets/estateDocIcon.png')}
-                  style={styles.ImageShort}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.PictureBar}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('MedicalDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.ShortImage}>Medical Documents</Text>
-                <Image
-                  source={require('../../../assets/medicalDocIcon.png')}
-                  style={styles.ImageShort}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('BusinessDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.LongImage}>Business Documents</Text>
-                <Image
-                  source={require('../../../assets/businessDocIcon.png')}
-                  style={styles.ImageLong}
-                />
-              </TouchableOpacity>
-            </View>
-          </View> */}
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
             <TouchableOpacity
@@ -246,3 +203,47 @@ const styles = StyleSheet.create({
     height: heightToDp(20),
   },
 });
+{
+  /* <View style={styles.CategoryPictures}>
+            <View style={styles.PictureBar}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('LegalDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.LongImage}>Legal Documents</Text>
+                <Image
+                  source={require('../../../assets/legalDocIcon.png')}
+                  style={styles.ImageLong}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('RealEstateDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.ShortImage}>Real Estate Documents</Text>
+                <Image
+                  source={require('../../../assets/estateDocIcon.png')}
+                  style={styles.ImageShort}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.PictureBar}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('MedicalDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.ShortImage}>Medical Documents</Text>
+                <Image
+                  source={require('../../../assets/medicalDocIcon.png')}
+                  style={styles.ImageShort}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('BusinessDocScreen')}
+                style={{position: 'relative'}}>
+                <Text style={styles.LongImage}>Business Documents</Text>
+                <Image
+                  source={require('../../../assets/businessDocIcon.png')}
+                  style={styles.ImageLong}
+                />
+              </TouchableOpacity>
+            </View>
+          </View> */
+}

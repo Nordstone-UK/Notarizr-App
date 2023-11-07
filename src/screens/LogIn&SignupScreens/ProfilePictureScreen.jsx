@@ -27,7 +27,6 @@ import SplashScreen from 'react-native-splash-screen';
 import {captureImage, chooseFile} from '../../utils/ImagePicker';
 
 import {profilePictureSet} from '../../features/register/registerSlice';
-import useRegister from '../../hooks/useRegister';
 import Toast from 'react-native-toast-message';
 
 export default function ProfilePictureScreen({navigation}) {
@@ -37,8 +36,6 @@ export default function ProfilePictureScreen({navigation}) {
   const [profilePicture, setProfilePicure] = useState('');
   const variables = useSelector(state => state.register);
   const dispatch = useDispatch();
-
-  const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
 
   const showCameraGalleryAlert = () => {
     Alert.alert(

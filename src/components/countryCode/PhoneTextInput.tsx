@@ -27,6 +27,7 @@ const PhoneTextInput = ({
   Label,
   labelStyle,
   placeholder,
+  defaultCode,
 }: any) => {
   const phoneInput = useRef<PhoneInput>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -49,7 +50,7 @@ const PhoneTextInput = ({
         ref={phoneInput}
         defaultValue={value}
         placeholder={placeholder}
-        defaultCode="US"
+        defaultCode={defaultCode || 'US'}
         layout="first"
         onChangeFormattedText={text => {
           onChange(text);

@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  useColorScheme,
+  Alert,
   TouchableOpacity,
   SafeAreaView,
   Switch,
@@ -24,6 +24,8 @@ import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
 import moment from 'moment';
 import useCreateBooking from '../../hooks/useCreateBooking';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {captureImage, chooseFile} from '../../utils/ImagePicker';
+import useRegister from '../../hooks/useRegister';
 
 export default function LocalNotaryDateScreen({route, navigation}) {
   // const {description, documentType} = route.params;
@@ -31,13 +33,15 @@ export default function LocalNotaryDateScreen({route, navigation}) {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [isEnabled, setIsEnabled] = useState(false);
+  const [documents, setDocuments] = useState();
+  const {uploadFiles, uploadMultipleFiles, uploadFilestoS3, handleRegister} =
+    useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const {
     setLocalBookingData,
     handleLocalNotaryBookingCreation,
     LocalBookingData,
   } = useCreateBooking();
-  // console.log(documentType);
   function generateTimeSlots(openTime, closeTime) {
     let startTime = moment(openTime, 'hh:mm A');
     let endTime = moment(closeTime, 'hh:mm A');
@@ -64,11 +68,16 @@ export default function LocalNotaryDateScreen({route, navigation}) {
     //   documentType: documentType,
     // });
   }, []);
+
   const handleLocalBooking = async () => {
     const data = await handleLocalNotaryBookingCreation(
       selectedDate,
       selectedTime,
     );
+  };
+  const selectDocuments = async () => {
+    const response = await uploadMultipleFiles();
+    setDocuments(response);
   };
   const TimeAvailable = generateTimeSlots('08:00 AM', '5:00 PM');
   return (
@@ -158,6 +167,47 @@ export default function LocalNotaryDateScreen({route, navigation}) {
               />
             </View>
           </View>
+
+          {isEnabled &&
+            (documents ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginHorizontal: widthToDp(5),
+                  marginVertical: widthToDp(2),
+                  flexWrap: 'wrap',
+                  columnGap: widthToDp(2),
+                  rowGap: widthToDp(2),
+                }}>
+                {documents.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={require('../../../assets/docPic.png')}
+                    style={{width: widthToDp(10), height: heightToDp(10)}}
+                  />
+                ))}
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.dottedContianer}
+                onPress={() => selectDocuments()}>
+                <Image source={require('../../../assets/upload.png')} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    columnGap: widthToDp(2),
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
+                    Upload
+                  </Text>
+                  <Image source={require('../../../assets/uploadIcon.png')} />
+                </View>
+                <Text>Upload your documents here...</Text>
+              </TouchableOpacity>
+            ))}
+
           <GradientButton
             Title="Book a Service"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -329,6 +379,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginTop: heightToDp(2),
     marginBottom: heightToDp(2),
+  },
+  dottedContianer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    borderColor: Colors.DisableColor,
+    borderRadius: 5,
+    marginTop: heightToDp(5),
+    paddingVertical: heightToDp(2),
+    width: widthToDp(80),
   },
 });
 

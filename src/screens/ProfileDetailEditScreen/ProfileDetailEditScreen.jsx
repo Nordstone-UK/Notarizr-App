@@ -29,6 +29,7 @@ import useUpdate from '../../hooks/useUpdate';
 import useRegister from '../../hooks/useRegister';
 import useFetchUser from '../../hooks/useFetchUser';
 import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
+import {removeCountryCode} from '../../utils/CountryCode';
 
 export default function ProfileDetailEditScreen({navigation}, props) {
   const {
@@ -54,9 +55,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const [profilePicture, setProfilePicure] = useState(profile_picture);
   const accountType = useSelector(state => state.register.accountType);
   const {fetchUserInfo} = useFetchUser();
-
-  // const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
-  const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
+  const {countryCode, phoneNumberWithoutCode} = removeCountryCode(phoneNumber);
+  const {handleCompression, uploadBlobToS3} = useRegister();
   const {handleProfileUpdate} = useUpdate();
   const showCameraGalleryAlert = () => {
     Alert.alert(
@@ -129,6 +129,9 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       settempLoading(false);
     }
   };
+  console.log('====================================');
+  console.log('Country: ', removeCountryCode(phoneNumber));
+  console.log('====================================');
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Profile Details" />
@@ -178,7 +181,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               }}
               LabelTextInput="Phone Number"
               Label={true}
-              value={phone_number}
+              defaultCode={countryCode}
+              value={phoneNumberWithoutCode}
               placeholder={'XXXXXXXXXXX'}
             />
             <LabelTextInput

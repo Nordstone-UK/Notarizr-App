@@ -54,7 +54,8 @@ export default function SignUpDetailScreen({navigation}, props) {
       !phoneNumber ||
       !firstName ||
       !lastName ||
-      !gender
+      !gender ||
+      !description
     ) {
       Toast.show({
         type: 'warning',
