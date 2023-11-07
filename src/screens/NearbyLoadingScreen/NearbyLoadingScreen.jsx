@@ -26,8 +26,9 @@ export default function NearbyLoadingScreen({route, navigation}) {
         source={require('../../../assets/Loading.png')}
         style={styles.loading}
       />
-      <Text style={styles.heading}>Waiting for the available agents</Text>
-      <Text style={styles.subhheading}>We will automatically match agents</Text>
+      <Text style={styles.heading}>
+        We are allocating our best agents to perform the job
+      </Text>
     </SafeAreaView>
   );
 }
@@ -43,10 +44,10 @@ const styles = StyleSheet.create({
   heading: {
     alignSelf: 'center',
     marginTop: heightToDp(5),
-    fontSize: widthToDp(7),
-    fontFamily: 'Manrop-Bold',
+    fontSize: widthToDp(6.5),
+    fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
-    width: widthToDp(80),
+    width: widthToDp(90),
     textAlign: 'center',
   },
   subhheading: {

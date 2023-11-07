@@ -92,6 +92,7 @@ import RONAgentReviewScreen from '../RONAgentReviewScreen/RONAgentReviewScreen';
 import MapScreen from '../MapScreen/MapScreen';
 import CompletePayment from '../CompletionScreen/CompletePayment';
 import ServiceDetailScreen from '../ServiceDetailScreen/ServiceDetailScreen';
+import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -155,7 +156,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash_Screen"
+          initialRouteName="NearbyLoadingScreen"
           screenOptions={{
             headerShown: false,
           }}>
@@ -226,6 +227,10 @@ export default function AppNavigation() {
           <Stack.Screen
             name="RegisterCompletionScreen"
             component={RegisterCompletionScreen}
+          />
+          <Stack.Screen
+            name="MobileNotaryDateScreen"
+            component={MobileNotaryDateScreen}
           />
           <Stack.Screen
             name="AgentVerfiedScreen"

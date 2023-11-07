@@ -143,6 +143,9 @@ export default function LegalDocScreen({route, navigation}) {
         <ScrollView
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
+          <Text style={styles.Heading}>
+            Please select the documents you want to get notarized.
+          </Text>
           {searchResults === null
             ? documents.map((item, index) => (
                 <LegalDocumentCard
@@ -151,7 +154,7 @@ export default function LegalDocScreen({route, navigation}) {
                   Title={item.name}
                   Price={item.price}
                   onPress={() => {
-                    navigation.navigate('LocalNotaryDateScreen');
+                    navigation.navigate('MobileNotaryDateScreen');
                   }}
                   searchQuery={searchQuery}
                 />
@@ -162,7 +165,7 @@ export default function LegalDocScreen({route, navigation}) {
                   Title={item.name}
                   Price={item.price}
                   onPress={() => {
-                    navigation.navigate('LocalNotaryDateScreen');
+                    navigation.navigate('MobileNotaryDateScreen');
                   }}
                 />
               ))}
@@ -179,5 +182,12 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     marginVertical: heightToDp(3),
+  },
+  Heading: {
+    fontSize: widthToDp(6),
+    fontWeight: '700',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(2),
   },
 });

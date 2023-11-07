@@ -141,15 +141,15 @@ export default function ServiceDetailScreen({route, navigation}) {
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}
                 Label={true}
-                placeholder={'Enter your city'}
-                LabelTextInput={'City'}
+                placeholder={'Enter your address'}
+                LabelTextInput={'Address'}
                 //   onChangeText={text => setlocation(text)}
               />
             </View>
           )}
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
-              Title="Select Documents"
+              Title="Proceed"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
                 paddingVertical: widthToDp(4),

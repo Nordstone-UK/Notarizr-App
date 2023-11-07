@@ -104,8 +104,8 @@ export default function NewAddressScreen({navigation}, props) {
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/locationIcon.png')}
-            placeholder={'Enter your city'}
-            LabelTextInput={'City'}
+            placeholder={'Enter your address'}
+            LabelTextInput={'Address'}
             onChangeText={text => setCity(text)}
             Label={true}
           />

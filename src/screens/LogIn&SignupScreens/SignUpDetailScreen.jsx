@@ -207,8 +207,8 @@ export default function SignUpDetailScreen({navigation}, props) {
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}
                 Label={true}
-                placeholder={'Enter your city'}
-                LabelTextInput={'City'}
+                placeholder={'Enter your address'}
+                LabelTextInput={'Address'}
                 onChangeText={text => setlocation(text)}
               />
               {variables !== 'client' && (

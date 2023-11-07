@@ -69,11 +69,7 @@ export default function HomeScreen({navigation}) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
-          <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>
-              Please choose the mode of service you wish to avail
-            </Text>
-          </View>
+          <View style={styles.CategoryBar}></View>
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"
@@ -186,7 +182,6 @@ const styles = StyleSheet.create({
   CategoryBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: heightToDp(3),
     marginHorizontal: widthToDp(4),
     alignItems: 'center',
   },

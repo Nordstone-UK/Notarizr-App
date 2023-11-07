@@ -188,9 +188,9 @@ export default function ProfileDetailEditScreen({navigation}, props) {
             <LabelTextInput
               leftImageSoucre={require('../../../assets/locationIcon.png')}
               Label={true}
-              placeholder={'Enter your city'}
+              placeholder={'Enter your address'}
               defaultValue={oldLocation}
-              LabelTextInput={'City'}
+              LabelTextInput={'Address'}
               onChangeText={text => setlocation(text)}
             />
             <MultiLineTextInput
