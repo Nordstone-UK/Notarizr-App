@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-export const GET_CATEGORIES = gql`
+export const GET_DOCUMENT_TYPES= gql`
   query GetPaginatedDocumentTypes(
     $page: Int!
     $limit: Int!

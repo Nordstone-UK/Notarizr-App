@@ -64,6 +64,7 @@
 // // // Search by geo-location (reverse geo-code)
 import Geocode from 'react-geocode';
 import axios from 'axios';
+import Geolocation from '@react-native-community/geolocation';
 const apiKey = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
 
 export async function callGeocodingAPI(lat, long) {
@@ -72,13 +73,37 @@ export async function callGeocodingAPI(lat, long) {
   try {
     const response = await axios.get(apiUrl);
 
-    console.log(
-      'Response address_components: ',
-      response.data.results[0].address_components[4].long_name,
-    );
-    console.log('====================================');
     return response.data.results[0].address_components[4].long_name;
   } catch (error) {
     throw new Error('Error calling geocoding API: ' + error);
   }
 }
+export const handleGetLocation = async () => {
+  try {
+    const coordinates = await getLocation();
+    const response = await callGeocodingAPI(
+      coordinates.latitude,
+      coordinates.longitude,
+    );
+    return response;
+    // setCountryState(response);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const getLocation = () => {
+  return new Promise((resolve, reject) => {
+    Geolocation.getCurrentPosition(
+      position => {
+        const {latitude, longitude} = position.coords;
+        resolve({latitude, longitude});
+      },
+      error => {
+        reject(error);
+      },
+      Platform.OS === 'android'
+        ? {}
+        : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+    );
+  });
+};

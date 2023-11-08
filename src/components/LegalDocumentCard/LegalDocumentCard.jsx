@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     padding: widthToDp(10),
   },
   textstyle: {
-    fontSize: widthToDp(4.5),
+    fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),

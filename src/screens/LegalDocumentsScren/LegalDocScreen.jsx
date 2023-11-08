@@ -2,9 +2,11 @@ import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
+  // ScrollView,
   SafeAreaView,
   View,
+  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -18,154 +20,71 @@ import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentC
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 import {
-  ReverseGeoCode,
   callGeocodingAPI,
   getLocation,
   handleGetLocation,
 } from '../../utils/Geocode';
 import Geolocation from '@react-native-community/geolocation';
-// import Geocoder from 'react-native-geocoding';
-// Geocoder.init('AIzaSyD-37BrXPOukTIamUnrNDrbeZoUe0732Yk');
+import useFetchUser from '../../hooks/useFetchUser';
+import {ScrollView} from 'react-native-virtualized-view';
 
 export default function LegalDocScreen({route, navigation}) {
-  const [location, setLocation] = useState();
-  const [countryState, setCountryState] = useState();
-  const documents = [
-    {
-      name: 'Affidavit',
-      price: 500,
-    },
-    {
-      name: 'Last Will and Testament',
-      price: 550,
-    },
-    {
-      name: 'Power of Attorney',
-      price: 600,
-    },
-    {
-      name: 'Sworn Statements',
-      price: 600,
-    },
-    {
-      name: 'Court Documents',
-      price: 200,
-    },
-    {
-      name: 'Power of Attorney',
-      price: 500,
-    },
-    {
-      name: 'Living Will',
-      price: 550,
-    },
-    {
-      name: 'Healthcare Directive',
-      price: 600,
-    },
-    {
-      name: 'HIPAA  Form',
-      price: 600,
-    },
-    {
-      name: 'Medical Consent Form',
-      price: 200,
-    },
-    {
-      name: 'Deeds',
-      price: 500,
-    },
-    {
-      name: 'Lease Agreements',
-      price: 550,
-    },
-    {
-      name: 'Property Easements',
-      price: 600,
-    },
-    {
-      name: 'Mortgage Documents',
-      price: 600,
-    },
-    {
-      name: 'Real Estate Contracts',
-      price: 200,
-    },
-    {
-      name: 'Articles of Incorporation',
-      price: 500,
-    },
-    {
-      name: 'Corporate Bylaws',
-      price: 550,
-    },
-    {
-      name: 'Operating Agreements',
-      price: 600,
-    },
-    {
-      name: 'Partnership Agreements',
-      price: 600,
-    },
-    {
-      name: 'Commercial Leases',
-      price: 200,
-    },
-  ];
-  const handleGetLocation = async () => {
-    try {
-      const coordinates = await getLocation();
-      const response = await callGeocodingAPI(
-        coordinates.latitude,
-        coordinates.longitude,
-      );
-      setCountryState(response);
-    } catch (error) {
-      console.log(error);
+  // const [location, setLocation] = useState();
+  // const [countryState, setCountryState] = useState();
+  const [documentArray, setDocumentArray] = useState();
+  const [Limit, setLimit] = useState(10);
+
+  const [page, setPage] = useState(1);
+  const {fetchDocumentTypes} = useFetchUser();
+  const [totalDocs, setTotalDocs] = useState();
+  const [prevPage, setPrevPage] = useState();
+  const DOCUMENTS_PER_LOAD = 5;
+
+  const getState = async query => {
+    const reponse = await handleGetLocation();
+    const data = await fetchDocumentTypes(page, Limit, reponse, query);
+
+    setTotalDocs(data?.totalDocs);
+    setDocumentArray(data?.documentTypes);
+
+    console.log('====================================');
+    console.log('API called', Limit, data?.totalDocs);
+    console.log('====================================');
+    if (Limit < data?.totalDocs) {
+      setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
   };
-  const getLocation = () => {
-    return new Promise((resolve, reject) => {
-      Geolocation.getCurrentPosition(
-        position => {
-          const {latitude, longitude} = position.coords;
-          resolve({latitude, longitude});
-        },
-        error => {
-          reject(error);
-        },
-        Platform.OS === 'android'
-          ? {}
-          : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
-      );
-    });
-  };
-
   useEffect(() => {
-    handleGetLocation();
+    getState();
   }, []);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState(null);
+  const [searchResults, setSearchResults] = useState();
   const [isVisible, setIsVisible] = useState('');
   const handleSearchInput = query => {
-    setSearchQuery(query);
-    performSearch(query);
+    setSearchResults(query);
+    setDocumentArray();
+    getState(query);
   };
+  const handleScroll = (event, query) => {
+    const {layoutMeasurement, contentOffset, contentSize} = event.nativeEvent;
+    const isAtBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height;
 
-  const performSearch = query => {
-    const formattedQuery = query.toLowerCase();
-    if (formattedQuery === '') {
-      setSearchResults(null);
-    } else {
-      const filteredResults = documents.filter(document => {
-        const documentTitle = document.Title
-          ? document.Title.toLowerCase()
-          : '';
-        return documentTitle.includes(formattedQuery);
-      });
-      setSearchResults(filteredResults);
+    if (isAtBottom && Limit < totalDocs) {
+      console.log('Running at bottom');
+      getState(searchResults);
     }
   };
+  const renderItem = ({item, index}) => (
+    <LegalDocumentCard
+      source={require('../../../assets/legalDoc.png')}
+      key={index}
+      Title={item.name}
+      Price={item.price}
+      onPress={() => {
+        navigation.navigate('MobileNotaryDateScreen');
+      }}
+    />
+  );
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -178,7 +97,6 @@ export default function LegalDocScreen({route, navigation}) {
         onChangeText={e => {
           handleSearchInput(e);
         }}
-        searchQuery={searchQuery}
       />
 
       <BottomSheetStyle>
@@ -188,29 +106,40 @@ export default function LegalDocScreen({route, navigation}) {
           <Text style={styles.Heading}>
             Please select the documents you want to get notarized.
           </Text>
-          {searchResults === null
-            ? documents.map((item, index) => (
-                <LegalDocumentCard
-                  source={require('../../../assets/legalDoc.png')}
-                  key={index}
-                  Title={item.name}
-                  Price={item.price}
-                  onPress={() => {
-                    navigation.navigate('MobileNotaryDateScreen');
-                  }}
-                  searchQuery={searchQuery}
+          {documentArray ? (
+            documentArray.length !== 0 ? (
+              <FlatList
+                data={documentArray}
+                renderItem={renderItem}
+                keyExtractor={item => item._id}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+              />
+            ) : (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  height: heightToDp(100),
+                  justifyContent: 'center',
+                }}>
+                <Image
+                  source={require('../../../assets/emptyBox.png')}
+                  style={styles.picture}
                 />
-              ))
-            : searchResults.map((item, index) => (
-                <LegalDocumentCard
-                  key={index}
-                  Title={item.name}
-                  Price={item.price}
-                  onPress={() => {
-                    navigation.navigate('MobileNotaryDateScreen');
-                  }}
-                />
-              ))}
+                <Text style={styles.subheading}>No Documents Found...</Text>
+              </View>
+            )
+          ) : (
+            <View
+              style={{
+                // borderWidth: 1,
+                height: heightToDp(100),
+                justifyContent: 'center',
+              }}>
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            </View>
+          )}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -231,5 +160,15 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     marginHorizontal: widthToDp(5),
     marginVertical: widthToDp(2),
+  },
+  subheading: {
+    fontSize: widthToDp(4),
+    fontWeight: '700',
+    color: Colors.TextColor,
+    alignSelf: 'center',
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
   },
 });
