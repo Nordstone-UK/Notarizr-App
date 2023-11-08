@@ -5,6 +5,7 @@ import {
   ScrollView,
   SafeAreaView,
   View,
+  FlatList,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -20,20 +21,79 @@ import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import AddressCard from '../../components/AddressCard/AddressCard';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import {useDispatch, useSelector} from 'react-redux';
+import useFetchUser from '../../hooks/useFetchUser';
+import {setBookingInfoState} from '../../features/booking/bookingSlice';
 
 export default function ServiceDetailScreen({route, navigation}) {
+  const {serviceType} = route.params;
+  const {fetchUserInfo} = useFetchUser();
+  const dispatch = useDispatch();
+  const {addresses} = useSelector(state => state.user.user);
   const [serviceFor, setServiceFor] = useState('self');
-  const handleServiceForChange = string => {
-    setServiceFor(string);
+  const [selectAddress, setSelectedAddress] = useState();
+  const [firstName, setfirstName] = useState('');
+  const [lastName, setlastName] = useState('');
+  const [phoneNumber, setNumber] = useState('');
+  const [location, setlocation] = useState('');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUserInfo();
+    });
+    return unsubscribe;
+  }, [navigation]);
+  const changeServiceFor = string => {
+    if (string === 'self') {
+      setfirstName(null);
+      setlastName(null);
+      setNumber(null);
+      setlocation(null);
+      setEmail(null);
+      setServiceFor(string);
+    } else {
+      setSelectedAddress(null);
+      setServiceFor(string);
+    }
+  };
+  const submitAddressDetails = async () => {
+    setLoading(true);
+
+    dispatch(
+      setBookingInfoState({
+        serviceType: serviceType,
+        service: null,
+        agent: null,
+        documentType: {
+          name: null,
+          price: null,
+        },
+        timeOfBooking: null,
+        dateOfBooking: null,
+        address: selectAddress,
+        bookedFor: {
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          location: location,
+          phone_number: phoneNumber,
+        },
+        bookingType: serviceFor,
+        documents: null,
+        preferenceAnalysis: 'distance',
+      }),
+    );
+    setLoading(false);
+    navigation.navigate('LegalDocScreen');
   };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}></View>
       <BottomSheetStyle>
-        <ScrollView
-          scrollEnabled={true}
-          contentContainerStyle={styles.contentContainer}>
+        <ScrollView scrollEnabled={true} removeClippedSubviews={false}>
           <Text style={styles.insideHeading}>
             To whom are you booking this service for:
           </Text>
@@ -54,12 +114,12 @@ export default function ServiceDetailScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => setServiceFor('self')}
+              onPress={() => changeServiceFor('self')}
             />
             <MainButton
-              Title="Others"
+              Title="Other"
               colors={
-                serviceFor === 'others'
+                serviceFor === 'other'
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                   : [Colors.DisableColor, Colors.DisableColor]
               }
@@ -71,7 +131,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => setServiceFor('others')}
+              onPress={() => changeServiceFor('other')}
             />
           </View>
 
@@ -80,8 +140,15 @@ export default function ServiceDetailScreen({route, navigation}) {
               <Text style={styles.insideHeading}>
                 Current Available addresses:
               </Text>
-              <AddressCard location={'Building 5  Street 4 New York'} />
-              <AddressCard location={'Flat 444  Block 9 New York'} />
+              {addresses.map((item, index) => (
+                <AddressCard
+                  key={index}
+                  location={item.location}
+                  onPress={() => setSelectedAddress(item.location)}
+                  Show={selectAddress === item.location}
+                />
+              ))}
+
               <GradientButton
                 Title="Add a new Address"
                 colors={
@@ -96,7 +163,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                   padding: widthToDp(0),
                   fontSize: widthToDp(5),
                 }}
-                onPress={() => navigation.navigate('NewAddressScreen')}
+                onPress={() => navigation.navigate('AddNewAddress')}
               />
             </View>
           ) : (
@@ -109,31 +176,27 @@ export default function ServiceDetailScreen({route, navigation}) {
                 leftImageSoucre={require('../../../assets/NameIcon.png')}
                 placeholder={'Enter your first name'}
                 Label={true}
-                //   defaultValue={firstName}
                 LabelTextInput={'First Name'}
-                //   onChangeText={text => setfirstName(text)}
+                onChangeText={text => setfirstName(text)}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/NameIcon.png')}
                 placeholder={'Enter your last name'}
-                //   defaultValue={lastName}
                 Label={true}
                 LabelTextInput={'Last Name'}
-                //   onChangeText={text => setlastName(text)}
+                onChangeText={text => setlastName(text)}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/emailIcon.png')}
                 placeholder={'Enter your email address'}
                 LabelTextInput={'Email Address'}
-                //   onChangeText={text => setEmail(text)}
+                onChangeText={text => setEmail(text)}
                 Label={true}
-                //   labelStyle={emailValid && {color: Colors.Red}}
-                //   AdjustWidth={emailValid && {borderColor: Colors.Red}}
               />
               <PhoneTextInput
-                //   onChange={e => {
-                //     setNumber(e);
-                //   }}
+                onChange={e => {
+                  setNumber(e);
+                }}
                 LabelTextInput="Phone Number"
                 Label={true}
                 placeholder={'XXXXXXXXXXX'}
@@ -143,7 +206,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                 Label={true}
                 placeholder={'Enter your address'}
                 LabelTextInput={'Address'}
-                //   onChangeText={text => setlocation(text)}
+                onChangeText={text => setlocation(text)}
               />
             </View>
           )}
@@ -158,7 +221,8 @@ export default function ServiceDetailScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => navigation.navigate('LegalDocScreen')}
+              onPress={() => submitAddressDetails()}
+              loading={loading}
             />
           </View>
         </ScrollView>
@@ -197,6 +261,20 @@ const styles = StyleSheet.create({
   },
 });
 {
+  // const renderItem = ({item}) => (
+  //   <AddressCard
+  //     location={item.location}
+  //     onPress={() => setSelectedAddress(item.location)}
+  //     Show={selectAddress === item.location}
+  //   />
+  {
+    /* <FlatList
+                data={addresses}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()}
+              /> */
+  }
+  // );
   /* <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"

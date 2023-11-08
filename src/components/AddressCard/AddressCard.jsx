@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React, {useEffect} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../themes/Colors';
@@ -21,15 +21,18 @@ export default function AddressCard(props) {
     );
   };
   return (
-    <View style={styles.flexContainer}>
+    <TouchableOpacity style={styles.flexContainer} onPress={props.onPress}>
       <Image source={require('../../../assets/addressPic.png')} />
       <View style={styles.textContainer}>
-        {OrangeGradient('Home')}
+        {/* {OrangeGradient('Home')} */}
         <Text style={styles.text}>
           {splitStringBefore2ndWord(props.location)}
         </Text>
       </View>
-    </View>
+      {props.Show && (
+        <Image source={require('../../../assets/checkIcon.png')} />
+      )}
+    </TouchableOpacity>
   );
 }
 
@@ -42,6 +45,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Colors.white,
     elevation: 10,
+    position: 'relative',
   },
   placestyle: {
     color: Colors.white,
@@ -61,6 +65,7 @@ const styles = StyleSheet.create({
   text: {
     width: widthToDp(55),
     fontSize: widthToDp(4),
+    fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(2),
     marginTop: widthToDp(2),

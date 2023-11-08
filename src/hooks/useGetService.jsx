@@ -42,7 +42,7 @@ const useGetService = () => {
         serviceType: 'ron',
       },
     };
-    console.log('documentData', documentData);
+    // console.log('documentData', documentData);
     await matchAgent(request)
       .then(response => {
         // console.log('In hook', response.data);
@@ -56,7 +56,20 @@ const useGetService = () => {
         console.log(error);
       });
   };
-  return {fetchGetServiceAPI, RONfetchAPI};
+  const FetchMobileNotary = async () => {
+    const request = {
+      variables: {
+        serviceType: 'mobile_notary',
+      },
+    };
+    try {
+      const response = await matchAgent(request);
+      return response?.data?.matchAgent;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  return {fetchGetServiceAPI, RONfetchAPI, FetchMobileNotary};
 };
 
 export default useGetService;

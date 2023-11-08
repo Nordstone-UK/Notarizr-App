@@ -37,7 +37,31 @@ const uploadDirectOnS3 = async ({
     throw err;
   }
 };
+const uploadDocumentsOnS3 = async ({
+  file,
+  title,
+  type,
+}: UploadFileOptions): Promise<any> => {
+  const s3bucket = new S3({
+    accessKeyId: accessKeyId,
+    secretAccessKey: secretAccessKey,
+    signatureVersion: signatureVersion,
+  });
 
+  const keyName = `${type}/${title}/${file}`;
+  const params = {
+    Bucket: MUNROE_BUCKET_NAME,
+    Key: keyName,
+    Body: file,
+  };
+
+  try {
+    const {Location} = await s3bucket.upload(params).promise();
+    return Location;
+  } catch (err) {
+    throw err;
+  }
+};
 const uploadImageOnS3 = async ({
   file,
   title,
@@ -97,6 +121,6 @@ const uploadImageOnS3 = async ({
   }
 };
 
-export {uploadImageOnS3, uploadDirectOnS3};
+export {uploadImageOnS3, uploadDirectOnS3, uploadDocumentsOnS3};
 
 export default uploadImageOnS3;

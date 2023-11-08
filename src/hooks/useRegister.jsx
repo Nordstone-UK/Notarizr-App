@@ -1,7 +1,7 @@
 import {useMutation} from '@apollo/client';
 import {REGISTER_USER} from '../../request/mutations/register.mutation';
 import {compressImage} from '../utils/ImageResizer';
-import {uploadDirectOnS3} from '../utils/s3Helper';
+import {uploadDirectOnS3, uploadDocumentsOnS3} from '../utils/s3Helper';
 import DocumentPicker from 'react-native-document-picker';
 import React, {useCallback} from 'react';
 import useLogin from './useLogin';
@@ -49,7 +49,18 @@ const useRegister = () => {
     console.log('uploadBlobToS3', url);
     return url;
   };
+  const uploadDocmmentToS3 = async fileUri => {
+    const title = 'Booking';
+    const type = 'Documents';
 
+    const url = await uploadDocumentsOnS3({
+      file: fileUri,
+      title: title,
+      type: type,
+    });
+    // console.log('uploadDocmmentToS3', url);
+    return url;
+  };
   const handleRegister = async variables => {
     try {
       const request = {
@@ -98,7 +109,9 @@ const useRegister = () => {
       const results = await DocumentPicker.pick({
         allowMultiSelection: true,
       });
-      const documentUris = results.map(result => result.uri);
+      const documentUris = results.map(result => {
+        return result.uri;
+      });
 
       console.log('Document Picker:', documentUris);
       return documentUris;
@@ -106,6 +119,26 @@ const useRegister = () => {
       console.warn(err);
     }
   }, []);
+
+  const uploadAllDocuments = async documentURIs => {
+    try {
+      const uploadedFiles = await Promise.all(
+        documentURIs.map(async fileUri => {
+          const uploadedLink = await uploadDocmmentToS3(fileUri);
+          return uploadedLink;
+        }),
+      );
+      const uploadedFilesObject = {};
+      uploadedFiles.forEach((link, index) => {
+        uploadedFilesObject[`file${index + 1}`] = link;
+      });
+      // console.log('Uploaded Files Object:', uploadedFilesObject);
+      return uploadedFilesObject;
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      // Handle upload error
+    }
+  };
   return {
     handleCompression,
     uploadBlobToS3,
@@ -113,6 +146,8 @@ const useRegister = () => {
     uploadFiles,
     uploadFilestoS3,
     uploadMultipleFiles,
+    uploadDocmmentToS3,
+    uploadAllDocuments,
   };
 };
 

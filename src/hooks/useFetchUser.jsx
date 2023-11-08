@@ -1,13 +1,15 @@
-import {useLazyQuery} from '@apollo/client';
+import {useLazyQuery, useMutation} from '@apollo/client';
 import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import {useDispatch} from 'react-redux';
 import {saveUserInfo} from '../features/user/userSlice';
 import {GET_CATEGORIES} from '../../request/queries/getCategories.query';
 import {GET_DOCUMENT_TYPES} from '../../request/queries/getPaginatedDocumentTypes.query';
+import {UPDATE_USER_ADDRESS} from '../../request/mutations/updateUserAddress.mutation';
 
 const useFetchUser = () => {
   const [user] = useLazyQuery(FETCH_USER_INFO);
   const [getDocuments] = useLazyQuery(GET_DOCUMENT_TYPES);
+  const [updateAddress] = useMutation(UPDATE_USER_ADDRESS);
   const dispatch = useDispatch();
   let info;
 
@@ -34,7 +36,21 @@ const useFetchUser = () => {
     });
     return info;
   };
-  return {fetchUserInfo, fetchDocumentTypes};
+
+  const hadleUpdateAddress = async params => {
+    const request = {
+      variables: {
+        ...params,
+      },
+    };
+    try {
+      const response = await updateAddress(request);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  return {fetchUserInfo, fetchDocumentTypes, hadleUpdateAddress};
 };
 
 export default useFetchUser;

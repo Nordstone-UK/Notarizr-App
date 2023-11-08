@@ -22,7 +22,7 @@ export default function LegalDocumentCard(props) {
           ]}>
           {props.Title}
         </Text>
-        <Text style={styles.pricestyles}>${props.Price || `350`}</Text>
+        <Text style={styles.pricestyles}>${props.Price}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: widthToDp(70),
+    paddingHorizontal: widthToDp(2),
   },
   cardPic: {
     width: widthToDp(20),
@@ -53,10 +54,14 @@ const styles = StyleSheet.create({
     padding: widthToDp(10),
   },
   textstyle: {
+    flexDirection: 'row',
+    width: widthToDp(50),
     fontSize: widthToDp(4),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),
+    // borderWidth: 1,
+    flexWrap: 'wrap',
   },
   pricestyles: {
     fontSize: widthToDp(4),

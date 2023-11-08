@@ -27,19 +27,38 @@ import {
 import Geolocation from '@react-native-community/geolocation';
 import useFetchUser from '../../hooks/useFetchUser';
 import {ScrollView} from 'react-native-virtualized-view';
+import {useDispatch, useSelector} from 'react-redux';
+import {setBookingInfoState} from '../../features/booking/bookingSlice';
 
 export default function LegalDocScreen({route, navigation}) {
   // const [location, setLocation] = useState();
   // const [countryState, setCountryState] = useState();
+  const dispatch = useDispatch();
+  const bookingData = useSelector(state => state.booking.booking);
   const [documentArray, setDocumentArray] = useState();
   const [Limit, setLimit] = useState(10);
-
   const [page, setPage] = useState(1);
   const {fetchDocumentTypes} = useFetchUser();
   const [totalDocs, setTotalDocs] = useState();
   const [prevPage, setPrevPage] = useState();
+  const [loading, setLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState();
+  const [isVisible, setIsVisible] = useState('');
   const DOCUMENTS_PER_LOAD = 5;
-
+  const submitAddressDetails = async (Name, Price) => {
+    setLoading(true);
+    dispatch(
+      setBookingInfoState({
+        ...bookingData,
+        documentType: {
+          name: Name,
+          price: Price,
+        },
+      }),
+    );
+    setLoading(false);
+    navigation.navigate('MobileNotaryDateScreen');
+  };
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
@@ -47,9 +66,9 @@ export default function LegalDocScreen({route, navigation}) {
     setTotalDocs(data?.totalDocs);
     setDocumentArray(data?.documentTypes);
 
-    console.log('====================================');
-    console.log('API called', Limit, data?.totalDocs);
-    console.log('====================================');
+    // console.log('====================================');
+    // console.log('API called', Limit, data?.totalDocs);
+    // console.log('====================================');
     if (Limit < data?.totalDocs) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
@@ -57,8 +76,6 @@ export default function LegalDocScreen({route, navigation}) {
   useEffect(() => {
     getState();
   }, []);
-  const [searchResults, setSearchResults] = useState();
-  const [isVisible, setIsVisible] = useState('');
   const handleSearchInput = query => {
     setSearchResults(query);
     setDocumentArray();
@@ -79,10 +96,8 @@ export default function LegalDocScreen({route, navigation}) {
       source={require('../../../assets/legalDoc.png')}
       key={index}
       Title={item.name}
-      Price={item.price}
-      onPress={() => {
-        navigation.navigate('MobileNotaryDateScreen');
-      }}
+      Price={item.statePrices[0].price}
+      onPress={() => submitAddressDetails(item.name, item.statePrices[0].price)}
     />
   );
   return (

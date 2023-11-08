@@ -15,30 +15,44 @@ import Colors from '../../themes/Colors';
 
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
-import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
-import AgentCard from '../../components/AgentCard/AgentCard';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
-import LinearGradient from 'react-native-linear-gradient';
+
 import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
 import moment from 'moment';
-import useCreateBooking from '../../hooks/useCreateBooking';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
-import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import useRegister from '../../hooks/useRegister';
 import TimePicker from '../../components/TimePicker/TimePicker';
+import {useDispatch, useSelector} from 'react-redux';
+import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import {convertToJsonObject} from '../../utils/ImagePicker';
 
 export default function MobileNotaryDateScreen({route, navigation}) {
+  const dispatch = useDispatch();
+  const bookingData = useSelector(state => state.booking.booking);
   const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
   const [isEnabled, setIsEnabled] = useState(false);
   const [documents, setDocuments] = useState();
   const [startTime, setStartTime] = useState(new Date());
-  const [endTime, setEndTime] = useState(new Date());
-  const {uploadFiles, uploadMultipleFiles, uploadFilestoS3, handleRegister} =
+  const [loading, setLoading] = useState(false);
+  const {uploadFiles, uploadMultipleFiles, uploadAllDocuments, handleRegister} =
     useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-
+  const submitAddressDetails = async () => {
+    setLoading(true);
+    const urlResponse = await uploadAllDocuments(documents);
+    console.log('====================================');
+    console.log(startTime, selectedDate, urlResponse);
+    console.log('====================================');
+    dispatch(
+      setBookingInfoState({
+        ...bookingData,
+        timeOfBooking: startTime,
+        dateOfBooking: selectedDate,
+        documents: urlResponse,
+      }),
+    );
+    setLoading(false);
+    navigation.navigate('NearbyLoadingScreen');
+  };
   useEffect(() => {
     // setLocalBookingData({
     //   ...LocalBookingData,
@@ -70,7 +84,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
           <Text style={styles.headingContainer}>Time:</Text>
           <View style={styles.buttonFlex}>
             <TimePicker
-              onConfirm={date => setStartTime(date)}
+              onConfirm={date => setStartTime(moment(date).format('h:mm A'))}
               date={startTime}
             />
           </View>
@@ -174,7 +188,8 @@ export default function MobileNotaryDateScreen({route, navigation}) {
             styles={{
               fontSize: widthToDp(5),
             }}
-            onPress={() => navigation.navigate('NearbyLoadingScreen')}
+            onPress={() => submitAddressDetails()}
+            loading={loading}
           />
         </ScrollView>
       </BottomSheetStyle>

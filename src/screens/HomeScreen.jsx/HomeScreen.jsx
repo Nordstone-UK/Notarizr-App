@@ -74,7 +74,11 @@ export default function HomeScreen({navigation}) {
             backgroundColor={{backgroundColor: Colors.Pink}}
             Title="Mobile Notary"
             Image={require('../../../assets/service1Pic.png')}
-            onPress={() => navigation.navigate('ServiceDetailScreen')}
+            onPress={() =>
+              navigation.navigate('ServiceDetailScreen', {
+                serviceType: 'mobile_notary',
+              })
+            }
             // isDisabled={isDisabled}
           />
           <TypesofServiceButton

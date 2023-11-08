@@ -21,6 +21,7 @@ export const GET_MATCHED_AGENT = gql`
         isVerified
         account_type
         online_status
+        state
         distance
         current_location {
           type
@@ -43,6 +44,10 @@ export const GET_MATCHED_AGENT = gql`
               image
               createdAt
               updatedAt
+              statePrices {
+                state
+                price
+              }
             }
             createdAt
             updatedAt

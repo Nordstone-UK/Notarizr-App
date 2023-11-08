@@ -4,6 +4,7 @@ import {useMutation} from '@apollo/client';
 import {CREATE_BOOKING} from '../../request/mutations/createBooking.mutation';
 import {useNavigation} from '@react-navigation/native';
 import {CREATE_LOCAL_NOTARY_BOOKING} from '../../request/mutations/createLocalNotaryBooking.mutation';
+import {useSelector} from 'react-redux';
 
 const useCreateBooking = () => {
   const navigation = useNavigation();
@@ -27,27 +28,26 @@ const useCreateBooking = () => {
     dateOfBooking: null,
     timeOfBooking: null,
   });
+  const FinalBookingData = useSelector(state => state.booking.booking);
+
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [createLocalBooking] = useMutation(CREATE_LOCAL_NOTARY_BOOKING);
-  const handleBookingCreation = async () => {
-    // console.log(BookingData);
+  const handleBookingCreation = async (User, Service) => {
+    console.log(BookingData);
     const request = {
       variables: {
-        ...BookingData,
+        ...FinalBookingData,
+        service: Service,
+        agent: User,
       },
     };
-    // console.log('prev', request);
-    await createBooking(request)
-      .then(response => {
-        // console.log('response', response);
-        // console.log('Booking', response.data.createBookingR.status);
-        if (response.data.createBookingR.status === '201') {
-          navigation.navigate('AgentBookCompletion');
-        }
-      })
-      .catch(error => {
-        console.warn(error);
-      });
+    console.log('prev', request);
+    try {
+      const response = await createBooking(request);
+      return response.data.createBookingR.status;
+    } catch (error) {
+      console.warn(error);
+    }
   };
 
   const handleLocalNotaryBookingCreation = async (data, time) => {

@@ -93,6 +93,7 @@ import MapScreen from '../MapScreen/MapScreen';
 import CompletePayment from '../CompletionScreen/CompletePayment';
 import ServiceDetailScreen from '../ServiceDetailScreen/ServiceDetailScreen';
 import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen';
+import AddNewAddress from '../NewAddressScreen/AddNewAddress';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -193,6 +194,7 @@ export default function AppNavigation() {
             name="PhoneVerification"
             component={PhoneVerification}
           />
+          <Stack.Screen name="AddNewAddress" component={AddNewAddress} />
           <Stack.Screen
             name="ProfilePictureScreen"
             component={ProfilePictureScreen}

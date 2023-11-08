@@ -155,3 +155,10 @@ export const uriToBlob = uri => {
     xhr.send(null);
   });
 };
+export const convertToJsonObject = inputArray => {
+  const jsonArray = inputArray.map((url, index) => {
+    return {[`document${index + 1}`]: url};
+  });
+
+  return JSON.stringify(jsonArray, null, 2);
+};

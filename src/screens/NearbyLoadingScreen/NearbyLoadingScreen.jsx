@@ -5,24 +5,34 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import useGetService from '../../hooks/useGetService';
 import LottieView from 'lottie-react-native';
+import {useDispatch, useSelector} from 'react-redux';
+import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import useCreateBooking from '../../hooks/useCreateBooking';
 
 export default function NearbyLoadingScreen({route, navigation}) {
-  const animationRef = useRef(null);
-
-  // const {documentType} = route.params;
-  const {RONfetchAPI} = useGetService();
-
+  const {FetchMobileNotary} = useGetService();
+  const {handleBookingCreation} = useCreateBooking();
+  const handleAgentSearch = async () => {
+    try {
+      const response = await FetchMobileNotary();
+      const {user} = response;
+      const {service} = user;
+      if (response?.status === '200') {
+        try {
+          const response = await handleBookingCreation(user._id, service._id);
+          if (response === '201') {
+            navigation.navigate('AgentBookCompletion');
+          }
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+    } catch (error) {
+      console.error('Error Somwhere', error);
+    }
+  };
   useEffect(() => {
-    // RONfetchAPI(documentType);
-    const delay = 7000;
-    animationRef.current?.play();
-
-    animationRef.current?.play(30, 120);
-    const timer = setTimeout(() => {
-      navigation.navigate('AgentBookCompletion');
-    }, delay);
-
-    return () => clearTimeout(timer);
+    handleAgentSearch();
   }, []);
   return (
     <SafeAreaView style={styles.container}>
