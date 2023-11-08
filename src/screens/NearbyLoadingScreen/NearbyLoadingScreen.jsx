@@ -5,8 +5,6 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import useGetService from '../../hooks/useGetService';
 import LottieView from 'lottie-react-native';
-import {useDispatch, useSelector} from 'react-redux';
-import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import useCreateBooking from '../../hooks/useCreateBooking';
 
 export default function NearbyLoadingScreen({route, navigation}) {
@@ -22,10 +20,22 @@ export default function NearbyLoadingScreen({route, navigation}) {
           const response = await handleBookingCreation(user._id, service._id);
           if (response === '201') {
             navigation.navigate('AgentBookCompletion');
+          } else {
+            Toast.show({
+              type: 'error',
+              text1: 'Please try again',
+            });
+            navigation.navigate('HomeScreen');
           }
         } catch (error) {
           console.warn(error);
         }
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Please try again',
+        });
+        navigation.goBack();
       }
     } catch (error) {
       console.error('Error Somwhere', error);
