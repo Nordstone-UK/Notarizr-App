@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Image,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useDebugValue, useEffect, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
@@ -16,11 +16,14 @@ import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import {ScrollView} from 'react-native-virtualized-view';
+import {useDispatch} from 'react-redux';
+import {setBookingInfoState} from '../../../features/booking/bookingSlice';
 
 export default function AgentCompletedBooking({navigation}) {
   const {fetchAgentBookingInfo} = useFetchBooking();
   const [Booking, setBooking] = useState();
   const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
 
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
@@ -41,13 +44,15 @@ export default function AgentCompletedBooking({navigation}) {
       setRefreshing(false);
     }, 1000);
   }, []);
+  const checkStatusNavigation = item => {
+    // console.log('item?.status', item._id, item?.status);
+
+    dispatch(setBookingInfoState(item));
+    navigation.navigate('ClientDetailsScreen');
+  };
   return (
     <SafeAreaView style={styles.container}>
-      <AgentHomeHeader
-        Title="Booking Details"
-        SearchEnabled={true}
-        Switch={true}
-      />
+      <AgentHomeHeader Title="Booking Details" Switch={true} />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
@@ -78,11 +83,7 @@ export default function AgentCompletedBooking({navigation}) {
                         agentAddress={item.booked_by.location}
                         task={item?.status}
                         OrangeText="At Home"
-                        onPress={() =>
-                          navigation.navigate('ClientDetailsScreen', {
-                            clientDetail: item,
-                          })
-                        }
+                        onPress={() => checkStatusNavigation(item)}
                         dateofBooking={item.date_of_booking}
                         timeofBooking={item.time_of_booking}
                         createdAt={item.createdAt}

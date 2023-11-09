@@ -4,6 +4,7 @@ const initialState = {
   booking: [],
   coordinates: [],
   user: [],
+  // bookingID: null,
 };
 
 export const bookingSlice = createSlice({
@@ -12,7 +13,7 @@ export const bookingSlice = createSlice({
   reducers: {
     setBookingInfoState: (state, action) => {
       state.booking = action.payload;
-      console.log('Booking Info Set in Redux', state.booking);
+      // console.log('Booking Info Set in Redux', state.booking);
     },
     setCoordinates: (state, action) => {
       state.coordinates = action.payload;
@@ -22,6 +23,10 @@ export const bookingSlice = createSlice({
       state.user = action.payload;
       // console.log('user Info Set in Redux', state.user);
     },
+    // setBookingID: (state, action) => {
+    //   state.bookingID = action.payload;
+    //   console.log('user Info Set in Redux', state.bookingID);
+    // },
   },
 });
 

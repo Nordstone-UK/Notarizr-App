@@ -40,6 +40,7 @@ const init = () => {
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
     const {latitude, longitude} = await getCurrentLocation();
+    // console.log(token);
     return {
       headers: {
         ...headers,

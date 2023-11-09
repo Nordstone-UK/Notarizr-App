@@ -104,8 +104,8 @@ export default function LegalDocScreen({route, navigation}) {
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="All Documents"
-        lastImg={require('../../../assets/bellIcon.png')}
-        lastImgPress={() => navigation.navigate('NotificationScreen')}
+        // lastImg={require('../../../assets/bellIcon.png')}
+        // lastImgPress={() => navigation.navigate('NotificationScreen')}
         midImg={require('../../../assets/Search.png')}
         midImgPress={() => setIsVisible(!isVisible)}
         isVisible={isVisible}

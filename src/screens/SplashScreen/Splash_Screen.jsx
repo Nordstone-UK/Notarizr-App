@@ -18,7 +18,7 @@ import Geolocation from '@react-native-community/geolocation';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
-  const {fetchBookingInfo} = useFetchBooking();
+  // const {fetchBookingInfo} = useFetchBooking();
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('token');

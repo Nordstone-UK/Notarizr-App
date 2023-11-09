@@ -29,18 +29,20 @@ import {useFocusEffect} from '@react-navigation/native';
 import {paymentCheck} from '../../features/review/reviewSlice';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
+import moment from 'moment';
 
 export default function MedicalBookingScreen({route, navigation}) {
-  const {handlegetBookingStatus} = useBookingStatus();
+  const {handlegetBookingStatus, handleUpdateBookingStatus} =
+    useBookingStatus();
   const payment = useSelector(state => state.payment.payment);
   const dispatch = useDispatch();
-  const item = route?.params?.item;
   const bookingDetail = useSelector(state => state.booking.booking);
-  console.log('payment', payment);
+  const {documents} = bookingDetail;
 
   const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [status, setStatus] = useState();
+  const [loading, setLoading] = useState(false);
   function capitalizeFirstLetter(str) {
     if (typeof str !== 'string' || str.length === 0) {
       return str;
@@ -48,6 +50,16 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+  const handleStatusChange = async () => {
+    setLoading(true);
+    try {
+      await handleUpdateBookingStatus('ongoing', bookingDetail?._id);
+      await getBookingStatus();
+    } catch (error) {
+      console.error('Error updating and fetching booking status:', error);
+    }
+    setLoading(false);
+  };
   const getBookingStatus = async () => {
     try {
       const status = await handlegetBookingStatus(bookingDetail?._id);
@@ -63,6 +75,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   );
   useEffect(() => {
     getBookingStatus();
+    console.log('====================================');
+    console.log(bookingDetail);
+    console.log('====================================');
   }, [status]);
   const handleReduxPayment = () => {
     setIsVisible(false);
@@ -79,10 +94,16 @@ export default function MedicalBookingScreen({route, navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Booking" />
+      <NavigationHeader
+        Title="Booking"
+        payment={true}
+        reset={true}
+        lastImg={require('../../../assets/chatIcon.png')}
+        lastImgPress={() => navigation.navigate('ChatScreen')}
+      />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>Medical documents</Text>
+        <Text style={styles.Heading}>{bookingDetail.document_type.name}</Text>
       </View>
       <BottomSheetStyle>
         <ScrollView
@@ -131,6 +152,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'flex-start',
+                  alignItems: 'center',
                   marginHorizontal: widthToDp(5),
                   marginVertical: widthToDp(2),
                 }}>
@@ -142,7 +164,8 @@ export default function MedicalBookingScreen({route, navigation}) {
                     borderRadius: widthToDp(5),
                   }}
                 />
-                <Text style={[styles.insideHeading, {fontSize: widthToDp(4)}]}>
+                <Text
+                  style={[styles.insideHeading, {fontSize: widthToDp(4.5)}]}>
                   {bookingDetail?.agent?.first_name +
                     ' ' +
                     bookingDetail?.agent?.last_name}
@@ -151,6 +174,23 @@ export default function MedicalBookingScreen({route, navigation}) {
             ))}
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
+            <View style={styles.addressView}>
+              <Text
+                style={{
+                  fontSize: widthToDp(4),
+                  marginLeft: widthToDp(1),
+                  fontFamily: 'Manrope-Bold',
+                  color: Colors.TextColor,
+                }}>
+                Service Type:
+              </Text>
+              {bookingDetail?.service_type === 'mobile_notary' && (
+                <Text style={styles.detail}>Mobile Notary</Text>
+              )}
+              {bookingDetail?.service_type === 'ron' && (
+                <Text style={styles.detail}>Remote Online Notary</Text>
+              )}
+            </View>
             <View style={styles.addressView}>
               <Image
                 source={require('../../../assets/locationIcon.png')}
@@ -166,30 +206,38 @@ export default function MedicalBookingScreen({route, navigation}) {
                 style={styles.locationImage}
               />
               <Text style={styles.detail}>
-                {formatDateTime(bookingDetail?.createdAt)}
+                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}
+                {'  '}
+                {bookingDetail?.time_of_booking}
               </Text>
+            </View>
+            <Text style={styles.insideHeading}>Uploaded Documents</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                marginHorizontal: widthToDp(7),
+                marginVertical: widthToDp(2),
+                flexWrap: 'wrap',
+                columnGap: widthToDp(2),
+                rowGap: widthToDp(2),
+              }}>
+              {Object.keys(documents).length !== 0 ? (
+                Object.keys(documents).map((key, index) => (
+                  <Image
+                    key={index}
+                    source={require('../../../assets/docPic.png')}
+                    style={{width: widthToDp(10), height: heightToDp(10)}}
+                  />
+                ))
+              ) : (
+                <Text style={styles.preference}>No Documents</Text>
+              )}
             </View>
           </View>
           {status === 'Pending' ? null : (
             <View style={styles.buttonFlex}>
-              {status !== 'Completed' ? (
+              {status === 'Accepted' && (
                 <>
-                  <MainButton
-                    Title="Chat"
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    GradiStyles={{
-                      width: widthToDp(40),
-                      paddingVertical: widthToDp(2),
-                    }}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(5),
-                    }}
-                    onPress={() => navigation.navigate('ChatScreen')}
-                  />
                   <MainButton
                     Title="Track"
                     colors={[
@@ -206,8 +254,26 @@ export default function MedicalBookingScreen({route, navigation}) {
                     }}
                     onPress={() => navigation.navigate('MapArrivalScreen')}
                   />
+                  <MainButton
+                    Title="Start Notary"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      width: widthToDp(40),
+                      paddingVertical: widthToDp(2),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(5),
+                    }}
+                    onPress={() => handleStatusChange()}
+                    loading={loading}
+                  />
                 </>
-              ) : (
+              )}
+              {status === 'Completed' && (
                 <GradientButton
                   Title="Make Payment"
                   colors={[
@@ -247,7 +313,7 @@ const styles = StyleSheet.create({
   lightHeading: {
     color: Colors.TextColor,
     fontSize: widthToDp(5),
-    fontWeight: '500',
+    fontFamily: 'Manrope-Bold',
   },
   Heading: {
     color: Colors.TextColor,
@@ -255,7 +321,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
   },
   headingContainer: {
-    marginLeft: widthToDp(4),
+    marginLeft: widthToDp(6),
     marginBottom: heightToDp(2),
   },
   insideHeading: {
@@ -263,7 +329,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
-    marginHorizontal: widthToDp(5),
+    marginHorizontal: widthToDp(6),
   },
   insideContainer: {
     flex: 1,
@@ -279,9 +345,9 @@ const styles = StyleSheet.create({
   },
   insideText: {
     marginHorizontal: widthToDp(3),
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(4.5),
     color: Colors.TextColor,
-    fontFamily: 'Manrope-Regular',
+    fontFamily: 'Manrope-Bold',
   },
   greenIcon: {
     width: widthToDp(5),
@@ -293,9 +359,9 @@ const styles = StyleSheet.create({
   },
 
   preference: {
-    marginLeft: widthToDp(4),
-    marginVertical: widthToDp(1),
-    fontSize: widthToDp(4),
+    marginLeft: widthToDp(2),
+    fontSize: widthToDp(4.5),
+    color: Colors.TextColor,
     color: Colors.DullTextColor,
   },
   detail: {
@@ -313,7 +379,7 @@ const styles = StyleSheet.create({
   addressView: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: widthToDp(4),
+    marginLeft: widthToDp(6),
   },
   buttonFlex: {
     flexDirection: 'row',

@@ -24,6 +24,7 @@ import TimePicker from '../../components/TimePicker/TimePicker';
 import {useDispatch, useSelector} from 'react-redux';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import {convertToJsonObject} from '../../utils/ImagePicker';
+import Toast from 'react-native-toast-message';
 
 export default function MobileNotaryDateScreen({route, navigation}) {
   const dispatch = useDispatch();
@@ -33,25 +34,34 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   const [documents, setDocuments] = useState();
   const [startTime, setStartTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  let urlResponse;
   const {uploadFiles, uploadMultipleFiles, uploadAllDocuments, handleRegister} =
     useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const submitAddressDetails = async () => {
     setLoading(true);
-    const urlResponse = await uploadAllDocuments(documents);
-    console.log('====================================');
-    console.log(startTime, selectedDate, urlResponse);
-    console.log('====================================');
-    dispatch(
-      setBookingInfoState({
-        ...bookingData,
-        timeOfBooking: startTime,
-        dateOfBooking: selectedDate,
-        documents: urlResponse,
-      }),
-    );
+    if (startTime && selectedDate) {
+      if (documents) {
+        urlResponse = await uploadAllDocuments(documents);
+      }
+
+      dispatch(
+        setBookingInfoState({
+          ...bookingData,
+          timeOfBooking: moment(startTime).format('h:mm A'),
+          dateOfBooking: selectedDate,
+          documents: urlResponse,
+        }),
+      );
+      setLoading(false);
+      navigation.navigate('NearbyLoadingScreen');
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select date and time',
+      });
+    }
     setLoading(false);
-    navigation.navigate('NearbyLoadingScreen');
   };
   useEffect(() => {
     // setLocalBookingData({
@@ -84,38 +94,11 @@ export default function MobileNotaryDateScreen({route, navigation}) {
           <Text style={styles.headingContainer}>Time:</Text>
           <View style={styles.buttonFlex}>
             <TimePicker
-              onConfirm={date => setStartTime(moment(date).format('h:mm A'))}
+              onConfirm={date => setStartTime(date)}
               date={startTime}
             />
           </View>
-          {/* <View style={styles.dateContainer}>
-            {TimeAvailable.map((slot, index) => (
-              <TouchableOpacity
-                key={index}
-                // style={styles.slot}
-                onPress={() => setSelectedTime(slot.start + ' - ' + slot.end)}>
-                <LinearGradient
-                  style={styles.slot}
-                  colors={
-                    selectedTime === slot.start + ' - ' + slot.end
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.white, Colors.white]
-                  }
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}>
-                  <Text
-                    style={[
-                      styles.timeText,
-                      selectedTime === slot.start + ' - ' + slot.end && {
-                        color: Colors.white,
-                      },
-                    ]}>
-                    {slot.start} - {slot.end}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
-          </View> */}
+
           <View
             style={{
               flexDirection: 'row',
@@ -150,13 +133,14 @@ export default function MobileNotaryDateScreen({route, navigation}) {
                   columnGap: widthToDp(2),
                   rowGap: widthToDp(2),
                 }}>
-                {documents.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={require('../../../assets/docPic.png')}
-                    style={{width: widthToDp(10), height: heightToDp(10)}}
-                  />
-                ))}
+                {documents &&
+                  documents.map((image, index) => (
+                    <Image
+                      key={index}
+                      source={require('../../../assets/docPic.png')}
+                      style={{width: widthToDp(10), height: heightToDp(10)}}
+                    />
+                  ))}
               </View>
             ) : (
               <TouchableOpacity
@@ -364,6 +348,36 @@ const styles = StyleSheet.create({
 });
 
 {
+  {
+    /* <View style={styles.dateContainer}>
+            {TimeAvailable.map((slot, index) => (
+              <TouchableOpacity
+                key={index}
+                // style={styles.slot}
+                onPress={() => setSelectedTime(slot.start + ' - ' + slot.end)}>
+                <LinearGradient
+                  style={styles.slot}
+                  colors={
+                    selectedTime === slot.start + ' - ' + slot.end
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.white, Colors.white]
+                  }
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 0}}>
+                  <Text
+                    style={[
+                      styles.timeText,
+                      selectedTime === slot.start + ' - ' + slot.end && {
+                        color: Colors.white,
+                      },
+                    ]}>
+                    {slot.start} - {slot.end}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View> */
+  }
   /* <View
   style={{
     backgroundColor: Colors.white,

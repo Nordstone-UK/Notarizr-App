@@ -24,16 +24,16 @@ export default function ClientTimeCard(props) {
     'Nov',
     'Dec',
   ];
-  if (props.dateofBooking === null && props.timeofBooking === null) {
-    date = moment(props.createdAt).format('D');
-    month = moment(props.createdAt).format('MMM');
-    time = moment(props.createdAt).format('h:mm A');
-  } else {
-    const dateObject = new Date(props.dateofBooking);
-    month = monthNamesShort[dateObject.getMonth()];
-    date = dateObject.getDate();
-    time = props.timeofBooking.split(' - ')[0];
-  }
+  // if (props.dateofBooking === null && props.timeofBooking === null) {
+  date = moment(props.createdAt).format('D');
+  month = moment(props.createdAt).format('MMM');
+  time = moment(props.createdAt).format('h:mm A');
+  // } else {
+  //   const dateObject = new Date(props.dateofBooking);
+  //   month = monthNamesShort[dateObject.getMonth()];
+  //   date = dateObject.getDate();
+  //   time = props.timeofBooking.split(' - ')[0];
+  // }
   function capitalizeFirstLetter(str) {
     if (typeof str !== 'string' || str.length === 0) {
       return str;

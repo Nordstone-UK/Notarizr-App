@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Switch, Text, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
@@ -7,8 +14,10 @@ import {useSelector} from 'react-redux';
 import {useMutation} from '@apollo/client';
 import {UPDATE_ONLINE_STATUS} from '../../../request/mutations/updateOnlineStatus.mutation';
 import Toast from 'react-native-toast-message';
+import {useNavigation} from '@react-navigation/native';
 
 export default function AgentHomeHeader(props) {
+  const navigation = useNavigation();
   const [isEnabled, setIsEnabled] = useState();
   const [updateOnlineStatusR] = useMutation(UPDATE_ONLINE_STATUS);
   const {profile_picture, first_name, last_name} = useSelector(
@@ -69,10 +78,13 @@ export default function AgentHomeHeader(props) {
               }}
             />
           )}
-          <Image
-            source={require('../../../assets/bellIcon.png')}
-            style={styles.backIcon}
-          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('NotificationScreen')}>
+            <Image
+              source={require('../../../assets/bellIcon.png')}
+              style={styles.backIcon}
+            />
+          </TouchableOpacity>
         </View>
       </View>
       {props?.Title && <Text style={[styles.heading]}>{props.Title}</Text>}

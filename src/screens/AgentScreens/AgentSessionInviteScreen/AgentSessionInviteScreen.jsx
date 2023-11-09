@@ -262,7 +262,6 @@ export default function AgentSessionInviteScreen({navigation}) {
     try {
       const response = await DocumentPicker.pick({
         presentationStyle: 'fullScreen',
-        type: [types.pdf],
         allowMultiSelection: true,
       });
       setFileResponse(response);

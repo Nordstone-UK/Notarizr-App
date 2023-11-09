@@ -33,7 +33,6 @@ export default function AgentCard(props) {
   const address = props?.agentAddress;
   const name = props?.agentName;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
-  // const [NameFirstPart, NameSecondPart] = separateStringAfterFirstWord(name);
 
   function splitStringBefore2ndWord(inputString) {
     if (inputString) {
@@ -92,9 +91,6 @@ export default function AgentCard(props) {
             <View>
               <Text style={styles.nameHeading}>{name}</Text>
             </View>
-            {/* <TouchableOpacity>
-              <Image source={require('../../../assets/option.png')} />
-            </TouchableOpacity> */}
           </View>
           <View
             style={{
@@ -135,7 +131,7 @@ export default function AgentCard(props) {
                 props.leftSideStyles,
 
                 {
-                  // fontFamily: 'Poppins-Bold',
+                  fontFamily: 'Poppins-Bold',
                   fontSize: widthToDp(4.5),
                 },
               ]}>
@@ -146,11 +142,11 @@ export default function AgentCard(props) {
                 styles.paymentStyle,
                 props.rightSideStyles,
                 {
-                  // fontFamily: 'Poppins-Bold',
+                  fontFamily: 'Poppins-Bold',
                   fontSize: widthToDp(4.5),
                 },
               ]}>
-              {props.bottomRightText}
+              ${props.bottomRightText}
             </Text>
           </View>
         </View>

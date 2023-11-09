@@ -45,8 +45,7 @@ const useGetService = () => {
     // console.log('documentData', documentData);
     await matchAgent(request)
       .then(response => {
-        // console.log('In hook', response.data);
-        console.log(response?.data?.matchAgent);
+        console.log('In hook', response?.data?.matchAgent);
         navigation.navigate('RONAgentReviewScreen', {
           agents: response?.data?.matchAgent,
           documentType: documentData,
@@ -64,6 +63,7 @@ const useGetService = () => {
     };
     try {
       const response = await matchAgent(request);
+      console.log('In hook', response?.data?.matchAgent);
       return response?.data?.matchAgent;
     } catch (error) {
       console.log(error);

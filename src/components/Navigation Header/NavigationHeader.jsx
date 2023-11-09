@@ -15,18 +15,34 @@ export default function NavigationHeader(props) {
       ]}>
       <View style={styles.container}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <TouchableOpacity
-            onPress={() =>
-              props?.payment
-                ? navigation.navigate('HomeScreen')
-                : navigation.goBack()
-            }
-            style={styles.touchContainer}>
-            <Image
-              source={require('../../../assets/backIcon.png')}
-              style={styles.backIcon}
-            />
-          </TouchableOpacity>
+          {props.reset ? (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'HomeScreen'}],
+                })
+              }
+              style={styles.touchContainer}>
+              <Image
+                source={require('../../../assets/backIcon.png')}
+                style={styles.backIcon}
+              />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() =>
+                props?.payment
+                  ? navigation.navigate('HomeScreen')
+                  : navigation.goBack()
+              }
+              style={styles.touchContainer}>
+              <Image
+                source={require('../../../assets/backIcon.png')}
+                style={styles.backIcon}
+              />
+            </TouchableOpacity>
+          )}
           {props.ProfilePic && (
             <Image source={props.ProfilePic} style={styles.profilePic} />
           )}

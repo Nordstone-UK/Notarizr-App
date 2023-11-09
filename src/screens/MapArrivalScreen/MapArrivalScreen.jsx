@@ -33,7 +33,7 @@ export default function MapArrivalScreen({navigation}, props) {
       console.log(error);
     }
   };
-  console.log('clientData', clientData);
+  // console.log('clientData', clientData);
   useEffect(() => {
     handleGetLocation();
   }, []);
@@ -110,7 +110,7 @@ export default function MapArrivalScreen({navigation}, props) {
             Title="Arrived"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             loading={loading}
-            onPress={() => navigation.navigate('AgentMobileNotaryStartScreen')}
+            onPress={() => navigation.navigate('ClientDetailsScreen')}
           />
         </View>
       )}

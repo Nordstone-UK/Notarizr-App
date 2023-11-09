@@ -36,6 +36,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
 
   const {uploadMultipleFiles} = useRegister();
   const booking = useSelector(state => state.booking.booking);
+  const {documents: docArray} = booking;
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState();
   const {booked_by} = booking;
@@ -56,14 +57,16 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
       const status = await handlegetBookingStatus(booking._id);
       setNotary(capitalizeFirstLetter(status));
       setStatus(capitalizeFirstLetter(status));
-      console.log('status', booking._id, status);
+      // console.log('status', booking._id, status);
     } catch (error) {
       console.error('Error retrieving booking status:', error);
     }
   };
   useEffect(() => {
     getBookingStatus();
-    // console.log('adwwadaawd', notary, status);
+    // console.log('====================================');
+    // console.log('status', booking);
+    // console.log('====================================');
   }, [status]);
 
   const handleStatusChange = async string => {
@@ -93,6 +96,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
+      getBookingStatus();
       setRefreshing(false);
       console.log('Refreshing.....');
     }, 2000);
@@ -123,6 +127,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
             <View
               style={[
                 styles.iconContainer,
+
                 status !== 'Completed'
                   ? {width: widthToDp(30)}
                   : {width: widthToDp(35)},
@@ -180,7 +185,28 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 />
               ))}
           </View>
-
+          <Text style={styles.insideHeading}>Uploaded Documents</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              marginHorizontal: widthToDp(5),
+              marginVertical: widthToDp(2),
+              flexWrap: 'wrap',
+              columnGap: widthToDp(2),
+              rowGap: widthToDp(2),
+            }}>
+            {Object.keys(docArray).length !== 0 ? (
+              Object.keys(docArray).map((key, index) => (
+                <Image
+                  key={index}
+                  source={require('../../../../assets/docPic.png')}
+                  style={{width: widthToDp(10), height: heightToDp(10)}}
+                />
+              ))
+            ) : (
+              <Text style={styles.preference}>No Documents</Text>
+            )}
+          </View>
           {showNotes && (
             <LabelTextInput
               LabelTextInput="Notes"
@@ -190,7 +216,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
           )}
 
           <View style={styles.buttonBottom}>
-            {notary === 'Accepted' && (
+            {/* {notary === 'Accepted' && (
               <GradientButton
                 Title="Start Notary"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -198,7 +224,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
                 loading={loading}
                 GradiStyles={{marginTop: widthToDp(5)}}
               />
-            )}
+            )} */}
             {notary === 'Ongoing' && (
               <GradientButton
                 Title="Complete Notary"
@@ -282,6 +308,7 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
+    marginHorizontal: widthToDp(5),
   },
   insideContainer: {
     flex: 1,
@@ -289,7 +316,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: heightToDp(2),
-    marginHorizontal: widthToDp(5),
   },
   flexContainer: {
     flex: 1,
@@ -303,6 +329,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: widthToDp(3),
   },
   insideText: {
     marginHorizontal: widthToDp(3),

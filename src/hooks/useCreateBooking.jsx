@@ -44,7 +44,7 @@ const useCreateBooking = () => {
     console.log('prev', request);
     try {
       const response = await createBooking(request);
-      return response.data.createBookingR.status;
+      return response.data.createBookingR;
     } catch (error) {
       console.warn(error);
     }

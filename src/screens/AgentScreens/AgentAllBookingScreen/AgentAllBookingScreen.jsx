@@ -60,16 +60,14 @@ export default function AgentAllBookingScreen({navigation}) {
     }, 1000);
   }, []);
   const checkStatusNavigation = (status, item) => {
-    console.log('item?.status', item._id, item?.status);
+    // console.log('item?.status', item._id, item?.status);
     if (status === 'accepted') {
       dispatch(setBookingInfoState(item));
       dispatch(setUser(item?.booked_by));
       dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
       navigation.navigate('MapArrivalScreen');
-    } else if (status === 'ongoing') {
-      navigation.navigate('AgentMobileNotaryStartScreen');
-      dispatch(setBookingInfoState(item));
     } else {
+      dispatch(setBookingInfoState(item));
       navigation.navigate('ClientDetailsScreen', {
         clientDetail: item,
       });

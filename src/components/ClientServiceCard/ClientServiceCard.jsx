@@ -19,7 +19,6 @@ import ClientTimeCard from '../ClientTimeCard/ClientTimeCard';
 export default function ClientServiceCard(props) {
   const navigation = useNavigation();
   const address = props?.agentAddress;
-  // const Work = props?.Work || false;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   const Button = props?.Button || false;
   const OrangeGradient = string => {
@@ -54,9 +53,6 @@ export default function ClientServiceCard(props) {
       return ['', '']; // Return empty strings if the inputString is empty
     }
   }
-  const capitalizeFirstLetter = string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
 
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>

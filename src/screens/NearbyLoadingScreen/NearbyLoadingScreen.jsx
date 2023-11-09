@@ -6,9 +6,12 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import useGetService from '../../hooks/useGetService';
 import LottieView from 'lottie-react-native';
 import useCreateBooking from '../../hooks/useCreateBooking';
+import Toast from 'react-native-toast-message';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
 export default function NearbyLoadingScreen({route, navigation}) {
   const {FetchMobileNotary} = useGetService();
+  const {fetchBookingByID} = useFetchBooking();
   const {handleBookingCreation} = useCreateBooking();
   const handleAgentSearch = async () => {
     try {
@@ -18,8 +21,21 @@ export default function NearbyLoadingScreen({route, navigation}) {
       if (response?.status === '200') {
         try {
           const response = await handleBookingCreation(user._id, service._id);
-          if (response === '201') {
-            navigation.navigate('AgentBookCompletion');
+          const {booking} = response;
+          // console.log('====================================');
+          // console.log(booking._id, response.status);
+          // console.log('====================================');
+          const bookingData = await fetchBookingByID(booking._id);
+          // console.log('====================================');
+          // console.log(
+          //   'Something wrong here',
+          //   bookingData.getBookingById.booking,
+          // );
+          // console.log('====================================');
+          if (response.status === '201') {
+            navigation.navigate('AgentBookCompletion', {
+              bookingData: bookingData.getBookingById.booking,
+            });
           } else {
             Toast.show({
               type: 'error',

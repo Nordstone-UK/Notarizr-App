@@ -24,7 +24,7 @@ export default function TimePicker(props) {
               fontFamily: 'Manrope-Bold',
               fontSize: widthToDp(4),
               color: Colors.TextColor,
-              borderWidth: 1,
+              // borderWidth: 1,
             }}>
             {props.Text}
           </Text>

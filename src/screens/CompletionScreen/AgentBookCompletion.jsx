@@ -9,16 +9,37 @@ import {
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {useDispatch} from 'react-redux';
+import useFetchBooking from '../../hooks/useFetchBooking';
+import {
+  setBookingInfoState,
+  setCoordinates,
+  setUser,
+} from '../../features/booking/bookingSlice';
 
-export default function AgentBookCompletion({navigation}) {
+export default function AgentBookCompletion({route, navigation}) {
+  // const [booking, setBooking] = useState();
+  // const {fetchBookingInfo} = useFetchBooking();
+  const {bookingData} = route.params;
+  // console.log('====================================');
+  // console.log('Agent Completion', bookingData?.agent);
+  // console.log('====================================');
+  const dispatch = useDispatch();
+  const init = async () => {
+    dispatch(setBookingInfoState(bookingData));
+    dispatch(
+      setCoordinates(bookingData?.booked_by?.current_location?.coordinates),
+    );
+    dispatch(setUser(bookingData?.agent));
+    navigation.navigate('MedicalBookingScreen');
+  };
   useEffect(() => {
-    const delay = 3000;
-
-    const timer = setTimeout(() => {
-      navigation.navigate('LocalNotaryBookingScreen');
-    }, delay);
-
-    return () => clearTimeout(timer);
+    init();
+    // const delay = 3000;
+    // const timer = setTimeout(() => {
+    //   navigation.navigate('LocalNotaryBookingScreen');
+    // }, delay);
+    // return () => clearTimeout(timer);
   }, [navigation]);
   return (
     <SafeAreaView style={styles.container}>

@@ -24,6 +24,7 @@ import {useDispatch} from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
+  setUser,
 } from '../../../features/booking/bookingSlice';
 import WebView from 'react-native-webview';
 
@@ -34,7 +35,6 @@ export default function AgentHomeScreen({navigation}) {
   const [Booking, setBooking] = useState([]);
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
-    // console.log(bookingDetail);
     setBooking(bookingDetail);
   };
   const onRefresh = React.useCallback(() => {
@@ -52,10 +52,10 @@ export default function AgentHomeScreen({navigation}) {
     return unsubscribe;
   }, [navigation]);
   const handleNavigation = item => {
-    navigation.navigate('ClientDetailsScreen', {clientDetail: item});
-    // console.log('Redux sending item: ', item);
+    navigation.navigate('ClientDetailsScreen');
+    dispatch(setBookingInfoState(item));
+    dispatch(setUser(item?.booked_by));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
-    dispatch(setBookingInfoState(item.booked_by));
   };
   return (
     <SafeAreaView style={styles.container}>
