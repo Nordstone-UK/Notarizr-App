@@ -1,4 +1,4 @@
-import {useLazyQuery} from '@apollo/client';
+import {useLazyQuery, useMutation} from '@apollo/client';
 import {useDispatch} from 'react-redux';
 import {GET_CLIENT_BOOKING} from '../../request/queries/getClientBooking.query';
 import {setBookingState} from '../features/bookingInfo/bookingInfoSlice';
@@ -6,11 +6,13 @@ import {useState} from 'react';
 import {GET_AGENT_BOOKING} from '../../request/queries/getAgentBooking.query';
 import {setBookingInfoState} from '../features/booking/bookingSlice';
 import {GET_BOOKING_BY_ID} from '../../request/queries/getBookingByID.query';
+import {UPDATE_BOOKING_INFO} from '../../request/mutations/updateBookingInfo.mutation';
 
 const useFetchBooking = () => {
   const [getClientBooking] = useLazyQuery(GET_CLIENT_BOOKING);
   const [getAgentBooking] = useLazyQuery(GET_AGENT_BOOKING);
   const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID);
+  const [updateBookingInfo] = useMutation(UPDATE_BOOKING_INFO);
   const dispatch = useDispatch();
   const [clientBooking, setClientBooking] = useState({
     status: 'pending',
@@ -26,9 +28,6 @@ const useFetchBooking = () => {
     };
     try {
       const data = await getClientBooking(request);
-      // dispatch(setBookingState(data?.getBookings?.bookings));
-      // console.log('Client Booking iNfo', data?.data);
-
       return sortBookingByDate(data?.data?.getClientBookings?.bookings);
     } catch (error) {
       console.log(error);
@@ -67,7 +66,57 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
-  return {fetchBookingInfo, fetchAgentBookingInfo, fetchBookingByID};
+  const handleupdateBookingInfo = async (id, notes, docs) => {
+    const request = {
+      variables: {
+        bookingId: id,
+        proofDocuments: docs,
+        notes: notes,
+        review: null,
+        rating: null,
+      },
+    };
+    try {
+      const response = await updateBookingInfo(request);
+      console.log('====================================');
+      console.log(
+        'Documents and Notes',
+        response.data.updateBookingsInfo.status,
+      );
+      console.log('====================================');
+      return response.data.updateBookingsInfo.status;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleReviewSubmit = async (id, review, rating) => {
+    const request = {
+      variables: {
+        bookingId: id,
+        review: review,
+        rating: rating,
+      },
+    };
+    try {
+      const response = await updateBookingInfo(request);
+      console.log('====================================');
+      console.log(
+        'Documents and Notes',
+        response.data.updateBookingsInfo.status,
+      );
+      console.log('====================================');
+      return response.data.updateBookingsInfo.status;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  return {
+    fetchBookingInfo,
+    fetchAgentBookingInfo,
+    handleupdateBookingInfo,
+    fetchBookingByID,
+    handleReviewSubmit,
+  };
 };
 
 export default useFetchBooking;

@@ -22,18 +22,9 @@ export default function NearbyLoadingScreen({route, navigation}) {
         try {
           const response = await handleBookingCreation(user._id, service._id);
           const {booking} = response;
-          // console.log('====================================');
-          // console.log(booking._id, response.status);
-          // console.log('====================================');
           const bookingData = await fetchBookingByID(booking._id);
-          // console.log('====================================');
-          // console.log(
-          //   'Something wrong here',
-          //   bookingData.getBookingById.booking,
-          // );
-          // console.log('====================================');
           if (response.status === '201') {
-            navigation.navigate('AgentBookCompletion', {
+            navigation.navigate('ToBePaidScreen', {
               bookingData: bookingData.getBookingById.booking,
             });
           } else {
@@ -63,7 +54,6 @@ export default function NearbyLoadingScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Loading" />
-
       <LottieView
         source={require('../../../assets/loadingAnimation.json')}
         autoPlay

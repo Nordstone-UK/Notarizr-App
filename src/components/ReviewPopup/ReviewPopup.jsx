@@ -1,18 +1,44 @@
-import {StyleSheet, Text, View, Image} from 'react-native';
-import React from 'react';
+import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
+import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import GradientButton from '../MainGradientButton/GradientButton';
 
+const StarRating = ({rating, onStarPress}) => {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignSelf: 'center',
+        marginVertical: widthToDp(2),
+      }}>
+      {[1, 2, 3, 4, 5].map(star => (
+        <TouchableOpacity
+          key={star}
+          onPress={() => onStarPress(star)}
+          style={{marginRight: 5}}>
+          {star <= rating ? (
+            <Image
+              source={require('../../../assets/star.png')}
+              style={styles.icon}
+            />
+          ) : (
+            <Image
+              source={require('../../../assets/blankStar.png')}
+              style={styles.icon}
+            />
+          )}
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+};
 export default function ReviewPopup(props) {
   return (
     <View style={styles.bottonSheet}>
       <Text style={styles.text}>Please provide us with your feedback</Text>
-      <Image
-        source={require('../../../assets/orangeStart1.png')}
-        style={styles.icon}
-      />
+      <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
       <LabelTextInput
         LabelTextInput={'Reveiw'}
         labelStyle={{
@@ -20,6 +46,7 @@ export default function ReviewPopup(props) {
           color: Colors.TextColor,
         }}
         Label={true}
+        onChangeText={text => props.handleReviewSubmit(text)}
       />
       <View style={styles.btn}>
         <GradientButton
@@ -45,9 +72,10 @@ const styles = StyleSheet.create({
   },
   icon: {
     height: heightToDp(8),
-    alignSelf: 'center',
-    resizeMode: 'contain',
-    marginVertical: heightToDp(5),
+    width: widthToDp(8),
+    // alignSelf: 'center',
+    // resizeMode: 'contain',
+    // marginVertical: heightToDp(5),
   },
   text: {
     marginTop: heightToDp(5),
@@ -55,5 +83,20 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',
     alignSelf: 'center',
+  },
+  starRating: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  coloredStar: {
+    fontSize: 30,
+    marginRight: 10,
+    color: 'yellow',
+  },
+  transparentStar: {
+    fontSize: 30,
+    marginRight: 10,
+    color: 'transparent',
   },
 });

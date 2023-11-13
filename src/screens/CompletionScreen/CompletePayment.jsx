@@ -12,6 +12,7 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {useDispatch, useSelector} from 'react-redux';
 import {useFocusEffect} from '@react-navigation/native';
 import {paymentCheck} from '../../features/review/reviewSlice';
+import LottieView from 'lottie-react-native';
 
 export default function CompletePayment({navigation}) {
   const dispatch = useDispatch();
@@ -25,44 +26,38 @@ export default function CompletePayment({navigation}) {
 
     return () => clearTimeout(timer);
   }, [navigation]);
-  // const [isVisible, setIsVisible] = useState(false);
-  // const payment = useSelector(state => state.payment.payment);
-  // const dispatch = useDispatch();
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     setIsVisible(payment);
-  //   }, [payment]),
-  // );
 
-  // const handleReduxPayment = () => {
-  //   setIsVisible(false);
-  //   dispatch(paymentCheck());
-  //   navigation.navigate('HomeScreen');
-  // };
-  {
-    /* {isVisible ? (
-          <BottomSheet modalProps={{}} isVisible={isVisible}>
-            <ReviewPopup onPress={() => handleReduxPayment()} />
-          </BottomSheet>
-        ) : null} */
-  }
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground
-        source={require('../../../assets/Group.png')}
-        style={styles.groupimage}>
-        <View style={styles.completeIcon}>
-          <Image
-            source={require('../../../assets/completedIcon.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.text}>Success,{'\n'} Payment completed.</Text>
-        </View>
-        <Image
-          source={require('../../../assets/complete.png')}
-          style={styles.complete}
+      <View
+        style={{
+          position: 'absolute',
+          height: '100%',
+          width: '100%',
+        }}>
+        <LottieView
+          source={require('../../../assets/confetti.json')}
+          autoPlay
+          loop
+          style={{
+            height: '100%',
+            width: '100%',
+          }}
+          resizeMode="cover"
         />
-      </ImageBackground>
+      </View>
+
+      <View style={styles.completeIcon}>
+        <Image
+          source={require('../../../assets/completedIcon.png')}
+          style={styles.icon}
+        />
+        <Text style={styles.text}>Success,{'\n'} Payment completed.</Text>
+      </View>
+      <Image
+        source={require('../../../assets/complete.png')}
+        style={styles.complete}
+      />
     </SafeAreaView>
   );
 }
@@ -101,3 +96,24 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
 });
+// const [isVisible, setIsVisible] = useState(false);
+// const payment = useSelector(state => state.payment.payment);
+// const dispatch = useDispatch();
+// useFocusEffect(
+//   React.useCallback(() => {
+//     setIsVisible(payment);
+//   }, [payment]),
+// );
+
+// const handleReduxPayment = () => {
+//   setIsVisible(false);
+//   dispatch(paymentCheck());
+//   navigation.navigate('HomeScreen');
+// };
+{
+  /* {isVisible ? (
+          <BottomSheet modalProps={{}} isVisible={isVisible}>
+            <ReviewPopup onPress={() => handleReduxPayment()} />
+          </BottomSheet>
+        ) : null} */
+}

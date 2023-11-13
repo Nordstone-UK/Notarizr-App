@@ -26,9 +26,9 @@ export default function AgentTimeCard(props) {
   ];
   // if (props.dateofBooking === null && props.timeofBooking === null) {
   // console.log('Working');
-  date = moment(props.createdAt).format('D');
-  month = moment(props.createdAt).format('MMM');
-  time = moment(props.createdAt).format('h:mm A');
+  date = moment(props.dateofBooking).format('D');
+  month = moment(props.dateofBooking).format('MMM');
+  // time = moment(props.dateofBooking).format('h:mm A');
   // }
   // else {
   //   const dateObject = new Date(props.dateofBooking);
@@ -67,7 +67,11 @@ export default function AgentTimeCard(props) {
             backgroundColor: Colors.Orange,
           },
         ]}>
-        <Text style={styles.text}>{capitalizeFirstLetter(props.task)}</Text>
+        {props.task === 'to_be_paid' ? (
+          <Text style={styles.text}>To be Paid</Text>
+        ) : (
+          <Text style={styles.text}>{props.task}</Text>
+        )}
       </View>
       <LinearGradient
         style={styles.dateContainer}
@@ -75,7 +79,7 @@ export default function AgentTimeCard(props) {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
         <View>
-          <Text style={styles.dateStyle}>{time}</Text>
+          <Text style={styles.dateStyle}>{props.timeofBooking}</Text>
           <Text
             style={[
               styles.dateStyle,

@@ -71,7 +71,7 @@ export default function AgentHomeScreen({navigation}) {
           <Text style={styles.mainHeading}>
             Know how Notarizr helps you in getting more oppurtunities
           </Text>
-          <WebView
+          {/* <WebView
             source={{uri: 'https://www.youtube.com/watch?v=SgD7g0COp-I'}}
             style={{
               flex: 1,
@@ -80,7 +80,7 @@ export default function AgentHomeScreen({navigation}) {
               alignSelf: 'center',
               marginVertical: heightToDp(3),
             }}
-          />
+          /> */}
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
               Title="Service Preferences"

@@ -27,6 +27,12 @@ export const GET_AGENT_BOOKING = gql`
             type
             coordinates
           }
+          description
+          state
+          addresses {
+            tag
+            location
+          }
         }
         service_type
         service {
@@ -41,23 +47,6 @@ export const GET_AGENT_BOOKING = gql`
             endTime
           }
           location
-          agent {
-            _id
-            first_name
-            last_name
-            email
-            phone_number
-            profile_picture
-            gender
-            isBlocked
-            chatPrivacy
-            location
-            rating
-            subscriptionType
-            isVerified
-            account_type
-            online_status
-          }
           createdAt
           updatedAt
         }
@@ -82,10 +71,27 @@ export const GET_AGENT_BOOKING = gql`
           isVerified
           account_type
           online_status
+          current_location {
+            type
+            coordinates
+          }
+          description
+          state
+          addresses {
+            tag
+            location
+          }
         }
         preference_analysis
         status
         documents
+        booked_for {
+          first_name
+          last_name
+          email
+          phone_number
+          location
+        }
         document_type {
           name
           price
@@ -93,6 +99,7 @@ export const GET_AGENT_BOOKING = gql`
         createdAt
         updatedAt
       }
+
       totalDocs
       limit
       totalPages

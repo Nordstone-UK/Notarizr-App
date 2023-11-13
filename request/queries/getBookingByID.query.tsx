@@ -91,6 +91,16 @@ export const GET_BOOKING_BY_ID = gql`
         }
         createdAt
         updatedAt
+        booked_for {
+          first_name
+          last_name
+          email
+          phone_number
+          location
+        }
+        proof_documents
+        rating
+        review
       }
     }
   }

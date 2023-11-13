@@ -6,14 +6,12 @@ export const CREATE_SERVICE = gql`
     $serviceType: String!
     $availability: AvailabilityInput!
     $location: [String!]!
-    $category: [String!]
   ) {
     createService(
       name: $name
       service_type: $serviceType
       availability: $availability
       location: $location
-      category: $category
     ) {
       status
       message
@@ -23,13 +21,6 @@ export const CREATE_SERVICE = gql`
         image
         status
         service_type
-        category {
-          _id
-          name
-          status
-          createdAt
-          updatedAt
-        }
         availability {
           weekdays
           startTime
@@ -47,9 +38,21 @@ export const CREATE_SERVICE = gql`
           isBlocked
           chatPrivacy
           location
+          rating
           subscriptionType
           isVerified
           account_type
+          online_status
+          current_location {
+            type
+            coordinates
+          }
+          description
+          state
+          addresses {
+            tag
+            location
+          }
         }
         createdAt
         updatedAt

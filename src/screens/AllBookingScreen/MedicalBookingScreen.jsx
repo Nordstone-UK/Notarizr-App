@@ -30,19 +30,29 @@ import {paymentCheck} from '../../features/review/reviewSlice';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import moment from 'moment';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
+  const {handleReviewSubmit} = useFetchBooking();
   const payment = useSelector(state => state.payment.payment);
   const dispatch = useDispatch();
   const bookingDetail = useSelector(state => state.booking.booking);
   const {documents} = bookingDetail;
-
+  const {booked_for} = bookingDetail;
   const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [status, setStatus] = useState();
   const [loading, setLoading] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
+  const handleStarPress = selectedRating => {
+    setRating(selectedRating);
+  };
+  const handleReview = reviewGiven => {
+    setReview(reviewGiven);
+  };
   function capitalizeFirstLetter(str) {
     if (typeof str !== 'string' || str.length === 0) {
       return str;
@@ -75,14 +85,22 @@ export default function MedicalBookingScreen({route, navigation}) {
   );
   useEffect(() => {
     getBookingStatus();
-    console.log('====================================');
-    console.log(bookingDetail);
-    console.log('====================================');
   }, [status]);
-  const handleReduxPayment = () => {
+  const handleReduxPayment = async () => {
     setIsVisible(false);
     dispatch(paymentCheck());
-    navigation.navigate('HomeScreen');
+    console.log('====================================');
+    console.log('payment', review, rating);
+    console.log('====================================');
+    const response = await handleReviewSubmit(
+      bookingDetail._id,
+      review,
+      rating,
+    );
+    if (response === '200') {
+      await handleUpdateBookingStatus('paid', bookingDetail?._id);
+      navigation.navigate('HomeScreen');
+    }
   };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -103,7 +121,12 @@ export default function MedicalBookingScreen({route, navigation}) {
       />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>{bookingDetail.document_type.name}</Text>
+        {bookingDetail?.service_type === 'mobile_notary' && (
+          <Text style={styles.Heading}>Mobile Notary</Text>
+        )}
+        {bookingDetail?.service_type === 'ron' && (
+          <Text style={styles.Heading}>Remote Online Notary</Text>
+        )}
       </View>
       <BottomSheetStyle>
         <ScrollView
@@ -114,18 +137,31 @@ export default function MedicalBookingScreen({route, navigation}) {
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>Selected agent</Text>
             <View style={styles.iconContainer}>
-              {status === 'Pending' ? (
+              {status === 'Pending' && (
                 <Image
                   source={require('../../../assets/pending.png')}
                   style={styles.greenIcon}
                 />
-              ) : (
+              )}
+              {(status === 'Completed' ||
+                status === 'Accepted' ||
+                status === 'Ongoing') && (
                 <Image
                   source={require('../../../assets/greenIcon.png')}
                   style={styles.greenIcon}
                 />
               )}
-              <Text style={styles.insideText}>{status}</Text>
+              {status === 'To_be_paid' ? (
+                <>
+                  <Image
+                    source={require('../../../assets/greenIcon.png')}
+                    style={styles.greenIcon}
+                  />
+                  <Text style={styles.insideText}>To Be Paid</Text>
+                </>
+              ) : (
+                <Text style={styles.insideText}>{status}</Text>
+              )}
             </View>
           </View>
           {bookingDetail &&
@@ -182,24 +218,63 @@ export default function MedicalBookingScreen({route, navigation}) {
                   fontFamily: 'Manrope-Bold',
                   color: Colors.TextColor,
                 }}>
-                Service Type:
+                Document Type:
               </Text>
-              {bookingDetail?.service_type === 'mobile_notary' && (
-                <Text style={styles.detail}>Mobile Notary</Text>
-              )}
-              {bookingDetail?.service_type === 'ron' && (
-                <Text style={styles.detail}>Remote Online Notary</Text>
-              )}
-            </View>
-            <View style={styles.addressView}>
-              <Image
-                source={require('../../../assets/locationIcon.png')}
-                style={styles.locationImage}
-              />
               <Text style={styles.detail}>
-                {capitalizeFirstLetter(bookingDetail?.agent?.location)}
+                {bookingDetail.document_type.name}
               </Text>
             </View>
+            {booked_for?.first_name && (
+              <View>
+                <View style={styles.addressView}>
+                  <Text
+                    style={{
+                      fontSize: widthToDp(4),
+                      marginLeft: widthToDp(1),
+                      fontFamily: 'Manrope-Bold',
+                      color: Colors.TextColor,
+                    }}>
+                    Booked For:
+                  </Text>
+                  <Text style={styles.detail}>
+                    {booked_for?.first_name} {booked_for?.last_name}
+                  </Text>
+                </View>
+                <View style={styles.addressView}>
+                  <Text
+                    style={{
+                      fontSize: widthToDp(4),
+                      marginLeft: widthToDp(1),
+                      fontFamily: 'Manrope-Bold',
+                      color: Colors.TextColor,
+                    }}>
+                    Phone Number:
+                  </Text>
+                  <Text style={styles.detail}>{booked_for?.phone_number}</Text>
+                </View>
+                <View style={styles.addressView}>
+                  <Image
+                    source={require('../../../assets/locationIcon.png')}
+                    style={styles.locationImage}
+                  />
+                  <Text style={styles.detail}>
+                    {capitalizeFirstLetter(booked_for?.location)}
+                  </Text>
+                </View>
+              </View>
+            )}
+            {!booked_for?.location && (
+              <View style={styles.addressView}>
+                <Image
+                  source={require('../../../assets/locationIcon.png')}
+                  style={styles.locationImage}
+                />
+                <Text style={styles.detail}>
+                  {capitalizeFirstLetter(bookingDetail?.agent?.location) ||
+                    capitalizeFirstLetter(booked_for?.location)}
+                </Text>
+              </View>
+            )}
             <View style={styles.addressView}>
               <Image
                 source={require('../../../assets/calenderIcon.png')}
@@ -211,7 +286,17 @@ export default function MedicalBookingScreen({route, navigation}) {
                 {bookingDetail?.time_of_booking}
               </Text>
             </View>
-            <Text style={styles.insideHeading}>Uploaded Documents</Text>
+            <View style={styles.addressView}>
+              <Text
+                style={{
+                  fontSize: widthToDp(4),
+                  marginLeft: widthToDp(1),
+                  fontFamily: 'Manrope-Bold',
+                  color: Colors.TextColor,
+                }}>
+                Client Documents
+              </Text>
+            </View>
             <View
               style={{
                 flexDirection: 'row',
@@ -233,6 +318,34 @@ export default function MedicalBookingScreen({route, navigation}) {
                 <Text style={styles.preference}>No Documents</Text>
               )}
             </View>
+            {bookingDetail?.review && (
+              <View>
+                <View style={styles.addressView}>
+                  <Text
+                    style={{
+                      fontSize: widthToDp(4),
+                      marginLeft: widthToDp(1),
+                      fontFamily: 'Manrope-Bold',
+                      color: Colors.TextColor,
+                    }}>
+                    Rating:
+                  </Text>
+                  <Text style={styles.detail}>{bookingDetail?.rating}</Text>
+                </View>
+                <View style={styles.addressView}>
+                  <Text
+                    style={{
+                      fontSize: widthToDp(4),
+                      marginLeft: widthToDp(1),
+                      fontFamily: 'Manrope-Bold',
+                      color: Colors.TextColor,
+                    }}>
+                    Review:
+                  </Text>
+                  <Text style={styles.detail}>"{bookingDetail?.review}"</Text>
+                </View>
+              </View>
+            )}
           </View>
           {status === 'Pending' ? null : (
             <View style={styles.buttonFlex}>
@@ -273,7 +386,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   />
                 </>
               )}
-              {status === 'Completed' && (
+              {status === 'To_be_paid' && (
                 <GradientButton
                   Title="Make Payment"
                   colors={[
@@ -297,7 +410,12 @@ export default function MedicalBookingScreen({route, navigation}) {
         </ScrollView>
         {isVisible ? (
           <BottomSheet modalProps={{}} isVisible={isVisible}>
-            <ReviewPopup onPress={() => handleReduxPayment()} />
+            <ReviewPopup
+              onPress={() => handleReduxPayment()}
+              rating={rating}
+              handleStarPress={handleStarPress}
+              handleReviewSubmit={handleReview}
+            />
           </BottomSheet>
         ) : null}
       </BottomSheetStyle>

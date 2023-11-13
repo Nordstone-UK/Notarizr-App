@@ -37,7 +37,7 @@ const useAgentService = () => {
   const dispatchAvailability = async (weeks, startTime, endTime) => {
     const availability = orderWeekdays(weeks);
     dispatch(setAvailability({availability, startTime, endTime}));
-    navigation.navigate('AgentServicePereference');
+    navigation.navigate('AgentRONLocationScreen');
   };
   const LocalNotaryRegister = async () => {
     const request = {

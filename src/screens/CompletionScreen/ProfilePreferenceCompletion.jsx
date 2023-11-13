@@ -9,6 +9,7 @@ import {
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
+import LottieView from 'lottie-react-native';
 
 export default function ProfilePreferenceCompletion({navigation}) {
   useEffect(() => {
@@ -22,25 +23,38 @@ export default function ProfilePreferenceCompletion({navigation}) {
   }, [navigation]);
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground
-        source={require('../../../assets/Group.png')}
-        style={styles.groupimage}>
-        <View style={styles.completeIcon}>
-          <Image
-            source={require('../../../assets/completedIcon.png')}
-            style={styles.icon}
-          />
-
-          <Text style={styles.text}>
-            Congratulations,{'\n'} your profile preferences have been
-            successfully updated.
-          </Text>
-        </View>
-        <Image
-          source={require('../../../assets/complete.png')}
-          style={styles.complete}
+      <View
+        style={{
+          position: 'absolute',
+          height: '100%',
+          width: '100%',
+        }}>
+        <LottieView
+          source={require('../../../assets/confetti.json')}
+          autoPlay
+          loop
+          style={{
+            height: '100%',
+            width: '100%',
+          }}
+          resizeMode="cover"
         />
-      </ImageBackground>
+      </View>
+      <View style={styles.completeIcon}>
+        <Image
+          source={require('../../../assets/completedIcon.png')}
+          style={styles.icon}
+        />
+
+        <Text style={styles.text}>
+          Congratulations,{'\n'} your profile preferences have been successfully
+          updated.
+        </Text>
+      </View>
+      <Image
+        source={require('../../../assets/complete.png')}
+        style={styles.complete}
+      />
     </SafeAreaView>
   );
 }

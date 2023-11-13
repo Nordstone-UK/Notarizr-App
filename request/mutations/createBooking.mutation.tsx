@@ -6,26 +6,28 @@ export const CREATE_BOOKING = gql`
     $service: String!
     $agent: String!
     $documentType: DocsTypeInput!
-    $timeOfBooking: Date
-    $dateOfBooking: Date
     $address: String
+    $dateOfBooking: Date
+    $timeOfBooking: Date
+    $notes: String
     $bookedFor: BookedForInput
     $bookingType: String
-    $documents: JSON
     $preferenceAnalysis: String
+    $documents: JSON
   ) {
     createBookingR(
       service_type: $serviceType
       service: $service
       agent: $agent
       document_type: $documentType
-      time_of_booking: $timeOfBooking
-      date_of_booking: $dateOfBooking
       address: $address
+      date_of_booking: $dateOfBooking
+      time_of_booking: $timeOfBooking
+      notes: $notes
       booked_for: $bookedFor
       booking_type: $bookingType
-      documents: $documents
       preference_analysis: $preferenceAnalysis
+      documents: $documents
     ) {
       status
       message
@@ -65,25 +67,6 @@ export const CREATE_BOOKING = gql`
           image
           status
           service_type
-          category {
-            _id
-            name
-            status
-            document {
-              _id
-              name
-              price
-              image
-              createdAt
-              updatedAt
-              statePrices {
-                state
-                price
-              }
-            }
-            createdAt
-            updatedAt
-          }
           availability {
             weekdays
             startTime
@@ -128,9 +111,16 @@ export const CREATE_BOOKING = gql`
         preference_analysis
         status
         documents
+        booked_for {
+          first_name
+          last_name
+          email
+          phone_number
+          location
+        }
         document_type {
-          price
           name
+          price
         }
         createdAt
         updatedAt

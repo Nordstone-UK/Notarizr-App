@@ -20,13 +20,12 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
-  // console.log('bookingDetail payment', bookingDetail);
+  console.log('bookingDetail payment', bookingDetail?.documentType?.price);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
-  const DocumentPrice = bookingDetail?.document_type?.price;
-  // const Fee = bookingDetail?.document_type?.price * 0.1;
-  // const TotalAmount = DocumentPrice + Fee + 2;
+  const DocumentPrice = bookingDetail?.documentType?.price;
+
   const initializePaymentSheet = async () => {
     setLoading(true);
     const response = await fetchPaymentSheetParams(
@@ -99,7 +98,7 @@ export default function PaymentScreen({navigation}) {
           <View style={{marginVertical: heightToDp(2)}}>
             <View style={styles.docsContainer}>
               <Text style={styles.textPay}>
-                {bookingDetail?.document_type?.name}
+                {bookingDetail?.documentType?.name}
               </Text>
               <Text style={styles.textPay}>${DocumentPrice}</Text>
             </View>

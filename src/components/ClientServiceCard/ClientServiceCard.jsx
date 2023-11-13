@@ -86,15 +86,10 @@ export default function ClientServiceCard(props) {
             <View>
               <Text style={styles.nameHeading}>{props?.agentName}</Text>
             </View>
-            {/* <TouchableOpacity>
-              <Image source={require('../../../assets/option.png')} />
-            </TouchableOpacity> */}
           </View>
           <View
             style={{
               flexDirection: 'row',
-              // borderWidth: 1,
-              // flexWrap: 'wrap',
             }}>
             <Image source={props.image} />
             {OrangeGradient(props?.OrangeText)}

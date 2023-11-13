@@ -26,22 +26,27 @@ import {
 import moment from 'moment';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import useRegister from '../../../hooks/useRegister';
+import useFetchBooking from '../../../hooks/useFetchBooking';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
   const clientDetail = useSelector(state => state.booking.booking);
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
-  const {uploadMultipleFiles} = useRegister();
+  const {handleupdateBookingInfo} = useFetchBooking();
+  const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   let {documents: documentArray} = clientDetail;
+  const {booked_for} = clientDetail;
+  const {proof_documents} = clientDetail;
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [notary, setNotary] = useState();
-  const [documents, setDocuments] = useState(null);
+  const [documents, setDocuments] = useState({});
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadDocs, setUploadDocs] = useState(false);
+  const [notes, setNotes] = useState('');
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -50,9 +55,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
       console.log('Refreshing.....');
     }, 2000);
   }, []);
-  // const handleRequestPayment = () => {
-  //   navigation.navigate('PaymentCompletionScreen');
-  // };
+
   const capitalizeFirstLetter = string => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
@@ -76,11 +79,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   };
   useEffect(() => {
     getBookingStatus();
+    // console.log('====================================');
+    // console.log('status', clientDetail);
+    // console.log('====================================');
   }, [status]);
   const selectDocuments = async () => {
     const response = await uploadMultipleFiles();
-    setDocuments(response);
-    console.log('Uploaded Files', response);
+    const urlResponse = await uploadAllDocuments(response);
+    console.log('====================================');
+    console.log('urlResponse', urlResponse);
+    console.log('====================================');
+    setDocuments(urlResponse);
   };
   const deleteDocument = index => {
     const updatedUris = [...documents];
@@ -100,7 +109,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
       console.log('====================================');
       console.log('status', status);
       console.log('====================================');
-      if (status === 'Completed') {
+      if (status === 'to_be_paid') {
         navigation.navigate('PaymentCompletionScreen');
       }
     } catch (error) {
@@ -108,9 +117,24 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     }
     setLoading(false);
   };
-  const handleComplete = () => {
-    setUploadDocs(true);
-    documentArray = {};
+  const handleComplete = async () => {
+    setLoading(true);
+    await handleStatusChange('completed', clientDetail._id);
+    setLoading(false);
+  };
+  const handlePaymentRequest = async () => {
+    setLoading(true);
+
+    const response = await handleupdateBookingInfo(
+      clientDetail._id,
+      notes,
+      documents,
+    );
+    if (response === '200') {
+      await handleStatusChange('to_be_paid', clientDetail._id);
+      navigation.navigate('PaymentCompletionScreen');
+    }
+    setLoading(false);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -121,7 +145,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
       />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>{clientDetail.document_type.name}</Text>
+        {clientDetail?.service_type === 'mobile_notary' && (
+          <Text style={styles.Heading}>Mobile Notary</Text>
+        )}
+        {clientDetail?.service_type === 'ron' && (
+          <Text style={styles.Heading}>Remote Online Notary</Text>
+        )}
       </View>
       <BottomSheetStyle>
         <ScrollView
@@ -146,7 +175,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   style={styles.greenIcon}
                 />
               )}
-              <Text style={styles.insideText}>{status}</Text>
+              {status === 'To_be_paid' ? (
+                <>
+                  <Image
+                    source={require('../../../../assets/greenIcon.png')}
+                    style={styles.greenIcon}
+                  />
+                  <Text style={styles.insideText}>To Be Paid</Text>
+                </>
+              ) : (
+                <Text style={styles.insideText}>{status}</Text>
+              )}
             </View>
           </View>
           <ClientServiceCard
@@ -184,22 +223,60 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 }}>
                 Service Type:
               </Text>
-              {clientDetail?.service_type === 'mobile_notary' && (
-                <Text style={styles.detail}>Mobile Notary</Text>
-              )}
-              {clientDetail?.service_type === 'ron' && (
-                <Text style={styles.detail}>Remote Online Notary</Text>
-              )}
-            </View>
-            <View style={styles.addressView}>
-              <Image
-                source={require('../../../../assets/locationIcon.png')}
-                style={styles.locationImage}
-              />
               <Text style={styles.detail}>
-                {capitalizeFirstLetter(clientDetail?.booked_by?.location)}
+                {clientDetail.document_type.name}
               </Text>
             </View>
+            {booked_for?.first_name && (
+              <View>
+                <View style={styles.addressView}>
+                  <Text
+                    style={{
+                      fontSize: widthToDp(4),
+                      marginLeft: widthToDp(1),
+                      fontFamily: 'Manrope-Bold',
+                      color: Colors.TextColor,
+                    }}>
+                    Booked For:
+                  </Text>
+                  <Text style={styles.detail}>
+                    {booked_for?.first_name} {booked_for?.last_name}
+                  </Text>
+                </View>
+                <View style={styles.addressView}>
+                  <Text
+                    style={{
+                      fontSize: widthToDp(4),
+                      marginLeft: widthToDp(1),
+                      fontFamily: 'Manrope-Bold',
+                      color: Colors.TextColor,
+                    }}>
+                    Phone Number:
+                  </Text>
+                  <Text style={styles.detail}>{booked_for?.phone_number}</Text>
+                </View>
+                <View style={styles.addressView}>
+                  <Image
+                    source={require('../../../../assets/locationIcon.png')}
+                    style={styles.locationImage}
+                  />
+                  <Text style={styles.detail}>
+                    {capitalizeFirstLetter(booked_for?.location)}
+                  </Text>
+                </View>
+              </View>
+            )}
+            {!booked_for?.location && (
+              <View style={styles.addressView}>
+                <Image
+                  source={require('../../../../assets/locationIcon.png')}
+                  style={styles.locationImage}
+                />
+                <Text style={styles.detail}>
+                  {capitalizeFirstLetter(clientDetail?.agent?.location)}
+                </Text>
+              </View>
+            )}
             <View style={styles.addressView}>
               <Image
                 source={require('../../../../assets/calenderIcon.png')}
@@ -211,8 +288,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 {clientDetail?.time_of_booking}
               </Text>
             </View>
-            <Text style={styles.insideHeading}>Uploaded Documents</Text>
-
+            <View style={styles.addressView}>
+              <Text
+                style={{
+                  fontSize: widthToDp(4),
+                  marginLeft: widthToDp(1),
+                  fontFamily: 'Manrope-Bold',
+                  color: Colors.TextColor,
+                }}>
+                Client Documents
+              </Text>
+            </View>
             <View
               style={{
                 flexDirection: 'row',
@@ -235,12 +321,44 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
               )}
             </View>
           </View>
-
+          <View style={styles.addressView}>
+            <Text
+              style={{
+                fontSize: widthToDp(4),
+                marginLeft: widthToDp(1),
+                fontFamily: 'Manrope-Bold',
+                color: Colors.TextColor,
+              }}>
+              Agent Documents
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              marginHorizontal: widthToDp(7),
+              marginVertical: widthToDp(2),
+              flexWrap: 'wrap',
+              columnGap: widthToDp(2),
+              rowGap: widthToDp(2),
+            }}>
+            {Object.keys(documents || proof_documents).length !== 0 ? (
+              Object.keys(documents || proof_documents).map((key, index) => (
+                <Image
+                  key={index}
+                  source={require('../../../../assets/docPic.png')}
+                  style={{width: widthToDp(10), height: heightToDp(10)}}
+                />
+              ))
+            ) : (
+              <Text style={styles.preference}>No Documents</Text>
+            )}
+          </View>
           {showNotes && (
             <LabelTextInput
               LabelTextInput="Notes"
               placeholder="Write notes here"
               Label={true}
+              onChangeText={text => setNotes(text)}
             />
           )}
           <View style={styles.buttonFlex}>
@@ -287,7 +405,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
             )}
           </View>
           <View style={styles.buttonBottom}>
-            {notary === 'Ongoing' && !uploadDocs && (
+            {notary === 'Ongoing' && (
               <GradientButton
                 Title="Complete Notary"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -295,7 +413,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 loading={loading}
               />
             )}
-            {uploadDocs && (
+            {notary === 'Completed' && (
               <View
                 style={{
                   flexDirection: 'row',
@@ -333,7 +451,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
               <GradientButton
                 Title="Request Payment"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => handleStatusChange('completed')}
+                onPress={() => handlePaymentRequest()}
                 loading={loading}
                 GradiStyles={{marginVertical: widthToDp(5)}}
               />

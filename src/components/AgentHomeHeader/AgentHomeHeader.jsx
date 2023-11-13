@@ -20,7 +20,7 @@ export default function AgentHomeHeader(props) {
   const navigation = useNavigation();
   const [isEnabled, setIsEnabled] = useState();
   const [updateOnlineStatusR] = useMutation(UPDATE_ONLINE_STATUS);
-  const {profile_picture, first_name, last_name} = useSelector(
+  const {profile_picture, first_name, last_name, online_status} = useSelector(
     state => state.user.user,
   );
   const toggleSwitch = () => {
@@ -49,6 +49,13 @@ export default function AgentHomeHeader(props) {
       });
     }
   };
+  useEffect(() => {
+    if (online_status === 'online') {
+      setIsEnabled(true);
+    } else {
+      setIsEnabled(false);
+    }
+  }, [online_status]);
   return (
     <View>
       <View style={styles.namebar}>

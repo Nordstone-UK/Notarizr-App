@@ -33,25 +33,6 @@ export const GET_MATCHED_AGENT = gql`
           image
           status
           service_type
-          category {
-            _id
-            name
-            status
-            document {
-              _id
-              name
-              price
-              image
-              createdAt
-              updatedAt
-              statePrices {
-                state
-                price
-              }
-            }
-            createdAt
-            updatedAt
-          }
           availability {
             weekdays
             startTime
@@ -60,6 +41,33 @@ export const GET_MATCHED_AGENT = gql`
           location
           createdAt
           updatedAt
+          agent {
+            _id
+            first_name
+            last_name
+            email
+            phone_number
+            profile_picture
+            gender
+            isBlocked
+            chatPrivacy
+            location
+            rating
+            subscriptionType
+            isVerified
+            account_type
+            online_status
+            current_location {
+              type
+              coordinates
+            }
+            description
+            state
+            addresses {
+              tag
+              location
+            }
+          }
         }
       }
     }

@@ -94,6 +94,7 @@ import CompletePayment from '../CompletionScreen/CompletePayment';
 import ServiceDetailScreen from '../ServiceDetailScreen/ServiceDetailScreen';
 import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen';
 import AddNewAddress from '../NewAddressScreen/AddNewAddress';
+import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -162,7 +163,6 @@ export default function AppNavigation() {
             headerShown: false,
           }}>
           <Stack.Screen name="Splash_Screen" component={Splash_Screen} />
-
           <Stack.Screen name="HomeScreen" component={TabNavigation} />
           <Stack.Screen
             name="OnboardingScreen1"
@@ -274,7 +274,6 @@ export default function AppNavigation() {
             component={RejectedByAgentScreen}
           />
           <Stack.Screen name="MapArrivalScreen" component={MapArrivalScreen} />
-
           <Stack.Screen
             name="WaitingRoomScreen"
             component={WaitingRoomScreen}
@@ -303,6 +302,8 @@ export default function AppNavigation() {
           <Stack.Screen name="AddressDetails" component={AddressDetails} />
           <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
           <Stack.Screen name="SettingScreen" component={SettingScreen} />
+          <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
+
           <Stack.Screen
             name="NearbyLoadingScreen"
             component={NearbyLoadingScreen}

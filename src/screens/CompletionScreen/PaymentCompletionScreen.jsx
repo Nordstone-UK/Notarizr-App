@@ -11,6 +11,7 @@ import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {useDispatch} from 'react-redux';
 import {paymentCheck} from '../../features/review/reviewSlice';
+import LottieView from 'lottie-react-native';
 
 export default function PaymentCompletionScreen({navigation}, props) {
   const message = 'Congratulations, your booking is completed!';
@@ -40,23 +41,36 @@ export default function PaymentCompletionScreen({navigation}, props) {
   }, [navigation]);
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground
-        source={require('../../../assets/Group.png')}
-        style={styles.groupimage}>
-        <View style={styles.completeIcon}>
-          <Image
-            source={require('../../../assets/completedIcon.png')}
-            style={styles.icon}
-          />
-
-          <Text style={styles.text}>{firstMsg}</Text>
-          <Text style={styles.text}>{secondMsg}</Text>
-        </View>
-        <Image
-          source={require('../../../assets/complete.png')}
-          style={styles.complete}
+      <View
+        style={{
+          position: 'absolute',
+          height: '100%',
+          width: '100%',
+        }}>
+        <LottieView
+          source={require('../../../assets/confetti.json')}
+          autoPlay
+          loop
+          style={{
+            height: '100%',
+            width: '100%',
+          }}
+          resizeMode="cover"
         />
-      </ImageBackground>
+      </View>
+      <View style={styles.completeIcon}>
+        <Image
+          source={require('../../../assets/completedIcon.png')}
+          style={styles.icon}
+        />
+
+        <Text style={styles.text}>{firstMsg}</Text>
+        <Text style={styles.text}>{secondMsg}</Text>
+      </View>
+      <Image
+        source={require('../../../assets/complete.png')}
+        style={styles.complete}
+      />
     </SafeAreaView>
   );
 }

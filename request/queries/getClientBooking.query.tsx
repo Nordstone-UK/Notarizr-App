@@ -27,6 +27,12 @@ export const GET_CLIENT_BOOKING = gql`
             type
             coordinates
           }
+          description
+          state
+          addresses {
+            tag
+            location
+          }
         }
         service_type
         service {
@@ -35,30 +41,12 @@ export const GET_CLIENT_BOOKING = gql`
           image
           status
           service_type
-
           availability {
             weekdays
             startTime
             endTime
           }
           location
-          agent {
-            _id
-            first_name
-            last_name
-            email
-            phone_number
-            profile_picture
-            gender
-            isBlocked
-            chatPrivacy
-            location
-            rating
-            subscriptionType
-            isVerified
-            account_type
-            online_status
-          }
           createdAt
           updatedAt
         }
@@ -87,17 +75,34 @@ export const GET_CLIENT_BOOKING = gql`
             type
             coordinates
           }
+          description
+          state
+          addresses {
+            tag
+            location
+          }
         }
         preference_analysis
         status
         documents
+        booked_for {
+          first_name
+          last_name
+          email
+          phone_number
+          location
+        }
         document_type {
           name
           price
         }
+        proof_documents
+        rating
+        review
         createdAt
         updatedAt
       }
+
       totalDocs
       limit
       totalPages
