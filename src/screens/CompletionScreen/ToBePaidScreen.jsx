@@ -9,7 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -24,6 +24,7 @@ import useBookingStatus from '../../hooks/useBookingStatus';
 export default function ToBePaidScreen({route, navigation}) {
   const {bookingData} = route.params;
   const {handleUpdateBookingStatus} = useBookingStatus();
+  const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
   const init = async () => {
     await handleUpdateBookingStatus('pending', bookingData._id);
@@ -39,11 +40,11 @@ export default function ToBePaidScreen({route, navigation}) {
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
   const DocumentPrice = bookingData?.document_type?.price;
-
+  const TotalPayment = DocumentPrice + numberOfDocs * 10;
   const initializePaymentSheet = async () => {
     setLoading(true);
     const response = await fetchPaymentSheetParams(
-      DocumentPrice * 100,
+      TotalPayment * 100,
       bookingData._id,
     );
     const {customer_id, ephemeralKey, paymentIntent} =

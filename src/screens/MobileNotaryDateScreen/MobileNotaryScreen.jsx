@@ -22,9 +22,14 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import useRegister from '../../hooks/useRegister';
 import TimePicker from '../../components/TimePicker/TimePicker';
 import {useDispatch, useSelector} from 'react-redux';
-import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import {
+  setBookingInfoState,
+  setNumberOfDocs,
+} from '../../features/booking/bookingSlice';
 import {convertToJsonObject} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
+import DatePicker from 'react-native-date-picker';
+import {Button} from '@rneui/base';
 
 export default function MobileNotaryDateScreen({route, navigation}) {
   const dispatch = useDispatch();
@@ -34,13 +39,15 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   const [documents, setDocuments] = useState();
   const [startTime, setStartTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
   let urlResponse;
-  const {uploadFiles, uploadMultipleFiles, uploadAllDocuments, handleRegister} =
-    useRegister();
+  // const [numberOfDocs, setNumberOfDocs] = useState(0);
+  const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const submitAddressDetails = async () => {
     setLoading(true);
-    if (startTime && selectedDate) {
+    if (date) {
       if (documents) {
         urlResponse = await uploadAllDocuments(documents);
       }
@@ -48,8 +55,8 @@ export default function MobileNotaryDateScreen({route, navigation}) {
       dispatch(
         setBookingInfoState({
           ...bookingData,
-          timeOfBooking: moment(startTime).format('h:mm A'),
-          dateOfBooking: selectedDate,
+          timeOfBooking: moment(date).format('h:mm A'),
+          dateOfBooking: moment(date).format('MM-DD-YYYY'),
           documents: urlResponse,
         }),
       );
@@ -72,10 +79,13 @@ export default function MobileNotaryDateScreen({route, navigation}) {
     //   documentType: documentType,
     // });
   }, []);
+
   const selectDocuments = async () => {
     const response = await uploadMultipleFiles();
+    dispatch(setNumberOfDocs(response.length));
     setDocuments(response);
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -86,18 +96,50 @@ export default function MobileNotaryDateScreen({route, navigation}) {
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
           <View style={{marginVertical: heightToDp(2)}}>
-            <CustomCalendar
+            {/* <CustomCalendar
               selected={selectedDate}
               onDayPress={day => setSelectedDate(day)}
-            />
+            /> */}
+            <Text style={styles.headingContainer}>Date & Time:</Text>
+            <View style={styles.buttonFlex}>
+              <TouchableOpacity onPress={() => setOpen(true)}>
+                <Text
+                  style={{
+                    color: Colors.Orange,
+                    fontFamily: 'Manrope-Bold',
+                    fontSize: widthToDp(5),
+                    borderWidth: 1,
+                    borderColor: Colors.Orange,
+                    paddingHorizontal: widthToDp(2),
+                    borderRadius: widthToDp(2),
+                  }}>
+                  {moment(date).format('YYYY-MM-DD hh:mm A')}
+                </Text>
+              </TouchableOpacity>
+              <DatePicker
+                modal
+                mode="datetime"
+                minimumDate={date}
+                open={open}
+                androidVariant="iosClone"
+                date={date}
+                onConfirm={date => {
+                  setOpen(false);
+                  setDate(date);
+                }}
+                onCancel={() => {
+                  setOpen(false);
+                }}
+              />
+            </View>
           </View>
-          <Text style={styles.headingContainer}>Time:</Text>
+          {/* <Text style={styles.headingContainer}>Time:</Text>
           <View style={styles.buttonFlex}>
             <TimePicker
               onConfirm={date => setStartTime(date)}
               date={startTime}
             />
-          </View>
+          </View> */}
 
           <View
             style={{
@@ -133,6 +175,10 @@ export default function MobileNotaryDateScreen({route, navigation}) {
                   columnGap: widthToDp(2),
                   rowGap: widthToDp(2),
                 }}>
+                <Text style={styles.detail}>
+                  To utilize this service $10 would be charged for each
+                  document.
+                </Text>
                 {documents &&
                   documents.map((image, index) => (
                     <Image
@@ -143,24 +189,38 @@ export default function MobileNotaryDateScreen({route, navigation}) {
                   ))}
               </View>
             ) : (
-              <TouchableOpacity
-                style={styles.dottedContianer}
-                onPress={() => selectDocuments()}>
-                <Image source={require('../../../assets/upload.png')} />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    columnGap: widthToDp(2),
-                    alignItems: 'center',
-                  }}>
-                  <Text
-                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
-                    Upload
-                  </Text>
-                  <Image source={require('../../../assets/uploadIcon.png')} />
-                </View>
-                <Text>Upload your documents here...</Text>
-              </TouchableOpacity>
+              <>
+                <Text
+                  style={[
+                    styles.detail,
+                    {
+                      marginLeft: widthToDp(3),
+                      marginRight: widthToDp(5),
+                      alignSelf: 'center',
+                    },
+                  ]}>
+                  To utilize this service $10 would be charged for each
+                  document.
+                </Text>
+                <TouchableOpacity
+                  style={styles.dottedContianer}
+                  onPress={() => selectDocuments()}>
+                  <Image source={require('../../../assets/upload.png')} />
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      columnGap: widthToDp(2),
+                      alignItems: 'center',
+                    }}>
+                    <Text
+                      style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
+                      Upload
+                    </Text>
+                    <Image source={require('../../../assets/uploadIcon.png')} />
+                  </View>
+                  <Text>Upload your documents here...</Text>
+                </TouchableOpacity>
+              </>
             ))}
 
           <GradientButton
@@ -314,7 +374,7 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(2),
     marginVertical: widthToDp(2),
     fontSize: widthToDp(4),
-    color: Colors.DullTextColor,
+    color: Colors.TextColor,
   },
   star: {
     alignSelf: 'center',
@@ -332,7 +392,7 @@ const styles = StyleSheet.create({
   buttonFlex: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: heightToDp(2),
+    marginTop: heightToDp(5),
   },
   dottedContianer: {
     alignItems: 'center',

@@ -29,11 +29,10 @@ const useCreateBooking = () => {
     timeOfBooking: null,
   });
   const FinalBookingData = useSelector(state => state.booking.booking);
-
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [createLocalBooking] = useMutation(CREATE_LOCAL_NOTARY_BOOKING);
   const handleBookingCreation = async (User, Service) => {
-    console.log(BookingData);
+    // console.log('I think issue is here:', FinalBookingData);
     const request = {
       variables: {
         ...FinalBookingData,

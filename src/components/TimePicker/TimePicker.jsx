@@ -6,15 +6,11 @@ import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
 export default function TimePicker(props) {
-  // console.log(props.onConfirm);
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(props.date);
   const handleCancel = () => {
     setOpen(false);
   };
-  // useEffect(() => {
-  //   console.log('In component', moment(selectedDate).format('h:mm A'));
-  // }, [selectedDate]);
   return (
     <View>
       <TouchableOpacity onPress={() => setOpen(true)}>

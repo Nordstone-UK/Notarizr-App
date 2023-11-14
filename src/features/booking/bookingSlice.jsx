@@ -4,7 +4,7 @@ const initialState = {
   booking: [],
   coordinates: [],
   user: [],
-  // bookingID: null,
+  numberOfDocs: 0,
 };
 
 export const bookingSlice = createSlice({
@@ -23,14 +23,14 @@ export const bookingSlice = createSlice({
       state.user = action.payload;
       // console.log('user Info Set in Redux', state.user);
     },
-    // setBookingID: (state, action) => {
-    //   state.bookingID = action.payload;
-    //   console.log('user Info Set in Redux', state.bookingID);
-    // },
+    setNumberOfDocs: (state, action) => {
+      state.numberOfDocs = action.payload;
+      console.log('user Info Set in Redux', state.numberOfDocs);
+    },
   },
 });
 
-export const {setBookingInfoState, setCoordinates, setUser} =
+export const {setBookingInfoState, setNumberOfDocs, setCoordinates, setUser} =
   bookingSlice.actions;
 
 export default bookingSlice.reducer;

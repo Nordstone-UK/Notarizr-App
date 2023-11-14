@@ -33,11 +33,11 @@ export default function ServiceDetailScreen({route, navigation}) {
   const {addresses} = useSelector(state => state.user.user);
   const [serviceFor, setServiceFor] = useState('self');
   const [selectAddress, setSelectedAddress] = useState();
-  const [firstName, setfirstName] = useState();
-  const [lastName, setlastName] = useState();
-  const [phoneNumber, setNumber] = useState();
-  const [location, setlocation] = useState();
-  const [email, setEmail] = useState();
+  const [firstName, setfirstName] = useState(null);
+  const [lastName, setlastName] = useState(null);
+  const [phoneNumber, setNumber] = useState(null);
+  const [location, setlocation] = useState(null);
+  const [email, setEmail] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -60,6 +60,30 @@ export default function ServiceDetailScreen({route, navigation}) {
     }
   };
   const submitAddressDetails = async () => {
+    console.log('====================================');
+    console.log({
+      serviceType: serviceType,
+      service: null,
+      agent: null,
+      documentType: {
+        name: null,
+        price: null,
+      },
+      timeOfBooking: null,
+      dateOfBooking: null,
+      address: selectAddress,
+      bookedFor: {
+        email: email,
+        first_name: firstName,
+        last_name: lastName,
+        location: location,
+        phone_number: phoneNumber,
+      },
+      bookingType: serviceFor,
+      documents: null,
+      preferenceAnalysis: 'distance',
+    });
+    console.log('====================================');
     setLoading(true);
     if (
       selectAddress ||
