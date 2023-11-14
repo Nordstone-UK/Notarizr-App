@@ -23,10 +23,14 @@ import {
   setCoordinates,
   setUser,
 } from '../../../features/booking/bookingSlice';
+import DocumentScanner from 'react-native-document-scanner-plugin';
+
 import moment from 'moment';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import useRegister from '../../../hooks/useRegister';
 import useFetchBooking from '../../../hooks/useFetchBooking';
+import {TouchableOpacity} from 'react-native';
+import useCustomerSuport from '../../../hooks/useCustomerSupport';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
@@ -35,6 +39,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     useBookingStatus();
   const {handleupdateBookingInfo} = useFetchBooking();
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
+  const {handleCallSupport} = useCustomerSuport();
   let {documents: documentArray} = clientDetail;
   const {booked_for} = clientDetail;
   const {proof_documents} = clientDetail;
@@ -136,6 +141,22 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     }
     setLoading(false);
   };
+  const [scannedImage, setScannedImage] = useState();
+
+  const scanDocument = async () => {
+    // start the document scanner
+    const {scannedImages} = await DocumentScanner.scanDocument();
+
+    // get back an array with scanned image file paths
+    if (scannedImages.length > 0) {
+      // set the img src, so we can view the first scanned image
+      setScannedImage(scannedImages[0]);
+      console.log('====================================');
+      console.log('scannedImages', scannedImages);
+      console.log('====================================');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -336,7 +357,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
             style={{
               flexDirection: 'row',
               marginHorizontal: widthToDp(7),
-              marginVertical: widthToDp(2),
+              // marginVertical: widthToDp(2),
               flexWrap: 'wrap',
               columnGap: widthToDp(2),
               rowGap: widthToDp(2),
@@ -346,7 +367,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 <Image
                   key={index}
                   source={require('../../../../assets/docPic.png')}
-                  style={{width: widthToDp(10), height: heightToDp(10)}}
+                  style={{
+                    width: widthToDp(10),
+                    height: heightToDp(10),
+                  }}
                 />
               ))
             ) : (
@@ -418,7 +442,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'center',
-                  marginTop: widthToDp(1),
                 }}>
                 <GradientButton
                   Title="Upload Documents"
@@ -428,7 +451,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   ]}
                   GradiStyles={{paddingHorizontal: widthToDp(3)}}
                   styles={{padding: 0}}
-                  onPress={() => selectDocuments()}
+                  onPress={() => scanDocument()}
                 />
                 <GradientButton
                   Title="Next"
@@ -445,6 +468,32 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   }}
                   onPress={() => handleNext()}
                 />
+              </View>
+            )}
+            {notary === 'Completed' && (
+              <View style={styles.dashedContainer}>
+                <Text
+                  style={{
+                    color: Colors.TextColor,
+                    fontFamily: 'Manrope-Regular',
+                    fontSize: widthToDp(4),
+                  }}>
+                  If you have any issues completing this Notary service, please
+                  contact customer support.
+                </Text>
+                <TouchableOpacity onPress={() => handleCallSupport()}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginTop: widthToDp(2),
+                      color: Colors.Orange,
+                      fontFamily: 'Manrope-Regular',
+                      fontSize: widthToDp(4),
+                      alignSelf: 'flex-end',
+                    }}>
+                    [Contact Support]
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
             {notary === null && showNotes ? (
@@ -485,6 +534,16 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),
+  },
+  dashedContainer: {
+    marginVertical: widthToDp(3),
+    marginHorizontal: widthToDp(5),
+    borderWidth: 3,
+    borderColor: Colors.DullTextColor,
+    borderStyle: 'dashed',
+    backgroundColor: Colors.DisableButtonColor,
+    borderRadius: 10,
+    padding: widthToDp(2),
   },
   headingContainer: {
     marginLeft: widthToDp(5),
@@ -546,7 +605,7 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(6),
   },
   buttonBottom: {
-    marginTop: heightToDp(5),
+    marginTop: heightToDp(3),
   },
   buttonFlex: {
     flexDirection: 'row',

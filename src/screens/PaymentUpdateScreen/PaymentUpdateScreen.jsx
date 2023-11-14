@@ -24,12 +24,13 @@ import {useSelector} from 'react-redux';
 import useStripeApi from '../../hooks/useStripeApi';
 
 export default function PaymentUpdateScreen({navigation}, props) {
-  const {handleStripeCreation} = useStripeApi();
+  const {handleStripeCreation, handleOnboardingLink} = useStripeApi();
 
   const user = useSelector(state => state.user.user.account_type);
   console.log('user', user);
   const [Link, setLink] = useState();
   const [loading, setLoading] = useState(false);
+
   const openLink = async () => {
     const supported = await Linking.canOpenURL(Link);
     if (supported) {
@@ -37,6 +38,16 @@ export default function PaymentUpdateScreen({navigation}, props) {
     } else {
       console.log("Don't know how to open URI: ", Link);
     }
+  };
+  useEffect(() => {
+    // CreateStripeAccount();
+    onBoardingLink();
+  }, []);
+  const onBoardingLink = async () => {
+    const response = await handleOnboardingLink();
+    console.log('====================================');
+    console.log('response', response);
+    console.log('====================================');
   };
   const CreateStripeAccount = async () => {
     setLoading(true);

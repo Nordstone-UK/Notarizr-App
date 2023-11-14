@@ -37,7 +37,9 @@ const StarRating = ({rating, onStarPress}) => {
 export default function ReviewPopup(props) {
   return (
     <View style={styles.bottonSheet}>
-      <Text style={styles.text}>Please provide us with your feedback</Text>
+      <Text style={styles.text}>
+        Please Provide us with feedback for your agent
+      </Text>
       <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
       <LabelTextInput
         LabelTextInput={'Reveiw'}

@@ -43,10 +43,8 @@ export default function ToBePaidScreen({route, navigation}) {
   const TotalPayment = DocumentPrice + numberOfDocs * 10;
   const initializePaymentSheet = async () => {
     setLoading(true);
-    const response = await fetchPaymentSheetParams(
-      TotalPayment * 100,
-      bookingData._id,
-    );
+    const response = await fetchPaymentSheetParams(1000 * 100, bookingData._id);
+
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
     console.log(
@@ -120,10 +118,16 @@ export default function ToBePaidScreen({route, navigation}) {
           booking!
         </Text>
       </View>
-      <Image
+      {/* <Image
         source={require('../../../assets/complete.png')}
         style={styles.complete}
-      />
+      /> */}
+      <View style={{marginTop: widthToDp(15), marginBottom: widthToDp(5)}}>
+        <Text style={[styles.text, {fontSize: widthToDp(5)}]}>
+          Please be assured that if the service is canceled or not completed for
+          any reason, your payment will be promptly refunded!
+        </Text>
+      </View>
       <View style={{marginVertical: widthToDp(5)}}>
         <GradientButton
           Title="Proceed to Pay"

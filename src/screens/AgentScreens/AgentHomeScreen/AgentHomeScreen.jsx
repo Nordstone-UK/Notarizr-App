@@ -71,16 +71,95 @@ export default function AgentHomeScreen({navigation}) {
           <Text style={styles.mainHeading}>
             Know how Notarizr helps you in getting more oppurtunities
           </Text>
-          {/* <WebView
-            source={{uri: 'https://www.youtube.com/watch?v=SgD7g0COp-I'}}
+          <View
             style={{
-              flex: 1,
-              width: widthToDp(95),
-              height: heightToDp(52),
-              alignSelf: 'center',
-              marginVertical: heightToDp(3),
-            }}
-          /> */}
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+            }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: Colors.DisableColor,
+                borderRadius: 15,
+                padding: widthToDp(2),
+                marginTop: widthToDp(3),
+                width: widthToDp(45),
+                flexDirection: 'row',
+              }}>
+              <View>
+                <Text
+                  style={{
+                    color: Colors.TextColor,
+                    fontFamily: 'Manrope-Bold',
+                    marginLeft: widthToDp(2),
+                    fontSize: widthToDp(4.5),
+                  }}>
+                  Total Bookings
+                </Text>
+                <Text
+                  style={{
+                    color: Colors.TextColor,
+                    fontFamily: 'Manrope-Bold',
+                    fontSize: widthToDp(4.5),
+                    marginLeft: widthToDp(3),
+                  }}>
+                  25
+                </Text>
+              </View>
+              <View
+                style={{
+                  marginLeft: 'auto',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  source={require('../../../../assets/arrow.png')}
+                  style={{width: 15, height: 15, resizeMode: 'contain'}}
+                />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                backgroundColor: Colors.DisableColor,
+                borderRadius: 15,
+                padding: widthToDp(2),
+                marginTop: widthToDp(3),
+                width: widthToDp(45),
+                // marginHorizontal: widthToDp(25),
+                flexDirection: 'row',
+              }}>
+              <View>
+                <Text
+                  style={{
+                    color: Colors.TextColor,
+                    fontFamily: 'Manrope-Bold',
+                    marginLeft: widthToDp(2),
+                    fontSize: widthToDp(4.5),
+                  }}>
+                  Total Payout
+                </Text>
+                <Text
+                  style={{
+                    color: Colors.TextColor,
+                    fontFamily: 'Manrope-Bold',
+                    fontSize: widthToDp(4.5),
+                    marginLeft: widthToDp(3),
+                  }}>
+                  $250
+                </Text>
+              </View>
+              <View
+                style={{
+                  marginLeft: 'auto',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  source={require('../../../../assets/arrow.png')}
+                  style={{width: 15, height: 15, resizeMode: 'contain'}}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton
               Title="Service Preferences"

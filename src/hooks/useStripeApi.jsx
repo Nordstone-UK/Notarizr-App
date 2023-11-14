@@ -16,6 +16,9 @@ const useStripeApi = () => {
       console.log('response', response.data);
       if (response?.data?.createStripeAccount?.status) {
         const response = await handleOnboardingLink();
+        console.log('====================================');
+        console.log('onbaordingLink', response.data);
+        console.log('====================================');
         return response;
       }
     } catch (error) {
@@ -48,7 +51,7 @@ const useStripeApi = () => {
       console.error(error);
     }
   };
-  return {handleStripeCreation, fetchPaymentSheetParams};
+  return {handleStripeCreation, fetchPaymentSheetParams, handleOnboardingLink};
 };
 
 export default useStripeApi;

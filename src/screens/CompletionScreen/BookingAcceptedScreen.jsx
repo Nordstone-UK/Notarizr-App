@@ -17,12 +17,12 @@ export default function BookingAcceptedScreen({route, navigation}) {
   const dispatch = useDispatch();
   useEffect(() => {
     const delay = 3000;
-    // dispatch(serviceCheck());
-    // const timer = setTimeout(() => {
-    //   navigation.navigate('MapArrivalScreen');
-    // }, delay);
+    dispatch(serviceCheck());
+    const timer = setTimeout(() => {
+      navigation.navigate('MapArrivalScreen');
+    }, delay);
 
-    // return () => clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [navigation]);
   return (
     <SafeAreaView style={styles.container}>

@@ -28,6 +28,7 @@ import {captureImage, chooseFile} from '../../utils/ImagePicker';
 
 import {profilePictureSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
+import useRegister from '../../hooks/useRegister';
 
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState();
@@ -36,7 +37,7 @@ export default function ProfilePictureScreen({navigation}) {
   const [profilePicture, setProfilePicure] = useState('');
   const variables = useSelector(state => state.register);
   const dispatch = useDispatch();
-
+  const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
   const showCameraGalleryAlert = () => {
     Alert.alert(
       'Choose an option',

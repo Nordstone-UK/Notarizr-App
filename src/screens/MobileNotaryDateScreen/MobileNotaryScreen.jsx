@@ -45,6 +45,9 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   // const [numberOfDocs, setNumberOfDocs] = useState(0);
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  const BoldText = ({children}) => {
+    return <Text style={{fontWeight: 'bold'}}>{children}</Text>;
+  };
   const submitAddressDetails = async () => {
     setLoading(true);
     if (date) {
@@ -235,6 +238,28 @@ export default function MobileNotaryDateScreen({route, navigation}) {
             onPress={() => submitAddressDetails()}
             loading={loading}
           />
+          <View style={styles.dashedContainer}>
+            <Text
+              style={{
+                color: Colors.TextColor,
+                fontFamily: 'Manrope-Bold',
+                fontSize: widthToDp(4),
+              }}>
+              Note:
+            </Text>
+            <Text
+              style={{
+                color: Colors.TextColor,
+                fontFamily: 'Manrope-Regular',
+                fontSize: widthToDp(3.5),
+              }}>
+              By continuing you agree to our terms that all signings are
+              scheduled for a one-hour duration. Any additional time beyond this
+              will incur an extra charge of
+              <Text style={{fontFamily: 'Manrope-Bold'}}> +$25 </Text>per
+              half-hour.
+            </Text>
+          </View>
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -253,6 +278,15 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: Colors.TextColor,
+  },
+  dashedContainer: {
+    marginHorizontal: widthToDp(5),
+    borderWidth: 3,
+    borderColor: Colors.DullTextColor,
+    borderStyle: 'dashed',
+    backgroundColor: Colors.DisableButtonColor,
+    borderRadius: 10,
+    padding: widthToDp(2),
   },
   slot: {
     borderRadius: 10,

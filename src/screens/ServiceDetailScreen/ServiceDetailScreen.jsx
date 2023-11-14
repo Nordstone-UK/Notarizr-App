@@ -60,30 +60,6 @@ export default function ServiceDetailScreen({route, navigation}) {
     }
   };
   const submitAddressDetails = async () => {
-    console.log('====================================');
-    console.log({
-      serviceType: serviceType,
-      service: null,
-      agent: null,
-      documentType: {
-        name: null,
-        price: null,
-      },
-      timeOfBooking: null,
-      dateOfBooking: null,
-      address: selectAddress,
-      bookedFor: {
-        email: email,
-        first_name: firstName,
-        last_name: lastName,
-        location: location,
-        phone_number: phoneNumber,
-      },
-      bookingType: serviceFor,
-      documents: null,
-      preferenceAnalysis: 'distance',
-    });
-    console.log('====================================');
     setLoading(true);
     if (
       selectAddress ||
