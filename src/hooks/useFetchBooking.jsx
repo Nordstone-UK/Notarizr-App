@@ -110,12 +110,29 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
+  const getTotalBookings = async () => {
+    const request = {
+      variables: {
+        status: 'completed',
+        page: 1,
+        pageSize: 1000,
+      },
+    };
+    try {
+      const {data} = await getAgentBooking(request);
+      // console.log('Agent Booking iNfo', data);
+      return data?.getAgentBookings?.totalDocs;
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return {
     fetchBookingInfo,
     fetchAgentBookingInfo,
     handleupdateBookingInfo,
     fetchBookingByID,
     handleReviewSubmit,
+    getTotalBookings,
   };
 };
 

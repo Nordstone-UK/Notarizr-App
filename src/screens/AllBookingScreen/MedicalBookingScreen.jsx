@@ -31,6 +31,7 @@ import useBookingStatus from '../../hooks/useBookingStatus';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import moment from 'moment';
 import useFetchBooking from '../../hooks/useFetchBooking';
+import useCustomerSuport from '../../hooks/useCustomerSupport';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
@@ -38,6 +39,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const {handleReviewSubmit} = useFetchBooking();
   const payment = useSelector(state => state.payment.payment);
   const dispatch = useDispatch();
+  const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
   const {documents} = bookingDetail;
   const {booked_for} = bookingDetail;
@@ -118,6 +120,8 @@ export default function MedicalBookingScreen({route, navigation}) {
         reset={true}
         lastImg={require('../../../assets/chatIcon.png')}
         lastImgPress={() => navigation.navigate('ChatScreen')}
+        midImg={require('../../../assets/supportIcon.png')}
+        midImgPress={() => handleCallSupport()}
       />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>

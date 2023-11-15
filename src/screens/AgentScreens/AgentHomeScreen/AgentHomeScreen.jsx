@@ -31,10 +31,13 @@ import WebView from 'react-native-webview';
 export default function AgentHomeScreen({navigation}) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
-  const {fetchAgentBookingInfo} = useFetchBooking();
+  const {fetchAgentBookingInfo, getTotalBookings} = useFetchBooking();
   const [Booking, setBooking] = useState([]);
+  const [totalBooking, setTotalBooknig] = useState(0);
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
+    const totalBookings = await getTotalBookings();
+    setTotalBooknig(totalBookings);
     setBooking(bookingDetail);
   };
   const onRefresh = React.useCallback(() => {
@@ -68,30 +71,27 @@ export default function AgentHomeScreen({navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           contentContainerStyle={styles.contentContainer}>
-          {/* <Text style={styles.mainHeading}>
-            Know how Notarizr helps you in getting more oppurtunities
-          </Text> */}
           <View
             style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
+              marginVertical: widthToDp(3),
+              alignSelf: 'center',
             }}>
             <TouchableOpacity
               style={{
                 backgroundColor: Colors.PinkBackground,
                 borderRadius: 15,
-                padding: widthToDp(2),
-                marginTop: widthToDp(3),
-                width: widthToDp(45),
+                padding: widthToDp(4),
+                width: widthToDp(80),
                 flexDirection: 'row',
-              }}>
+              }}
+              onPress={() => navigation.navigate('BookScreen')}>
               <View>
                 <Text
                   style={{
                     color: Colors.TextColor,
                     fontFamily: 'Manrope-Bold',
                     marginLeft: widthToDp(2),
-                    fontSize: widthToDp(4),
+                    fontSize: widthToDp(5),
                   }}>
                   Total Bookings
                 </Text>
@@ -99,10 +99,10 @@ export default function AgentHomeScreen({navigation}) {
                   style={{
                     color: Colors.TextColor,
                     fontFamily: 'Manrope-Bold',
-                    fontSize: widthToDp(4.5),
+                    fontSize: widthToDp(6),
                     marginLeft: widthToDp(3),
                   }}>
-                  25
+                  {totalBooking}
                 </Text>
               </View>
               <View
@@ -121,11 +121,10 @@ export default function AgentHomeScreen({navigation}) {
               style={{
                 backgroundColor: Colors.PinkBackground,
                 borderRadius: 15,
-                padding: widthToDp(2),
-                marginTop: widthToDp(3),
-                width: widthToDp(45),
-
+                padding: widthToDp(4),
+                width: widthToDp(80),
                 flexDirection: 'row',
+                marginTop: widthToDp(3),
               }}>
               <View>
                 <Text
@@ -133,7 +132,7 @@ export default function AgentHomeScreen({navigation}) {
                     color: Colors.TextColor,
                     fontFamily: 'Manrope-Bold',
                     marginLeft: widthToDp(2),
-                    fontSize: widthToDp(4),
+                    fontSize: widthToDp(5),
                   }}>
                   Total Payout
                 </Text>
@@ -141,7 +140,7 @@ export default function AgentHomeScreen({navigation}) {
                   style={{
                     color: Colors.TextColor,
                     fontFamily: 'Manrope-Bold',
-                    fontSize: widthToDp(4.5),
+                    fontSize: widthToDp(6),
                     marginLeft: widthToDp(3),
                   }}>
                   $250

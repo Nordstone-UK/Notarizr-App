@@ -70,7 +70,7 @@ export default function AgentTimeCard(props) {
         {props.task === 'to_be_paid' ? (
           <Text style={styles.text}>To be Paid</Text>
         ) : (
-          <Text style={styles.text}>{props.task}</Text>
+          <Text style={styles.text}>{capitalizeFirstLetter(props.task)}</Text>
         )}
       </View>
       <LinearGradient

@@ -163,6 +163,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
         Title="Booking"
         lastImg={require('../../../../assets/chatIcon.png')}
         lastImgPress={() => navigation.navigate('ChatScreen')}
+        midImg={require('../../../../assets/supportIcon.png')}
+        midImgPress={() => handleCallSupport()}
       />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
