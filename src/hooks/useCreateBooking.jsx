@@ -40,7 +40,7 @@ const useCreateBooking = () => {
         agent: User,
       },
     };
-    console.log('prev', request);
+    // console.log('prev', request);
     try {
       const response = await createBooking(request);
       return response.data.createBookingR;

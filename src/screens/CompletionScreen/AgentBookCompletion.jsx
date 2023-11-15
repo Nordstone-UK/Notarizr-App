@@ -6,21 +6,31 @@ import {
   SafeAreaView,
   ImageBackground,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LottieView from 'lottie-react-native';
 
-export default function AgentBookCompletion({route, navigation}) {
+export default function AgentBookCompletion({navigation}) {
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    const delay = 3000;
+    setIsMounted(true);
+
+    const delay = 5000; // Delay in milliseconds (5 seconds)
 
     const timer = setTimeout(() => {
-      navigation.navigate('MedicalBookingScreen');
+      if (isMounted) {
+        navigation.navigate('MedicalBookingScreen');
+      }
     }, delay);
 
-    return () => clearTimeout(timer);
-  }, [navigation]);
+    return () => {
+      clearTimeout(timer);
+      setIsMounted(false);
+    };
+  }, [navigation, isMounted]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View

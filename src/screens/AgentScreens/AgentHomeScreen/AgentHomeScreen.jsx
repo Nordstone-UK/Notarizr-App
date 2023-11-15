@@ -68,9 +68,9 @@ export default function AgentHomeScreen({navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.mainHeading}>
+          {/* <Text style={styles.mainHeading}>
             Know how Notarizr helps you in getting more oppurtunities
-          </Text>
+          </Text> */}
           <View
             style={{
               flexDirection: 'row',
@@ -78,7 +78,7 @@ export default function AgentHomeScreen({navigation}) {
             }}>
             <TouchableOpacity
               style={{
-                backgroundColor: Colors.DisableColor,
+                backgroundColor: Colors.PinkBackground,
                 borderRadius: 15,
                 padding: widthToDp(2),
                 marginTop: widthToDp(3),
@@ -91,7 +91,7 @@ export default function AgentHomeScreen({navigation}) {
                     color: Colors.TextColor,
                     fontFamily: 'Manrope-Bold',
                     marginLeft: widthToDp(2),
-                    fontSize: widthToDp(4.5),
+                    fontSize: widthToDp(4),
                   }}>
                   Total Bookings
                 </Text>
@@ -119,12 +119,12 @@ export default function AgentHomeScreen({navigation}) {
             </TouchableOpacity>
             <TouchableOpacity
               style={{
-                backgroundColor: Colors.DisableColor,
+                backgroundColor: Colors.PinkBackground,
                 borderRadius: 15,
                 padding: widthToDp(2),
                 marginTop: widthToDp(3),
                 width: widthToDp(45),
-                // marginHorizontal: widthToDp(25),
+
                 flexDirection: 'row',
               }}>
               <View>
@@ -133,7 +133,7 @@ export default function AgentHomeScreen({navigation}) {
                     color: Colors.TextColor,
                     fontFamily: 'Manrope-Bold',
                     marginLeft: widthToDp(2),
-                    fontSize: widthToDp(4.5),
+                    fontSize: widthToDp(4),
                   }}>
                   Total Payout
                 </Text>

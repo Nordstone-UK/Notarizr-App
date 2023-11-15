@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: Colors.DullTextColor,
     borderStyle: 'dashed',
-    backgroundColor: Colors.DisableButtonColor,
+    backgroundColor: Colors.PinkBackground,
     borderRadius: 10,
     padding: widthToDp(2),
   },

@@ -33,7 +33,6 @@ export default function ToBePaidScreen({route, navigation}) {
       setCoordinates(bookingData?.booked_by?.current_location?.coordinates),
     );
     dispatch(setUser(bookingData?.agent));
-    navigation.navigate('MedicalBookingScreen');
   };
 
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
@@ -43,16 +42,13 @@ export default function ToBePaidScreen({route, navigation}) {
   const TotalPayment = DocumentPrice + numberOfDocs * 10;
   const initializePaymentSheet = async () => {
     setLoading(true);
-    const response = await fetchPaymentSheetParams(1000 * 100, bookingData._id);
-
+    const response = await fetchPaymentSheetParams(
+      TotalPayment * 100,
+      bookingData._id,
+    );
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
-    console.log(
-      'Payment Intent response',
-      customer_id,
-      ephemeralKey,
-      paymentIntent,
-    );
+
     const {error} = await initPaymentSheet({
       merchantDisplayName: 'The Opal Group',
       customerId: customer_id,
@@ -67,7 +63,6 @@ export default function ToBePaidScreen({route, navigation}) {
     });
     if (!error) {
       setLoading(true);
-      // console.log('error', error);
     }
     setLoading(false);
   };
@@ -107,34 +102,32 @@ export default function ToBePaidScreen({route, navigation}) {
           resizeMode="cover"
         />
       </View>
-      <View style={styles.completeIcon}>
-        <Image
-          source={require('../../../assets/completedIcon.png')}
-          style={styles.icon}
-        />
+      <View style={{flex: 1, justifyContent: 'center'}}>
+        <View style={styles.completeIcon}>
+          <Image
+            source={require('../../../assets/completedIcon.png')}
+            style={styles.icon}
+          />
 
-        <Text style={styles.text}>
-          You have been matched with an Agent. Please pay to proceed with your
-          booking!
-        </Text>
-      </View>
-      {/* <Image
-        source={require('../../../assets/complete.png')}
-        style={styles.complete}
-      /> */}
-      <View style={{marginTop: widthToDp(15), marginBottom: widthToDp(5)}}>
-        <Text style={[styles.text, {fontSize: widthToDp(5)}]}>
-          Please be assured that if the service is canceled or not completed for
-          any reason, your payment will be promptly refunded!
-        </Text>
-      </View>
-      <View style={{marginVertical: widthToDp(5)}}>
-        <GradientButton
-          Title="Proceed to Pay"
-          loading={loading}
-          onPress={() => openPaymentSheet()}
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-        />
+          <Text style={styles.text}>
+            You have been matched with an Agent. Please pay to proceed with your
+            booking!
+          </Text>
+        </View>
+        <View style={{marginTop: widthToDp(15), marginBottom: widthToDp(5)}}>
+          <Text style={[styles.text, {fontSize: widthToDp(5)}]}>
+            Please be assured that if the service is canceled or not completed
+            for any reason, your payment will be promptly refunded!
+          </Text>
+        </View>
+        <View style={{marginVertical: widthToDp(5)}}>
+          <GradientButton
+            Title="Proceed to Pay"
+            loading={loading}
+            onPress={() => openPaymentSheet()}
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );

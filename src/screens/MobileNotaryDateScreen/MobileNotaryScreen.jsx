@@ -30,6 +30,7 @@ import {convertToJsonObject} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
 import DatePicker from 'react-native-date-picker';
 import {Button} from '@rneui/base';
+import useCustomerSuport from '../../hooks/useCustomerSupport';
 
 export default function MobileNotaryDateScreen({route, navigation}) {
   const dispatch = useDispatch();
@@ -45,9 +46,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   // const [numberOfDocs, setNumberOfDocs] = useState(0);
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-  const BoldText = ({children}) => {
-    return <Text style={{fontWeight: 'bold'}}>{children}</Text>;
-  };
+  const {handleCallSupport} = useCustomerSuport();
   const submitAddressDetails = async () => {
     setLoading(true);
     if (date) {
@@ -93,6 +92,8 @@ export default function MobileNotaryDateScreen({route, navigation}) {
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="Booking"
+        midImg={require('../../../assets/supportIcon.png')}
+        midImgPress={() => handleCallSupport()}
         lastImg={require('../../../assets/bellIcon.png')}
       />
       <Text style={styles.heading}>Please select Date and Time</Text>
@@ -116,7 +117,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
                     paddingHorizontal: widthToDp(2),
                     borderRadius: widthToDp(2),
                   }}>
-                  {moment(date).format('YYYY-MM-DD hh:mm A')}
+                  {moment(date).format('MM-DD-YYYY hh:mm A')}
                 </Text>
               </TouchableOpacity>
               <DatePicker
