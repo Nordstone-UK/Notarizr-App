@@ -17,6 +17,7 @@ import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useSelector} from 'react-redux';
 import useBookingStatus from '../../hooks/useBookingStatus';
+import useCustomerSuport from '../../hooks/useCustomerSupport';
 
 export default function MapArrivalScreen({navigation}, props) {
   const [location, setLocation] = useState();
@@ -24,6 +25,7 @@ export default function MapArrivalScreen({navigation}, props) {
   const clientData = useSelector(state => state.booking.user);
   const coordinates = useSelector(state => state.booking.coordinates);
   const user = useSelector(state => state.user.user.account_type);
+  const {handleCallSupport} = useCustomerSuport();
   const handleGetLocation = async () => {
     try {
       const coordinates = await getLocation();
@@ -101,6 +103,8 @@ export default function MapArrivalScreen({navigation}, props) {
       <NavigationHeader
         Title={clientData?.first_name + ' ' + clientData?.last_name}
         ProfilePic={{uri: clientData?.profile_picture}}
+        midImg={require('../../../assets/supportIcon.png')}
+        midImgPress={() => handleCallSupport()}
         lastImg={require('../../../assets/chatIcon.png')}
         lastImgPress={() => navigation.navigate('ChatScreen')}
       />

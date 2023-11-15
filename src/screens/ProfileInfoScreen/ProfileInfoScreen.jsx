@@ -17,7 +17,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
 export default function ProfileInfoScreen({navigation}) {
   const accountType = useSelector(state => state.register.accountType);
-  const {first_name, profile_picture} = useSelector(state => state.user.user);
+  const {first_name, profile_picture, account_type} = useSelector(
+    state => state.user.user,
+  );
   const {fetchUserInfo} = useFetchUser();
   const clearTokenFromStorage = async () => {
     try {
@@ -38,6 +40,9 @@ export default function ProfileInfoScreen({navigation}) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
+      console.log('====================================');
+      console.log('ProfileInfoScreen sending...', account_type);
+      console.log('====================================');
     });
     return unsubscribe;
   }, [navigation]);
@@ -74,12 +79,6 @@ export default function ProfileInfoScreen({navigation}) {
               Title="Profile Details"
               onPress={() => navigation.navigate('ProfileDetailEditScreen')}
             />
-
-            {/* <SettingOptions
-              icon={require('../../../assets/passwordLock.png')}
-              Title="Change Password"
-              onPress={() => navigation.navigate('PasswordEditScreen')}
-            /> */}
             <SettingOptions
               icon={require('../../../assets/greenLocation.png')}
               Title="Address"
@@ -90,6 +89,21 @@ export default function ProfileInfoScreen({navigation}) {
               Title="Payment Method"
               onPress={() => navigation.navigate('PaymentUpdateScreen')}
             />
+
+            {account_type !== 'client' && (
+              <SettingOptions
+                icon={require('../../../assets/license.png')}
+                Title="Update License"
+                // onPress={() => navigation.navigate('PasswordEditScreen')}
+              />
+            )}
+            {account_type !== 'client' && (
+              <SettingOptions
+                icon={require('../../../assets/training.png')}
+                Title="Trainings"
+                // onPress={() => navigation.navigate('PasswordEditScreen')}
+              />
+            )}
             <SettingOptions
               icon={require('../../../assets/logout.png')}
               Title="Log out"

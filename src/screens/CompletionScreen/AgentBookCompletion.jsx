@@ -17,7 +17,7 @@ export default function AgentBookCompletion({navigation}) {
   useEffect(() => {
     setIsMounted(true);
 
-    const delay = 5000; // Delay in milliseconds (5 seconds)
+    const delay = 5000;
 
     const timer = setTimeout(() => {
       if (isMounted) {

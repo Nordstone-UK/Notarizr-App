@@ -38,7 +38,7 @@ export default function ReviewPopup(props) {
   return (
     <View style={styles.bottonSheet}>
       <Text style={styles.text}>
-        Please Provide us with feedback for your agent
+        Please provide us with feedback for your agent
       </Text>
       <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
       <LabelTextInput

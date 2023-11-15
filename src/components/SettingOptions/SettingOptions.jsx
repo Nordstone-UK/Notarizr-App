@@ -10,10 +10,7 @@ export default function SettingOptions(props) {
         <Image source={props.icon} style={styles.icon} />
         <Text style={styles.settingText}>{props.Title}</Text>
       </View>
-      <Image
-        source={require('../../../assets/arrow.png')}
-        style={styles.icon}
-      />
+      <Image source={require('../../../assets/arrow.png')} />
     </TouchableOpacity>
   );
 }
@@ -28,6 +25,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Colors.DullWhite,
     marginVertical: heightToDp(2),
+  },
+  icon: {
+    width: widthToDp(8),
+    height: heightToDp(8),
+    resizeMode: 'contain',
   },
   iconsetting: {
     flexDirection: 'row',

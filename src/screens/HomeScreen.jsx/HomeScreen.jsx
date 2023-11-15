@@ -25,6 +25,7 @@ import {
   setUser,
 } from '../../features/booking/bookingSlice';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
+import ModalCheck from '../../components/ModalComponent/ModalCheck';
 
 export default function HomeScreen({navigation}) {
   const {fetchBookingInfo} = useFetchBooking();
@@ -147,6 +148,7 @@ export default function HomeScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
+      <ModalCheck />
     </SafeAreaView>
   );
 }
