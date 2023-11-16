@@ -17,7 +17,7 @@ const useFetchBooking = () => {
   const [clientBooking, setClientBooking] = useState({
     status: 'pending',
     page: 1,
-    pageSize: 5,
+    pageSize: 15,
   });
   const fetchBookingInfo = async status => {
     const request = {

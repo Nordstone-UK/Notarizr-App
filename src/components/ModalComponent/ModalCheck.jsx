@@ -19,28 +19,30 @@ import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function ModalCheck(props) {
   const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(props.modalVisible || true);
   const dispatch = useDispatch();
   const service = useSelector(state => state.service.service);
   const [Feedback, setFeedback] = useState('');
   // useSelector(state => state.service.service);
-  useFocusEffect(
-    React.useCallback(() => {
-      setModalVisible(service);
-    }, [service]),
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     // setModalVisible(service);
+  //   }, [service]),
+  // );
 
   const handleNavigation = () => {
     dispatch(serviceCheck());
-    setModalVisible(false);
+    // setModalVisible(false);
     // navigation.navigate('AgentLocalNotaryEndScreen');
   };
   const closeServiceModal = () => {
     dispatch(serviceCheck());
-    setModalVisible(false);
+    // setModalVisible(false);
   };
   return (
-    <Modal animationType="slide" transparent={true} visible={modalVisible}>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={props.modalVisible}>
       <View style={{flex: 1, justifyContent: 'center'}}>
         <View style={styles.container}>
           <Image
@@ -66,7 +68,7 @@ export default function ModalCheck(props) {
             InputStyles={{padding: widthToDp(4)}}
           />
           <MainButton
-            onPress={() => closeServiceModal()}
+            onPress={props.onSubmit}
             Title="Submit Feedback"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             GradiStyles={{

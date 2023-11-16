@@ -34,7 +34,6 @@ export default function ToBePaidScreen({route, navigation}) {
     );
     dispatch(setUser(bookingData?.agent));
   };
-
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);

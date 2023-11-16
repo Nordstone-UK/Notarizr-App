@@ -32,7 +32,7 @@ import useFetchBooking from '../../../hooks/useFetchBooking';
 import {TouchableOpacity} from 'react-native';
 import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import Toast from 'react-native-toast-message';
-import {BottomSheet} from '@rneui/base';
+import {BottomSheet, Overlay} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
@@ -50,7 +50,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const [status, setStatus] = useState();
   const [isVisible, setIsVisible] = useState(false);
   const [notary, setNotary] = useState();
-  const [documents, setDocuments] = useState({});
+  // const [documents, setDocuments] = useState({});
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,16 +93,16 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     // console.log('status', clientDetail);
     // console.log('====================================');
   }, [status]);
-  const selectDocuments = async () => {
-    const response = await uploadMultipleFiles();
-    const urlResponse = await uploadAllDocuments(response);
-    console.log('====================================');
-    console.log('urlResponse', urlResponse);
-    console.log('====================================');
-    setDocuments(urlResponse);
-  };
+  // const selectDocuments = async () => {
+  //   const response = await uploadMultipleFiles();
+  //   const urlResponse = await uploadAllDocuments(response);
+  //   console.log('====================================');
+  //   console.log('urlResponse', urlResponse);
+  //   console.log('====================================');
+  //   setDocuments(urlResponse);
+  // };
   const handleNext = () => {
-    if (Object.keys(documents).length === 0) {
+    if (!signaturePage || !notaryBlock) {
       Toast.show({
         type: 'error',
         text1: 'Please upload documents',
@@ -130,6 +130,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   };
   const handleComplete = async () => {
     setLoading(true);
+    const signatureURL = await uploadAllDocuments(signaturePage);
+    const notaryURL = await uploadAllDocuments(notaryBlock);
+    const documents = {
+      Signature_Page: signatureURL,
+      Notary_Block: notaryURL,
+    };
     await handleStatusChange('completed', clientDetail._id);
     const response = await handleupdateBookingInfo(
       clientDetail._id,
@@ -152,23 +158,19 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   };
   const scanDocument = async () => {
     const {scannedImages} = await DocumentScanner.scanDocument();
-    if (scannedImages.length > 0) {
-      console.log('====================================');
-      console.log('scannedImages', scannedImages);
-      console.log('====================================');
-      const urlResponse = await uploadAllDocuments(scannedImages);
-      console.log('====================================');
-      console.log('urlResponse', urlResponse);
-      console.log('====================================');
-      setDocuments(urlResponse);
-    }
+    return scannedImages;
   };
   const handleSignaturePage = async () => {
-    // await scanDocument();
+    const signatureResponse = await scanDocument();
+    setSignaturePage(signatureResponse);
+    console.log('====================================');
+    console.log('signatureResponse', signatureResponse);
+    console.log('====================================');
     setIsVisible(false);
   };
   const handleNotaryBlock = async () => {
-    // await scanDocument();
+    const NotaryResponse = await scanDocument();
+    setNotaryBlock(NotaryResponse);
     setIsVisible(false);
   };
   const handleCancel = async () => {
@@ -372,28 +374,37 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
               Agent Documents
             </Text>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              marginHorizontal: widthToDp(7),
-              // marginVertical: widthToDp(2),
-              flexWrap: 'wrap',
-              columnGap: widthToDp(2),
-              rowGap: widthToDp(2),
-            }}>
-            {Object.keys(documents || proof_documents).length !== 0 ? (
-              Object.keys(documents || proof_documents).map((key, index) => (
-                <Image
-                  key={index}
-                  source={require('../../../../assets/docPic.png')}
-                  style={{
-                    width: widthToDp(10),
-                    height: heightToDp(10),
-                  }}
+          <View>
+            {notaryBlock && signaturePage ? (
+              <>
+                <DocumentComponent
+                  Title="Signature Page"
+                  image={require('../../../../assets/Pdf.png')}
+                  onPress={() => setSignaturePage(null)}
                 />
-              ))
+
+                <DocumentComponent
+                  Title="Notary Block"
+                  image={require('../../../../assets/Pdf.png')}
+                  onPress={() => setNotaryBlock(null)}
+                />
+              </>
+            ) : notaryBlock ? (
+              <DocumentComponent
+                Title="Notary Block"
+                image={require('../../../../assets/Pdf.png')}
+                onPress={() => setNotaryBlock(null)}
+              />
+            ) : signaturePage ? (
+              <DocumentComponent
+                Title="Signature Page"
+                image={require('../../../../assets/Pdf.png')}
+                onPress={() => setSignaturePage(null)}
+              />
             ) : (
-              <Text style={styles.preference}>No Documents</Text>
+              <Text style={[styles.preference, {marginLeft: widthToDp(10)}]}>
+                No Documents
+              </Text>
             )}
           </View>
           {showNotes && (
@@ -448,42 +459,31 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
             )}
           </View>
           <View style={styles.buttonBottom}>
-            {notary === 'Ongoing' && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  width: widthToDp(90),
-                  alignSelf: 'center',
-                }}>
-                <GradientButton
-                  Title="Upload Documents"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{paddingHorizontal: widthToDp(3)}}
-                  styles={{padding: 0, fontSize: widthToDp(5)}}
-                  onPress={() => setIsVisible(true)}
-                />
+            {notary === 'Ongoing' && (!notaryBlock || !signaturePage) && (
+              <GradientButton
+                Title="Upload Documents"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{padding: widthToDp(4)}}
+                styles={{padding: 0, fontSize: widthToDp(5)}}
+                onPress={() => setIsVisible(true)}
+              />
+            )}
+            {signaturePage &&
+              notaryBlock &&
+              !showNotes &&
+              status !== 'Completed' && (
                 <GradientButton
                   Title="Next"
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
                   ]}
-                  GradiStyles={{
-                    marginHorizontal: widthToDp(3),
-                  }}
-                  styles={{
-                    padding: widthToDp(3),
-                    fontSize: widthToDp(5),
-                  }}
+                  GradiStyles={{padding: widthToDp(4)}}
+                  styles={{padding: 0, fontSize: widthToDp(5)}}
                   onPress={() => handleNext()}
                 />
-              </View>
-            )}
-            {notary === null && showNotes && (
+              )}
+            {showNotes && (
               <View style={{marginBottom: widthToDp(5)}}>
                 <GradientButton
                   Title="Complete Notary"
@@ -525,7 +525,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           </View>
         </ScrollView>
         {isVisible ? (
-          <BottomSheet modalProps={{}} isVisible={isVisible}>
+          <BottomSheet
+            isVisible={isVisible}
+            modalProps={{
+              statusBarTranslucent: true,
+            }}>
             <UploadDocsSheet
               SignaturePagePress={() => handleSignaturePage()}
               NotaryBlockPress={() => handleNotaryBlock()}
@@ -641,6 +645,36 @@ const styles = StyleSheet.create({
 });
 
 {
+  {
+    /* <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  width: widthToDp(90),
+                  alignSelf: 'center',
+                }}> */
+  }
+
+  {
+    /* <GradientButton
+                  Title="Next"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    marginHorizontal: widthToDp(3),
+                  }}
+                  styles={{
+                    padding: widthToDp(3),
+                    fontSize: widthToDp(5),
+                  }}
+                  onPress={() => handleNext()}
+                /> */
+  }
+  {
+    /* </View> */
+  }
   /* {notary === null && showNotes ? (
               <GradientButton
                 Title="Request Payment"

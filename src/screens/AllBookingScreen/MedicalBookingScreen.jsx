@@ -6,6 +6,7 @@ import {
   View,
   RefreshControl,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -82,14 +83,20 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   useFocusEffect(
     React.useCallback(() => {
-      setIsVisible(payment);
-    }, [payment]),
+      if (
+        status === 'Completed' &&
+        !bookingDetail.review &&
+        !bookingDetail.rating
+      ) {
+        setIsVisible(true);
+      }
+    }, [status]),
   );
   useEffect(() => {
     getBookingStatus();
-    console.log('====================================');
-    console.log('status', bookingDetail._id);
-    console.log('====================================');
+    // console.log('====================================');
+    // console.log('status', bookingDetail);
+    // console.log('====================================');
   }, [status]);
   const handleReduxPayment = async () => {
     setIsVisible(false);
@@ -103,8 +110,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       rating,
     );
     if (response === '200') {
-      await handleUpdateBookingStatus('paid', bookingDetail?._id);
-      navigation.navigate('HomeScreen');
+      navigation.navigate('AllBookingScreen', {bookingComplete: true});
     }
   };
   const onRefresh = React.useCallback(() => {
@@ -114,7 +120,21 @@ export default function MedicalBookingScreen({route, navigation}) {
       setRefreshing(false);
     }, 2000);
   }, []);
-
+  const showConfirmation = () => {
+    Alert.alert('Is the agent at the location?', '', [
+      {
+        text: 'No',
+        onPress: () => {},
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          handleStatusChange();
+        },
+        style: 'cancel',
+      },
+    ]);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -184,7 +204,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   bookingDetail?.agent?.last_name
                 }
                 agentAddress={bookingDetail?.agent?.location}
-                task={bookingDetail?.status}
+                task={status}
                 OrangeText={'At Office'}
                 dateofBooking={bookingDetail?.date_of_booking}
                 timeofBooking={bookingDetail?.time_of_booking}
@@ -388,7 +408,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                       padding: widthToDp(0),
                       fontSize: widthToDp(5),
                     }}
-                    onPress={() => handleStatusChange()}
+                    onPress={() => showConfirmation()}
                     loading={loading}
                   />
                 </>
@@ -409,7 +429,11 @@ export default function MedicalBookingScreen({route, navigation}) {
                     padding: widthToDp(0),
                     fontSize: widthToDp(6),
                   }}
-                  onPress={() => navigation.navigate('PaymentScreen')}
+                  onPress={() =>
+                    navigation.navigate('ToBePaidScreen', {
+                      bookingData: bookingDetail,
+                    })
+                  }
                 />
               )}
             </View>

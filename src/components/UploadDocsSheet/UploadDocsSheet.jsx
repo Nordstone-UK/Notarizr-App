@@ -1,7 +1,5 @@
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
-// import LabelTextInput from '../LabelTextInput/LabelTextInput';
-// import GradientButton from '../MainGradientButton/GradientButton';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 
@@ -14,7 +12,7 @@ export default function UploadDocsSheet(props) {
       <TouchableOpacity onPress={props.NotaryBlockPress}>
         <Text style={styles.text}>Notary Block</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={props.NotaryBlockPress}>
+      <TouchableOpacity onPress={props.CancelPress}>
         <Text style={[styles.text, {color: Colors.Red}]}>Cancel</Text>
       </TouchableOpacity>
     </View>

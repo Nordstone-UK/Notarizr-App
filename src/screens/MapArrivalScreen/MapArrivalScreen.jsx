@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   View,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
@@ -35,7 +36,6 @@ export default function MapArrivalScreen({navigation}, props) {
       console.log(error);
     }
   };
-  // console.log('clientData', clientData);
   useEffect(() => {
     handleGetLocation();
   }, []);
@@ -55,7 +55,21 @@ export default function MapArrivalScreen({navigation}, props) {
       );
     });
   };
-
+  const showConfirmation = () => {
+    Alert.alert('Are you at the location?', '', [
+      {
+        text: 'No',
+        onPress: () => {},
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          navigation.navigate('ClientDetailsScreen');
+        },
+        style: 'cancel',
+      },
+    ]);
+  };
   return (
     <SafeAreaView style={styles.container}>
       {location && (
@@ -114,7 +128,7 @@ export default function MapArrivalScreen({navigation}, props) {
             Title="Arrived"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             loading={loading}
-            onPress={() => navigation.navigate('ClientDetailsScreen')}
+            onPress={() => showConfirmation()}
           />
         </View>
       )}

@@ -27,7 +27,7 @@ import {
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
 
-export default function HomeScreen({navigation}) {
+export default function HomeScreen({route, navigation}) {
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
@@ -148,7 +148,6 @@ export default function HomeScreen({navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-      <ModalCheck />
     </SafeAreaView>
   );
 }

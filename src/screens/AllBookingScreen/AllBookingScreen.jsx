@@ -29,13 +29,15 @@ import {
   setUser,
 } from '../../features/booking/bookingSlice';
 import {useStripe} from '@stripe/stripe-react-native';
+import ModalCheck from '../../components/ModalComponent/ModalCheck';
 
 export default function AllBookingScreen({route, navigation}) {
+  const [modalShow, setModalShow] = useState(false);
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchBookingInfo} = useFetchBooking();
   const [refreshing, setRefreshing] = useState(false);
-
   const [booking, setBooking] = useState();
+  const [feedback, setFeedback] = useState();
   const dispatch = useDispatch();
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
@@ -43,6 +45,7 @@ export default function AllBookingScreen({route, navigation}) {
   };
 
   useEffect(() => {
+    setModalShow(route?.params?.bookingComplete);
     const unsubscribe = navigation.addListener('focus', () => {
       console.log('sending...');
       init('accepted');
@@ -53,7 +56,8 @@ export default function AllBookingScreen({route, navigation}) {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    init('pending');
+    init('accepted');
+    setIsFocused('accepted');
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
@@ -237,6 +241,11 @@ export default function AllBookingScreen({route, navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
+      <ModalCheck
+        modalVisible={modalShow}
+        onSubmit={() => setModalShow(false)}
+        onChangeText={text => setFeedback(text)}
+      />
     </SafeAreaView>
   );
 }
