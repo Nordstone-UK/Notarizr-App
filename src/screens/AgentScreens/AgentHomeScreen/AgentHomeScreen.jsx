@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
@@ -27,13 +28,16 @@ import {
   setUser,
 } from '../../../features/booking/bookingSlice';
 import WebView from 'react-native-webview';
+import useStripeApi from '../../../hooks/useStripeApi';
 
 export default function AgentHomeScreen({navigation}) {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   const {fetchAgentBookingInfo, getTotalBookings} = useFetchBooking();
+  const {checkUserStipeAccount} = useStripeApi();
   const [Booking, setBooking] = useState([]);
   const [totalBooking, setTotalBooknig] = useState(0);
+  const [loading, setLoading] = useState(false);
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
     const totalBookings = await getTotalBookings();
@@ -59,6 +63,32 @@ export default function AgentHomeScreen({navigation}) {
     dispatch(setBookingInfoState(item));
     dispatch(setUser(item?.booked_by));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
+  };
+  const handleStripeAccount = async () => {
+    setLoading(true);
+    const res = await checkUserStipeAccount();
+    console.log('====================================');
+    console.log('res', res);
+    console.log('====================================');
+    if (!res.has_stipe_account && !res.has_details_submitted) {
+      Alert.alert(
+        'Please make a stripe account before using our services',
+        '',
+        [
+          {
+            text: 'OK',
+            onPress: async () => {
+              navigation.navigate('PaymentUpdateScreen');
+            },
+            style: 'cancel',
+          },
+        ],
+        {cancelable: false},
+      );
+    } else {
+      navigation.navigate('AgentMainBookingScreen');
+    }
+    setLoading(false);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -134,7 +164,7 @@ export default function AgentHomeScreen({navigation}) {
                     marginLeft: widthToDp(2),
                     fontSize: widthToDp(5),
                   }}>
-                  Total Payout
+                  Miles Travelled
                 </Text>
                 <Text
                   style={{
@@ -143,7 +173,7 @@ export default function AgentHomeScreen({navigation}) {
                     fontSize: widthToDp(6),
                     marginLeft: widthToDp(3),
                   }}>
-                  $250
+                  50 Miles
                 </Text>
               </View>
               <View
@@ -163,7 +193,8 @@ export default function AgentHomeScreen({navigation}) {
             <GradientButton
               Title="Service Preferences"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => navigation.navigate('AgentMainBookingScreen')}
+              onPress={() => handleStripeAccount()}
+              loading={loading}
             />
           </View>
           <View style={styles.flexContainer}>

@@ -1,5 +1,6 @@
 import {CREATE_PAYMENT_INTENT} from '../../request/mutations/createPaymentIntent.mutation';
 import {GET_STRIPE_ONBOARDING_LINK} from '../../request/queries/getOnboardingLink.query';
+import {IS_USER_STRIPE_ONBOARD} from '../../request/queries/isUserStipeOnboard.query';
 
 const {useMutation, useLazyQuery} = require('@apollo/client');
 const {
@@ -10,15 +11,13 @@ const useStripeApi = () => {
   const [createStripeAccount] = useMutation(CREATE_STRIPE_ACCOUNT);
   const [getOnboardingLink] = useLazyQuery(GET_STRIPE_ONBOARDING_LINK);
   const [createPaymentIntent] = useMutation(CREATE_PAYMENT_INTENT);
+  const [iseUserStripeOnboard] = useLazyQuery(IS_USER_STRIPE_ONBOARD);
   const handleStripeCreation = async () => {
     try {
-      const response = await createStripeAccount();
-      console.log('response', response.data);
-      if (response?.data?.createStripeAccount?.status) {
+      const data = await createStripeAccount();
+      if (data?.data?.createStripeAccount?.status) {
         const response = await handleOnboardingLink();
-        console.log('====================================');
-        console.log('onbaordingLink', response.data);
-        console.log('====================================');
+
         return response;
       }
     } catch (error) {
@@ -28,8 +27,6 @@ const useStripeApi = () => {
   const handleOnboardingLink = async () => {
     try {
       const response = await getOnboardingLink();
-      console.log('response', response);
-      console.log('response', response?.data?.getOnboardingLink?.account_link);
       return response?.data?.getOnboardingLink?.account_link;
     } catch (error) {
       console.log('error', error);
@@ -51,7 +48,21 @@ const useStripeApi = () => {
       console.error(error);
     }
   };
-  return {handleStripeCreation, fetchPaymentSheetParams, handleOnboardingLink};
+
+  const checkUserStipeAccount = async () => {
+    try {
+      const response = await iseUserStripeOnboard();
+      return response?.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  return {
+    handleStripeCreation,
+    fetchPaymentSheetParams,
+    handleOnboardingLink,
+    checkUserStipeAccount,
+  };
 };
 
 export default useStripeApi;

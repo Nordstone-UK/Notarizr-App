@@ -32,7 +32,6 @@ const useCreateBooking = () => {
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [createLocalBooking] = useMutation(CREATE_LOCAL_NOTARY_BOOKING);
   const handleBookingCreation = async (User, Service) => {
-    // console.log('I think issue is here:', FinalBookingData);
     const request = {
       variables: {
         ...FinalBookingData,
@@ -40,17 +39,16 @@ const useCreateBooking = () => {
         agent: User,
       },
     };
-    // console.log('prev', request);
     try {
       const response = await createBooking(request);
+
       return response.data.createBookingR;
     } catch (error) {
-      console.warn(error);
+      console.warn('is error from here:', error);
     }
   };
 
   const handleLocalNotaryBookingCreation = async (data, time) => {
-    // console.log(LocalBookingData);
     const request = {
       variables: {
         ...LocalBookingData,
@@ -58,11 +56,9 @@ const useCreateBooking = () => {
         timeOfBooking: time,
       },
     };
-    // console.log('prev', request);
 
     await createLocalBooking(request)
       .then(response => {
-        // console.log('Booking', response.data.createBookingR.status);
         if (response.data.createBookingR.status === '201') {
           navigation.navigate('AgentBookCompletion');
         }

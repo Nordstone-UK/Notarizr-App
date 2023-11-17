@@ -61,18 +61,23 @@ export default function AgentHomeHeader(props) {
       <View style={styles.namebar}>
         <View style={styles.nameFlex}>
           <Image source={{uri: profile_picture}} style={styles.imagestyles} />
-          <Text style={[styles.textHeading, props.HeaderStyle]}>
-            {first_name} {last_name}
-          </Text>
+          <View>
+            <Text style={[styles.textHeading, props.HeaderStyle]}>
+              {first_name} {last_name}
+            </Text>
+            <Text style={[styles.simpleText]}>Total Payout: $250</Text>
+          </View>
           {props?.Switch && (
-            <Switch
-              trackColor={{false: '#767577', true: Colors.GreenSwitch}}
-              thumbColor={isEnabled ? Colors.white : '#f4f3f4'}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={toggleSwitch}
-              value={isEnabled}
-              onChange={sendStatusUpdate}
-            />
+            <View style={styles.switchView}>
+              <Switch
+                trackColor={{false: '#767577', true: Colors.GreenSwitch}}
+                thumbColor={isEnabled ? Colors.white : '#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+                onValueChange={toggleSwitch}
+                value={isEnabled}
+                onChange={sendStatusUpdate}
+              />
+            </View>
           )}
         </View>
         <View style={styles.IconFlex}>
@@ -114,19 +119,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: widthToDp(5),
     justifyContent: 'space-between',
-    // borderWidth: 1,
   },
   nameFlex: {
     flexDirection: 'row',
     alignItems: 'center',
-    // borderWidth: 1,
+  },
+  switchView: {
+    height: heightToDp(12),
+    flexDirection: 'column',
+    alignContent: 'flex-start',
   },
   IconFlex: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // borderWidth: 1,
-    // width: widthToDp(20),
   },
   backIcon: {
     width: widthToDp(6),
@@ -134,7 +140,13 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(2),
   },
   textHeading: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5.5),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginLeft: widthToDp(1.5),
+  },
+  simpleText: {
+    fontSize: widthToDp(3.5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(2),

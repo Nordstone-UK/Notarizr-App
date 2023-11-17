@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import GradientButton from '../MainGradientButton/GradientButton';
 import Colors from '../../themes/Colors';
 import MainButton from '../MainGradientButton/MainButton';
@@ -18,31 +18,14 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function ModalCheck(props) {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const service = useSelector(state => state.service.service);
-  const [Feedback, setFeedback] = useState('');
-  // useSelector(state => state.service.service);
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     // setModalVisible(service);
-  //   }, [service]),
-  // );
-
-  const handleNavigation = () => {
-    dispatch(serviceCheck());
-    // setModalVisible(false);
-    // navigation.navigate('AgentLocalNotaryEndScreen');
-  };
-  const closeServiceModal = () => {
-    dispatch(serviceCheck());
-    // setModalVisible(false);
-  };
+  useEffect(() => {
+    console.log('In Modal', props?.modalVisible);
+  }, []);
   return (
     <Modal
       animationType="slide"
       transparent={true}
-      visible={props.modalVisible}>
+      visible={props?.modalVisible}>
       <View style={{flex: 1, justifyContent: 'center'}}>
         <View style={styles.container}>
           <Image
@@ -61,9 +44,9 @@ export default function ModalCheck(props) {
           <LabelTextInput
             placeholder={'Enter your feedback'}
             Label={true}
-            defaultValue={Feedback}
+            defaultValue={props.defaultValue}
             LabelTextInput={'Feedback'}
-            onChangeText={text => setFeedback(text)}
+            onChangeText={props.onChangeText}
             AdjustWidth={{width: widthToDp(80)}}
             InputStyles={{padding: widthToDp(4)}}
           />

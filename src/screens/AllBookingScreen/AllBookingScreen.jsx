@@ -18,8 +18,6 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
 import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
-import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
-import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
 import {ScrollView} from 'react-native-virtualized-view';
 import useFetchBooking from '../../hooks/useFetchBooking';
 import {useDispatch} from 'react-redux';
@@ -28,16 +26,12 @@ import {
   setCoordinates,
   setUser,
 } from '../../features/booking/bookingSlice';
-import {useStripe} from '@stripe/stripe-react-native';
-import ModalCheck from '../../components/ModalComponent/ModalCheck';
 
 export default function AllBookingScreen({route, navigation}) {
-  const [modalShow, setModalShow] = useState(false);
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchBookingInfo} = useFetchBooking();
   const [refreshing, setRefreshing] = useState(false);
   const [booking, setBooking] = useState();
-  const [feedback, setFeedback] = useState();
   const dispatch = useDispatch();
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
@@ -45,15 +39,15 @@ export default function AllBookingScreen({route, navigation}) {
   };
 
   useEffect(() => {
-    setModalShow(route?.params?.bookingComplete);
     const unsubscribe = navigation.addListener('focus', () => {
+      // console.log('AllBooking In', route?.params?.bookingComplete);
+
       console.log('sending...');
       init('accepted');
       setIsFocused('accepted');
     });
     return unsubscribe;
   }, [navigation]);
-
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     init('accepted');
@@ -241,11 +235,6 @@ export default function AllBookingScreen({route, navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-      <ModalCheck
-        modalVisible={modalShow}
-        onSubmit={() => setModalShow(false)}
-        onChangeText={text => setFeedback(text)}
-      />
     </SafeAreaView>
   );
 }

@@ -33,6 +33,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import moment from 'moment';
 import useFetchBooking from '../../hooks/useFetchBooking';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
+import ModalCheck from '../../components/ModalComponent/ModalCheck';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
@@ -42,8 +43,11 @@ export default function MedicalBookingScreen({route, navigation}) {
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
+  const [feedback, setFeedback] = useState();
+
   const {documents} = bookingDetail;
   const {booked_for} = bookingDetail;
+  const [modalShow, setModalShow] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [status, setStatus] = useState();
@@ -94,23 +98,17 @@ export default function MedicalBookingScreen({route, navigation}) {
   );
   useEffect(() => {
     getBookingStatus();
-    // console.log('====================================');
-    // console.log('status', bookingDetail);
-    // console.log('====================================');
   }, [status]);
   const handleReduxPayment = async () => {
     setIsVisible(false);
     dispatch(paymentCheck());
-    console.log('====================================');
-    console.log('payment', review, rating);
-    console.log('====================================');
     const response = await handleReviewSubmit(
       bookingDetail._id,
       review,
       rating,
     );
     if (response === '200') {
-      navigation.navigate('AllBookingScreen', {bookingComplete: true});
+      setModalShow(true);
     }
   };
   const onRefresh = React.useCallback(() => {
@@ -134,6 +132,10 @@ export default function MedicalBookingScreen({route, navigation}) {
         style: 'cancel',
       },
     ]);
+  };
+  const closeModal = () => {
+    setModalShow(false);
+    navigation.navigate('HomeScreen');
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -450,6 +452,12 @@ export default function MedicalBookingScreen({route, navigation}) {
           </BottomSheet>
         ) : null}
       </BottomSheetStyle>
+      <ModalCheck
+        modalVisible={modalShow}
+        onSubmit={() => closeModal()}
+        onChangeText={text => setFeedback(text)}
+        defaultValue={feedback}
+      />
     </SafeAreaView>
   );
 }

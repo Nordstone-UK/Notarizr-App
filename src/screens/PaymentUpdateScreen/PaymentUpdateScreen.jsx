@@ -22,6 +22,7 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {hairlineWidth} from 'react-native-extended-stylesheet';
 import {useSelector} from 'react-redux';
 import useStripeApi from '../../hooks/useStripeApi';
+import WebView from 'react-native-webview';
 
 export default function PaymentUpdateScreen({navigation}, props) {
   const {handleStripeCreation, handleOnboardingLink} = useStripeApi();
@@ -31,28 +32,23 @@ export default function PaymentUpdateScreen({navigation}, props) {
   const [Link, setLink] = useState();
   const [loading, setLoading] = useState(false);
 
-  const openLink = async () => {
-    const supported = await Linking.canOpenURL(Link);
-    if (supported) {
-      await Linking.openURL(Link);
-    } else {
-      console.log("Don't know how to open URI: ", Link);
-    }
-  };
+  // const openLink = async () => {
+  //   // const supported = await Linking.canOpenURL(Link);
+  //   // if (supported) {
+  //   //   await Linking.openURL(Link);
+  //   // } else {
+  //   //   console.log("Don't know how to open URI: ", Link);
+  //   // }
+  // };
   useEffect(() => {
     // CreateStripeAccount();
-    onBoardingLink();
+    // onBoardingLink();
   }, []);
-  const onBoardingLink = async () => {
-    const response = await handleOnboardingLink();
-    console.log('====================================');
-    console.log('response', response);
-    console.log('====================================');
-  };
+
   const CreateStripeAccount = async () => {
     setLoading(true);
     const response = await handleStripeCreation();
-    // console.log('Link is:', response);
+    console.log('Link is:', response);
     setLink(response);
     setLoading(false);
   };
@@ -60,14 +56,38 @@ export default function PaymentUpdateScreen({navigation}, props) {
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Payment Method" />
       <Text style={styles.textheading}>
-        Please find all our added cards here
+        Please make a stripe account so you can receive payouts
       </Text>
 
       <BottomSheetStyle>
-        <ScrollView
-          style={{marginTop: heightToDp(5)}}
-          showsVerticalScrollIndicator={false}>
-          {Link === undefined && user !== 'client' && (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {Link && (
+            <WebView
+              source={{uri: Link}}
+              style={{
+                flex: 1,
+                borderWidth: 1,
+                height: heightToDp(200),
+                marginVertical: heightToDp(2),
+              }}
+            />
+          )}
+        </ScrollView>
+        <View style={{marginBottom: heightToDp(5)}}>
+          {!Link && user !== 'client' && (
+            <GradientButton
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              Title="Create Stripe Account"
+              onPress={() => CreateStripeAccount()}
+            />
+          )}
+        </View>
+      </BottomSheetStyle>
+    </SafeAreaView>
+  );
+}
+{
+  /* {Link === undefined && user !== 'client' && (
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Create Stripe Account"
@@ -90,28 +110,8 @@ export default function PaymentUpdateScreen({navigation}, props) {
               }}
               loading={loading}
             />
-          )}
-          {/* <Image
-            source={require('../../../assets/Card.png')}
-            style={styles.CardIcons}
-          />
-          <Image
-            source={require('../../../assets/Card.png')}
-            style={styles.CardIcons}
-          /> */}
-        </ScrollView>
-        <View style={{marginBottom: heightToDp(5)}}>
-          <GradientButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            Title="Add Card"
-            onPress={() => navigation.navigate('AddCardScreen')}
-          />
-        </View>
-      </BottomSheetStyle>
-    </SafeAreaView>
-  );
+          )} */
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     marginVertical: heightToDp(2),
   },
   textheading: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5.5),
     alignSelf: 'center',
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',

@@ -35,41 +35,31 @@ import useCustomerSuport from '../../hooks/useCustomerSupport';
 export default function MobileNotaryDateScreen({route, navigation}) {
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
-  const [selectedDate, setSelectedDate] = useState('');
+  // const [selectedDate, setSelectedDate] = useState('');
   const [isEnabled, setIsEnabled] = useState(false);
   const [documents, setDocuments] = useState();
-  const [startTime, setStartTime] = useState(new Date());
+  // const [startTime, setStartTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
+  // const [date, setDate] = useState(new Date());
+
   let urlResponse;
-  // const [numberOfDocs, setNumberOfDocs] = useState(0);
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const {handleCallSupport} = useCustomerSuport();
   const submitAddressDetails = async () => {
     setLoading(true);
-    if (date) {
-      if (documents) {
-        urlResponse = await uploadAllDocuments(documents);
-      }
-
-      dispatch(
-        setBookingInfoState({
-          ...bookingData,
-          timeOfBooking: moment(date).format('h:mm A'),
-          dateOfBooking: moment(date).format('MM-DD-YYYY'),
-          documents: urlResponse,
-        }),
-      );
-      setLoading(false);
-      navigation.navigate('NearbyLoadingScreen');
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Please select date and time',
-      });
+    if (documents) {
+      urlResponse = await uploadAllDocuments(documents);
     }
+
+    dispatch(
+      setBookingInfoState({
+        ...bookingData,
+        documents: urlResponse,
+      }),
+    );
+    setLoading(false);
+    navigation.navigate('NearbyLoadingScreen');
     setLoading(false);
   };
   useEffect(() => {
@@ -80,6 +70,9 @@ export default function MobileNotaryDateScreen({route, navigation}) {
     //   agent: description.agent._id,
     //   documentType: documentType,
     // });
+    console.log('====================================');
+    console.log('bookingData', bookingData);
+    console.log('====================================');
   }, []);
 
   const selectDocuments = async () => {
@@ -99,11 +92,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
       <Text style={styles.heading}>Please select Date and Time</Text>
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
-          <View style={{marginVertical: heightToDp(2)}}>
-            {/* <CustomCalendar
-              selected={selectedDate}
-              onDayPress={day => setSelectedDate(day)}
-            /> */}
+          {/* <View style={{marginVertical: heightToDp(2)}}>
             <Text style={styles.headingContainer}>Date & Time:</Text>
             <View style={styles.buttonFlex}>
               <TouchableOpacity onPress={() => setOpen(true)}>
@@ -136,7 +125,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
                 }}
               />
             </View>
-          </View>
+          </View> */}
           {/* <Text style={styles.headingContainer}>Time:</Text>
           <View style={styles.buttonFlex}>
             <TimePicker

@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   View,
   FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -25,6 +26,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import useFetchUser from '../../hooks/useFetchUser';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import Toast from 'react-native-toast-message';
+import DatePicker from 'react-native-date-picker';
+import moment from 'moment';
 
 export default function ServiceDetailScreen({route, navigation}) {
   const {serviceType} = route.params;
@@ -39,6 +42,12 @@ export default function ServiceDetailScreen({route, navigation}) {
   const [location, setlocation] = useState(null);
   const [email, setEmail] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [documents, setDocuments] = useState();
+  const [startTime, setStartTime] = useState(new Date());
+  const [date, setDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -69,13 +78,14 @@ export default function ServiceDetailScreen({route, navigation}) {
         setBookingInfoState({
           serviceType: serviceType,
           service: null,
+          timeOfBooking: moment(date).format('h:mm A'),
+          dateOfBooking: moment(date).format('MM-DD-YYYY'),
           agent: null,
           documentType: {
             name: null,
             price: null,
           },
-          timeOfBooking: null,
-          dateOfBooking: null,
+
           address: selectAddress,
           bookedFor: {
             email: email,
@@ -102,9 +112,42 @@ export default function ServiceDetailScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
-      <View style={styles.headingContainer}></View>
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true} removeClippedSubviews={false}>
+          <View style={{marginVertical: heightToDp(2)}}>
+            <Text style={styles.headingContainer}>Date & Time:</Text>
+            <View style={styles.buttonFlex}>
+              <TouchableOpacity onPress={() => setOpen(true)}>
+                <Text
+                  style={{
+                    color: Colors.Orange,
+                    fontFamily: 'Manrope-Bold',
+                    fontSize: widthToDp(5),
+                    borderWidth: 1,
+                    borderColor: Colors.Orange,
+                    paddingHorizontal: widthToDp(2),
+                    borderRadius: widthToDp(2),
+                  }}>
+                  {moment(date).format('MM-DD-YYYY hh:mm A')}
+                </Text>
+              </TouchableOpacity>
+              <DatePicker
+                modal
+                mode="datetime"
+                minimumDate={date}
+                open={open}
+                androidVariant="iosClone"
+                date={date}
+                onConfirm={date => {
+                  setOpen(false);
+                  setDate(date);
+                }}
+                onCancel={() => {
+                  setOpen(false);
+                }}
+              />
+            </View>
+          </View>
           <Text style={styles.insideHeading}>
             To whom are you booking this service for:
           </Text>
@@ -253,9 +296,12 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
   },
+
   headingContainer: {
-    marginLeft: widthToDp(4),
-    marginBottom: heightToDp(2),
+    fontSize: widthToDp(6),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginLeft: widthToDp(6),
   },
   insideHeading: {
     color: Colors.TextColor,
@@ -268,7 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    marginVertical: heightToDp(2),
+    marginTop: heightToDp(5),
   },
 });
 {

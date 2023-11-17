@@ -101,39 +101,4 @@ const getCurrentLocation = () => {
   });
 };
 
-// const checkLocationPermission = async () => {
-//   const permissionStatus = await check(
-//     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-//   );
-
-//   switch (permissionStatus) {
-//     case RESULTS.GRANTED:
-//       // Location permission is granted
-//       return;
-//     case RESULTS.DENIED:
-//       // Location permission is denied, request it
-//       try {
-//         const granted = await PermissionsAndroid.request(
-//           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-//           {
-//             title: 'Location Permission',
-//             message: 'This app requires access to your location.',
-//             buttonPositive: 'Allow',
-//           },
-//         );
-//         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-//           // Location permission granted
-//           return;
-//         } else {
-//           // Location permission denied
-//           throw new Error('Location permission denied.');
-//         }
-//       } catch (error) {
-//         throw error;
-//       }
-//     default:
-//       throw new Error('Location permission check failed.');
-//   }
-// };
-
 export default init;
