@@ -65,7 +65,7 @@ export default function AgentHomeHeader(props) {
             <Text style={[styles.textHeading, props.HeaderStyle]}>
               {first_name} {last_name}
             </Text>
-            <Text style={[styles.simpleText]}>Total Payout: $250</Text>
+            <Text style={[styles.simpleText]}>$250</Text>
           </View>
           {props?.Switch && (
             <View style={styles.switchView}>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(1.5),
   },
   simpleText: {
-    fontSize: widthToDp(3.5),
+    fontSize: widthToDp(4),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(2),

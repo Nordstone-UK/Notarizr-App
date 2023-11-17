@@ -62,13 +62,12 @@ export default function LegalDocScreen({route, navigation}) {
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
-
+    console.log('====================================');
+    console.log('data', data);
+    console.log('====================================');
     setTotalDocs(data?.totalDocs);
     setDocumentArray(data?.documentTypes);
 
-    // console.log('====================================');
-    // console.log('API called', Limit, data?.totalDocs);
-    // console.log('====================================');
     if (Limit < data?.totalDocs) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
@@ -104,8 +103,6 @@ export default function LegalDocScreen({route, navigation}) {
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="All Documents"
-        // lastImg={require('../../../assets/bellIcon.png')}
-        // lastImgPress={() => navigation.navigate('NotificationScreen')}
         midImg={require('../../../assets/Search.png')}
         midImgPress={() => setIsVisible(!isVisible)}
         isVisible={isVisible}

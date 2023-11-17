@@ -6762,6 +6762,11 @@ react-native-document-scanner-plugin@^0.9.1:
   resolved "https://registry.npmjs.org/react-native-document-scanner-plugin/-/react-native-document-scanner-plugin-0.9.1.tgz"
   integrity sha512-iHqd/ZEHmKnPsA0X2DoSZ7B324WSDQO45I22busHHfc2vSRMHozP9fcIP34YTuNvfbvjJFhziCIw66YcGWLotA==
 
+react-native-dropdown-picker@^5.4.6:
+  version "5.4.6"
+  resolved "https://registry.npmjs.org/react-native-dropdown-picker/-/react-native-dropdown-picker-5.4.6.tgz"
+  integrity sha512-T1XBHbE++M6aRU3wFYw3MvcOuabhWZ29RK/Ivdls2r1ZkZ62iEBZknLUPeVLMX3x6iUxj4Zgr3X2DGlEGXeHsA==
+
 react-native-extended-stylesheet@^0.12.0:
   version "0.12.0"
   resolved "https://registry.npmjs.org/react-native-extended-stylesheet/-/react-native-extended-stylesheet-0.12.0.tgz"

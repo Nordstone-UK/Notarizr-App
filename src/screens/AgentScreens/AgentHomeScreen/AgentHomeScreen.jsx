@@ -29,6 +29,7 @@ import {
 } from '../../../features/booking/bookingSlice';
 import WebView from 'react-native-webview';
 import useStripeApi from '../../../hooks/useStripeApi';
+import BigButton from '../../../components/BigButton/BigButton';
 
 export default function AgentHomeScreen({navigation}) {
   const [refreshing, setRefreshing] = useState(false);
@@ -103,91 +104,22 @@ export default function AgentHomeScreen({navigation}) {
           contentContainerStyle={styles.contentContainer}>
           <View
             style={{
-              marginVertical: widthToDp(3),
               alignSelf: 'center',
             }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: Colors.PinkBackground,
-                borderRadius: 15,
-                padding: widthToDp(4),
-                width: widthToDp(80),
-                flexDirection: 'row',
-              }}
-              onPress={() => navigation.navigate('BookScreen')}>
-              <View>
-                <Text
-                  style={{
-                    color: Colors.TextColor,
-                    fontFamily: 'Manrope-Bold',
-                    marginLeft: widthToDp(2),
-                    fontSize: widthToDp(5),
-                  }}>
-                  Total Bookings
-                </Text>
-                <Text
-                  style={{
-                    color: Colors.TextColor,
-                    fontFamily: 'Manrope-Bold',
-                    fontSize: widthToDp(6),
-                    marginLeft: widthToDp(3),
-                  }}>
-                  {totalBooking}
-                </Text>
-              </View>
-              <View
-                style={{
-                  marginLeft: 'auto',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Image
-                  source={require('../../../../assets/arrow.png')}
-                  style={{width: 15, height: 15, resizeMode: 'contain'}}
-                />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                backgroundColor: Colors.PinkBackground,
-                borderRadius: 15,
-                padding: widthToDp(4),
-                width: widthToDp(80),
-                flexDirection: 'row',
-                marginTop: widthToDp(3),
-              }}>
-              <View>
-                <Text
-                  style={{
-                    color: Colors.TextColor,
-                    fontFamily: 'Manrope-Bold',
-                    marginLeft: widthToDp(2),
-                    fontSize: widthToDp(5),
-                  }}>
-                  Miles Travelled
-                </Text>
-                <Text
-                  style={{
-                    color: Colors.TextColor,
-                    fontFamily: 'Manrope-Bold',
-                    fontSize: widthToDp(6),
-                    marginLeft: widthToDp(3),
-                  }}>
-                  50 Miles
-                </Text>
-              </View>
-              <View
-                style={{
-                  marginLeft: 'auto',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Image
-                  source={require('../../../../assets/arrow.png')}
-                  style={{width: 15, height: 15, resizeMode: 'contain'}}
-                />
-              </View>
-            </TouchableOpacity>
+            <BigButton
+              Heading="Total Payout"
+              onPress={() => navigation.navigate('TransactionScreen')}
+            />
+            <BigButton
+              number={totalBooking || 2}
+              Heading="Total Bookings"
+              onPress={() => navigation.navigate('BookScreen')}
+            />
+            <BigButton
+              number={50}
+              unitOfMeasurment="Miles"
+              Heading="Miles Travelled"
+            />
           </View>
           <View style={{marginVertical: heightToDp(5)}}>
             <GradientButton

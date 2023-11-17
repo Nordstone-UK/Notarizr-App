@@ -4,7 +4,14 @@ import SearchableDropdown from 'react-native-searchable-dropdown';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
-const DocumentDropdown = props => {
+const DocumentDropdown = ({
+  setSelectedItem,
+  selectedItem,
+  multiple,
+  placeholder,
+  onItemSelect,
+  onRemoveItem,
+}) => {
   const documentData = [
     {
       name: 'Affidavit',
@@ -22,13 +29,11 @@ const DocumentDropdown = props => {
       name: 'Court Documents',
     },
   ];
-
-  const [selectedItem, setSelectedItem] = useState(null);
-
   return (
     <SearchableDropdown
+      multi={multiple}
       onTextChange={text => console.log(text)}
-      onItemSelect={item => setSelectedItem(item)}
+      onItemSelect={onItemSelect}
       containerStyle={{padding: widthToDp(1), width: widthToDp(90)}}
       itemStyle={{
         padding: widthToDp(3),
@@ -46,7 +51,7 @@ const DocumentDropdown = props => {
       resetValue={false}
       underlineColorAndroid="transparent"
       textInputProps={{
-        placeholder: props?.placeholder,
+        placeholder: placeholder,
         underlineColorAndroid: 'transparent',
         style: {
           padding: widthToDp(4),

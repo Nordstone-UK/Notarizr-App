@@ -95,6 +95,7 @@ import ServiceDetailScreen from '../ServiceDetailScreen/ServiceDetailScreen';
 import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen';
 import AddNewAddress from '../NewAddressScreen/AddNewAddress';
 import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
+import TransactionScreen from '../TransactionScreen/TransactionScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -158,7 +159,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash_Screen"
+          initialRouteName="LegalDocScreen"
           screenOptions={{
             headerShown: false,
           }}>
@@ -204,7 +205,10 @@ export default function AppNavigation() {
             component={SignUpDetailScreen}
           />
           <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
-          <Stack.Screen name="MedicalDocScreen" component={MedicalDocScreen} />
+          <Stack.Screen
+            name="TransactionScreen"
+            component={TransactionScreen}
+          />
           <Stack.Screen
             name="ServiceDetailScreen"
             component={ServiceDetailScreen}
