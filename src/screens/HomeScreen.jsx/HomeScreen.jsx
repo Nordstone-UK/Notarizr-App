@@ -26,8 +26,10 @@ import {
 } from '../../features/booking/bookingSlice';
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
+import OneSignal from 'react-native-onesignal';
 
 export default function HomeScreen({route, navigation}) {
+  const {_id} = useSelector(state => state.user.user);
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
@@ -45,6 +47,7 @@ export default function HomeScreen({route, navigation}) {
   }, []);
 
   useEffect(() => {
+    OneSignal.setExternalUserId(_id);
     const unsubscribe = navigation.addListener('focus', () => {
       init('pending');
     });
@@ -80,7 +83,6 @@ export default function HomeScreen({route, navigation}) {
                 serviceType: 'mobile_notary',
               })
             }
-            // isDisabled={isDisabled}
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
@@ -108,7 +110,7 @@ export default function HomeScreen({route, navigation}) {
                       <TouchableOpacity onPress={() => handleAgentData(item)}>
                         <AgentCard
                           source={{uri: item?.agent?.profile_picture}}
-                          bottomRightText={item?.document_type?.price}
+                          bottomRightText={item?.document_type}
                           bottomLeftText="Total"
                           image={require('../../../assets/agentLocation.png')}
                           agentName={

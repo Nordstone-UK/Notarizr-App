@@ -211,7 +211,7 @@ export default function AgentAllBookingScreen({navigation}) {
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
                         source={{uri: item.booked_by.profile_picture}}
-                        bottomRightText={item.document_type.price}
+                        bottomRightText={item.document_type}
                         bottomLeftText="Total"
                         agentName={
                           item.booked_by.first_name +

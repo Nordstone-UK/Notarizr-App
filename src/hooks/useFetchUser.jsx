@@ -16,7 +16,6 @@ const useFetchUser = () => {
   const fetchUserInfo = async () => {
     await user().then(response => {
       dispatch(saveUserInfo(response.data.user));
-      // console.log('Hello', response.data);
       info = response.data.user;
     });
     return info;

@@ -47,6 +47,9 @@ export function splitStringBefore2ndWord(inputString) {
     return ['', '']; // Return empty strings if the inputString is empty
   }
 }
+export function calculateTotalPrice(documentObjects) {
+  return documentObjects.reduce((total, document) => total + document.price, 0);
+}
 export const ITEM_WIDTH = width * 0.71;
 export const ITEM_HEIGHT = height * 0.2;
 export const SPACING = 16;

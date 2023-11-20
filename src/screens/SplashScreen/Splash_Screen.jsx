@@ -9,12 +9,10 @@ import {
 } from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
 import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
-import useFetchBooking from '../../hooks/useFetchBooking';
-import Geolocation from '@react-native-community/geolocation';
+import OneSignal from 'react-native-onesignal';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
@@ -25,13 +23,13 @@ export default function Splash_Screen({navigation}) {
       if (token) {
         await fetchUserInfo()
           .then(response => {
-            // console.log('Data after', response);
             if (
               response.isVerified == false &&
               response.account_type == 'agent'
             ) {
               navigation.navigate('AgentVerfiedScreen');
             } else {
+              initializeOneSignal();
               navigation.navigate('HomeScreen');
             }
           })
@@ -43,6 +41,14 @@ export default function Splash_Screen({navigation}) {
       }
     } catch (error) {
       console.error('Error checking authentication:', error);
+    }
+  };
+  const initializeOneSignal = () => {
+    // OneSignal Initialization
+    OneSignal.setAppId('dc4e3a66-402e-41d7-832d-25b70c16fdea');
+
+    if (Platform.OS !== 'android') {
+      OneSignal.promptForPushNotificationsWithUserResponse(response => {});
     }
   };
   const isFirstLaunch = async () => {
@@ -100,11 +106,14 @@ export default function Splash_Screen({navigation}) {
         const Android13StoragePermission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
         );
-
+        const NotificationPermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
         // Check if permissions are granted
         if (
           locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
             Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
         ) {
@@ -116,6 +125,9 @@ export default function Splash_Screen({navigation}) {
         // Request location permission
         const locationPermissionStatus = await request(
           PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        );
+        const PushNotificationPermission = await request(
+          PERMISSIONS.IOS.NOTIFICATIONS,
         );
 
         // Request camera permission
@@ -130,6 +142,7 @@ export default function Splash_Screen({navigation}) {
         if (
           locationPermissionStatus === 'granted' &&
           cameraPermissionStatus === 'granted' &&
+          PushNotificationPermission === 'granted' &&
           photoLibraryPermissionStatus === 'granted'
         ) {
           console.log('All permissions granted');

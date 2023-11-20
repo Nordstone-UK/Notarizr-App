@@ -90,18 +90,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   };
   useEffect(() => {
     getBookingStatus();
-    // console.log('====================================');
-    // console.log('status', clientDetail);
-    // console.log('====================================');
   }, [status]);
-  // const selectDocuments = async () => {
-  //   const response = await uploadMultipleFiles();
-  //   const urlResponse = await uploadAllDocuments(response);
-  //   console.log('====================================');
-  //   console.log('urlResponse', urlResponse);
-  //   console.log('====================================');
-  //   setDocuments(urlResponse);
-  // };
+
   const handleNext = () => {
     if (!signaturePage || !notaryBlock) {
       Toast.show({

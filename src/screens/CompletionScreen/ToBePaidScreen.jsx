@@ -39,12 +39,21 @@ export default function ToBePaidScreen({route, navigation}) {
   const [loading, setLoading] = useState(false);
   const DocumentPrice = bookingData?.document_type?.price;
   const TotalPayment = DocumentPrice + numberOfDocs * 10;
+  function calculateTotalPrice(documentObjects) {
+    return documentObjects.reduce(
+      (total, document) => total + document.price,
+      0,
+    );
+  }
   const initializePaymentSheet = async () => {
     setLoading(true);
+    var TotalPayment = await calculateTotalPrice(bookingData?.document_type);
+    TotalPayment = TotalPayment + numberOfDocs * 10;
     const response = await fetchPaymentSheetParams(
       TotalPayment * 100,
       bookingData._id,
     );
+
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
 

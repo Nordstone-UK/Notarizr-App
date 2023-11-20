@@ -6,8 +6,9 @@ import {
   Platform,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
+  calculateTotalPrice,
   capitalizeFirstLetter,
   height,
   heightToDp,
@@ -33,7 +34,7 @@ export default function AgentCard(props) {
   const address = props?.agentAddress;
   const name = props?.agentName;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
-
+  const TotalPrice = calculateTotalPrice(props.bottomRightText);
   function splitStringBefore2ndWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
@@ -67,6 +68,9 @@ export default function AgentCard(props) {
       return [inputString, ''];
     }
   }
+  // useEffect(() => {
+  //   a
+  // },[])
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row', margin: heightToDp(1)}}>
@@ -146,7 +150,7 @@ export default function AgentCard(props) {
                   fontSize: widthToDp(4.5),
                 },
               ]}>
-              ${props.bottomRightText}
+              ${TotalPrice}
             </Text>
           </View>
         </View>

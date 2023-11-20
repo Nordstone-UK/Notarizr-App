@@ -8,7 +8,13 @@ import {
   ImageBackground,
 } from 'react-native';
 import React from 'react';
-import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {
+  calculateTotalPrice,
+  height,
+  heightToDp,
+  width,
+  widthToDp,
+} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LinearGradient from 'react-native-linear-gradient';
 import AgentCardPicture from '../AgentCardPicture/AgentCardPicture';
@@ -21,6 +27,7 @@ export default function ClientServiceCard(props) {
   const address = props?.agentAddress;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   const Button = props?.Button || false;
+  const Price = calculateTotalPrice(props.bottomRightText);
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -154,7 +161,7 @@ export default function ClientServiceCard(props) {
                   fontSize: widthToDp(4.5),
                 },
               ]}>
-              ${props.bottomRightText}
+              ${Price}
             </Text>
           </View>
         </View>

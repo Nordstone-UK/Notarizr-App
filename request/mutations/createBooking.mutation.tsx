@@ -5,13 +5,13 @@ export const CREATE_BOOKING = gql`
     $serviceType: String!
     $service: String!
     $agent: String!
-    $documentType: DocsTypeInput!
+    $documentType: [DocsTypeInput!]!
     $address: String
     $dateOfBooking: Date
     $timeOfBooking: Date
     $notes: String
-    $bookedFor: BookedForInput
     $bookingType: String
+    $bookedFor: BookedForInput
     $preferenceAnalysis: String
     $documents: JSON
   ) {
@@ -24,8 +24,8 @@ export const CREATE_BOOKING = gql`
       date_of_booking: $dateOfBooking
       time_of_booking: $timeOfBooking
       notes: $notes
-      booked_for: $bookedFor
       booking_type: $bookingType
+      booked_for: $bookedFor
       preference_analysis: $preferenceAnalysis
       documents: $documents
     ) {
@@ -122,6 +122,9 @@ export const CREATE_BOOKING = gql`
           name
           price
         }
+        proof_documents
+        rating
+        review
         createdAt
         updatedAt
       }

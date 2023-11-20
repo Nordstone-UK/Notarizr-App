@@ -89,7 +89,7 @@ export default function LegalDocScreen({route, navigation}) {
     console.log('totalPrice', documentObjects);
     console.log('====================================');
   }
-  const submitAddressDetails = async (Name, Price) => {
+  const submitAddressDetails = async docArray => {
     setLoading(true);
     if (selectedDocs.length === 0) {
       Toast.show({
@@ -100,10 +100,7 @@ export default function LegalDocScreen({route, navigation}) {
       dispatch(
         setBookingInfoState({
           ...bookingData,
-          documentType: {
-            name: Name,
-            price: Price,
-          },
+          documentType: docArray,
         }),
       );
       navigation.navigate('MobileNotaryDateScreen');
@@ -233,7 +230,7 @@ export default function LegalDocScreen({route, navigation}) {
               Title="Proceed"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{borderRadius: 15}}
-              onPress={() => submitAddressDetails(selectedDocs, totalPrice)}
+              onPress={() => submitAddressDetails(selectedDocs)}
             />
           </View>
         </ScrollView>

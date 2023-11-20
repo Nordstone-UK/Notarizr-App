@@ -21,7 +21,7 @@ import GradientButton from '../../../components/MainGradientButton/GradientButto
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ScrollView} from 'react-native-virtualized-view';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -30,8 +30,11 @@ import {
 import WebView from 'react-native-webview';
 import useStripeApi from '../../../hooks/useStripeApi';
 import BigButton from '../../../components/BigButton/BigButton';
+import OneSignal from 'react-native-onesignal';
 
 export default function AgentHomeScreen({navigation}) {
+  const {_id} = useSelector(state => state.user.user);
+
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   const {fetchAgentBookingInfo, getTotalBookings} = useFetchBooking();
@@ -53,6 +56,7 @@ export default function AgentHomeScreen({navigation}) {
     }, 2000);
   }, []);
   useEffect(() => {
+    OneSignal.setExternalUserId(_id);
     const unsubscribe = navigation.addListener('focus', () => {
       console.log('Home screen sending...');
       init('pending');
@@ -147,7 +151,7 @@ export default function AgentHomeScreen({navigation}) {
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
                         source={{uri: item.booked_by.profile_picture}}
-                        bottomRightText={item.document_type.price}
+                        bottomRightText={item.document_type}
                         bottomLeftText="Total"
                         agentName={
                           item.booked_by.first_name +

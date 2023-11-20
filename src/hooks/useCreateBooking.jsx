@@ -39,9 +39,17 @@ const useCreateBooking = () => {
         agent: User,
       },
     };
+    // console.log('====================================');
+    // console.log(request);
+    // console.log('====================================');
+    // console.log('====================================');
+    // console.log(request.variables.documentType);
+    // console.log('====================================');
     try {
       const response = await createBooking(request);
-
+      console.log('====================================');
+      console.log(response);
+      console.log('====================================');
       return response.data.createBookingR;
     } catch (error) {
       console.warn('is error from here:', error);
