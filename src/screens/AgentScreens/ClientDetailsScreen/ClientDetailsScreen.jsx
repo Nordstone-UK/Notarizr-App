@@ -6,6 +6,7 @@ import {
   View,
   SafeAreaView,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -29,11 +30,11 @@ import moment from 'moment';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import useRegister from '../../../hooks/useRegister';
 import useFetchBooking from '../../../hooks/useFetchBooking';
-import {TouchableOpacity} from 'react-native';
 import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import Toast from 'react-native-toast-message';
 import {BottomSheet, Overlay} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
+import {downloadFile} from '../../../utils/RnDownload';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
@@ -176,6 +177,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const handleCancel = async () => {
     setIsVisible(false);
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -352,11 +354,14 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
               }}>
               {Object.keys(documentArray).length !== 0 ? (
                 Object.keys(documentArray).map((key, index) => (
-                  <Image
+                  <TouchableOpacity
                     key={index}
-                    source={require('../../../../assets/docPic.png')}
-                    style={{width: widthToDp(10), height: heightToDp(10)}}
-                  />
+                    onPress={() => downloadFile(documentArray[key])}>
+                    <Image
+                      source={require('../../../../assets/docPic.png')}
+                      style={{width: widthToDp(10), height: heightToDp(10)}}
+                    />
+                  </TouchableOpacity>
                 ))
               ) : (
                 <Text style={styles.preference}>No Documents</Text>

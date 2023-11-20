@@ -50,6 +50,9 @@ export default function MobileNotaryDateScreen({route, navigation}) {
     setLoading(true);
     if (documents) {
       urlResponse = await uploadAllDocuments(documents);
+      console.log('====================================');
+      console.log('urlResponse', urlResponse);
+      console.log('====================================');
     }
 
     dispatch(

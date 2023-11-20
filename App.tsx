@@ -15,6 +15,7 @@ import {polyfill as polyfillEncoding} from 'react-native-polyfill-globals/src/en
 import {polyfill as polyfillReadableStream} from 'react-native-polyfill-globals/src/readable-stream';
 import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch';
 import {StripeProvider} from '@stripe/stripe-react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 polyfillReadableStream();
 polyfillEncoding();
@@ -33,7 +34,9 @@ function App(): JSX.Element {
           // merchantIdentifier="merchant.identifier" // required for Apple Pay
           // urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
         >
-          <AppNavigation />
+          <GestureHandlerRootView style={{flex: 1}}>
+            <AppNavigation />
+          </GestureHandlerRootView>
         </StripeProvider>
       </Provider>
     </ApolloProvider>

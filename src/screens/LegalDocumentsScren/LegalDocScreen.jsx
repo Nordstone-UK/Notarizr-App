@@ -2,11 +2,12 @@ import {
   Image,
   StyleSheet,
   Text,
-  // ScrollView,
   SafeAreaView,
   View,
   FlatList,
   ActivityIndicator,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -19,16 +20,16 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
-import {
-  callGeocodingAPI,
-  getLocation,
-  handleGetLocation,
-} from '../../utils/Geocode';
+import {handleGetLocation} from '../../utils/Geocode';
 import Geolocation from '@react-native-community/geolocation';
 import useFetchUser from '../../hooks/useFetchUser';
-import {ScrollView} from 'react-native-virtualized-view';
+// import {ScrollView} from 'react-native-virtualized-view';
 import {useDispatch, useSelector} from 'react-redux';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import DropDownPicker from 'react-native-dropdown-picker';
+import {MultipleSelectList} from 'react-native-dropdown-select-list';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
+import Toast from 'react-native-toast-message';
 
 export default function LegalDocScreen({route, navigation}) {
   // const [location, setLocation] = useState();
@@ -36,7 +37,7 @@ export default function LegalDocScreen({route, navigation}) {
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
   const [documentArray, setDocumentArray] = useState();
-  const [Limit, setLimit] = useState(10);
+  const [Limit, setLimit] = useState(50);
   const [page, setPage] = useState(1);
   const {fetchDocumentTypes} = useFetchUser();
   const [totalDocs, setTotalDocs] = useState();
@@ -45,26 +46,73 @@ export default function LegalDocScreen({route, navigation}) {
   const [searchResults, setSearchResults] = useState();
   const [isVisible, setIsVisible] = useState('');
   const DOCUMENTS_PER_LOAD = 5;
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState([]);
+  const [selected, setSelected] = React.useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [selectedDocs, setSelectedDocs] = useState([]);
+  const onItemsSelect = selectedValues => {
+    setValue(selectedValues);
+
+    // Map selected values to their corresponding details
+    const selectedDocuments = documents.filter(doc =>
+      selectedValues.includes(doc.value),
+    );
+
+    setSelectedItems(selectedDocuments);
+
+    // Extract and store selected prices
+    const prices = selectedValues.map(selectedValue => {
+      const selectedDocument = documents.find(
+        doc => doc.value === selectedValue,
+      );
+      return selectedDocument.price;
+    });
+
+    setSelectedPrices(prices);
+  };
+  function calculateTotalPrice(documentObjects) {
+    return documentObjects.reduce(
+      (total, document) => total + document.price,
+      0,
+    );
+  }
+  function createDocumentObject(array) {
+    const documentObjects = array.map(item => {
+      const [name, price] = item.split(' - $');
+      return {name, price: parseFloat(price)};
+    });
+    const totalPrice = calculateTotalPrice(documentObjects);
+    setTotalPrice(totalPrice);
+    setSelectedDocs(documentObjects);
+    console.log('====================================');
+    console.log('totalPrice', documentObjects);
+    console.log('====================================');
+  }
   const submitAddressDetails = async (Name, Price) => {
     setLoading(true);
-    dispatch(
-      setBookingInfoState({
-        ...bookingData,
-        documentType: {
-          name: Name,
-          price: Price,
-        },
-      }),
-    );
+    if (selectedDocs.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select atleast one document',
+      });
+    } else {
+      dispatch(
+        setBookingInfoState({
+          ...bookingData,
+          documentType: {
+            name: Name,
+            price: Price,
+          },
+        }),
+      );
+      navigation.navigate('MobileNotaryDateScreen');
+    }
     setLoading(false);
-    navigation.navigate('MobileNotaryDateScreen');
   };
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
-    console.log('====================================');
-    console.log('data', data);
-    console.log('====================================');
     setTotalDocs(data?.totalDocs);
     setDocumentArray(data?.documentTypes);
 
@@ -75,6 +123,7 @@ export default function LegalDocScreen({route, navigation}) {
   useEffect(() => {
     getState();
   }, []);
+
   const handleSearchInput = query => {
     setSearchResults(query);
     setDocumentArray();
@@ -99,16 +148,13 @@ export default function LegalDocScreen({route, navigation}) {
       onPress={() => submitAddressDetails(item.name, item.statePrices[0].price)}
     />
   );
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title="All Documents"
-        midImg={require('../../../assets/Search.png')}
-        midImgPress={() => setIsVisible(!isVisible)}
-        isVisible={isVisible}
-        onChangeText={e => {
-          handleSearchInput(e);
-        }}
+        // midImg={require('../../../assets/Search.png')}
+        // midImgPress={() => setIsVisible(!isVisible)}
       />
 
       <BottomSheetStyle>
@@ -118,7 +164,114 @@ export default function LegalDocScreen({route, navigation}) {
           <Text style={styles.Heading}>
             Please select the documents you want to get notarized.
           </Text>
-          {documentArray ? (
+          <View
+            style={{
+              marginTop: widthToDp(2),
+              paddingHorizontal: widthToDp(2),
+            }}>
+            {documentArray ? (
+              <MultipleSelectList
+                setSelected={val => setSelected(val)}
+                data={documentArray.map(item => ({
+                  value: `${item.name} - $${item.statePrices[0].price}`,
+                }))}
+                save="value"
+                onSelect={() => createDocumentObject(selected)}
+                label="Documents"
+                placeholder="Search for documents"
+                boxStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                }}
+                dropdownStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                  maxHeight: widthToDp(75),
+                }}
+                inputStyles={{color: Colors.TextColor}}
+                badgeStyles={{backgroundColor: Colors.Orange}}
+                dropdownTextStyles={{color: Colors.TextColor}}
+                checkBoxStyles={{tintColor: Colors.TextColor}}
+                labelStyles={{color: Colors.TextColor, fontSize: widthToDp(4)}}
+                badgeTextStyles={{
+                  fontSize: widthToDp(3.2),
+                  color: Colors.white,
+                  fontFamily: 'Manrope-SemiBold',
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  justifyContent: 'center',
+                }}>
+                <ActivityIndicator size="large" color={Colors.Orange} />
+              </View>
+            )}
+          </View>
+          <View
+            style={{
+              marginVertical: widthToDp(15),
+            }}>
+            <View
+              style={{
+                borderWidth: 1,
+                marginVertical: widthToDp(2),
+              }}
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: widthToDp(2),
+              }}>
+              <Text style={styles.Heading}>Total Price:</Text>
+              <Text style={styles.Heading}>${totalPrice}</Text>
+            </View>
+            <GradientButton
+              Title="Proceed"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{borderRadius: 15}}
+              onPress={() => submitAddressDetails(selectedDocs, totalPrice)}
+            />
+          </View>
+        </ScrollView>
+      </BottomSheetStyle>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.PinkBackground,
+  },
+  contentContainer: {
+    flex: 1,
+    marginVertical: heightToDp(3),
+  },
+  Heading: {
+    fontSize: widthToDp(6),
+    fontWeight: '700',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(2),
+  },
+  subheading: {
+    fontSize: widthToDp(4),
+    fontWeight: '700',
+    color: Colors.TextColor,
+    alignSelf: 'center',
+  },
+  picture: {
+    width: widthToDp(20),
+    height: heightToDp(20),
+  },
+});
+
+{
+  /* {documentArray ? (
             documentArray.length !== 0 ? (
               <FlatList
                 data={documentArray}
@@ -151,36 +304,5 @@ export default function LegalDocScreen({route, navigation}) {
               }}>
               <ActivityIndicator size="large" color={Colors.Orange} />
             </View>
-          )}
-        </ScrollView>
-      </BottomSheetStyle>
-    </SafeAreaView>
-  );
+          )} */
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
-  },
-  contentContainer: {
-    marginVertical: heightToDp(3),
-  },
-  Heading: {
-    fontSize: widthToDp(6),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    marginHorizontal: widthToDp(5),
-    marginVertical: widthToDp(2),
-  },
-  subheading: {
-    fontSize: widthToDp(4),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-  },
-  picture: {
-    width: widthToDp(20),
-    height: heightToDp(20),
-  },
-});
