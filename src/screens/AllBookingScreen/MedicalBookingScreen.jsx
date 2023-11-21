@@ -44,7 +44,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
   const [feedback, setFeedback] = useState();
-
   const {documents} = bookingDetail;
   const {booked_for} = bookingDetail;
   const [modalShow, setModalShow] = useState(false);
@@ -79,6 +78,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
+      console.log('====================================');
+      console.log(bookingDetail?._id);
+      console.log('====================================');
       const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
@@ -107,6 +109,9 @@ export default function MedicalBookingScreen({route, navigation}) {
       review,
       rating,
     );
+    console.log('====================================');
+    console.log(response);
+    console.log('====================================');
     if (response === '200') {
       setModalShow(true);
     }
@@ -137,6 +142,11 @@ export default function MedicalBookingScreen({route, navigation}) {
     setModalShow(false);
     navigation.navigate('HomeScreen');
   };
+  function displayNamesWithCommas(arr) {
+    const names = arr.map(obj => obj.name);
+    const namesString = names.join(', ');
+    return namesString;
+  }
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -197,7 +207,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             (status !== 'Completed' ? (
               <AgentCard
                 source={{uri: bookingDetail?.agent?.profile_picture}}
-                bottomRightText={bookingDetail?.document_type?.price}
+                bottomRightText={bookingDetail?.document_type}
                 bottomLeftText="Total"
                 image={require('../../../assets/agentLocation.png')}
                 agentName={
@@ -206,7 +216,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   bookingDetail?.agent?.last_name
                 }
                 agentAddress={bookingDetail?.agent?.location}
-                task={status}
+                task={status || 'Loading'}
                 OrangeText={'At Office'}
                 dateofBooking={bookingDetail?.date_of_booking}
                 timeofBooking={bookingDetail?.time_of_booking}
@@ -239,18 +249,19 @@ export default function MedicalBookingScreen({route, navigation}) {
             ))}
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
-            <View style={styles.addressView}>
+            <View>
               <Text
                 style={{
                   fontSize: widthToDp(4),
                   marginLeft: widthToDp(1),
                   fontFamily: 'Manrope-Bold',
                   color: Colors.TextColor,
+                  marginLeft: widthToDp(6),
                 }}>
                 Document Type:
               </Text>
-              <Text style={styles.detail}>
-                {bookingDetail.document_type.name}
+              <Text style={[styles.detail, {marginLeft: widthToDp(6)}]}>
+                {displayNamesWithCommas(bookingDetail.document_type)}
               </Text>
             </View>
             {booked_for?.first_name && (

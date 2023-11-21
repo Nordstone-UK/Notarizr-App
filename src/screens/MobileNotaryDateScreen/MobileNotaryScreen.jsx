@@ -52,28 +52,17 @@ export default function MobileNotaryDateScreen({route, navigation}) {
       urlResponse = await uploadAllDocuments(documents);
     }
 
-    dispatch(
-      setBookingInfoState({
-        ...bookingData,
-        documents: urlResponse,
-      }),
-    );
-    setLoading(false);
-    navigation.navigate('NearbyLoadingScreen');
+    // dispatch(
+    //   setBookingInfoState({
+    //     ...bookingData,
+    //     documents: urlResponse,
+    //   }),
+    // );
+    // setLoading(false);
+    // navigation.navigate('NearbyLoadingScreen');
     setLoading(false);
   };
-  useEffect(() => {
-    // setLocalBookingData({
-    //   ...LocalBookingData,
-    //   serviceType: description.service_type,
-    //   service: description._id,
-    //   agent: description.agent._id,
-    //   documentType: documentType,
-    // });
-    console.log('====================================');
-    console.log('bookingData', bookingData);
-    console.log('====================================');
-  }, []);
+  useEffect(() => {}, []);
 
   const selectDocuments = async () => {
     const response = await uploadMultipleFiles();

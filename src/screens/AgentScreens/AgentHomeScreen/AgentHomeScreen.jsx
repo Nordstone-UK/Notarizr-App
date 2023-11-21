@@ -75,24 +75,25 @@ export default function AgentHomeScreen({navigation}) {
     console.log('====================================');
     console.log('res', res);
     console.log('====================================');
-    if (!res.has_stipe_account && !res.has_details_submitted) {
-      Alert.alert(
-        'Please make a stripe account before using our services',
-        '',
-        [
-          {
-            text: 'OK',
-            onPress: async () => {
-              navigation.navigate('PaymentUpdateScreen');
-            },
-            style: 'cancel',
-          },
-        ],
-        {cancelable: false},
-      );
-    } else {
-      navigation.navigate('AgentMainBookingScreen');
-    }
+    navigation.navigate('AgentMainBookingScreen');
+    // if (!res.has_stipe_account || !res.has_details_submitted) {
+    //   Alert.alert(
+    //     'Please make a stripe account before using our services',
+    //     '',
+    //     [
+    //       {
+    //         text: 'OK',
+    //         onPress: async () => {
+    //           navigation.navigate('PaymentUpdateScreen');
+    //         },
+    //         style: 'cancel',
+    //       },
+    //     ],
+    //     {cancelable: false},
+    //   );
+    // } else {
+
+    // }
     setLoading(false);
   };
   return (

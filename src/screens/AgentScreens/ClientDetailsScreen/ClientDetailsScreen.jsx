@@ -154,9 +154,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const handleSignaturePage = async () => {
     const signatureResponse = await scanDocument();
     setSignaturePage(signatureResponse);
-    console.log('====================================');
-    console.log('signatureResponse', signatureResponse);
-    console.log('====================================');
     setIsVisible(false);
   };
   const handleNotaryBlock = async () => {
@@ -167,7 +164,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const handleCancel = async () => {
     setIsVisible(false);
   };
-
+  function displayNamesWithCommas(arr) {
+    const names = arr.map(obj => obj.name);
+    const namesString = names.join(', ');
+    return namesString;
+  }
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -225,7 +226,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             source={{uri: clientDetail.booked_by.profile_picture}}
-            bottomRightText={clientDetail.document_type.price}
+            bottomRightText={clientDetail.document_type}
             bottomLeftText="Total"
             agentName={
               clientDetail.booked_by.first_name +
@@ -247,18 +248,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           />
           <View style={styles.sheetContainer}>
             <Text style={[styles.insideHeading]}>Booking Preferences</Text>
-            <View style={styles.addressView}>
+            <View>
               <Text
                 style={{
                   fontSize: widthToDp(4),
-                  marginLeft: widthToDp(1),
+                  marginLeft: widthToDp(7),
                   fontFamily: 'Manrope-Bold',
                   color: Colors.TextColor,
                 }}>
-                Service Type:
+                Document Type:
               </Text>
-              <Text style={styles.detail}>
-                {clientDetail.document_type.name}
+              <Text style={[styles.detail, {marginLeft: widthToDp(7)}]}>
+                {displayNamesWithCommas(clientDetail.document_type)}
               </Text>
             </View>
             {booked_for?.first_name && (

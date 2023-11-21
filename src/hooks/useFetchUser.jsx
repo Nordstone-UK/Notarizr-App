@@ -31,6 +31,7 @@ const useFetchUser = () => {
     };
 
     await getDocuments(request).then(response => {
+      console.log(response.data);
       info = response.data.getPaginatedDocumentTypes;
     });
     return info;

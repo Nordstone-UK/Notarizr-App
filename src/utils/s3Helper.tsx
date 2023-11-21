@@ -22,7 +22,9 @@ const uploadDirectOnS3 = async ({
     secretAccessKey: secretAccessKey,
     signatureVersion: signatureVersion,
   });
-
+  console.log('====================================');
+  console.log('Testing', file);
+  console.log('====================================');
   const keyName = `${type}/${title}/${file._data.name}`;
   const params = {
     Bucket: MUNROE_BUCKET_NAME,
@@ -47,7 +49,9 @@ const uploadDocumentsOnS3 = async ({
     secretAccessKey: secretAccessKey,
     signatureVersion: signatureVersion,
   });
-
+  console.log('====================================');
+  console.log('Testing', type, title, file);
+  console.log('====================================');
   const keyName = `${type}/${title}/${file}`;
   const params = {
     Bucket: MUNROE_BUCKET_NAME,

@@ -40,9 +40,6 @@ export default function AllBookingScreen({route, navigation}) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      // console.log('AllBooking In', route?.params?.bookingComplete);
-
-      console.log('sending...');
       init('accepted');
       setIsFocused('accepted');
     });
@@ -198,7 +195,7 @@ export default function AllBookingScreen({route, navigation}) {
                       <TouchableOpacity onPress={() => handleAgentData(item)}>
                         <AgentCard
                           source={{uri: item.agent.profile_picture}}
-                          bottomRightText={item.document_type.price}
+                          bottomRightText={item.document_type}
                           bottomLeftText="Total"
                           image={require('../../../assets/locationIcon.png')}
                           agentName={

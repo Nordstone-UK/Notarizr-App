@@ -37,8 +37,6 @@ const useRegister = () => {
     return url;
   };
   const uploadFilestoS3 = async (fileUri, agentName) => {
-    console.log('uploadBlobToS3', fileUri, agentName);
-
     const title = 'Documents';
     const type = agentName;
     const url = await uploadDirectOnS3({
@@ -46,7 +44,6 @@ const useRegister = () => {
       title: title,
       type: type,
     });
-    console.log('uploadBlobToS3', url);
     return url;
   };
   const uploadDocmmentToS3 = async fileUri => {
@@ -58,7 +55,6 @@ const useRegister = () => {
       title: title,
       type: type,
     });
-    // console.log('uploadDocmmentToS3', url);
     return url;
   };
   const handleRegister = async variables => {
@@ -132,7 +128,7 @@ const useRegister = () => {
       uploadedFiles.forEach((link, index) => {
         uploadedFilesObject[`file${index + 1}`] = link;
       });
-      // console.log('Uploaded Files Object:', uploadedFilesObject);
+      console.log('Uploaded Files Object:', uploadedFilesObject);
       return uploadedFilesObject;
     } catch (error) {
       console.error('Error uploading documents:', error);
