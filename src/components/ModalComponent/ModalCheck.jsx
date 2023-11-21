@@ -36,7 +36,7 @@ export default function ModalCheck(props) {
               resizeMode: 'contain',
             }}
           />
-          <Text style={styles.text}>Your experience with our Agent ?</Text>
+          <Text style={styles.text}>Your experience with our Agent</Text>
           <Text style={styles.text}>1. Were they courteous?</Text>
           <Text style={styles.text}>2. Were they on time?</Text>
           <Text style={styles.text}>3. How was the overall experience?</Text>

@@ -159,7 +159,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="MobileNotaryDateScreen"
+          initialRouteName="Splash_Screen"
           screenOptions={{
             headerShown: false,
           }}>

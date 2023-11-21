@@ -85,9 +85,6 @@ export default function LegalDocScreen({route, navigation}) {
     const totalPrice = calculateTotalPrice(documentObjects);
     setTotalPrice(totalPrice);
     setSelectedDocs(documentObjects);
-    console.log('====================================');
-    console.log('totalPrice', documentObjects);
-    console.log('====================================');
   }
   const submitAddressDetails = async docArray => {
     setLoading(true);

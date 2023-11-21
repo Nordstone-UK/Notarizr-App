@@ -1,6 +1,10 @@
 import S3 from 'aws-sdk/clients/s3';
+import RNFetchBlob from 'rn-fetch-blob';
+import RNFS from 'react-native-fs';
+import {decode} from 'base64-arraybuffer';
+import {uriToBlob} from './ImagePicker';
+const {Buffer} = require('buffer');
 
-// import S3 from 'react-aws-s3'
 const signatureVersion = 'v4';
 const accessKeyId = 'AKIAYMBF2K7JBUCNVT76';
 const secretAccessKey = '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';
@@ -22,9 +26,13 @@ const uploadDirectOnS3 = async ({
     secretAccessKey: secretAccessKey,
     signatureVersion: signatureVersion,
   });
-  console.log('====================================');
-  console.log('Testing', file);
-  console.log('====================================');
+  // const contentType = file.mime;
+  // const contentDisposition = `inline;filename="${file.path}"`;
+
+  // const base64 = await RNFS.readFile(file.path, 'base64');
+  // const arrayBuffer = decode(base64);
+  const blob = await uriToBlob(file);
+
   const keyName = `${type}/${title}/${file._data.name}`;
   const params = {
     Bucket: MUNROE_BUCKET_NAME,
@@ -44,19 +52,21 @@ const uploadDocumentsOnS3 = async ({
   title,
   type,
 }: UploadFileOptions): Promise<any> => {
+  const fileContent = await RNFetchBlob.fs.readFile(file, 'base64');
   const s3bucket = new S3({
     accessKeyId: accessKeyId,
     secretAccessKey: secretAccessKey,
     signatureVersion: signatureVersion,
   });
-  console.log('====================================');
-  console.log('Testing', type, title, file);
-  console.log('====================================');
-  const keyName = `${type}/${title}/${file}`;
+  const blobData = await uriToBlob(file);
+
+  const blob = blobData._data;
+
+  const keyName = `${type}/${title}/${blob.name}`;
   const params = {
     Bucket: MUNROE_BUCKET_NAME,
     Key: keyName,
-    Body: file,
+    Body: blobData,
   };
 
   try {

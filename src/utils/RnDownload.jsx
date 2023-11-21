@@ -3,28 +3,35 @@ import {Platform} from 'react-native';
 
 export const downloadFile = async url => {
   const date = new Date();
-
+  console.log('====================================');
+  console.log(url);
+  console.log('====================================');
   try {
-    const {config, fs} = RNFetchBlob;
-    const {DownloadDir} = fs.dirs;
+    const {dirs} = RNFetchBlob.fs;
+    const downloadDir =
+      Platform.OS === 'ios' ? dirs.DocumentDir : dirs.DownloadDir;
     const fileName = url.substring(url.lastIndexOf('/') + 1);
-    const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1);
-    const fileMimeType = `application/${fileExtension}`;
+    const downloadPath = `${downloadDir}/${fileName}`;
 
-    const res = await config({
-      path: `${DownloadDir}/${fileName}`,
+    const isDownloadDirExists = await RNFetchBlob.fs.exists(downloadDir);
+    if (!isDownloadDirExists) {
+      await RNFetchBlob.fs.mkdir(downloadDir);
+    }
+
+    const res = await RNFetchBlob.config({
+      fileCache: true,
       addAndroidDownloads: {
         useDownloadManager: true,
         notification: true,
-        mime: fileMimeType,
-        path: `${DownloadDir}/me_${Math.floor(
+        path: `${downloadDir}/me_${Math.floor(
           date.getTime() + date.getSeconds() / 2,
-        )}.pdf`,
+        )}${fileName}`,
         description: 'Downloading file...',
       },
-      fileCache: true,
     }).fetch('GET', url);
-
+    console.log('====================================');
+    console.log(res);
+    console.log('====================================');
     console.log('File downloaded to:', res.path());
   } catch (error) {
     console.log('Error downloading file:', error);

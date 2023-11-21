@@ -51,15 +51,14 @@ export default function MobileNotaryDateScreen({route, navigation}) {
     if (documents) {
       urlResponse = await uploadAllDocuments(documents);
     }
-
-    // dispatch(
-    //   setBookingInfoState({
-    //     ...bookingData,
-    //     documents: urlResponse,
-    //   }),
-    // );
-    // setLoading(false);
-    // navigation.navigate('NearbyLoadingScreen');
+    dispatch(
+      setBookingInfoState({
+        ...bookingData,
+        documents: urlResponse,
+      }),
+    );
+    setLoading(false);
+    navigation.navigate('NearbyLoadingScreen');
     setLoading(false);
   };
   useEffect(() => {}, []);
