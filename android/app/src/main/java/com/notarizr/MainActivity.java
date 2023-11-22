@@ -6,7 +6,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import org.devio.rn.splashscreen.SplashScreen;
 import android.os.Bundle;
-
+import com.github.wumke.RNImmediatePhoneCall.RNImmediatePhoneCallPackage;
 public class MainActivity extends ReactActivity {
 
   /**
@@ -39,4 +39,11 @@ public class MainActivity extends ReactActivity {
         // If you opted-in for the New Architecture, we enable the Fabric Renderer.
         DefaultNewArchitectureEntryPoint.getFabricEnabled());
   }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+      
+      RNImmediatePhoneCallPackage.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);  
+    }
+  
 }

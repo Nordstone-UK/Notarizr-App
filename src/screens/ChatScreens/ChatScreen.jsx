@@ -12,10 +12,17 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import {GiftedChat} from 'react-native-gifted-chat';
+import {useSelector} from 'react-redux';
+import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
 
 export default function ChatScreen(props) {
   const [messages, setMessages] = useState([]);
-
+  const {profile_picture, first_name, last_name, phone_number} = useSelector(
+    state => state.user.user,
+  );
+  console.log('====================================');
+  console.log(phone_number);
+  console.log('====================================');
   const onSend = newMessages => {
     setMessages(previousMessages =>
       GiftedChat.append(previousMessages, newMessages),
@@ -31,14 +38,17 @@ export default function ChatScreen(props) {
       </TouchableOpacity>
     );
   };
-
+  const voiceCall = () => {
+    RNImmediatePhoneCall.immediatePhoneCall(phone_number);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
-        Title="Brandon Roger"
-        ProfilePic={require('../../../assets/profileIcon.png')}
+        Title={first_name + ' ' + last_name}
+        ProfilePic={{uri: profile_picture}}
         midImg={require('../../../assets/videoCallIcon.png')}
         lastImg={require('../../../assets/voiceCallIcon.png')}
+        lastImgPress={() => voiceCall()}
       />
       <View style={styles.bottonSheet}>
         <GiftedChat

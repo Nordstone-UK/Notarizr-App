@@ -109,11 +109,15 @@ export default function Splash_Screen({navigation}) {
         const NotificationPermission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
         );
+        const PhonePermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CALL_PHONE,
+        );
         // Check if permissions are granted
         if (
           locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
           NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          PhonePermission === PermissionsAndroid.RESULTS.GRANTED &&
           (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
             Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
         ) {

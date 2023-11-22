@@ -49,6 +49,11 @@
 			</dict>
 		</dict>
 	</dict>
+	 <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>tel</string>
+        <string>telprompt</string>
+    </array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to your location to provide you with personalized recommendations and services based on your current location. Your location data will only be used within the app and will not be shared with any third parties.</string>
 	<key>UILaunchStoryboardName</key>
