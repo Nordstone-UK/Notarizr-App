@@ -72,25 +72,24 @@ export default function AgentHomeScreen({navigation}) {
   const handleStripeAccount = async () => {
     setLoading(true);
     const res = await checkUserStipeAccount();
-    navigation.navigate('AgentMainBookingScreen');
-    // if (!res.has_stipe_account || !res.has_details_submitted) {
-    //   Alert.alert(
-    //     'Please make a stripe account before using our services',
-    //     '',
-    //     [
-    //       {
-    //         text: 'OK',
-    //         onPress: async () => {
-    //           navigation.navigate('PaymentUpdateScreen');
-    //         },
-    //         style: 'cancel',
-    //       },
-    //     ],
-    //     {cancelable: false},
-    //   );
-    // } else {
-    //   navigation.navigate('AgentMainBookingScreen');
-    // }
+    if (!res.has_stipe_account || !res.has_details_submitted) {
+      Alert.alert(
+        'Please make a stripe account before using our services',
+        '',
+        [
+          {
+            text: 'OK',
+            onPress: async () => {
+              navigation.navigate('PaymentUpdateScreen');
+            },
+            style: 'cancel',
+          },
+        ],
+        {cancelable: false},
+      );
+    } else {
+      navigation.navigate('AgentMainBookingScreen');
+    }
     setLoading(false);
   };
   return (
