@@ -6,12 +6,18 @@ export const CREATE_SERVICE = gql`
     $serviceType: String!
     $availability: AvailabilityInput!
     $location: [String!]!
+    $canPrint: Boolean!
+    $image: String
+    $status: String
   ) {
     createService(
       name: $name
       service_type: $serviceType
       availability: $availability
       location: $location
+      can_print: $canPrint
+      image: $image
+      status: $status
     ) {
       status
       message
@@ -27,6 +33,7 @@ export const CREATE_SERVICE = gql`
           endTime
         }
         location
+        can_print
         agent {
           _id
           first_name

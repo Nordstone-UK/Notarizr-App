@@ -74,10 +74,10 @@ const useRegister = () => {
       //   text1: 'API called responded!',
       //   text2: data?.register?.status || 'No Msg from API',
       // });
-      console.log('After API', data);
+      // console.log('After API', data);
       if (data?.register?.status === '201') {
         saveAccessTokenToStorage(data?.register?.access_token);
-        console.log('Registered');
+        // console.log('Registered');
         return true;
       } else {
         return false;

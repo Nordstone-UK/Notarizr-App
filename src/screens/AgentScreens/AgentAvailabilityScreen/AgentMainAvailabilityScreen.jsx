@@ -25,9 +25,9 @@ import CheckBox from '@react-native-community/checkbox';
 
 export default function AgentMainAvailabilityScreen({navigation}) {
   const [availability, setSelectedDays] = useState([]);
-  const [toggleCheckBox, setToggleCheckBox] = useState(false);
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
+  const [canPrint, setCanPrint] = useState(false);
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
   const {dispatchAvailability} = useAgentService();
   useEffect(() => {
@@ -95,9 +95,8 @@ export default function AgentMainAvailabilityScreen({navigation}) {
             </Text>
             <CheckBox
               disabled={false}
-              value={toggleCheckBox}
-              onValueChange={newValue => setToggleCheckBox(newValue)}
-              // tintColors={true?: Colors.Orange,false?: Colors.Black }
+              value={canPrint}
+              onValueChange={newValue => setCanPrint(newValue)}
             />
           </View>
           <View style={styles.bottomFlex}>
@@ -133,6 +132,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
                     availability,
                     moment(startTime).format('h:mm A'),
                     moment(endTime).format('h:mm A'),
+                    canPrint,
                   )
                 }
               />

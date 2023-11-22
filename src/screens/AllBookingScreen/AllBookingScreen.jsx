@@ -202,7 +202,7 @@ export default function AllBookingScreen({route, navigation}) {
                             item.agent.first_name + ' ' + item.agent.last_name
                           }
                           agentAddress={item.agent.location}
-                          task={item.status}
+                          task={item.status || 'Loading'}
                           OrangeText={'At Office'}
                           dateofBooking={item.date_of_booking}
                           timeofBooking={item.time_of_booking}

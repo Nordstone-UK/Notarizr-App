@@ -15,7 +15,7 @@ export default function AgentVerfiedScreen({navigation}) {
   const clearTokenFromStorage = async () => {
     try {
       await AsyncStorage.removeItem('token');
-      console.log('Token cleared from AsyncStorage');
+      // console.log('Token cleared from AsyncStorage');
     } catch (error) {
       console.error('Error clearing token from AsyncStorage:', error);
     }

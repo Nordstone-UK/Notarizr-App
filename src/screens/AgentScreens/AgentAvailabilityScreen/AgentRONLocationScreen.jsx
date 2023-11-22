@@ -22,8 +22,9 @@ import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import {Button} from '@rneui/base';
 
-export default function AgentRONLocationScreen({navigation}) {
+export default function AgentRONLocationScreen({route, navigation}) {
   const {location} = useSelector(state => state.user.user);
+  const {canPrint} = route.params;
   const [isDiabled, setIsDisabled] = useState(false);
   const [cityArray, setCityArray] = useState([location]);
   const [Location, setLocation] = useState('');
@@ -37,6 +38,7 @@ export default function AgentRONLocationScreen({navigation}) {
     const params = {
       ...agentService,
       location: Location,
+      canPrint: canPrint,
     };
     await handleRegistration(params);
     setIsDisabled(false);

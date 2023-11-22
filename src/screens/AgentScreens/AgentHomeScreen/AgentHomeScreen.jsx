@@ -72,9 +72,6 @@ export default function AgentHomeScreen({navigation}) {
   const handleStripeAccount = async () => {
     setLoading(true);
     const res = await checkUserStipeAccount();
-    console.log('====================================');
-    console.log('res', res);
-    console.log('====================================');
     navigation.navigate('AgentMainBookingScreen');
     // if (!res.has_stipe_account || !res.has_details_submitted) {
     //   Alert.alert(
@@ -92,7 +89,7 @@ export default function AgentHomeScreen({navigation}) {
     //     {cancelable: false},
     //   );
     // } else {
-
+    //   navigation.navigate('AgentMainBookingScreen');
     // }
     setLoading(false);
   };

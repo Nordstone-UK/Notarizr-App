@@ -34,10 +34,10 @@ const useAgentService = () => {
     navigation.navigate('AgentMainAvailabilityScreen');
     // navigation.navigate('AgentAvailabilitySetupScreen');
   };
-  const dispatchAvailability = async (weeks, startTime, endTime) => {
+  const dispatchAvailability = async (weeks, startTime, endTime, canPrint) => {
     const availability = orderWeekdays(weeks);
     dispatch(setAvailability({availability, startTime, endTime}));
-    navigation.navigate('AgentRONLocationScreen');
+    navigation.navigate('AgentRONLocationScreen', {canPrint: canPrint});
   };
   const LocalNotaryRegister = async () => {
     const request = {
@@ -88,7 +88,7 @@ const useAgentService = () => {
     };
     // console.log(request);
     const {data} = await createService(request);
-    // console.log('wdawd', data);
+    // console.log('wdawd', reponse);
     if (data.createService.status === '201') {
       navigation.navigate('ProfilePreferenceCompletion');
     } else {

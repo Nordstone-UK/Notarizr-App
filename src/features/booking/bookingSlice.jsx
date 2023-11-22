@@ -25,7 +25,7 @@ export const bookingSlice = createSlice({
     },
     setNumberOfDocs: (state, action) => {
       state.numberOfDocs = action.payload;
-      console.log('user Info Set in Redux', state.numberOfDocs);
+      // console.log('user Info Set in Redux', state.numberOfDocs);
     },
   },
 });

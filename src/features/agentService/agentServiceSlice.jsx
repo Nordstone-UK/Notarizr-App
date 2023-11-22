@@ -3,13 +3,13 @@ import {createSlice} from '@reduxjs/toolkit';
 const initialState = {
   name: 'null',
   serviceType: 'null',
-  category: 'null',
   location: 'null',
   availability: {
     endTime: null,
     startTime: null,
     weekdays: null,
   },
+  canPrint: null,
 };
 
 export const agentServiceSlice = createSlice({
@@ -18,13 +18,12 @@ export const agentServiceSlice = createSlice({
   reducers: {
     setServiceType: (state, action) => {
       state.serviceType = action.payload;
-      // console.log('ServiceType Set', state.serviceType);
+      // consle.log('ServiceType Set', state.serviceType);
     },
     setAvailability: (state, action) => {
       state.availability.weekdays = action.payload.availability;
       state.availability.startTime = action.payload.startTime;
       state.availability.endTime = action.payload.endTime;
-      // console.log('Availability Set', state.availability);
     },
     setCategories: (state, action) => {
       state.category = action.payload;

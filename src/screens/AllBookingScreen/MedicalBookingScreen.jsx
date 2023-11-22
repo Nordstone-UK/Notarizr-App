@@ -7,6 +7,7 @@ import {
   RefreshControl,
   SafeAreaView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -34,6 +35,7 @@ import moment from 'moment';
 import useFetchBooking from '../../hooks/useFetchBooking';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
+import {downloadFile} from '../../utils/RnDownload';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
@@ -216,7 +218,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   bookingDetail?.agent?.last_name
                 }
                 agentAddress={bookingDetail?.agent?.location}
-                task={status || 'Loading'}
+                task={bookingDetail.status || 'Loading'}
                 OrangeText={'At Office'}
                 dateofBooking={bookingDetail?.date_of_booking}
                 timeofBooking={bookingDetail?.time_of_booking}

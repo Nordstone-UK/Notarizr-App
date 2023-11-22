@@ -110,7 +110,7 @@ const useLogin = () => {
   const saveAccessTokenToStorage = async token => {
     try {
       await AsyncStorage.setItem('token', token);
-      console.log('Access token saved successfully');
+      // console.log('Access token saved successfully');
     } catch (error) {
       console.log('Error saving access token: ', error);
     }

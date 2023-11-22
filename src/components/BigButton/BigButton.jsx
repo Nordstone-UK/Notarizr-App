@@ -1,11 +1,11 @@
 import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {widthToDp} from '../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 
 export default function BigButton(props) {
-  const LastNumber = props?.number || 0;
+  const LastNumber = props?.number;
 
   return (
     <TouchableOpacity
@@ -16,6 +16,8 @@ export default function BigButton(props) {
         width: widthToDp(80),
         flexDirection: 'row',
         marginBottom: widthToDp(2),
+        height: heightToDp(25),
+        alignItems: 'center',
       }}
       onPress={props.onPress}>
       <View>
@@ -28,7 +30,7 @@ export default function BigButton(props) {
           }}>
           {props?.Heading}
         </Text>
-        {LastNumber ? (
+        {props?.number ? (
           <Text
             style={{
               color: Colors.TextColor,
@@ -36,7 +38,7 @@ export default function BigButton(props) {
               fontSize: widthToDp(6),
               marginLeft: widthToDp(3),
             }}>
-            {LastNumber} {props.unitOfMeasurment}
+            {props?.number} {props.unitOfMeasurment}
           </Text>
         ) : null}
       </View>
