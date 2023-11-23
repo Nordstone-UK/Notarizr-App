@@ -16,14 +16,10 @@ import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofS
 import useGetService from '../../hooks/useGetService';
 
 export default function OnlineNotaryScreen({route, navigation}) {
-  const documentType = route.params;
   const [isDisabled, setIsDisabled] = useState(false);
-  console.log('documentType', documentType);
   const handleFetchAPI = async () => {
     setIsDisabled(true);
-    navigation.navigate('NearbyLoadingScreen', {
-      documentType: documentType,
-    });
+    navigation.navigate('RonDateDocScreen');
     setIsDisabled(false);
   };
 
@@ -32,7 +28,7 @@ export default function OnlineNotaryScreen({route, navigation}) {
       <NavigationHeader Title="Booking" />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>Medical documents</Text>
+        <Text style={styles.Heading}>Remote Online Notary</Text>
       </View>
       <BottomSheetStyle>
         <ScrollView
@@ -52,7 +48,7 @@ export default function OnlineNotaryScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Sessions"
             Image={require('../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('SessionScreen', documentType)}
+            onPress={() => navigation.navigate('SessionScreen')}
           />
         </ScrollView>
       </BottomSheetStyle>

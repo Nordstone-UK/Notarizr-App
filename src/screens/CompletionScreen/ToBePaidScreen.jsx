@@ -1,11 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  SafeAreaView,
-  ImageBackground,
-} from 'react-native';
+import {StyleSheet, Text, View, Image, SafeAreaView, Alert} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';

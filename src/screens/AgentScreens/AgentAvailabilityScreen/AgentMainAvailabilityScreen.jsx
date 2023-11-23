@@ -23,7 +23,7 @@ import TimePicker from '../../../components/TimePicker/TimePicker';
 import moment from 'moment';
 import CheckBox from '@react-native-community/checkbox';
 
-export default function AgentMainAvailabilityScreen({navigation}) {
+export default function AgentMainAvailabilityScreen({navigation}, props) {
   const [availability, setSelectedDays] = useState([]);
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
@@ -75,30 +75,32 @@ export default function AgentMainAvailabilityScreen({navigation}) {
               date={endTime}
             />
           </View>
-          <View
-            style={{
-              alignSelf: 'center',
-              width: widthToDp(85),
-              marginVertical: widthToDp(5),
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <Text
+          {props?.service === 'mobile_notary' && (
+            <View
               style={{
-                fontSize: widthToDp(4),
-                color: Colors.TextColor,
-                fontFamily: 'Manrope-Bold',
-                width: widthToDp(60),
+                alignSelf: 'center',
+                width: widthToDp(85),
+                marginVertical: widthToDp(5),
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}>
-              Are you able to print document for the client:
-            </Text>
-            <CheckBox
-              disabled={false}
-              value={canPrint}
-              onValueChange={newValue => setCanPrint(newValue)}
-            />
-          </View>
+              <Text
+                style={{
+                  fontSize: widthToDp(4),
+                  color: Colors.TextColor,
+                  fontFamily: 'Manrope-Bold',
+                  width: widthToDp(60),
+                }}>
+                Are you able to print document for the client:
+              </Text>
+              <CheckBox
+                disabled={false}
+                value={canPrint}
+                onValueChange={newValue => setCanPrint(newValue)}
+              />
+            </View>
+          )}
           <View style={styles.bottomFlex}>
             <View style={styles.buttonFlex}>
               <MainButton

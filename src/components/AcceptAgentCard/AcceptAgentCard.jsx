@@ -57,7 +57,7 @@ export default function AcceptAgentCard(props) {
   }
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
-      <View style={{flexDirection: 'row', marginVertical: heightToDp(2)}}>
+      <View style={{flexDirection: 'row', marginVertical: heightToDp(1)}}>
         <View>
           <AgentCardPicture task={props.task} source={props.source} />
         </View>
@@ -70,8 +70,7 @@ export default function AcceptAgentCard(props) {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              marginTop: heightToDp(2),
-              width: '110%',
+              width: widthToDp(55),
             }}>
             <View>
               <Text style={styles.nameHeading}>{props?.agentName}</Text>
@@ -83,8 +82,12 @@ export default function AcceptAgentCard(props) {
           <View
             style={{
               flexDirection: 'row',
+              marginTop: heightToDp(3),
             }}>
-            <Image source={props.image} />
+            <Image
+              source={props.image}
+              style={{width: widthToDp(4), height: heightToDp(4)}}
+            />
             <View
               style={{
                 marginLeft: widthToDp(1),
@@ -102,7 +105,7 @@ export default function AcceptAgentCard(props) {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              paddingTop: heightToDp(5),
+              paddingTop: heightToDp(2),
             }}>
             <Text
               style={[
@@ -132,14 +135,12 @@ export default function AcceptAgentCard(props) {
 
 const styles = StyleSheet.create({
   cardContainer: {
+    flex: 1,
     backgroundColor: Colors.white,
     elevation: 10,
-    // borderWidth: 1,
-    // borderColor: Colors.DullTextColor,
     borderRadius: 10,
-    marginVertical: widthToDp(2),
-    paddingBottom: heightToDp(6),
-    marginHorizontal: heightToDp(5),
+    marginHorizontal: heightToDp(8),
+    marginVertical: heightToDp(2),
   },
   nameHeading: {
     fontSize: widthToDp(4),
@@ -164,12 +165,13 @@ const styles = StyleSheet.create({
     height: heightToDp(6),
   },
   orangeline: {
+    flex: 0.5,
+    marginBottom: heightToDp(5),
     borderBottomWidth: 1,
     borderColor: Colors.Orange,
-    width: '130%',
-    right: widthToDp(9),
-    zIndex: -1,
-    paddingVertical: heightToDp(2),
+    width: widthToDp(61),
+    right: widthToDp(6),
+    zIndex: -2,
   },
   totalStyles: {
     color: Colors.TextColor,

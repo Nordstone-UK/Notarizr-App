@@ -71,8 +71,13 @@ export default function AgentHomeScreen({navigation}) {
   };
   const handleStripeAccount = async () => {
     setLoading(true);
-    const res = await checkUserStipeAccount();
-    if (!res.has_stipe_account || !res.has_details_submitted) {
+    const {isUserStripeOnboard} = await checkUserStipeAccount();
+    if (
+      isUserStripeOnboard.has_stripe_account &&
+      isUserStripeOnboard.has_details_submitted
+    ) {
+      navigation.navigate('AgentMainBookingScreen');
+    } else {
       Alert.alert(
         'Please make a stripe account before using our services',
         '',
@@ -87,8 +92,6 @@ export default function AgentHomeScreen({navigation}) {
         ],
         {cancelable: false},
       );
-    } else {
-      navigation.navigate('AgentMainBookingScreen');
     }
     setLoading(false);
   };

@@ -227,7 +227,14 @@ export default function AllBookingScreen({route, navigation}) {
                 </View>
               )
             ) : (
-              <ActivityIndicator size="large" color={Colors.Orange} />
+              <View
+                style={{
+                  height: heightToDp(100),
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <ActivityIndicator size="large" color={Colors.Orange} />
+              </View>
             )}
           </View>
         </ScrollView>

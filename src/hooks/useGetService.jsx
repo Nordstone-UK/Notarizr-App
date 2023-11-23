@@ -18,8 +18,6 @@ const useGetService = () => {
     console.log(request);
     await getServiceByServiceType(request)
       .then(response => {
-        // console.log('In hook', response?.data?.getServiceByServiceType?.users);
-
         if (serviceType === 'mobile_notary') {
           navigation.navigate('MapScreen', {
             agents: response?.data?.getServiceByServiceType?.users,
@@ -36,34 +34,33 @@ const useGetService = () => {
         console.log(error);
       });
   };
-  const RONfetchAPI = async documentData => {
+  const RONfetchAPI = async () => {
     const request = {
       variables: {
         serviceType: 'ron',
       },
     };
-    // console.log('documentData', documentData);
-    await matchAgent(request)
-      .then(response => {
-        // console.log('In hook', response?.data?.matchAgent);
-        navigation.navigate('RONAgentReviewScreen', {
-          agents: response?.data?.matchAgent,
-          documentType: documentData,
-        });
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    console.log('documentData', request);
+    try {
+      const response = await matchAgent(request);
+
+      return response;
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const FetchMobileNotary = async () => {
+
+  const FetchMobileNotary = async serviceType => {
     const request = {
       variables: {
-        serviceType: 'mobile_notary',
+        serviceType: serviceType,
       },
     };
     try {
       const response = await matchAgent(request);
-
+      console.log('====================================');
+      console.log(response);
+      console.log('====================================');
       return response?.data?.matchAgent;
     } catch (error) {
       console.log(error);

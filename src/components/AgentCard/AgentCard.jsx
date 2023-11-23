@@ -68,9 +68,7 @@ export default function AgentCard(props) {
       return [inputString, ''];
     }
   }
-  // useEffect(() => {
-  //   a
-  // },[])
+
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row', margin: heightToDp(1)}}>

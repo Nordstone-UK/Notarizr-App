@@ -46,7 +46,7 @@ import LocalNotaryBookingScreen from '../LocalNotaryBookingScreen.jsx/LocalNotar
 import LocalNotaryAgentReview from '../LocalNotaryBookingScreen.jsx/LocalNotaryAgentReview';
 import LocalNotaryMapScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryMapScreen';
 import LocalNotaryDateScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryDateScreen';
-import RealEstateDocScreen from '../LegalDocumentsScren/RealEstateDocScreen';
+import RonDateDocScreen from '../LegalDocumentsScren/RonDateDocScreen';
 import BusinessDocScreen from '../LegalDocumentsScren/BusinessDocScreen';
 import CompletionScreen from '../CompletionScreen/CompletionScreen';
 import AgentHomeScreen from '../AgentScreens/AgentHomeScreen/AgentHomeScreen';
@@ -217,10 +217,7 @@ export default function AppNavigation() {
             name="ActiveServicesScreen"
             component={ActiveServicesScreen}
           />
-          <Stack.Screen
-            name="RealEstateDocScreen"
-            component={RealEstateDocScreen}
-          />
+          <Stack.Screen name="RonDateDocScreen" component={RonDateDocScreen} />
           <Stack.Screen name="CompletePayment" component={CompletePayment} />
           <Stack.Screen
             name="BusinessDocScreen"

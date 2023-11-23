@@ -61,7 +61,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
 
       <BottomSheetStyle>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {Link && (
+          {/* {Link && (
             <WebView
               source={{uri: Link}}
               style={{
@@ -71,7 +71,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
                 marginVertical: heightToDp(2),
               }}
             />
-          )}
+          )} */}
         </ScrollView>
         <View style={{marginBottom: heightToDp(5)}}>
           {!Link && user !== 'client' && (

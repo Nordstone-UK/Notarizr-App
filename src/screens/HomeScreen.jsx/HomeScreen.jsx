@@ -88,9 +88,7 @@ export default function HomeScreen({route, navigation}) {
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Remote Online Notary"
             Image={require('../../../assets/service2Pic.png')}
-            onPress={() =>
-              navigation.navigate('OnlineNotaryScreen', documentType)
-            }
+            onPress={() => navigation.navigate('OnlineNotaryScreen')}
           />
           <View style={styles.CategoryBar}>
             <Text style={styles.Heading}>Active Services</Text>
