@@ -12,7 +12,7 @@ export default function AgentRemoteOnlineNotaryScreen({navigation}) {
       <AgentHomeHeader Switch={true} />
       <View style={styles.headingContainer}>
         <Text style={styles.lightHeading}>Selected Service</Text>
-        <Text style={styles.Heading}>Medical documents</Text>
+        <Text style={styles.Heading}>Remote Online Notary</Text>
       </View>
       <BottomSheetStyle>
         <ScrollView

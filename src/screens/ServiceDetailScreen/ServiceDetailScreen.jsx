@@ -1,5 +1,5 @@
 import {
-  Image,
+  Alert,
   StyleSheet,
   Text,
   ScrollView,
@@ -68,42 +68,57 @@ export default function ServiceDetailScreen({route, navigation}) {
       setServiceFor(string);
     }
   };
-  const submitAddressDetails = async () => {
+  const submitAddressDetails = () => {
+    dispatch(
+      setBookingInfoState({
+        serviceType: serviceType,
+        service: null,
+        timeOfBooking: moment(date).format('h:mm A'),
+        dateOfBooking: moment(date).format('MM-DD-YYYY'),
+        agent: null,
+        documentType: {
+          name: null,
+          price: null,
+        },
+
+        address: selectAddress,
+        bookedFor: {
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          location: location,
+          phone_number: phoneNumber,
+        },
+        bookingType: serviceFor,
+        documents: null,
+        preferenceAnalysis: 'distance',
+      }),
+    );
+    navigation.navigate('LegalDocScreen');
+  };
+  const showConfirmation = async () => {
     setLoading(true);
     if (
       selectAddress ||
       (email && firstName && lastName && phoneNumber && location)
     ) {
-      dispatch(
-        setBookingInfoState({
-          serviceType: serviceType,
-          service: null,
-          timeOfBooking: moment(date).format('h:mm A'),
-          dateOfBooking: moment(date).format('MM-DD-YYYY'),
-          agent: null,
-          documentType: {
-            name: null,
-            price: null,
+      Alert.alert(
+        'Disclaimer',
+        'We may contact you to modify the time based on local agent availability and time of day.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              submitAddressDetails();
+            },
+            style: 'cancel',
           },
-
-          address: selectAddress,
-          bookedFor: {
-            email: email,
-            first_name: firstName,
-            last_name: lastName,
-            location: location,
-            phone_number: phoneNumber,
-          },
-          bookingType: serviceFor,
-          documents: null,
-          preferenceAnalysis: 'distance',
-        }),
+        ],
       );
-      navigation.navigate('LegalDocScreen');
     } else {
       Toast.show({
         type: 'error',
-        text1: 'Please fill all the fields',
+        text1: 'Please Select Date and Address',
       });
     }
 
@@ -275,7 +290,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => submitAddressDetails()}
+              onPress={() => showConfirmation()}
               loading={loading}
             />
           </View>

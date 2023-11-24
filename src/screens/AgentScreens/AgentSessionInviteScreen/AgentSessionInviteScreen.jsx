@@ -2,11 +2,14 @@ import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
+  // ScrollView,
   View,
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  TextInput,
+  ActivityIndicator,
+  SectionList,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -20,8 +23,12 @@ import moment from 'moment-timezone';
 import {Picker} from '@react-native-picker/picker';
 import DocumentPicker, {types} from 'react-native-document-picker';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
-import DocumentDropDown from '../../../components/DocumentDropDown/DocumentDropDown';
 import ObserversModal from '../../../components/ModalComponent/ObserversModal';
+import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
+import {handleGetLocation} from '../../../utils/Geocode';
+import useFetchUser from '../../../hooks/useFetchUser';
+import MultipSelectDropDown from '../../../components/MultiSelectDropDown/MultipSelectDropDown';
+import {ScrollView} from 'react-native-gesture-handler';
 
 export default function AgentSessionInviteScreen({navigation}) {
   const [selected, setSelected] = useState('Allow user to choose');
@@ -31,6 +38,28 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [visible, setVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState();
   const [selectedDocument, setSelectedDocument] = useState();
+  const [page, setPage] = useState(1);
+  const [Limit, setLimit] = useState(10);
+  const {fetchDocumentTypes} = useFetchUser();
+  const {searchUserByEmail} = useFetchUser();
+  const [documentArray, setDocumentArray] = useState();
+  const [totalDocs, setTotalDocs] = useState();
+  const DOCUMENTS_PER_LOAD = 5;
+  const [documentSelect, setDocumentSelected] = useState([]);
+  const [searchedUser, setSearchedUser] = useState([]);
+  const [observerEmail, setObserverEmail] = useState([]);
+  const [isLoading, setisLoading] = useState(false);
+  useEffect(() => {
+    getState();
+  }, []);
+  const addTextToArray = text => {
+    setObserverEmail(prevs => [...prevs, text]);
+  };
+  const removeItem = index => {
+    const updatedList = [...observerEmail];
+    updatedList.splice(index, 1);
+    setObserverEmail(updatedList);
+  };
   const categoriesData = [
     {
       _id: '650c6794d57205424f7a614c',
@@ -283,69 +312,108 @@ export default function AgentSessionInviteScreen({navigation}) {
     setCurrentDate('');
     setSession('Schedule for Later');
   };
+  const getState = async query => {
+    const reponse = await handleGetLocation();
+    const data = await fetchDocumentTypes(page, Limit, reponse, query);
+    setTotalDocs(data?.totalDocs);
+    setDocumentArray(data?.documentTypes);
+
+    if (Limit < data?.totalDocs) {
+      setLimit(Limit + DOCUMENTS_PER_LOAD);
+    }
+  };
+  const SearchUser = async query => {
+    setisLoading(true);
+    const response = await searchUserByEmail(query);
+    console.log('====================================');
+    console.log(response);
+    console.log('====================================');
+    setSearchedUser(response);
+    setisLoading(false);
+  };
   return (
     <SafeAreaView style={styles.container}>
-      {/* <AgentHomeHeader Switch={true} /> */}
-      <View style={styles.headingContainer}>
-        <Text style={styles.Heading}>Invite Signer</Text>
-      </View>
+      <NavigationHeader Title="Invite Signer" />
       <BottomSheetStyle>
         <ScrollView
-          scrollEnabled={true}
+          // scrollEnabled={true}
           nestedScrollEnabled={true}
           contentContainerStyle={{
-            paddingVertical: heightToDp(5),
             marginHorizontal: widthToDp(3),
           }}>
-          <View>
-            <ScrollView
-              horizontal={true}
-              contentContainerStyle={{
-                marginHorizontal: widthToDp(2),
-                marginBottom: heightToDp(2),
-              }}>
-              <DocumentDropDown placeholder={'Search Client by Email'} />
-            </ScrollView>
-          </View>
-          <View style={{flex: 1, justifyContent: 'center'}}>
-            <Picker
-              selectedValue={selectedCategory}
-              onValueChange={itemValue => {
-                setSelectedCategory(itemValue);
-                setSelectedDocument(null);
-              }}
-              style={{
-                borderWidth: 5,
-                borderColor: 'orange',
-                marginBottom: 20,
-              }}>
-              <Picker.Item label="Select Category" value={null} />
-              {categoriesData.map(category => (
-                <Picker.Item
-                  key={category._id}
-                  label={category.name}
-                  value={category.name}
-                />
-              ))}
-            </Picker>
+          <LabelTextInput
+            placeholder="Search client by email"
+            defaultValue={currentDate}
+            editable={currentDate}
+            onChangeText={text => SearchUser(text)}
+            InputStyles={{padding: widthToDp(2)}}
+            AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
+          />
 
-            {selectedCategoryData && (
-              <Picker
-                selectedValue={selectedDocument}
-                style={{borderWidth: 2, borderColor: 'orange'}}
-                onValueChange={itemValue => setSelectedDocument(itemValue)}>
-                <Picker.Item label="Select Document" value={null} />
-                {selectedCategoryData.document.map(document => (
-                  <Picker.Item
-                    key={document._id}
-                    label={document.name}
-                    value={document.name}
-                  />
+          {searchedUser.length !== 0 ? (
+            isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color={Colors.Orange}
+                style={{height: heightToDp(40)}}
+              />
+            ) : (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{height: heightToDp(40), marginBottom: widthToDp(3)}}>
+                {searchedUser.map(item => (
+                  <TouchableOpacity
+                    key={item._id}
+                    style={{
+                      borderColor: Colors.Orange,
+                      borderWidth: 1,
+                      padding: widthToDp(1),
+                      marginLeft: widthToDp(3),
+                      marginBottom: widthToDp(3),
+                      borderRadius: widthToDp(2),
+                      width: widthToDp(88),
+                    }}>
+                    <Text
+                      style={{
+                        color: Colors.TextColor,
+                        fontSize: widthToDp(4),
+                      }}>
+                      {item.email}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
-              </Picker>
-            )}
-          </View>
+              </ScrollView>
+            )
+          ) : null}
+
+          {documentArray && (
+            <MultipSelectDropDown
+              setSelected={val => setDocumentSelected(val)}
+              data={documentArray.map(item => ({
+                value: `${item.name} - $${item.statePrices[0].price}`,
+              }))}
+              save="value"
+              label="Documents"
+              placeholder="Search for Documents"
+            />
+          )}
+
           <View style={styles.headingContainer}>
+            {/* <SingleSelectDropDown
+              setSelected={val => setDocumentSelected(val)}
+              data={searchedUser.map(item => ({
+                value: item.email,
+              }))}
+              save="value"
+              label="Documents"
+              placeholder="Search for Documents"
+            /> */}
+            {/* <DocumentDropDown
+              placeholder={'Search Client by Email'}
+              multiple={false}
+              documentData={searchedUser}
+              SearchUser={SearchUser}
+            /> */}
             <Text style={styles.Heading}>Observers</Text>
             <Text style={styles.lightHeading}>
               An Observer is anyone with relevant information for all the
@@ -509,6 +577,9 @@ export default function AgentSessionInviteScreen({navigation}) {
       <ObserversModal
         modalVisible={visible}
         setModalVisible={bool => setVisible(bool)}
+        onAdd={text => addTextToArray(text)}
+        email={observerEmail}
+        removeItem={removeItem}
       />
     </SafeAreaView>
   );
@@ -636,3 +707,41 @@ const styles = StyleSheet.create({
     width: widthToDp(80),
   },
 });
+//  <View style={{flex: 1, justifyContent: 'center'}}>
+//    <Picker
+//      selectedValue={selectedCategory}
+//      onValueChange={itemValue => {
+//        setSelectedCategory(itemValue);
+//        setSelectedDocument(null);
+//      }}
+//      style={{
+//        borderWidth: 5,
+//        borderColor: 'orange',
+//        marginBottom: 20,
+//      }}>
+//      <Picker.Item label="Select Category" value={null} />
+//      {categoriesData.map(category => (
+//        <Picker.Item
+//          key={category._id}
+//          label={category.name}
+//          value={category.name}
+//        />
+//      ))}
+//    </Picker>
+
+//    {selectedCategoryData && (
+//      <Picker
+//        selectedValue={selectedDocument}
+//        style={{borderWidth: 2, borderColor: 'orange'}}
+//        onValueChange={itemValue => setSelectedDocument(itemValue)}>
+//        <Picker.Item label="Select Document" value={null} />
+//        {selectedCategoryData.document.map(document => (
+//          <Picker.Item
+//            key={document._id}
+//            label={document.name}
+//            value={document.name}
+//          />
+//        ))}
+//      </Picker>
+//    )}
+//  </View>;

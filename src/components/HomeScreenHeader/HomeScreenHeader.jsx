@@ -6,6 +6,7 @@ import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import {useSelector} from 'react-redux';
 export default function HomeScreenHeader(props) {
   const {first_name, profile_picture} = useSelector(state => state.user.user);
+
   return (
     <View>
       <View style={styles.namebar}>

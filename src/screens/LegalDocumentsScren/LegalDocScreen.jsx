@@ -32,8 +32,6 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Toast from 'react-native-toast-message';
 
 export default function LegalDocScreen({route, navigation}) {
-  // const [location, setLocation] = useState();
-  // const [countryState, setCountryState] = useState();
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
   const [documentArray, setDocumentArray] = useState();

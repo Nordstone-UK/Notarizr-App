@@ -159,7 +159,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash_Screen"
+          initialRouteName="AgentSessionInviteScreen"
           screenOptions={{
             headerShown: false,
           }}>

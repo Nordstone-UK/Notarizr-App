@@ -5,11 +5,13 @@ import {saveUserInfo} from '../features/user/userSlice';
 import {GET_CATEGORIES} from '../../request/queries/getCategories.query';
 import {GET_DOCUMENT_TYPES} from '../../request/queries/getPaginatedDocumentTypes.query';
 import {UPDATE_USER_ADDRESS} from '../../request/mutations/updateUserAddress.mutation';
+import {SEARCH_USER} from '../../request/queries/searchUser.query';
 
 const useFetchUser = () => {
   const [user] = useLazyQuery(FETCH_USER_INFO);
   const [getDocuments] = useLazyQuery(GET_DOCUMENT_TYPES);
   const [updateAddress] = useMutation(UPDATE_USER_ADDRESS);
+  const [searchUser] = useLazyQuery(SEARCH_USER);
   const dispatch = useDispatch();
   let info;
 
@@ -52,7 +54,28 @@ const useFetchUser = () => {
       console.log(error);
     }
   };
-  return {fetchUserInfo, fetchDocumentTypes, hadleUpdateAddress};
+
+  const searchUserByEmail = async email => {
+    const request = {
+      variables: {
+        search: email,
+        limit: 5,
+        page: 1,
+      },
+    };
+    try {
+      const response = await searchUser(request);
+      return response.data.searchUser.docs;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  return {
+    fetchUserInfo,
+    fetchDocumentTypes,
+    hadleUpdateAddress,
+    searchUserByEmail,
+  };
 };
 
 export default useFetchUser;

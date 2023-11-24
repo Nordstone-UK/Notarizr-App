@@ -43,6 +43,12 @@ export default function LoginScreen({navigation}, props) {
             text1: 'We are Sorry!',
             text2: 'This User is Blocked',
           });
+        } else if (response?.data?.getPhoneOTP?.status === '401') {
+          Toast.show({
+            type: 'error',
+            text1: 'Email does not exist!',
+            text2: 'Please sign up for a new account',
+          });
         } else if (response?.data?.getPhoneOTP?.status !== '200') {
           Toast.show({
             type: 'error',
