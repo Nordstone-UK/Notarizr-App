@@ -67,7 +67,7 @@ export default function ObserversModal(props) {
               }}
             />
           </View>
-          <View
+          {/* <View
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
@@ -87,7 +87,7 @@ export default function ObserversModal(props) {
                 <Text style={{color: Colors.white}}>{entry}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </View> */}
           <View
             style={{
               flexDirection: 'row',

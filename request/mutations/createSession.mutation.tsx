@@ -5,10 +5,11 @@ export const CREATE_SESSION = gql`
     $clientEmail: String!
     $sessionSchedule: String!
     $dateTimeSession: String!
-    $agentDocument: String!
+    $agentDocument: [String!]!
     $identityAuthentication: String!
     $observers: [String!]!
     $price: Float!
+    $documentType: [documentTypeInput!]!
   ) {
     createSessionR(
       client_email: $clientEmail
@@ -18,6 +19,7 @@ export const CREATE_SESSION = gql`
       identity_authentication: $identityAuthentication
       observers: $observers
       price: $price
+      document_type: $documentType
     ) {
       session {
         _id

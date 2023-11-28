@@ -93,7 +93,6 @@ const useRegister = () => {
         presentationStyle: 'fullScreen',
         allowMultiSelection: false,
       });
-      console.log('Document Picker: ', response);
       return response[0].uri;
     } catch (err) {
       console.warn(err);
@@ -108,8 +107,6 @@ const useRegister = () => {
       const documentUris = results.map(result => {
         return result.uri;
       });
-
-      console.log('Document Picker:', documentUris);
       return documentUris;
     } catch (err) {
       console.warn(err);
@@ -121,15 +118,33 @@ const useRegister = () => {
       const uploadedFiles = await Promise.all(
         documentURIs.map(async fileUri => {
           const uploadedLink = await uploadDocmmentToS3(fileUri);
+
           return uploadedLink;
         }),
       );
+
       const uploadedFilesObject = {};
       uploadedFiles.forEach((link, index) => {
         uploadedFilesObject[`file${index + 1}`] = link;
       });
       console.log('Uploaded Files Object:', uploadedFilesObject);
       return uploadedFilesObject;
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      // Handle upload error
+    }
+  };
+  const uploadDocArray = async documentURIs => {
+    try {
+      const uploadedFiles = await Promise.all(
+        documentURIs.map(async fileUri => {
+          const uploadedLink = await uploadDocmmentToS3(fileUri);
+          return uploadedLink;
+        }),
+      );
+
+      console.log('Uploaded Files:', uploadedFiles);
+      return uploadedFiles;
     } catch (error) {
       console.error('Error uploading documents:', error);
       // Handle upload error
@@ -144,6 +159,7 @@ const useRegister = () => {
     uploadMultipleFiles,
     uploadDocmmentToS3,
     uploadAllDocuments,
+    uploadDocArray,
   };
 };
 

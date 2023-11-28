@@ -14,7 +14,11 @@ import {
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
+import {
+  calculateTotalPrice,
+  heightToDp,
+  widthToDp,
+} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
@@ -29,15 +33,20 @@ import {handleGetLocation} from '../../../utils/Geocode';
 import useFetchUser from '../../../hooks/useFetchUser';
 import MultipSelectDropDown from '../../../components/MultiSelectDropDown/MultipSelectDropDown';
 import {ScrollView} from 'react-native-gesture-handler';
+import DatePicker from 'react-native-date-picker';
+import useRegister from '../../../hooks/useRegister';
+import SplashScreen from 'react-native-splash-screen';
+import {useSession} from '../../../hooks/useSession';
+import Toast from 'react-native-toast-message';
 
 export default function AgentSessionInviteScreen({navigation}) {
-  const [selected, setSelected] = useState('Allow user to choose');
-  const [session, setSession] = useState('Let Signer Choose');
+  const [selected, setSelected] = useState('client_choose');
+  const {uploadDocArray, uploadMultipleFiles} = useRegister();
+  const {handleSessionCreation} = useSession();
   const [fileResponse, setFileResponse] = useState([]);
-  const [currentDate, setCurrentDate] = useState();
+  const [selectedClient, setSelectedClient] = useState(null);
   const [visible, setVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState();
-  const [selectedDocument, setSelectedDocument] = useState();
+  const [uploadedDocs, setUploadedDocs] = useState();
   const [page, setPage] = useState(1);
   const [Limit, setLimit] = useState(10);
   const {fetchDocumentTypes} = useFetchUser();
@@ -49,7 +58,14 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [searchedUser, setSearchedUser] = useState([]);
   const [observerEmail, setObserverEmail] = useState([]);
   const [isLoading, setisLoading] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [selectedDocs, setSelectedDocs] = useState([]);
+  let urlResponse;
   useEffect(() => {
+    SplashScreen.hide();
     getState();
   }, []);
   const addTextToArray = text => {
@@ -60,258 +76,12 @@ export default function AgentSessionInviteScreen({navigation}) {
     updatedList.splice(index, 1);
     setObserverEmail(updatedList);
   };
-  const categoriesData = [
-    {
-      _id: '650c6794d57205424f7a614c',
-      name: 'Non-legal Documents',
-      status: 'active',
-      document: [],
-      createdAt: '2023-09-21T15:56:04.826Z',
-      updatedAt: '2023-09-21T16:24:15.889Z',
-    },
-    {
-      _id: '651ede7d6ab4a249f610ffe9',
-      name: 'Business Documents',
-      status: 'active',
-      document: [
-        {
-          _id: '652ea91edc12d33d1e9bd7d5',
-          name: 'Liquidity Documents',
-          price: null,
-          image: '',
-          createdAt: '2023-10-17T15:32:46.321Z',
-          updatedAt: '2023-10-17T15:32:46.321Z',
-          statePrices: [],
-        },
-      ],
-      createdAt: '2023-10-05T16:04:13.483Z',
-      updatedAt: '2023-10-17T15:32:46.336Z',
-    },
-    {
-      _id: '651ede9e6ab4a249f610fffd',
-      name: 'Real Estate Documents',
-      status: 'active',
-      document: [],
-      createdAt: '2023-10-05T16:04:46.824Z',
-      updatedAt: '2023-10-05T16:05:25.254Z',
-    },
-    {
-      _id: '651edeab6ab4a249f6110005',
-      name: 'Medical Documents',
-      status: 'active',
-      document: [],
-      createdAt: '2023-10-05T16:04:59.215Z',
-      updatedAt: '2023-10-05T16:05:25.339Z',
-    },
-    {
-      _id: '651edebe6ab4a249f611000d',
-      name: 'Legal Documents',
-      status: 'active',
-      document: [],
-      createdAt: '2023-10-05T16:05:18.753Z',
-      updatedAt: '2023-10-05T16:05:25.693Z',
-    },
-    {
-      _id: '65203a1d34ca6d905bb60c7c',
-      name: 'Affiliate Documents',
-      status: 'active',
-      document: [
-        {
-          _id: '65242e67d9bff38ab0a83aaa',
-          name: 'Health documents',
-          price: null,
-          image: 'image/',
-          createdAt: null,
-          updatedAt: null,
-          statePrices: [],
-        },
-        {
-          _id: '6528298f7d558ecff4eaa737',
-          name: 'New Docs 2',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:14:55.147Z',
-          updatedAt: '2023-10-12T17:14:55.147Z',
-          statePrices: [],
-        },
-        {
-          _id: '652829957d558ecff4eaa73a',
-          name: 'New Docs 2',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:15:01.158Z',
-          updatedAt: '2023-10-12T17:15:01.158Z',
-          statePrices: [],
-        },
-        {
-          _id: '652829dc7d558ecff4eaa746',
-          name: 'Test 001',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:16:12.347Z',
-          updatedAt: '2023-10-12T17:16:12.347Z',
-          statePrices: [],
-        },
-        {
-          _id: '65282a347d558ecff4eaa749',
-          name: 'Technical Documents',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:17:40.890Z',
-          updatedAt: '2023-10-12T17:17:40.890Z',
-          statePrices: [],
-        },
-        {
-          _id: '65282a7b7d558ecff4eaa74c',
-          name: 'Technical Documents',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:18:51.526Z',
-          updatedAt: '2023-10-12T17:18:51.526Z',
-          statePrices: [],
-        },
-        {
-          _id: '65282b057d558ecff4eaa755',
-          name: 'New Docs',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:21:09.005Z',
-          updatedAt: '2023-10-12T17:21:09.005Z',
-          statePrices: [],
-        },
-        {
-          _id: '65282b197d558ecff4eaa759',
-          name: 'Docssss',
-          price: null,
-          image: '',
-          createdAt: '2023-10-12T17:21:29.940Z',
-          updatedAt: '2023-10-12T17:21:29.940Z',
-          statePrices: [],
-        },
-      ],
-      createdAt: '2023-10-06T16:47:25.251Z',
-      updatedAt: '2023-10-12T17:57:24.797Z',
-    },
-    {
-      _id: '65258592781d7a0cfcb8d9a4',
-      name: 'Immigration Documents',
-      status: 'active',
-      document: [
-        {
-          _id: '652ff97b8834bf181d71ea35',
-          name: 'Child Support',
-          price: null,
-          image: '',
-          createdAt: '2023-10-18T15:27:55.533Z',
-          updatedAt: '2023-10-18T17:09:30.477Z',
-          statePrices: [
-            {
-              state: 'California',
-              price: 23,
-            },
-            {
-              state: 'Connecticut',
-              price: 43,
-            },
-            {
-              state: 'Arkansas',
-              price: 90,
-            },
-            {
-              state: 'Oklahoma',
-              price: 100,
-            },
-            {
-              state: 'Washington',
-              price: 132,
-            },
-          ],
-        },
-        {
-          _id: '652ffcc18834bf181d71ea59',
-          name: 'Affidavit',
-          price: null,
-          image: '',
-          createdAt: '2023-10-18T15:41:53.129Z',
-          updatedAt: '2023-10-18T15:41:53.129Z',
-          statePrices: [
-            {
-              state: 'Arizona',
-              price: 323,
-            },
-            {
-              state: 'California',
-              price: 323,
-            },
-            {
-              state: 'Florida',
-              price: 545,
-            },
-          ],
-        },
-        {
-          _id: '652fff258834bf181d71ea69',
-          name: 'Annuity Doc',
-          price: null,
-          image: '',
-          createdAt: '2023-10-18T15:52:05.757Z',
-          updatedAt: '2023-10-18T15:52:05.757Z',
-          statePrices: [
-            {
-              state: 'Florida',
-              price: 234,
-            },
-            {
-              state: 'California',
-              price: 3254,
-            },
-            {
-              state: 'Louisiana',
-              price: 323,
-            },
-            {
-              state: 'Hawaii',
-              price: 434,
-            },
-            {
-              state: 'Arizona',
-              price: 435,
-            },
-          ],
-        },
-      ],
-      createdAt: '2023-10-10T17:10:42.269Z',
-      updatedAt: '2023-10-18T15:52:05.962Z',
-    },
-  ];
-  const selectedCategoryData = categoriesData.find(
-    category => category.name === selectedCategory,
-  );
-  const handleDocumentSelection = useCallback(async () => {
-    try {
-      const response = await DocumentPicker.pick({
-        presentationStyle: 'fullScreen',
-        allowMultiSelection: true,
-      });
-      setFileResponse(response);
-    } catch (err) {
-      console.warn(err);
-    }
-  }, []);
-  function add15MinutesAndFormat() {
-    const currentTime = moment();
-    const updatedTime = currentTime.add(15, 'minutes');
-    const formattedTime = updatedTime.format('h:mm A / DD-MMM-YYYY');
-    setCurrentDate(formattedTime);
-  }
-  const handleNotarizeNow = () => {
-    setSession('Notarize Now');
-    add15MinutesAndFormat();
+  const handleDocumentSelection = async () => {
+    const response = await uploadMultipleFiles();
+
+    setFileResponse(response);
   };
-  const handleSchedule = () => {
-    setCurrentDate('');
-    setSession('Schedule for Later');
-  };
+
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
@@ -325,11 +95,39 @@ export default function AgentSessionInviteScreen({navigation}) {
   const SearchUser = async query => {
     setisLoading(true);
     const response = await searchUserByEmail(query);
-    console.log('====================================');
-    console.log(response);
-    console.log('====================================');
     setSearchedUser(response);
     setisLoading(false);
+  };
+
+  const printEverything = async () => {
+    setLoading(true);
+    if (fileResponse) {
+      urlResponse = await uploadDocArray(fileResponse);
+    }
+    const documentObjects = documentSelect.map(item => {
+      const [name, price] = item.split(' - $');
+      return {name, price: parseFloat(price)};
+    });
+    const totalPrice = calculateTotalPrice(documentObjects);
+    const response = await handleSessionCreation(
+      urlResponse,
+      selectedClient,
+      'schedule_later',
+      date.toString(),
+      selected,
+      observerEmail,
+      totalPrice,
+      documentObjects,
+    );
+    if (response === '200') {
+      navigation.navigate('WaitingRoomScreen');
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+      });
+    }
+    setLoading(false);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -343,14 +141,14 @@ export default function AgentSessionInviteScreen({navigation}) {
           }}>
           <LabelTextInput
             placeholder="Search client by email"
-            defaultValue={currentDate}
-            editable={currentDate}
+            defaultValue={selectedClient}
             onChangeText={text => SearchUser(text)}
             InputStyles={{padding: widthToDp(2)}}
             AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
+            rightImageSoucre={require('../../../../assets/close.png')}
+            rightImagePress={() => setSelectedClient(null)}
           />
-
-          {searchedUser.length !== 0 ? (
+          {searchedUser.length !== 0 && selectedClient === null ? (
             isLoading ? (
               <ActivityIndicator
                 size="large"
@@ -364,6 +162,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                 {searchedUser.map(item => (
                   <TouchableOpacity
                     key={item._id}
+                    onPress={() => setSelectedClient(item.email)}
                     style={{
                       borderColor: Colors.Orange,
                       borderWidth: 1,
@@ -399,21 +198,6 @@ export default function AgentSessionInviteScreen({navigation}) {
           )}
 
           <View style={styles.headingContainer}>
-            {/* <SingleSelectDropDown
-              setSelected={val => setDocumentSelected(val)}
-              data={searchedUser.map(item => ({
-                value: item.email,
-              }))}
-              save="value"
-              label="Documents"
-              placeholder="Search for Documents"
-            /> */}
-            {/* <DocumentDropDown
-              placeholder={'Search Client by Email'}
-              multiple={false}
-              documentData={searchedUser}
-              SearchUser={SearchUser}
-            /> */}
             <Text style={styles.Heading}>Observers</Text>
             <Text style={styles.lightHeading}>
               An Observer is anyone with relevant information for all the
@@ -439,6 +223,30 @@ export default function AgentSessionInviteScreen({navigation}) {
                 onPress={() => setVisible(true)}
               />
             </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                marginTop: widthToDp(4),
+                columnGap: widthToDp(2),
+                rowGap: heightToDp(2),
+                marginHorizontal: widthToDp(3),
+              }}>
+              {observerEmail.map((entry, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => props.removeItem(index)}
+                  style={{
+                    padding: widthToDp(1.5),
+                    borderRadius: 5,
+                    backgroundColor: Colors.Orange,
+                  }}>
+                  <Text style={{color: Colors.white, fontSize: widthToDp(4)}}>
+                    {entry}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>
@@ -448,7 +256,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               <MainButton
                 Title="Allow user to choose"
                 colors={
-                  selected === 'Allow user to choose'
+                  selected === 'client_choose'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
@@ -460,7 +268,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() => setSelected('Allow user to choose')}
+                onPress={() => setSelected('client_choose')}
               />
               <MainButton
                 Title="US Citizens + KBA"
@@ -502,7 +310,7 @@ export default function AgentSessionInviteScreen({navigation}) {
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Session Schedule</Text>
-            <View style={styles.buttonBottom}>
+            {/* <View style={styles.buttonBottom}>
               <MainButton
                 Title="Notarize Now"
                 colors={
@@ -537,41 +345,89 @@ export default function AgentSessionInviteScreen({navigation}) {
                 }}
                 onPress={() => handleSchedule()}
               />
-            </View>
+            </View> */}
           </View>
-          <LabelTextInput
-            LabelTextInput="Date & Time"
-            placeholder="Enter Date & Time here"
-            Label={true}
-            defaultValue={currentDate}
-            editable={currentDate}
-            leftImageSoucre={require('../../../../assets/calenderIcon.png')}
-          />
+          <View style={styles.buttonFlex}>
+            <TouchableOpacity onPress={() => setOpen(true)}>
+              <Text
+                style={{
+                  color: Colors.Orange,
+                  fontFamily: 'Manrope-Bold',
+                  fontSize: widthToDp(5),
+                  borderWidth: 1,
+                  borderColor: Colors.Orange,
+                  paddingHorizontal: widthToDp(2),
+                  borderRadius: widthToDp(2),
+                }}>
+                {moment(date).format('MM-DD-YYYY hh:mm A')}
+              </Text>
+            </TouchableOpacity>
+            <DatePicker
+              modal
+              mode="datetime"
+              minimumDate={date}
+              open={open}
+              androidVariant="iosClone"
+              date={date}
+              onConfirm={date => {
+                setOpen(false);
+                setDate(date);
+              }}
+              onCancel={() => {
+                setOpen(false);
+              }}
+            />
+          </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Document</Text>
-            <TouchableOpacity
-              style={styles.dottedContianer}
-              onPress={handleDocumentSelection}>
-              <Image source={require('../../../../assets/upload.png')} />
+            {fileResponse.length === 0 ? (
+              <TouchableOpacity
+                style={styles.dottedContianer}
+                onPress={handleDocumentSelection}>
+                <Image source={require('../../../../assets/upload.png')} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    columnGap: widthToDp(2),
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
+                    Upload
+                  </Text>
+                  <Image
+                    source={require('../../../../assets/uploadIcon.png')}
+                  />
+                </View>
+                <Text>Upload your File here...</Text>
+              </TouchableOpacity>
+            ) : (
               <View
                 style={{
                   flexDirection: 'row',
-                  columnGap: widthToDp(2),
-                  alignItems: 'center',
+                  marginLeft: widthToDp(5),
+                  columnGap: widthToDp(3),
                 }}>
-                <Text style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
-                  Upload
-                </Text>
-                <Image source={require('../../../../assets/uploadIcon.png')} />
+                {fileResponse.map((item, index) => (
+                  <TouchableOpacity key={index}>
+                    <Image
+                      source={require('../../../../assets/docPic.png')}
+                      style={{width: widthToDp(10), height: heightToDp(10)}}
+                    />
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text>Upload your File here...</Text>
-            </TouchableOpacity>
+            )}
           </View>
-          <GradientButton
-            Title="Send Invitation"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() => navigation.navigate('WaitingRoomScreen')}
-          />
+          <View style={{marginBottom: widthToDp(5)}}>
+            <GradientButton
+              Title="Send Invitation"
+              loading={loading}
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              // onPress={() => navigation.navigate('WaitingRoomScreen')}
+              onPress={() => printEverything()}
+            />
+          </View>
         </ScrollView>
       </BottomSheetStyle>
       <ObserversModal
@@ -598,6 +454,12 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(5),
     borderWidth: 2,
     borderColor: Colors.Orange,
+  },
+  buttonFlex: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginTop: heightToDp(5),
   },
   lightHeading: {
     color: Colors.TextColor,
@@ -688,13 +550,7 @@ const styles = StyleSheet.create({
     columnGap: heightToDp(1),
     marginHorizontal: widthToDp(2),
   },
-  buttonFlex: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: widthToDp(90),
-    alignSelf: 'center',
-    marginVertical: widthToDp(5),
-  },
+
   dottedContianer: {
     alignItems: 'center',
     alignSelf: 'center',
@@ -707,6 +563,25 @@ const styles = StyleSheet.create({
     width: widthToDp(80),
   },
 });
+{
+  /* <SingleSelectDropDown
+              setSelected={val => setDocumentSelected(val)}
+              data={searchedUser.map(item => ({
+                value: item.email,
+              }))}
+              save="value"
+              label="Documents"
+              placeholder="Search for Documents"
+            /> */
+}
+{
+  /* <DocumentDropDown
+              placeholder={'Search Client by Email'}
+              multiple={false}
+              documentData={searchedUser}
+              SearchUser={SearchUser}
+            /> */
+}
 //  <View style={{flex: 1, justifyContent: 'center'}}>
 //    <Picker
 //      selectedValue={selectedCategory}
