@@ -18,6 +18,10 @@
 	<string>We need access to your camera to capture photos for document notarization.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to allow you to upload photos and customize your experience.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>We will use your Bluetooth to access your Bluetooth headphones.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>For people to hear you during meetings, we need access to your microphone.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>We require your location to provide personalized content based on your current location.</string>
 	<key>CFBundlePackageType</key>

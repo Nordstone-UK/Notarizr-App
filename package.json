@@ -76,6 +76,7 @@
     "react-native-vector-icons": "^10.0.0",
     "react-native-virtualized-view": "^1.0.0",
     "react-native-webview": "^13.6.2",
+    "react-native-zoom-us": "^6.18.1",
     "react-redux": "^8.1.2",
     "rn-fetch-blob": "^0.12.0",
     "spacetime": "^7.4.7",

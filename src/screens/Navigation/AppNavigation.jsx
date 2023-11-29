@@ -159,7 +159,7 @@ export default function AppNavigation() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="NotaryCallScreen"
+          initialRouteName="Splash_Screen"
           screenOptions={{
             headerShown: false,
           }}>

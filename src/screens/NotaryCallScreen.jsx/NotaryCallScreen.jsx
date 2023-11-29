@@ -7,17 +7,19 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {Slider} from '@miblanchard/react-native-slider';
 import {Picker} from '@react-native-picker/picker';
+import ZoomUs from 'react-native-zoom-us';
+import SplashScreen from 'react-native-splash-screen';
 
 export default function NotaryCallScreen({navigation}) {
   const [selected, setSelected] = useState('notary room');
-  const [screen, setscreen] = useState(true);
+  const [zoomInitailized, setZoomInitialized] = useState(false);
   const [value, setValue] = useState(50);
   const [selectedDocument, setSelectDocument] = useState('');
   const handleTimezoneSelect = doc => {
@@ -30,9 +32,36 @@ export default function NotaryCallScreen({navigation}) {
       </Text>
     );
   };
+
+  useEffect(() => {
+    const initializeZoom = async () => {
+      try {
+        await ZoomUs.initialize({
+          clientKey: 'i5_Fj9azRWSPqSavOlXFg',
+          clientSecret: 's4eVLs6Ae8PGSnu2Jv2dg2Ai2aKDcaKa',
+        });
+
+        setZoomInitialized(true);
+        console.log('ZoomUs initialized successfully');
+      } catch (error) {
+        console.error('Error initializing ZoomUs:', error);
+      }
+    };
+    SplashScreen.hide();
+    initializeZoom();
+  }, []);
+  const joinMeeting = async () => {
+    await ZoomUs.joinMeeting({
+      userName: 'Johny',
+      meetingNumber: '88228180307',
+      password: '758208',
+      // noAudio: true,
+      // noVideo: true,
+    });
+  };
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.NavbarContainer}>
+      {/* <View style={styles.NavbarContainer}>
         <View style={styles.NavContainer}>
           <Image
             source={require('../../../assets/waitingNav.png')}
@@ -100,7 +129,7 @@ export default function NotaryCallScreen({navigation}) {
             borderRadius: 0,
           }}
         />
-      </View>
+      </View> */}
 
       <ScrollView style={styles.SecondContainer}>
         <View style={styles.flexContainer}>
@@ -171,14 +200,17 @@ export default function NotaryCallScreen({navigation}) {
           source={require('../../../assets/image.png')}
           style={{alignSelf: 'center'}}
         />
-        <View style={styles.btnContainer}>
-          <GradientButton
-            Title="Complete Session"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            styles={{fontSize: widthToDp(5)}}
-            onPress={() => navigation.navigate('AgentBookingComplete')}
-          />
-        </View>
+        {zoomInitailized && (
+          <View style={styles.btnContainer}>
+            <GradientButton
+              Title="Complete Session"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              styles={{fontSize: widthToDp(5)}}
+              // onPress={() => navigation.navigate('AgentBookingComplete')}
+              onPress={() => joinMeeting()}
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

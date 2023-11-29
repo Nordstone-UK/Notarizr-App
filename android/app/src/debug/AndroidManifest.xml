@@ -6,6 +6,8 @@
 
     <application
         android:usesCleartextTraffic="true"
+        tools:remove="android:networkSecurityConfig"
+        tools:replace="android:usesCleartextTraffic"
         tools:targetApi="28"
         tools:ignore="GoogleAppIndexingWarning">
         
