@@ -15,7 +15,7 @@ const useGetService = () => {
         serviceType,
       },
     };
-    console.log(request);
+    // console.log(request);
     await getServiceByServiceType(request)
       .then(response => {
         if (serviceType === 'mobile_notary') {
@@ -40,7 +40,7 @@ const useGetService = () => {
         serviceType: 'ron',
       },
     };
-    console.log('documentData', request);
+    // console.log('documentData', request);
     try {
       const response = await matchAgent(request);
 
@@ -58,9 +58,9 @@ const useGetService = () => {
     };
     try {
       const response = await matchAgent(request);
-      console.log('====================================');
-      console.log(response);
-      console.log('====================================');
+      // console.log('====================================');
+      // console.log(response);
+      // console.log('====================================');
       return response?.data?.matchAgent;
     } catch (error) {
       console.log(error);

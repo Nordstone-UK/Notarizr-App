@@ -20,7 +20,7 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useStripeApi from '../../hooks/useStripeApi';
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
-  console.log('bookingDetail payment', bookingDetail?.documentType?.price);
+  // console.log('bookingDetail payment', bookingDetail?.documentType?.price);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);

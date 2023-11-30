@@ -33,9 +33,9 @@ const useFetchUser = () => {
     };
 
     await getDocuments(request).then(response => {
-      console.log('====================================');
-      console.log(response.data.getPaginatedDocumentTypes.status);
-      console.log('====================================');
+      // console.log('====================================');
+      // console.log(response.data.getPaginatedDocumentTypes.status);
+      // console.log('====================================');
       info = response.data.getPaginatedDocumentTypes;
     });
     return info;

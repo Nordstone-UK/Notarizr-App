@@ -13,22 +13,30 @@ import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
 import OneSignal from 'react-native-onesignal';
+import useChatService from '../../hooks/useChatService';
+import {useDispatch} from 'react-redux';
+import {setAllChats} from '../../features/chats/chatsSlice';
+import {socket} from '../../utils/Socket';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
+  const {getAllChats} = useChatService();
+  const dispatch = useDispatch();
   // const {fetchBookingInfo} = useFetchBooking();
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
         await fetchUserInfo()
-          .then(response => {
+          .then(async response => {
             if (
               response.isVerified == false &&
               response.account_type == 'agent'
             ) {
               navigation.navigate('AgentVerfiedScreen');
             } else {
+              const response = await getAllChats();
+              dispatch(setAllChats(response?.getAllChat));
               initializeOneSignal();
               navigation.navigate('HomeScreen');
             }

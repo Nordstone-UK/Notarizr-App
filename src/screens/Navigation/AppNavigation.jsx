@@ -1,5 +1,5 @@
 import {View, Text, Platform} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import OnboardingScreen2 from '../OnboardingScreens/OnboardingScreen2';
 import OnboardingScreen3 from '../OnboardingScreens/OnboardingScreen3';
 import SignupAsScreen from '../SingupAsScreen/SignupAsScreen';
@@ -96,12 +96,19 @@ import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen
 import AddNewAddress from '../NewAddressScreen/AddNewAddress';
 import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
 import TransactionScreen from '../TransactionScreen/TransactionScreen';
+import {SocketContext, socket} from '../../utils/Socket';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user.account_type);
   console.log(user);
+  // const socket = useContext(SocketContext);
+  useEffect(() => {
+    socket.on('connect', () => {
+      console.log('connected');
+    });
+  }, []);
 
   return user === 'client' ? (
     <Tab.Navigator

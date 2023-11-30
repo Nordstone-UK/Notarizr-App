@@ -80,9 +80,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
-      console.log('====================================');
-      console.log(bookingDetail?.documents);
-      console.log('====================================');
+      // console.log('====================================');
+      // console.log(bookingDetail?.documents);
+      // console.log('====================================');
       const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {

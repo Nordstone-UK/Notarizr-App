@@ -15,7 +15,7 @@ export const userSlice = createSlice({
     },
     setLiveCoordinates: (state, action) => {
       state.LiveCoordinates = action.payload;
-      console.log('Redux coordinates', state.LiveCoordinates);
+      // console.log('Redux coordinates', state.LiveCoordinates);
     },
   },
 });

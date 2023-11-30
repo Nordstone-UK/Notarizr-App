@@ -9,10 +9,9 @@ import {PermissionsAndroid, Platform} from 'react-native';
 import {setContext} from 'apollo-link-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import {useDispatch} from 'react-redux';
-import {setLiveCoordinates} from '../src/features/user/userSlice';
+import {BaseURL} from '../src/utils/ApiUtils';
 
-const DEV_LIVE = 'http://3.13.41.233:8080/api/v1/app';
+const DEV_LIVE = BaseURL;
 
 const defaultOptions = {
   watchQuery: {

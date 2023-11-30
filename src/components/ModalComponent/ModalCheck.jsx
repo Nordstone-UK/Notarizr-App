@@ -19,7 +19,7 @@ import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function ModalCheck(props) {
   useEffect(() => {
-    console.log('In Modal', props?.modalVisible);
+    // console.log('In Modal', props?.modalVisible);
   }, []);
   return (
     <Modal

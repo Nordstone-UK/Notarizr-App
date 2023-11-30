@@ -13,14 +13,20 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import useStripeApi from '../../hooks/useStripeApi';
 import {useStripe} from '@stripe/stripe-react-native';
 import useBookingStatus from '../../hooks/useBookingStatus';
+import useChatService from '../../hooks/useChatService';
 
 export default function ToBePaidScreen({route, navigation}) {
   const {bookingData} = route.params;
   const {handleUpdateBookingStatus} = useBookingStatus();
+  const {createChatWithUser} = useChatService();
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
   const init = async () => {
     await handleUpdateBookingStatus('pending', bookingData._id);
+    // console.log('====================================');
+    // console.log('bookingData', bookingData.agent);
+    // console.log('====================================');
+    await createChatWithUser(bookingData?.agent?._id);
     dispatch(setBookingInfoState(bookingData));
     dispatch(
       setCoordinates(bookingData?.booked_by?.current_location?.coordinates),

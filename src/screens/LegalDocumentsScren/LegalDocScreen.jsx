@@ -89,7 +89,7 @@ export default function LegalDocScreen({route, navigation}) {
     if (selectedDocs.length === 0) {
       Toast.show({
         type: 'error',
-        text1: 'Please select atleast one document',
+        text1: 'Please select at least one document',
       });
     } else {
       dispatch(
