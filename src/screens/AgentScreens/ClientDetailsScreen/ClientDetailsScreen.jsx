@@ -45,6 +45,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
   let {documents: documentArray} = clientDetail;
+  console.log('====================================');
+  console.log(clientDetail);
+  console.log('====================================');
   const {booked_for} = clientDetail;
   const {proof_documents} = clientDetail;
   const dispatch = useDispatch();
@@ -343,17 +346,21 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 columnGap: widthToDp(2),
                 rowGap: widthToDp(2),
               }}>
-              {Object.keys(documentArray).length !== 0 ? (
-                Object.keys(documentArray).map((key, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => downloadFile(documentArray[key])}>
-                    <Image
-                      source={require('../../../../assets/docPic.png')}
-                      style={{width: widthToDp(10), height: heightToDp(10)}}
-                    />
-                  </TouchableOpacity>
-                ))
+              {documentArray !== null ? (
+                Object.keys(documentArray).length !== 0 ? (
+                  Object.keys(documentArray).map((key, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => downloadFile(documentArray[key])}>
+                      <Image
+                        source={require('../../../../assets/docPic.png')}
+                        style={{width: widthToDp(10), height: heightToDp(10)}}
+                      />
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.preference}>No Documents</Text>
+                )
               ) : (
                 <Text style={styles.preference}>No Documents</Text>
               )}

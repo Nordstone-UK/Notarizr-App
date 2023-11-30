@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 import {BaseURL} from '../src/utils/ApiUtils';
 
-const DEV_LIVE = BaseURL;
+const DEV_LIVE = 'http://3.13.41.233:8080/api/v1/app';
 
 const defaultOptions = {
   watchQuery: {

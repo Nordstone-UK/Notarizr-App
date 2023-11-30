@@ -27,7 +27,7 @@ import {
 export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchAgentBookingInfo} = useFetchBooking();
-  const [Booking, setBooking] = useState();
+  const [Booking, setBooking] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const account_type = useSelector(state => state.user.user.account_type);
   const dispatch = useDispatch();
@@ -73,6 +73,9 @@ export default function AgentAllBookingScreen({navigation}) {
       });
     }
   };
+  console.log('====================================');
+  console.log(Booking);
+  console.log('====================================');
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -210,15 +213,15 @@ export default function AgentAllBookingScreen({navigation}) {
                     return (
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
-                        source={{uri: item.booked_by.profile_picture}}
-                        bottomRightText={item.document_type}
+                        source={{uri: item?.booked_by?.profile_picture}}
+                        bottomRightText={item?.document_type}
                         bottomLeftText="Total"
                         agentName={
-                          item.booked_by.first_name +
+                          item?.booked_by?.first_name +
                           ' ' +
-                          item.booked_by.last_name
+                          item?.booked_by?.last_name
                         }
-                        agentAddress={item.booked_by.location}
+                        agentAddress={item?.booked_by?.location}
                         task={item?.status}
                         OrangeText="At Home"
                         onPress={
@@ -227,10 +230,10 @@ export default function AgentAllBookingScreen({navigation}) {
                           //   clientDetail: item,
                           // })
                         }
-                        dateofBooking={item.date_of_booking}
-                        timeofBooking={item.time_of_booking}
-                        createdAt={item.createdAt}
-                        status={item.status}
+                        dateofBooking={item?.date_of_booking}
+                        timeofBooking={item?.time_of_booking}
+                        createdAt={item?.createdAt}
+                        status={item?.status}
                       />
                     );
                   }}
