@@ -14,7 +14,7 @@ import MainButton from '../../components/MainGradientButton/MainButton';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {Slider} from '@miblanchard/react-native-slider';
 import {Picker} from '@react-native-picker/picker';
-import ZoomUs from 'react-native-zoom-us';
+// import ZoomUs from 'react-native-zoom-us';
 import SplashScreen from 'react-native-splash-screen';
 
 export default function NotaryCallScreen({navigation}) {
@@ -34,31 +34,31 @@ export default function NotaryCallScreen({navigation}) {
   };
 
   useEffect(() => {
-    const initializeZoom = async () => {
-      try {
-        await ZoomUs.initialize({
-          clientKey: 'i5_Fj9azRWSPqSavOlXFg',
-          clientSecret: 's4eVLs6Ae8PGSnu2Jv2dg2Ai2aKDcaKa',
-        });
+    // const initializeZoom = async () => {
+    //   try {
+    //     await ZoomUs.initialize({
+    //       clientKey: 'i5_Fj9azRWSPqSavOlXFg',
+    //       clientSecret: 's4eVLs6Ae8PGSnu2Jv2dg2Ai2aKDcaKa',
+    //     });
 
-        setZoomInitialized(true);
-        console.log('ZoomUs initialized successfully');
-      } catch (error) {
-        console.error('Error initializing ZoomUs:', error);
-      }
-    };
+    //     setZoomInitialized(true);
+    //     console.log('ZoomUs initialized successfully');
+    //   } catch (error) {
+    //     console.error('Error initializing ZoomUs:', error);
+    //   }
+    // };
     SplashScreen.hide();
-    initializeZoom();
+    // initializeZoom();
   }, []);
-  const joinMeeting = async () => {
-    await ZoomUs.joinMeeting({
-      userName: 'Johny',
-      meetingNumber: '88228180307',
-      password: '758208',
-      // noAudio: true,
-      // noVideo: true,
-    });
-  };
+  // const joinMeeting = async () => {
+  //   await ZoomUs.joinMeeting({
+  //     userName: 'Johny',
+  //     meetingNumber: '88228180307',
+  //     password: '758208',
+  //     // noAudio: true,
+  //     // noVideo: true,
+  //   });
+  // };
   return (
     <SafeAreaView style={styles.container}>
       {/* <View style={styles.NavbarContainer}>
@@ -200,7 +200,7 @@ export default function NotaryCallScreen({navigation}) {
           source={require('../../../assets/image.png')}
           style={{alignSelf: 'center'}}
         />
-        {zoomInitailized && (
+        {/* {zoomInitailized && (
           <View style={styles.btnContainer}>
             <GradientButton
               Title="Complete Session"
@@ -210,7 +210,7 @@ export default function NotaryCallScreen({navigation}) {
               onPress={() => joinMeeting()}
             />
           </View>
-        )}
+        )} */}
       </ScrollView>
     </SafeAreaView>
   );

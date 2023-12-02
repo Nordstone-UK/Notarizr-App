@@ -6910,14 +6910,6 @@ react-native-webview@^13.6.2:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
 
-react-native-zoom-us@^6.18.1:
-  version "6.18.1"
-  resolved "https://registry.npmjs.org/react-native-zoom-us/-/react-native-zoom-us-6.18.1.tgz"
-  integrity sha512-aNX+WAVCAQPYkKHhGG3eBcJN2MXjfEXBhrDQ/fp2lIhQQxuBzt3nWZPsGLghsio0ZNBEXNcOCMEMzVzxigYNPQ==
-  dependencies:
-    color "^3.2.1"
-    invariant "^2.2.4"
-
 react-native@0.72.5:
   version "0.72.5"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.72.5.tgz"

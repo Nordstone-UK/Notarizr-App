@@ -53,7 +53,7 @@ export default function LabelTextInput(props) {
           onChangeText={props.onChangeText}
         />
         {props.rightImageSoucre && (
-          <TouchableOpacity onPress={props.rightImagePress}>
+          <TouchableOpacity onPress={props.rightImagePress} style={{}}>
             <Image source={props.rightImageSoucre} style={styles.iconLeft} />
           </TouchableOpacity>
         )}
@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
   },
-
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -88,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: '#D3D5DA',
     width: widthToDp(90),
-    paddingLeft: widthToDp(2),
+    // paddingHorizontal: widthToDp(4),
   },
   icon: {
     width: widthToDp(7),
@@ -129,5 +128,6 @@ const styles = StyleSheet.create({
   iconLeft: {
     width: widthToDp(5),
     height: heightToDp(5),
+    marginHorizontal: widthToDp(1),
   },
 });

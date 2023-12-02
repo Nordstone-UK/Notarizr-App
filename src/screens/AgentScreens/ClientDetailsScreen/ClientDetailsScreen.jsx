@@ -39,15 +39,15 @@ import {downloadFile} from '../../../utils/RnDownload';
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
   const clientDetail = useSelector(state => state.booking.booking);
+  // console.log('====================================');
+  // console.log('clientDetail', clientDetail);
+  // console.log('====================================');
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
   const {handleupdateBookingInfo} = useFetchBooking();
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
   let {documents: documentArray} = clientDetail;
-  console.log('====================================');
-  console.log(clientDetail);
-  console.log('====================================');
   const {booked_for} = clientDetail;
   const {proof_documents} = clientDetail;
   const dispatch = useDispatch();
@@ -69,7 +69,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
       console.log('Refreshing.....');
     }, 2000);
   }, []);
-
   const capitalizeFirstLetter = string => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
@@ -94,7 +93,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   useEffect(() => {
     getBookingStatus();
   }, [status]);
-
   const handleNext = () => {
     if (!signaturePage || !notaryBlock) {
       Toast.show({
@@ -181,15 +179,24 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
         midImg={require('../../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}
       />
-      <View style={styles.headingContainer}>
-        <Text style={styles.lightHeading}>Selected Service</Text>
-        {clientDetail?.service_type === 'mobile_notary' && (
-          <Text style={styles.Heading}>Mobile Notary</Text>
-        )}
-        {clientDetail?.service_type === 'ron' && (
-          <Text style={styles.Heading}>Remote Online Notary</Text>
-        )}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          // borderWidth: 1,
+          justifyContent: 'space-between',
+        }}>
+        <View style={styles.headingContainer}>
+          <Text style={styles.lightHeading}>Selected Service</Text>
+          {clientDetail?.service_type === 'mobile_notary' && (
+            <Text style={styles.Heading}>Mobile Notary</Text>
+          )}
+          {clientDetail?.service_type === 'ron' && (
+            <Text style={styles.Heading}>Remote Online Notary</Text>
+          )}
+        </View>
       </View>
+
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
@@ -419,15 +426,62 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
             />
           )}
           <View style={styles.buttonFlex}>
-            {status === 'Pending' && (
+            {clientDetail?.service_type === 'mobile_notary' &&
+              status === 'Pending' && (
+                <>
+                  <MainButton
+                    Title="Accept"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    onPress={() => handleClientData()}
+                    GradiStyles={{
+                      width: widthToDp(40),
+                      paddingHorizontal: widthToDp(0),
+                      paddingVertical: heightToDp(3),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(4),
+                    }}
+                  />
+                  <MainButton
+                    Title="Reject"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    onPress={() =>
+                      handleUpdateBookingStatus('rejected', clientDetail._id)
+                    }
+                    GradiStyles={{
+                      width: widthToDp(40),
+                      paddingHorizontal: widthToDp(0),
+                      paddingVertical: heightToDp(3),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(4),
+                    }}
+                  />
+                </>
+              )}
+          </View>
+          <View style={styles.buttonFlex}>
+            {clientDetail?.service_type === 'ron' && (
               <>
                 <MainButton
-                  Title="Accept"
+                  Title="Add Observers"
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
                   ]}
-                  onPress={() => handleClientData()}
+                  onPress={() =>
+                    navigation.navigate('AddObserverScreen', {
+                      bookingId: clientDetail?._id,
+                    })
+                  }
                   GradiStyles={{
                     width: widthToDp(40),
                     paddingHorizontal: widthToDp(0),
@@ -438,16 +492,15 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                     fontSize: widthToDp(4),
                   }}
                 />
-
                 <MainButton
-                  Title="Reject"
+                  Title="Join Session"
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
                   ]}
-                  onPress={() =>
-                    handleUpdateBookingStatus('rejected', clientDetail._id)
-                  }
+                  // onPress={() =>
+                  //   handleUpdateBookingStatus('rejected', clientDetail._id)
+                  // }
                   GradiStyles={{
                     width: widthToDp(40),
                     paddingHorizontal: widthToDp(0),

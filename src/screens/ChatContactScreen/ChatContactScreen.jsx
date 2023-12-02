@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 
 export default function ChatContactScreen({navigation}) {
   const chats = useSelector(state => state.chats.allChats);
+
   return (
     <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="Find all your messages with our agents here" />
@@ -21,7 +22,10 @@ export default function ChatContactScreen({navigation}) {
                     image={{uri: user.profile_picture}}
                     name={user.first_name + ' ' + user.last_name}
                     onPress={() =>
-                      navigation.navigate('ChatScreen', {user: user})
+                      navigation.navigate('ChatScreen', {
+                        user: user,
+                        chat: chat._id,
+                      })
                     }
                   />
                 </View>

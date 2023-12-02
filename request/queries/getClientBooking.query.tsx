@@ -47,6 +47,10 @@ export const GET_CLIENT_BOOKING = gql`
             endTime
           }
           location
+          can_print
+          agent {
+            _id
+          }
           createdAt
           updatedAt
         }
@@ -101,8 +105,14 @@ export const GET_CLIENT_BOOKING = gql`
         review
         createdAt
         updatedAt
+        zoom_id
+        zoom_password
+        zoom_agenda
+        zoom_host_email
+        zoom_host_id
+        zoom_join_url
+        zoom_start_url
       }
-
       totalDocs
       limit
       totalPages

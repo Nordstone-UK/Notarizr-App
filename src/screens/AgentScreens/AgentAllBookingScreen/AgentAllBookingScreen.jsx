@@ -73,9 +73,7 @@ export default function AgentAllBookingScreen({navigation}) {
       });
     }
   };
-  console.log('====================================');
-  console.log(Booking);
-  console.log('====================================');
+
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader

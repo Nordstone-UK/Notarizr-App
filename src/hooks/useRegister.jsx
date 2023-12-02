@@ -139,6 +139,9 @@ const useRegister = () => {
       const uploadedFiles = await Promise.all(
         documentURIs.map(async fileUri => {
           const uploadedLink = await uploadDocmmentToS3(fileUri);
+          console.log('====================================');
+          console.log('Uploaded Link:', uploadedLink);
+          console.log('====================================');
           return uploadedLink;
         }),
       );

@@ -3,6 +3,7 @@ import {createSlice} from '@reduxjs/toolkit';
 const initialState = {
   user: null,
   LiveCoordinates: null,
+  socketID: null,
 };
 
 export const userSlice = createSlice({
@@ -17,9 +18,13 @@ export const userSlice = createSlice({
       state.LiveCoordinates = action.payload;
       // console.log('Redux coordinates', state.LiveCoordinates);
     },
+    setSocketID: (state, action) => {
+      state.socketID = action.payload;
+    },
   },
 });
 
-export const {saveUserInfo, setLiveCoordinates} = userSlice.actions;
+export const {saveUserInfo, setLiveCoordinates, setSocketID} =
+  userSlice.actions;
 
 export default userSlice.reducer;

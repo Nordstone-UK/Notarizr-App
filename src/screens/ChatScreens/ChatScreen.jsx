@@ -7,22 +7,62 @@ import {
   View,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import {GiftedChat} from 'react-native-gifted-chat';
 import {useSelector} from 'react-redux';
 import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
+import useChatService from '../../hooks/useChatService';
+import {socket} from '../../utils/Socket';
 
 export default function ChatScreen({route}, props) {
-  const {user} = route.params;
+  const userID = useSelector(state => state.user.user._id);
+  const socketID = useSelector(state => state.user.socketID);
+  const {user, chat} = route.params;
   const [messages, setMessages] = useState([]);
-  const onSend = newMessages => {
-    setMessages(previousMessages =>
-      GiftedChat.append(previousMessages, newMessages),
-    );
-  };
+  const {allMessages, setAllMessages} = useState();
+  const {handleGetMessages} = useChatService();
+
+  useEffect(() => {
+    handleGetMessages(chat);
+    if (socket) {
+      socket.on('recieve-message', data => {
+        socket.emit('message-recieved', data._id);
+
+        setMessages(previousMessages =>
+          GiftedChat.append(previousMessages, data),
+        );
+      });
+    }
+  }, [socket]);
+  // const onSend = newMessages => {
+  //   setMessages(previousMessages =>
+  //     GiftedChat.append(previousMessages, newMessages),
+  //   );
+  // };
+  const onSend = useCallback(messages => {
+    console.log('====================================');
+    console.log('onsend');
+    console.log('====================================');
+    let socket_data = {
+      _id: socketID,
+      user: userID,
+      chat: chat,
+      text: messages,
+      receiverId: user._id,
+    };
+
+    if (socket) {
+      socket.emit('send-message', socket_data, data => {
+        console.log(data);
+      });
+    }
+    // setMessages(previousMessages =>
+    //   GiftedChat.append(previousMessages, socket_data),
+    // );
+  }, []);
   const renderSend = props => {
     return (
       <TouchableOpacity style={styles.button}>

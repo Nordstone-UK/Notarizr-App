@@ -71,7 +71,7 @@ import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
 import NotaryCallScreen from '../NotaryCallScreen.jsx/NotaryCallScreen';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
 import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
@@ -87,7 +87,7 @@ import AgentSignupScreen from '../SingupAsScreen/AgentSignupScreen';
 import ActiveServicesScreen from '../ActiveServicesScreen/ActiveServicesScreen';
 import NotificationScreen from '../NotificationScreen/NotificationScreen';
 import Splash_Screen from '../SplashScreen/Splash_Screen';
-import MedicalDocScreen from '../LegalDocumentsScren/MedicalDocScreen';
+import AddObserverScreen from '../LegalDocumentsScren/AddObserverScreen';
 import RONAgentReviewScreen from '../RONAgentReviewScreen/RONAgentReviewScreen';
 import MapScreen from '../MapScreen/MapScreen';
 import CompletePayment from '../CompletionScreen/CompletePayment';
@@ -96,17 +96,17 @@ import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen
 import AddNewAddress from '../NewAddressScreen/AddNewAddress';
 import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
 import TransactionScreen from '../TransactionScreen/TransactionScreen';
-import {SocketContext, socket} from '../../utils/Socket';
+import {socket} from '../../utils/Socket';
+import {setSocketID} from '../../features/user/userSlice';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user.account_type);
-  console.log(user);
-  // const socket = useContext(SocketContext);
+  const dispatch = useDispatch();
   useEffect(() => {
     socket.on('connect', () => {
-      console.log('connected');
+      dispatch(setSocketID(socket.id));
     });
   }, []);
 
@@ -118,7 +118,6 @@ function TabNavigation() {
         tabBarStyle: {
           height: Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
         },
-
         tabBarIcon: ({focused}) => {
           return <Ionicons focused={focused} name={route.name} />;
         },
@@ -172,6 +171,10 @@ export default function AppNavigation() {
           }}>
           <Stack.Screen name="Splash_Screen" component={Splash_Screen} />
           <Stack.Screen name="HomeScreen" component={TabNavigation} />
+          <Stack.Screen
+            name="AddObserverScreen"
+            component={AddObserverScreen}
+          />
           <Stack.Screen
             name="OnboardingScreen1"
             component={OnboardingScreen1}

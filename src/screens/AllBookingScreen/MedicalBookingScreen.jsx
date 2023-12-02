@@ -80,9 +80,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
-      // console.log('====================================');
-      // console.log(bookingDetail?.documents);
-      // console.log('====================================');
       const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
@@ -218,7 +215,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   bookingDetail?.agent?.last_name
                 }
                 agentAddress={bookingDetail?.agent?.location}
-                task={bookingDetail.status || 'Loading'}
+                task={status || 'Loading'}
                 OrangeText={'At Office'}
                 dateofBooking={bookingDetail?.date_of_booking}
                 timeofBooking={bookingDetail?.time_of_booking}
@@ -455,6 +452,30 @@ export default function MedicalBookingScreen({route, navigation}) {
                   }
                 />
               )}
+              {status === 'accepted' &&
+                bookingDetail?.service_type === 'ron' && (
+                  <GradientButton
+                    Title="Join Session"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      width: widthToDp(90),
+                      paddingVertical: widthToDp(4),
+                      marginTop: widthToDp(10),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(6),
+                    }}
+                    // onPress={() =>
+                    //   navigation.navigate('ToBePaidScreen', {
+                    //     bookingData: bookingDetail,
+                    //   })
+                    // }
+                  />
+                )}
             </View>
           )}
         </ScrollView>

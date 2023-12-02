@@ -1,64 +1,12 @@
 import gql from 'graphql-tag';
 
-export const GET_AGENT_BOOKING = gql`
-  query GetAgentBookings($status: String!, $page: Int!, $pageSize: Int!) {
-    getAgentBookings(status: $status, page: $page, pageSize: $pageSize) {
+export const GET_CLIENT_SESSION = gql`
+  query GetClientSessions($status: String!, $page: Int!, $pageSize: Int!) {
+    getClientSessions(status: $status, page: $page, pageSize: $pageSize) {
       status
       message
-      bookings {
+      sessions {
         _id
-        booked_by {
-          _id
-          first_name
-          last_name
-          email
-          phone_number
-          profile_picture
-          gender
-          isBlocked
-          chatPrivacy
-          location
-          rating
-          subscriptionType
-          isVerified
-          account_type
-          online_status
-          current_location {
-            type
-            coordinates
-          }
-          description
-          state
-          addresses {
-            tag
-            location
-          }
-        }
-        service_type
-        service {
-          _id
-          name
-          image
-          status
-          service_type
-          availability {
-            weekdays
-            startTime
-            endTime
-          }
-          location
-          can_print
-          agent {
-            _id
-          }
-          createdAt
-          updatedAt
-        }
-        address
-        landmark
-        date_of_booking
-        time_of_booking
-        notes
         agent {
           _id
           first_name
@@ -86,25 +34,46 @@ export const GET_AGENT_BOOKING = gql`
             location
           }
         }
-        preference_analysis
-        status
-        documents
-        booked_for {
+        client {
+          _id
           first_name
           last_name
           email
           phone_number
+          profile_picture
+          gender
+          isBlocked
+          chatPrivacy
           location
+          rating
+          subscriptionType
+          isVerified
+          account_type
+          online_status
+          current_location {
+            type
+            coordinates
+          }
+          description
+          state
+          addresses {
+            tag
+            location
+          }
         }
+        price
+        client_documents
+        status
         document_type {
           name
           price
         }
-        proof_documents
-        rating
-        review
-        createdAt
-        updatedAt
+        client_email
+        observers
+        identity_authentication
+        session_schedule
+        date_time_session
+        agent_document
         zoom_id
         zoom_password
         zoom_agenda
@@ -112,6 +81,8 @@ export const GET_AGENT_BOOKING = gql`
         zoom_host_id
         zoom_join_url
         zoom_start_url
+        createdAt
+        updatedAt
       }
       totalDocs
       limit

@@ -120,7 +120,7 @@ export default function AgentSessionInviteScreen({navigation}) {
       documentObjects,
     );
     if (response === '200') {
-      navigation.navigate('WaitingRoomScreen');
+      navigation.navigate('AllBookingScreen');
     } else {
       Toast.show({
         type: 'error',
@@ -365,9 +365,9 @@ export default function AgentSessionInviteScreen({navigation}) {
             <DatePicker
               modal
               mode="datetime"
-              minimumDate={date}
+              minimumDate={new Date()}
               open={open}
-              androidVariant="iosClone"
+              // androidVariant="iosClone"
               date={date}
               onConfirm={date => {
                 setOpen(false);
