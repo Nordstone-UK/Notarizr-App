@@ -390,6 +390,26 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             )}
           </View>
+          {bookingDetail?.service_type === 'ron' && (
+            <GradientButton
+              Title="Join Session"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                width: widthToDp(90),
+                paddingVertical: widthToDp(4),
+                marginTop: widthToDp(10),
+              }}
+              styles={{
+                padding: widthToDp(0),
+                fontSize: widthToDp(6),
+              }}
+              onPress={() =>
+                navigation.navigate('NotaryCallScreen', {
+                  uid: bookingDetail?._id,
+                })
+              }
+            />
+          )}
           {status === 'Pending' ? null : (
             <View style={styles.buttonFlex}>
               {status === 'Accepted' && (
@@ -452,30 +472,6 @@ export default function MedicalBookingScreen({route, navigation}) {
                   }
                 />
               )}
-              {status === 'accepted' &&
-                bookingDetail?.service_type === 'ron' && (
-                  <GradientButton
-                    Title="Join Session"
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    GradiStyles={{
-                      width: widthToDp(90),
-                      paddingVertical: widthToDp(4),
-                      marginTop: widthToDp(10),
-                    }}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(6),
-                    }}
-                    // onPress={() =>
-                    //   navigation.navigate('ToBePaidScreen', {
-                    //     bookingData: bookingDetail,
-                    //   })
-                    // }
-                  />
-                )}
             </View>
           )}
         </ScrollView>

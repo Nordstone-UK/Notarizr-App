@@ -29,13 +29,23 @@ import {
 
 export default function AllBookingScreen({route, navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
-  const {fetchBookingInfo} = useFetchBooking();
+  const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
   const [refreshing, setRefreshing] = useState(false);
   const [booking, setBooking] = useState();
+  const [mergerData, setMergerData] = useState([]);
   const dispatch = useDispatch();
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
-    setBooking(bookingDetail);
+    const sessionDetail = await handleClientSessions(status);
+    const mergedDetails = [...bookingDetail, ...sessionDetail];
+
+    mergedDetails.sort((a, b) => {
+      const timestampA = new Date(a.createdAt).getTime();
+      const timestampB = new Date(b.createdAt).getTime();
+      return timestampA - timestampB;
+    });
+    setMergerData(mergedDetails);
+    // setBooking(bookingDetail);
   };
 
   useEffect(() => {
@@ -185,29 +195,32 @@ export default function AllBookingScreen({route, navigation}) {
             </View>
           </ScrollView>
           <View style={styles.bookingContainer}>
-            {booking ? (
-              booking.length !== 0 ? (
+            {mergerData ? (
+              mergerData.length !== 0 ? (
                 <FlatList
-                  data={booking}
+                  data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
+                    // console.log('item', item);
                     return (
                       <TouchableOpacity onPress={() => handleAgentData(item)}>
-                        <AgentCard
-                          source={{uri: item.agent.profile_picture}}
-                          bottomRightText={item.document_type}
+                        {/* <AgentCard
+                          source={{uri: item?.agent?.profile_picture}}
+                          bottomRightText={item?.document_type}
                           bottomLeftText="Total"
                           image={require('../../../assets/locationIcon.png')}
                           agentName={
-                            item.agent.first_name + ' ' + item.agent.last_name
+                            item?.agent?.first_name +
+                            ' ' +
+                            item?.agent?.last_name
                           }
-                          agentAddress={item.agent.location}
-                          task={item.status || 'Loading'}
+                          agentAddress={item?.agent.location}
+                          task={item?.status || 'Loading'}
                           OrangeText={'At Office'}
-                          dateofBooking={item.date_of_booking}
-                          timeofBooking={item.time_of_booking}
-                          createdAt={item.createdAt}
-                        />
+                          dateofBooking={item?.date_of_booking}
+                          timeofBooking={item?.time_of_booking}
+                          createdAt={item?.createdAt}
+                        /> */}
                       </TouchableOpacity>
                     );
                   }}

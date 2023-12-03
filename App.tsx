@@ -16,7 +16,8 @@ import {polyfill as polyfillReadableStream} from 'react-native-polyfill-globals/
 import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch';
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-// import {SocketProvider} from './src/utils/Socket';
+// import {ZoomVideoSdkProvider} from 'react-native-zoom-video-sdk';
+
 polyfillReadableStream();
 polyfillEncoding();
 polyfillFetch();
@@ -28,15 +29,20 @@ function App(): JSX.Element {
 
   return (
     <ApolloProvider client={client}>
-      {/* <SocketProvider> */}
       <Provider store={store}>
         <StripeProvider publishableKey={publishableKey}>
           <GestureHandlerRootView style={{flex: 1}}>
+            {/* <ZoomVideoSdkProvider
+              config={{
+                appGroupId: 'group.test.sdk',
+                domain: 'zoom.us',
+                enableLog: true,
+              }}> */}
             <AppNavigation />
+            {/* </ZoomVideoSdkProvider> */}
           </GestureHandlerRootView>
         </StripeProvider>
       </Provider>
-      {/* </SocketProvider> */}
     </ApolloProvider>
   );
 }

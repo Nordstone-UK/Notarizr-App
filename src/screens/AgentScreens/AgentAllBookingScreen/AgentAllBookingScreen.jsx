@@ -26,15 +26,26 @@ import {
 
 export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
-  const {fetchAgentBookingInfo} = useFetchBooking();
+  const {fetchAgentBookingInfo, handleAgentSessions} = useFetchBooking();
   const [Booking, setBooking] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [mergerData, setMergerData] = useState([]);
+
   const account_type = useSelector(state => state.user.user.account_type);
   const dispatch = useDispatch();
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
+    const sessionDetail = await handleAgentSessions(status);
     // console.log('bookingDetail', bookingDetail);
-    setBooking(bookingDetail);
+    const mergedDetails = [...bookingDetail, ...sessionDetail];
+
+    mergedDetails.sort((a, b) => {
+      const timestampA = new Date(a.createdAt).getTime();
+      const timestampB = new Date(b.createdAt).getTime();
+      return timestampA - timestampB;
+    });
+    setMergerData(mergedDetails);
+    // setBooking(bookingDetail);
   };
 
   useEffect(() => {
@@ -202,10 +213,10 @@ export default function AgentAllBookingScreen({navigation}) {
               justifyContent: 'center',
               marginVertical: widthToDp(3),
             }}>
-            {Booking ? (
-              Booking.length !== 0 ? (
+            {mergerData ? (
+              mergerData.length !== 0 ? (
                 <FlatList
-                  data={Booking}
+                  data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
                     return (

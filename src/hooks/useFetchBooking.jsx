@@ -8,6 +8,7 @@ import {setBookingInfoState} from '../features/booking/bookingSlice';
 import {GET_BOOKING_BY_ID} from '../../request/queries/getBookingByID.query';
 import {UPDATE_BOOKING_INFO} from '../../request/mutations/updateBookingInfo.mutation';
 import {GET_CLIENT_SESSION} from '../../request/queries/getClientSession.query';
+import {GET_AGENT_SESSION} from '../../request/queries/getAgentSessions.query';
 
 const useFetchBooking = () => {
   const [getClientBooking] = useLazyQuery(GET_CLIENT_BOOKING);
@@ -15,6 +16,7 @@ const useFetchBooking = () => {
   const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID);
   const [updateBookingInfo] = useMutation(UPDATE_BOOKING_INFO);
   const [getClientSession] = useLazyQuery(GET_CLIENT_SESSION);
+  const [getAgentSession] = useLazyQuery(GET_AGENT_SESSION);
   const dispatch = useDispatch();
   const [clientBooking, setClientBooking] = useState({
     status: 'pending',
@@ -128,7 +130,37 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
-  const handleClientSessions = async () => {};
+  const handleClientSessions = async status => {
+    const request = {
+      variables: {
+        ...clientBooking,
+        status: status,
+      },
+    };
+    try {
+      const {data} = await getClientSession(request);
+
+      return sortBookingByDate(data?.getClientSessions?.sessions);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleAgentSessions = async status => {
+    const request = {
+      variables: {
+        ...clientBooking,
+        status: status,
+      },
+    };
+    try {
+      const {data} = await getAgentSession(request);
+
+      return sortBookingByDate(data?.getAgentSessions?.sessions);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return {
     fetchBookingInfo,
     fetchAgentBookingInfo,
@@ -136,6 +168,8 @@ const useFetchBooking = () => {
     fetchBookingByID,
     handleReviewSubmit,
     getTotalBookings,
+    handleClientSessions,
+    handleAgentSessions,
   };
 };
 

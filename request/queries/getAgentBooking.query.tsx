@@ -48,9 +48,6 @@ export const GET_AGENT_BOOKING = gql`
           }
           location
           can_print
-          agent {
-            _id
-          }
           createdAt
           updatedAt
         }
@@ -75,12 +72,12 @@ export const GET_AGENT_BOOKING = gql`
           isVerified
           account_type
           online_status
+          description
+          state
           current_location {
             type
             coordinates
           }
-          description
-          state
           addresses {
             tag
             location
@@ -112,6 +109,16 @@ export const GET_AGENT_BOOKING = gql`
         zoom_host_id
         zoom_join_url
         zoom_start_url
+        agora_channel_name
+        agora_channel_token
+        signature_request_id
+        signatures {
+          signatureId
+          signerName
+          signerEmailAddress
+          order
+          signature_url
+        }
       }
       totalDocs
       limit

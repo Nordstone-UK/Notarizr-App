@@ -39,9 +39,7 @@ import {downloadFile} from '../../../utils/RnDownload';
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
   const clientDetail = useSelector(state => state.booking.booking);
-  // console.log('====================================');
-  // console.log('clientDetail', clientDetail);
-  // console.log('====================================');
+
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
   const {handleupdateBookingInfo} = useFetchBooking();
@@ -498,9 +496,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
                   ]}
-                  // onPress={() =>
-                  //   handleUpdateBookingStatus('rejected', clientDetail._id)
-                  // }
+                  onPress={() =>
+                    navigation.navigate('NotaryCallScreen', {
+                      u_id: clientDetail?._id,
+                    })
+                  }
                   GradiStyles={{
                     width: widthToDp(40),
                     paddingHorizontal: widthToDp(0),
