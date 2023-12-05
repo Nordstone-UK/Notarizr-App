@@ -27,23 +27,20 @@ import {
 } from 'react-native-agora';
 import SplashScreen from 'react-native-splash-screen';
 import Toast from 'react-native-toast-message';
+const appId = 'abd7df71ee024625b2cc979e12aec405';
 
-const appId = '2202377ec7004807a3c72e9eabc68aee';
-const channelName = 'Notarizr';
-const uid = 0;
-const token =
-  '007eJxTYNgqJa/F9jd6Y9jUr2HG4p/2fV5ioDbdaYa+2Bez4y1z9WcqMBgZGRgZm5unJpsbGJhYGJgnGiebG6VapiYmJZtZJKamctzKTW0IZGR4o7qJkZEBAkF8Dga//JLEosyqIgYGAHTfIFE=';
 export default function NotaryCallScreen({route, navigation}) {
-  // const uid = route.params.uid;
+  const {channel, token: CutomToken, uid: _id} = route.params;
+  const uid = parseInt(_id, 16);
+  const channelName = channel;
+  const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
   const [remoteUids, setRemoteUids] = useState<number[]>([]);
-  const agoraEngineRef = useRef<IRtcEngine>(); // Agora engine instance
-  const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
-  const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
+  const agoraEngineRef = useRef<IRtcEngine>();
+  const [isJoined, setIsJoined] = useState(false);
+  const [remoteUid, setRemoteUid] = useState(0);
   const [selected, setSelected] = useState('notary room');
   const [value, setValue] = useState(50);
-
-  const [message, setMessage] = useState(''); // Message to the user
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
       try {
@@ -83,7 +80,9 @@ export default function NotaryCallScreen({route, navigation}) {
       agoraEngineRef.current?.leaveChannel();
     };
   }, []);
-
+  console.log('====================================');
+  console.log(remoteUids);
+  console.log('====================================');
   const join = async () => {
     if (isJoined) {
       return;

@@ -55,6 +55,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
+
   const handleStarPress = selectedRating => {
     setRating(selectedRating);
   };
@@ -80,6 +81,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
+      console.log('====================================');
+      console.log(bookingDetail?._id);
+      console.log('====================================');
       const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
@@ -99,9 +103,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   );
   useEffect(() => {
     getBookingStatus();
-    console.log('====================================');
-    console.log(bookingDetail);
-    console.log('====================================');
   }, [status]);
   const handleReduxPayment = async () => {
     setIsVisible(false);
@@ -145,8 +146,10 @@ export default function MedicalBookingScreen({route, navigation}) {
     navigation.navigate('HomeScreen');
   };
   function displayNamesWithCommas(arr) {
-    const names = arr.map(obj => obj.name);
+    const names = arr?.map(obj => obj.name);
+
     const namesString = names.join(', ');
+
     return namesString;
   }
   return (
@@ -263,7 +266,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 Document Type:
               </Text>
               <Text style={[styles.detail, {marginLeft: widthToDp(6)}]}>
-                {displayNamesWithCommas(bookingDetail.document_type)}
+                {displayNamesWithCommas(bookingDetail?.document_type)}
               </Text>
             </View>
             {booked_for?.first_name && (
@@ -409,6 +412,8 @@ export default function MedicalBookingScreen({route, navigation}) {
               onPress={() =>
                 navigation.navigate('NotaryCallScreen', {
                   uid: bookingDetail?._id,
+                  channel: bookingDetail?.agora_channel_name,
+                  token: bookingDetail?.agora_channel_token,
                 })
               }
             />

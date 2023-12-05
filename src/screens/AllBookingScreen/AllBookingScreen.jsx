@@ -58,8 +58,8 @@ export default function AllBookingScreen({route, navigation}) {
   }, [navigation]);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    init('accepted');
-    setIsFocused('accepted');
+    init(isFocused);
+    // setIsFocused('accepted');
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);

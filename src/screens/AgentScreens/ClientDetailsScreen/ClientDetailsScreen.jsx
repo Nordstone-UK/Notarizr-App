@@ -354,7 +354,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 columnGap: widthToDp(2),
                 rowGap: widthToDp(2),
               }}>
-              {documentArray !== null ? (
+              {/* {documentArray !== null ? (
                 Object.keys(documentArray).length !== 0 ? (
                   Object.keys(documentArray).map((key, index) => (
                     <TouchableOpacity
@@ -371,7 +371,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 )
               ) : (
                 <Text style={styles.preference}>No Documents</Text>
-              )}
+              )} */}
             </View>
           </View>
           <View style={styles.addressView}>
@@ -502,6 +502,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   onPress={() =>
                     navigation.navigate('NotaryCallScreen', {
                       uid: clientDetail?._id,
+                      channel: clientDetail?.agora_channel_name,
+                      token: clientDetail?.agora_channel_token,
                     })
                   }
                   GradiStyles={{

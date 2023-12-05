@@ -26,9 +26,9 @@ export default function NearbyLoadingScreen({route, navigation}) {
       if (response?.status === '200') {
         try {
           const response = await handleBookingCreation(user._id, service._id);
-          console.log('====================================');
-          console.log(response);
-          console.log('====================================');
+          // console.log('====================================');
+          // console.log(response);
+          // console.log('====================================');
           const {booking} = response;
 
           const bookingData = await fetchBookingByID(booking._id);

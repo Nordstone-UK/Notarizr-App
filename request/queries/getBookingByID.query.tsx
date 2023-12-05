@@ -47,6 +47,7 @@ export const GET_BOOKING_BY_ID = gql`
             endTime
           }
           location
+          can_print
           createdAt
           updatedAt
         }
@@ -71,26 +72,13 @@ export const GET_BOOKING_BY_ID = gql`
           isVerified
           account_type
           online_status
-          current_location {
-            type
-            coordinates
-          }
           description
           state
-          addresses {
-            tag
-            location
-          }
         }
         preference_analysis
+        observers
         status
         documents
-        document_type {
-          name
-          price
-        }
-        createdAt
-        updatedAt
         booked_for {
           first_name
           last_name
@@ -98,9 +86,32 @@ export const GET_BOOKING_BY_ID = gql`
           phone_number
           location
         }
+        document_type {
+          name
+          price
+        }
         proof_documents
         rating
         review
+        createdAt
+        updatedAt
+        zoom_id
+        zoom_password
+        zoom_agenda
+        zoom_host_email
+        zoom_host_id
+        zoom_join_url
+        zoom_start_url
+        agora_channel_name
+        agora_channel_token
+        signature_request_id
+        signatures {
+          signatureId
+          signerName
+          signerEmailAddress
+          order
+          signature_url
+        }
       }
     }
   }
