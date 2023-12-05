@@ -27,10 +27,13 @@ import {
 } from 'react-native-agora';
 import SplashScreen from 'react-native-splash-screen';
 import Toast from 'react-native-toast-message';
+import WebView from 'react-native-webview';
+import {useSelector} from 'react-redux';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 
 export default function NotaryCallScreen({route, navigation}) {
-  const {channel, token: CutomToken, uid: _id} = route.params;
+  const {email} = useSelector(state => state.user.user);
+  const {channel, token: CutomToken, uid: _id, signatures} = route.params;
   const uid = parseInt(_id, 16);
   const channelName = channel;
   const token = CutomToken;
@@ -41,6 +44,7 @@ export default function NotaryCallScreen({route, navigation}) {
   const [remoteUid, setRemoteUid] = useState(0);
   const [selected, setSelected] = useState('notary room');
   const [value, setValue] = useState(50);
+  const [signatureUrl, setSignatureUrl] = useState('');
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
       try {
@@ -75,14 +79,26 @@ export default function NotaryCallScreen({route, navigation}) {
       }
     };
     setupVideoSDKEngine();
-
-    return () => {
+    const filetUrl = signatures.filter((item: any) => {
+      if (item.signerEmailAddress === email) return item.signature_url;
+    });
+    const temp = filetUrl[0].signature_url;
+    const queryString = temp.split('?')[1];
+    const paramsArray = queryString.split('&');
+    const params = {};
+    paramsArray.forEach((param: any) => {
+      const [key, value] = param.split('=');
+      params[key] = value;
+    });
+    const signatureId = params['signature_id'];
+    const token = params['token'];
+    const webURl = `http://notarizr-sign.s3-website.us-east-2.amazonaws.com/?signature_id=${signatureId}&token=${token}`;
+    setSignatureUrl(webURl);
+    http: return () => {
       agoraEngineRef.current?.leaveChannel();
     };
   }, []);
-  console.log('====================================');
-  console.log(remoteUids);
-  console.log('====================================');
+
   const join = async () => {
     if (isJoined) {
       return;
@@ -259,55 +275,17 @@ export default function NotaryCallScreen({route, navigation}) {
             </TouchableOpacity>
           </View>
         </View>
-        {/* <View style={[styles.scrollBar]}>
-          <Text style={styles.sessionDesc}>0%</Text>
-
-          <View style={styles.slideContainer}>
-            <Slider
-              value={value}
-              // onValueChange={value => setValue(value)}
-              animateTransitions={true}
-              maximumValue={100}
-              minimumValue={20}
-              thumbStyle={{backgroundColor: Colors.OrangeGradientStart}}
-              thumbImage={require('../../../assets/thumb.png')}
-              trackStyle={{height: heightToDp(3), borderRadius: 5}}
-              minimumTrackStyle={{backgroundColor: Colors.Orange}}
-              maximumTrackStyle={{backgroundColor: Colors.DisableColor}}
-              trackClickable={true}
-              renderBelowThumbComponent={displayValue}
+        <View
+          style={{
+            flex: 1,
+          }}>
+          <ScrollView>
+            <WebView
+              source={{uri: signatureUrl}}
+              style={{height: heightToDp(300)}}
             />
-          </View>
-          <Text style={styles.sessionDesc}>100%</Text>
-        </View> */}
-        {/* <Text style={styles.textSession}>Document</Text>
-        <View style={styles.picker}>
-          {/* <Picker
-            selectedValue={selectedDocument}
-            onValueChange={handleTimezoneSelect}>
-            <Picker.Item
-              label="Select a document"
-              color={Colors.DullTextColor}
-            />
-            <Picker.Item label="Document 1" color={Colors.DullTextColor} />
-            <Picker.Item label="Document 2" color={Colors.DullTextColor} />
-            <Picker.Item label="Document 3" color={Colors.DullTextColor} />
-          </Picker> */}
-        {/* </View>  */}
-        {/* <Image
-          source={require('../../../assets/image.png')}
-          style={{alignSelf: 'center'}}
-        />
-
-        <View style={styles.btnContainer}>
-          <GradientButton
-            Title="Complete Session"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            styles={{fontSize: widthToDp(5)}}
-            // onPress={() => navigation.navigate('AgentBookingComplete')}
-            // onPress={() => joinMeeting()}
-          />
-        </View> */}
+          </ScrollView>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -639,3 +617,60 @@ const styles = StyleSheet.create({
 //     {/* <Text style={styles.info}>{message}</Text> */}
 //   </ScrollView>
 // </SafeAreaView>
+{
+  /* <View style={[styles.scrollBar]}>
+          <Text style={styles.sessionDesc}>0%</Text>
+
+          <View style={styles.slideContainer}>
+            <Slider
+              value={value}
+              // onValueChange={value => setValue(value)}
+              animateTransitions={true}
+              maximumValue={100}
+              minimumValue={20}
+              thumbStyle={{backgroundColor: Colors.OrangeGradientStart}}
+              thumbImage={require('../../../assets/thumb.png')}
+              trackStyle={{height: heightToDp(3), borderRadius: 5}}
+              minimumTrackStyle={{backgroundColor: Colors.Orange}}
+              maximumTrackStyle={{backgroundColor: Colors.DisableColor}}
+              trackClickable={true}
+              renderBelowThumbComponent={displayValue}
+            />
+          </View>
+          <Text style={styles.sessionDesc}>100%</Text>
+        </View> */
+}
+{
+  /* <Text style={styles.textSession}>Document</Text>
+        <View style={styles.picker}>
+          {/* <Picker
+            selectedValue={selectedDocument}
+            onValueChange={handleTimezoneSelect}>
+            <Picker.Item
+              label="Select a document"
+              color={Colors.DullTextColor}
+            />
+            <Picker.Item label="Document 1" color={Colors.DullTextColor} />
+            <Picker.Item label="Document 2" color={Colors.DullTextColor} />
+            <Picker.Item label="Document 3" color={Colors.DullTextColor} />
+          </Picker> */
+}
+{
+  /* </View>  */
+}
+{
+  /* <Image
+          source={require('../../../assets/image.png')}
+          style={{alignSelf: 'center'}}
+        />
+
+        <View style={styles.btnContainer}>
+          <GradientButton
+            Title="Complete Session"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            styles={{fontSize: widthToDp(5)}}
+            // onPress={() => navigation.navigate('AgentBookingComplete')}
+            // onPress={() => joinMeeting()}
+          />
+        </View> */
+}

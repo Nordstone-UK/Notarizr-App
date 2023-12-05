@@ -87,7 +87,7 @@ export default function ProfileInfoScreen({navigation}) {
             <SettingOptions
               icon={require('../../../assets/blueCard.png')}
               Title="Payment Method"
-              onPress={() => navigation.navigate('PaymentUpdateScreen')}
+              onPress={() => navigation.navigate('pPaymentUpdateScreen')}
             />
 
             {account_type !== 'client' && (

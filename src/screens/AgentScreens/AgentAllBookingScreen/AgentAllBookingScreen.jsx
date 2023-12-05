@@ -70,8 +70,8 @@ export default function AgentAllBookingScreen({navigation}) {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setBooking(null);
-    init('accepted');
-    setIsFocused('accepted');
+    init(isFocused);
+    setIsFocused(isFocused);
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);

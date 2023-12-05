@@ -103,6 +103,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   );
   useEffect(() => {
     getBookingStatus();
+    // console.log('====================================');
+    // console.log(bookingDetail);
+    // console.log('====================================');
   }, [status]);
   const handleReduxPayment = async () => {
     setIsVisible(false);
@@ -414,6 +417,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   uid: bookingDetail?._id,
                   channel: bookingDetail?.agora_channel_name,
                   token: bookingDetail?.agora_channel_token,
+                  signatures: bookingDetail?.signatures,
                 })
               }
             />

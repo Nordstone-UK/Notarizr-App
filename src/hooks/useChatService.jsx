@@ -16,7 +16,7 @@ function useChatService() {
 
     const response = await createChat(request);
 
-    console.log('Chat response', response.data);
+    // console.log('Chat response', response.data);
   };
 
   const getAllChats = async () => {
