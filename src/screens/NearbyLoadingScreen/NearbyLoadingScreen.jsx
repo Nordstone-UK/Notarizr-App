@@ -16,18 +16,19 @@ export default function NearbyLoadingScreen({route, navigation}) {
   const {handleBookingCreation} = useCreateBooking();
   const handleAgentSearch = async () => {
     try {
-      // console.log('====================================');
-      // console.log(serviceType);
-      // console.log('====================================');
       const response = await FetchMobileNotary(serviceType);
       // console.log('====================================');
-      // console.log(response);
+      // console.log('fetching agent', response);
       // console.log('====================================');
       const {user} = response;
       const {service} = user;
+
       if (response?.status === '200') {
         try {
           const response = await handleBookingCreation(user._id, service._id);
+          console.log('====================================');
+          console.log(response);
+          console.log('====================================');
           const {booking} = response;
 
           const bookingData = await fetchBookingByID(booking._id);

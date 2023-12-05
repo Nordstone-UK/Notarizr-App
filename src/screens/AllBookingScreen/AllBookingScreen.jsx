@@ -39,12 +39,13 @@ export default function AllBookingScreen({route, navigation}) {
     const sessionDetail = await handleClientSessions(status);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
 
-    mergedDetails.sort((a, b) => {
-      const timestampA = new Date(a.createdAt).getTime();
-      const timestampB = new Date(b.createdAt).getTime();
-      return timestampA - timestampB;
-    });
-    setMergerData(mergedDetails);
+    const sortedDetails = mergedDetails.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+    // console.log('====================================');
+    // console.log('mergedDetails', mergedDetails[0]);
+    // console.log('====================================');
+    setMergerData(sortedDetails);
     // setBooking(bookingDetail);
   };
 
@@ -204,7 +205,7 @@ export default function AllBookingScreen({route, navigation}) {
                     // console.log('item', item);
                     return (
                       <TouchableOpacity onPress={() => handleAgentData(item)}>
-                        {/* <AgentCard
+                        <AgentCard
                           source={{uri: item?.agent?.profile_picture}}
                           bottomRightText={item?.document_type}
                           bottomLeftText="Total"
@@ -214,13 +215,13 @@ export default function AllBookingScreen({route, navigation}) {
                             ' ' +
                             item?.agent?.last_name
                           }
-                          agentAddress={item?.agent.location}
+                          agentAddress={item?.agent?.location}
                           task={item?.status || 'Loading'}
                           OrangeText={'At Office'}
                           dateofBooking={item?.date_of_booking}
                           timeofBooking={item?.time_of_booking}
                           createdAt={item?.createdAt}
-                        /> */}
+                        />
                       </TouchableOpacity>
                     );
                   }}

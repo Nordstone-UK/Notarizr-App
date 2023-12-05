@@ -39,12 +39,18 @@ export default function AgentAllBookingScreen({navigation}) {
     // console.log('bookingDetail', bookingDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
 
-    mergedDetails.sort((a, b) => {
-      const timestampA = new Date(a.createdAt).getTime();
-      const timestampB = new Date(b.createdAt).getTime();
-      return timestampA - timestampB;
-    });
-    setMergerData(mergedDetails);
+    const sortedDetails = mergedDetails.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+    // mergedDetails.sort((a, b) => {
+    //   const timestampA = new Date(a.createdAt).getTime();
+    //   const timestampB = new Date(b.createdAt).getTime();
+    //   return timestampA - timestampB;
+    // });
+    console.log('====================================');
+    console.log('mergedDetails', sortedDetails[0]);
+    console.log('====================================');
+    setMergerData(sortedDetails);
     // setBooking(bookingDetail);
   };
 

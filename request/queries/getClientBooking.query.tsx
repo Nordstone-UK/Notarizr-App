@@ -50,6 +50,30 @@ export const GET_CLIENT_BOOKING = gql`
           can_print
           agent {
             _id
+            first_name
+            last_name
+            email
+            phone_number
+            profile_picture
+            gender
+            isBlocked
+            chatPrivacy
+            location
+            rating
+            subscriptionType
+            isVerified
+            account_type
+            online_status
+            current_location {
+              type
+              coordinates
+            }
+            description
+            state
+            addresses {
+              tag
+              location
+            }
           }
           createdAt
           updatedAt
@@ -112,6 +136,16 @@ export const GET_CLIENT_BOOKING = gql`
         zoom_host_id
         zoom_join_url
         zoom_start_url
+        agora_channel_name
+        agora_channel_token
+        signature_request_id
+        signatures {
+          signatureId
+          signerName
+          signerEmailAddress
+          order
+          signature_url
+        }
       }
       totalDocs
       limit

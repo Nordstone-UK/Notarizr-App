@@ -99,6 +99,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   );
   useEffect(() => {
     getBookingStatus();
+    console.log('====================================');
+    console.log(bookingDetail);
+    console.log('====================================');
   }, [status]);
   const handleReduxPayment = async () => {
     setIsVisible(false);

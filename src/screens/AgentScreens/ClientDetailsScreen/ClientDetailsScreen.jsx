@@ -51,6 +51,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [isVisible, setIsVisible] = useState(false);
+  // console.log('====================================');
+  // console.log(clientDetail);
+  // console.log('====================================');
   const [notary, setNotary] = useState();
   // const [documents, setDocuments] = useState({});
   const [showNotes, setShowNotes] = useState(false);
@@ -498,7 +501,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   ]}
                   onPress={() =>
                     navigation.navigate('NotaryCallScreen', {
-                      u_id: clientDetail?._id,
+                      uid: clientDetail?._id,
                     })
                   }
                   GradiStyles={{
