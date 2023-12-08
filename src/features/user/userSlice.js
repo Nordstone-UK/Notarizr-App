@@ -20,6 +20,7 @@ export const userSlice = createSlice({
     },
     setSocketID: (state, action) => {
       state.socketID = action.payload;
+      console.log('Redux coordinates', state.socketID);
     },
   },
 });

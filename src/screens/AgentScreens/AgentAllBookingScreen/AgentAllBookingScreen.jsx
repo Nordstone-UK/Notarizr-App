@@ -57,8 +57,8 @@ export default function AgentAllBookingScreen({navigation}) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       console.log('sending...');
-      init('accepted');
-      setIsFocused('accepted');
+      init(isFocused);
+      setIsFocused(isFocused);
     });
     return unsubscribe;
   }, [navigation]);
@@ -77,7 +77,6 @@ export default function AgentAllBookingScreen({navigation}) {
     }, 1000);
   }, []);
   const checkStatusNavigation = (status, item) => {
-    // console.log('item?.status', item._id, item?.status);
     if (status === 'accepted') {
       dispatch(setBookingInfoState(item));
       dispatch(setUser(item?.booked_by));

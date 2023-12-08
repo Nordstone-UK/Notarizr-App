@@ -23,7 +23,6 @@ import {
   IRtcEngine,
   RtcSurfaceView,
   ChannelProfileType,
-  VideoContentHint,
 } from 'react-native-agora';
 import SplashScreen from 'react-native-splash-screen';
 import Toast from 'react-native-toast-message';
@@ -34,7 +33,9 @@ const appId = 'abd7df71ee024625b2cc979e12aec405';
 export default function NotaryCallScreen({route, navigation}) {
   const {email} = useSelector(state => state.user.user);
   const {channel, token: CutomToken, uid: _id, signatures} = route.params;
+
   const uid = parseInt(_id, 16);
+  // const uid = 0;
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
@@ -45,6 +46,7 @@ export default function NotaryCallScreen({route, navigation}) {
   const [selected, setSelected] = useState('notary room');
   const [value, setValue] = useState(50);
   const [signatureUrl, setSignatureUrl] = useState('');
+
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
       try {
@@ -79,6 +81,7 @@ export default function NotaryCallScreen({route, navigation}) {
       }
     };
     setupVideoSDKEngine();
+
     const filetUrl = signatures.filter((item: any) => {
       if (item.signerEmailAddress === email) return item.signature_url;
     });
@@ -94,7 +97,8 @@ export default function NotaryCallScreen({route, navigation}) {
     const token = params['token'];
     const webURl = `http://notarizr-sign.s3-website.us-east-2.amazonaws.com/?signature_id=${signatureId}&token=${token}`;
     setSignatureUrl(webURl);
-    http: return () => {
+
+    return () => {
       agoraEngineRef.current?.leaveChannel();
     };
   }, []);
@@ -104,6 +108,9 @@ export default function NotaryCallScreen({route, navigation}) {
       return;
     }
     try {
+      console.log('====================================');
+      console.log(token, channelName, uid);
+      console.log('====================================');
       agoraEngineRef.current?.setChannelProfile(
         ChannelProfileType.ChannelProfileCommunication,
       );
@@ -275,7 +282,7 @@ export default function NotaryCallScreen({route, navigation}) {
             </TouchableOpacity>
           </View>
         </View>
-        <View
+        {/* <View
           style={{
             flex: 1,
           }}>
@@ -285,7 +292,7 @@ export default function NotaryCallScreen({route, navigation}) {
               style={{height: heightToDp(300)}}
             />
           </ScrollView>
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -414,263 +421,3 @@ const styles = StyleSheet.create({
   head: {fontSize: 20},
   info: {backgroundColor: '#ffffe0', color: '#0000ff'},
 });
-// return (
-//   <SafeAreaView style={styles.container}>
-//     {/* <View style={styles.NavbarContainer}>
-//         <View style={styles.NavContainer}>
-//           <Image
-//             source={require('../../../assets/waitingNav.png')}
-//             style={styles.waitingNav}
-//           />
-//           <View style={styles.NavTextContainer}>
-//             <Text style={styles.textHead}>Notary Room</Text>
-//           </View>
-//         </View>
-//         <Image
-//           source={require('../../../assets/profileIcon.png')}
-//           style={styles.profilePic}
-//         />
-//       </View>
-//       <View style={styles.buttonContainer}>
-//         <MainButton
-//           Title="Notary Room"
-//           onPress={() => setSelected('notary room')}
-//           colors={
-//             selected === 'notary room'
-//               ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-//               : [Colors.PinkBackground, Colors.PinkBackground]
-//           }
-//           styles={
-//             selected === 'notary room'
-//               ? {
-//                   fontSize: widthToDp(4),
-//                   paddingHorizontal: widthToDp(7),
-//                   paddingVertical: widthToDp(3),
-//                 }
-//               : {
-//                   fontSize: widthToDp(4),
-//                   paddingHorizontal: widthToDp(7),
-//                   paddingVertical: widthToDp(3),
-//                   color: Colors.TextColor,
-//                 }
-//           }
-//           GradiStyles={{
-//             borderRadius: 0,
-//           }}
-//         />
-//         <MainButton
-//           Title="Participants"
-//           onPress={() => setSelected('participants')}
-//           colors={
-//             selected === 'participants'
-//               ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-//               : [Colors.PinkBackground, Colors.PinkBackground]
-//           }
-//           styles={
-//             selected === 'participants'
-//               ? {
-//                   fontSize: widthToDp(4),
-//                   paddingHorizontal: widthToDp(7),
-//                   paddingVertical: widthToDp(3),
-//                 }
-//               : {
-//                   fontSize: widthToDp(4),
-//                   paddingHorizontal: widthToDp(7),
-//                   paddingVertical: widthToDp(3),
-//                   color: Colors.TextColor,
-//                 }
-//           }
-//           GradiStyles={{
-//             borderRadius: 0,
-//           }}
-//         />
-//       </View> */}
-
-//     <ScrollView style={styles.SecondContainer}>
-//       <View style={styles.flexContainer}>
-//        <ScrollView
-//   style={styles.scroll}
-//   horizontal={true}
-//   contentContainerStyle={styles.scrollContainer}>
-//   {isJoined ? (
-//     <React.Fragment key={0}>
-//       <RtcSurfaceView canvas={{uid: 0}} style={styles.videoView} />
-//     </React.Fragment>
-//   ) : (
-//     <Text>Join a channel</Text>
-//   )}
-//   {isJoined && remoteUid !== 0 ? (
-//     <React.Fragment key={remoteUid}>
-//       <RtcSurfaceView
-//         canvas={{uid: remoteUid}}
-//         style={styles.videoView}
-//       />
-//     </React.Fragment>
-//   ) : (
-//     <Text>Waiting for a remote user to join</Text>
-//   )}
-// </ScrollView>
-//         <View style={{flex: 0.2, justifyContent: 'space-evenly'}}>
-//           <TouchableOpacity style={styles.hourGlass}>
-//             <Image source={require('../../../assets/turnOffCamera.png')} />
-//           </TouchableOpacity>
-//           <TouchableOpacity style={styles.hourGlass}>
-//             <Image source={require('../../../assets/mic.png')} />
-//           </TouchableOpacity>
-//           <TouchableOpacity style={styles.hourGlass}>
-//             <Image source={require('../../../assets/callDrop.png')} />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//       <View
-//         style={[
-//           styles.flexContainer,
-//           {
-//             alignItems: 'center',
-//             justifyContent: 'space-between',
-//             marginHorizontal: widthToDp(5),
-//           },
-//         ]}>
-//         <Text style={styles.sessionDesc}>0%</Text>
-
-//         <View style={styles.slideContainer}>
-//           <Slider
-//             value={value}
-//             onValueChange={value => setValue(value)}
-//             animateTransitions={true}
-//             maximumValue={100}
-//             minimumValue={20}
-//             thumbStyle={{backgroundColor: Colors.OrangeGradientStart}}
-//             thumbImage={require('../../../assets/thumb.png')}
-//             trackStyle={{height: heightToDp(3), borderRadius: 5}}
-//             minimumTrackStyle={{backgroundColor: Colors.Orange}}
-//             maximumTrackStyle={{backgroundColor: Colors.DisableColor}}
-//             trackClickable={true}
-//             renderBelowThumbComponent={displayValue}
-//           />
-//         </View>
-//         <Text style={styles.sessionDesc}>100%</Text>
-//       </View>
-//       <Text style={styles.textSession}>Document</Text>
-//       <View style={styles.picker}>
-//         <Picker
-//           selectedValue={selectedDocument}
-//           onValueChange={handleTimezoneSelect}>
-//           <Picker.Item label="Select a document" color={Colors.DullTextColor} />
-//           <Picker.Item label="Document 1" color={Colors.DullTextColor} />
-//           <Picker.Item label="Document 2" color={Colors.DullTextColor} />
-//           <Picker.Item label="Document 3" color={Colors.DullTextColor} />
-//         </Picker>
-//       </View>
-//       <Image
-//         source={require('../../../assets/image.png')}
-//         style={{alignSelf: 'center'}}
-//       />
-//       {zoomInitailized && (
-//         <View style={styles.btnContainer}>
-//           <GradientButton
-//             Title="Complete Session"
-//             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-//             styles={{fontSize: widthToDp(5)}}
-//             // onPress={() => navigation.navigate('AgentBookingComplete')}
-//             onPress={() => joinMeeting()}
-//           />
-//         </View>
-//       )}
-//     </ScrollView>
-//   </SafeAreaView>
-// );
-// <SafeAreaView style={styles.main}>
-//   <Text style={styles.head}>Agora Video Calling Quickstart</Text>
-//   <View style={styles.btnContainer}>
-//     <Text onPress={join} style={styles.button}>
-//       Join
-//     </Text>
-//     <Text onPress={leave} style={styles.button}>
-//       Leave
-//     </Text>
-//   </View>
-//   <ScrollView
-//     style={styles.scroll}
-//     horizontal={true}
-//     contentContainerStyle={styles.scrollContainer}>
-//     {isJoined ? (
-//       <React.Fragment key={0}>
-//         <RtcSurfaceView canvas={{uid: 0}} style={styles.videoView} />
-
-//         {/* <Text>Local user uid: {uid}</Text> */}
-//       </React.Fragment>
-//     ) : (
-//       <Text>Join a channel</Text>
-//     )}
-//     {isJoined && remoteUid !== 0 ? (
-//       <React.Fragment key={remoteUid}>
-//         <RtcSurfaceView
-//           canvas={{uid: remoteUid}}
-//           style={styles.videoView}
-//         />
-//         {/* <Text>Remote user uid: {remoteUid}</Text> */}
-//       </React.Fragment>
-//     ) : (
-//       <Text>Waiting for a remote user to join</Text>
-//     )}
-//     {/* <Text style={styles.info}>{message}</Text> */}
-//   </ScrollView>
-// </SafeAreaView>
-{
-  /* <View style={[styles.scrollBar]}>
-          <Text style={styles.sessionDesc}>0%</Text>
-
-          <View style={styles.slideContainer}>
-            <Slider
-              value={value}
-              // onValueChange={value => setValue(value)}
-              animateTransitions={true}
-              maximumValue={100}
-              minimumValue={20}
-              thumbStyle={{backgroundColor: Colors.OrangeGradientStart}}
-              thumbImage={require('../../../assets/thumb.png')}
-              trackStyle={{height: heightToDp(3), borderRadius: 5}}
-              minimumTrackStyle={{backgroundColor: Colors.Orange}}
-              maximumTrackStyle={{backgroundColor: Colors.DisableColor}}
-              trackClickable={true}
-              renderBelowThumbComponent={displayValue}
-            />
-          </View>
-          <Text style={styles.sessionDesc}>100%</Text>
-        </View> */
-}
-{
-  /* <Text style={styles.textSession}>Document</Text>
-        <View style={styles.picker}>
-          {/* <Picker
-            selectedValue={selectedDocument}
-            onValueChange={handleTimezoneSelect}>
-            <Picker.Item
-              label="Select a document"
-              color={Colors.DullTextColor}
-            />
-            <Picker.Item label="Document 1" color={Colors.DullTextColor} />
-            <Picker.Item label="Document 2" color={Colors.DullTextColor} />
-            <Picker.Item label="Document 3" color={Colors.DullTextColor} />
-          </Picker> */
-}
-{
-  /* </View>  */
-}
-{
-  /* <Image
-          source={require('../../../assets/image.png')}
-          style={{alignSelf: 'center'}}
-        />
-
-        <View style={styles.btnContainer}>
-          <GradientButton
-            Title="Complete Session"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            styles={{fontSize: widthToDp(5)}}
-            // onPress={() => navigation.navigate('AgentBookingComplete')}
-            // onPress={() => joinMeeting()}
-          />
-        </View> */
-}

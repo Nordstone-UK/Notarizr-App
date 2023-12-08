@@ -110,9 +110,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     try {
       await handleUpdateBookingStatus(string, clientDetail?._id);
       await getBookingStatus();
-      console.log('====================================');
-      console.log('status', status);
-      console.log('====================================');
+      // console.log('====================================');
+      // console.log('status', status);
+      // console.log('====================================');
       if (status === 'to_be_paid') {
         navigation.navigate('PaymentCompletionScreen');
       }
@@ -504,6 +504,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                       uid: clientDetail?._id,
                       channel: clientDetail?.agora_channel_name,
                       token: clientDetail?.agora_channel_token,
+                      signatures: clientDetail?.signatures,
                     })
                   }
                   GradiStyles={{

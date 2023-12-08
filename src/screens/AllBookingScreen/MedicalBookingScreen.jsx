@@ -81,9 +81,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
-      console.log('====================================');
-      console.log(bookingDetail?._id);
-      console.log('====================================');
       const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
@@ -115,9 +112,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       review,
       rating,
     );
-    console.log('====================================');
-    console.log(response);
-    console.log('====================================');
+
     if (response === '200') {
       setModalShow(true);
     }

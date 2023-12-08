@@ -32,21 +32,6 @@ export default function ChatContactScreen({navigation}) {
               ))}
             </View>
           ))}
-          {/* <ChatContacts
-            image={require('../../../assets/agentPic.png')}
-            name="Advocate Jane Juel"
-            onPress={() => navigation.navigate('ChatScreen')}
-          /> */}
-          {/* <ChatContacts
-            image={require('../../../assets/profileIcon.png')}
-            name="Brandon Roger"
-            onPress={() => navigation.navigate('ChatScreen')}
-          />
-          <ChatContacts
-            image={require('../../../assets/agentReview.png')}
-            name="Advocate Mary Smith"
-            onPress={() => navigation.navigate('ChatScreen')}
-          /> */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

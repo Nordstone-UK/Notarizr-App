@@ -11,7 +11,12 @@ import React, {useState, useCallback, useEffect} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
-import {GiftedChat} from 'react-native-gifted-chat';
+import {
+  Bubble,
+  Composer,
+  GiftedChat,
+  InputToolbar,
+} from 'react-native-gifted-chat';
 import {useSelector} from 'react-redux';
 import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
 import useChatService from '../../hooks/useChatService';
@@ -24,9 +29,17 @@ export default function ChatScreen({route}, props) {
   const [messages, setMessages] = useState([]);
   const {allMessages, setAllMessages} = useState();
   const {handleGetMessages} = useChatService();
-
+  const getMessages = async () => {
+    const response = await handleGetMessages(chat);
+    console.log('====================================');
+    console.log(response);
+    console.log('====================================');
+  };
+  socket.on('connection', () => {
+    console.log('someone connected: ', socket?.id);
+  });
   useEffect(() => {
-    handleGetMessages(chat);
+    getMessages();
     if (socket) {
       socket.on('recieve-message', data => {
         socket.emit('message-recieved', data._id);
@@ -37,23 +50,21 @@ export default function ChatScreen({route}, props) {
       });
     }
   }, [socket]);
-  // const onSend = newMessages => {
-  //   setMessages(previousMessages =>
-  //     GiftedChat.append(previousMessages, newMessages),
-  //   );
-  // };
-  const onSend = useCallback(messages => {
+  const onSend = useCallback(() => {
+    let randomID = uuid.v4();
     console.log('====================================');
     console.log('onsend');
     console.log('====================================');
-    let socket_data = {
-      _id: socketID,
+    const socket_data = {
+      _id: randomID,
       user: userID,
       chat: chat,
       text: messages,
       receiverId: user._id,
     };
-
+    console.log('====================================');
+    console.log(socket_data);
+    console.log('====================================');
     if (socket) {
       socket.emit('send-message', socket_data, data => {
         console.log(data);
@@ -65,7 +76,7 @@ export default function ChatScreen({route}, props) {
   }, []);
   const renderSend = props => {
     return (
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={onSend}>
         <Image
           source={require('../../../assets/send.png')}
           style={styles.icon}
@@ -73,9 +84,54 @@ export default function ChatScreen({route}, props) {
       </TouchableOpacity>
     );
   };
-  // const voiceCall = () => {
-  //   RNImmediatePhoneCall.immediatePhoneCall(phone_number);
-  // };
+  const renderBubble = props => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          left: {
+            backgroundColor: Colors.inputBackground,
+            maxWidth: widthToDp(65),
+            padding: widthToDp(2),
+          },
+          right: {
+            backgroundColor: Colors.Orange,
+            maxWidth: widthToDp(65),
+            padding: widthToDp(2),
+          },
+        }}
+        textStyle={{
+          left: {color: Colors.text},
+          right: {color: dark ? Colors.text : Colors.white},
+        }}
+        containerStyle={{
+          left: {width: widthToDp(65)},
+          right: {width: widthToDp(65)},
+        }}
+      />
+    );
+  };
+
+  const MessengerBarContainer = props => {
+    return (
+      <InputToolbar
+        {...props}
+        containerStyle={{
+          backgroundColor: Colors.white,
+          marginBottom: heightToDp(2),
+          alignContent: 'center',
+          justifyContent: 'center',
+          borderWidth: 0,
+          paddingTop: 6,
+          borderTopColor: 'transparent',
+        }}
+      />
+    );
+  };
+
+  // if (messageLoading || chatLoading) {
+  //   return <LoadingComponent message={LOADING.text3} />;
+  // }
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -89,10 +145,35 @@ export default function ChatScreen({route}, props) {
         <GiftedChat
           messages={messages}
           renderSend={renderSend}
-          onSend={messages => onSend(messages)}
+          onSend={onSend}
           user={{
-            _id: 1, // user id
+            _id: userID,
           }}
+          renderBubble={renderBubble}
+          renderInputToolbar={MessengerBarContainer}
+          infiniteScroll
+          scrollToBottom
+          renderComposer={props => (
+            <Composer
+              textInputStyle={{
+                color: Colors.text,
+              }}
+              {...props}
+            />
+          )}
+          showAvatarForEveryMessage={false}
+          // renderChatEmpty={() => {
+          //   return (
+          //     <View style={styles.emptyStateCont}>
+          //       <Text style={[styles.emptyTextStyle, {color: Colors.text}]}>
+          //         No chats found
+          //       </Text>
+          //       <Text style={[styles.longEmptyText, {color: Colors.text}]}>
+          //         {`Start Chatting with ${user.first_name} `}
+          //       </Text>
+          //     </View>
+          //   );
+          // }}
         />
       </View>
     </SafeAreaView>
@@ -105,11 +186,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottonSheet: {
-    marginTop: widthToDp(2),
     backgroundColor: '#fff',
     borderRadius: 20,
     flex: 1,
-    justifyContent: 'flex-end',
   },
   inputContainer: {
     width: widthToDp(90),
@@ -119,6 +198,24 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignSelf: 'center',
     marginBottom: widthToDp(5),
+  },
+  emptyStateCont: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: widthToDp(70),
+    borderWidth: 1,
+  },
+
+  emptyTextStyle: {
+    fontSize: widthToDp(4),
+    fontWeight: '700',
+  },
+  longEmptyText: {
+    fontSize: widthToDp(4),
+    fontWeight: '400',
+    color: '#4A4A4A',
+    textAlign: 'center',
+    padding: widthToDp(5),
   },
   input: {
     flex: 1,
