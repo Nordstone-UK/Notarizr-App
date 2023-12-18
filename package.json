@@ -45,6 +45,7 @@
     "react-geocode": "^1.0.0-alpha.1",
     "react-native": "0.72.5",
     "react-native-agora": "^4.2.6",
+    "react-native-agora-chat": "^1.2.0",
     "react-native-autocomplete-dropdown": "^1.1.2",
     "react-native-calendars": "^1.1301.0",
     "react-native-credit-card-input": "^0.4.1",

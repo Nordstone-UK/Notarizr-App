@@ -27,6 +27,7 @@ import {
 import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
 import OneSignal from 'react-native-onesignal';
+import {socket} from '../../utils/Socket';
 
 export default function HomeScreen({route, navigation}) {
   const {_id} = useSelector(state => state.user.user);
@@ -34,6 +35,9 @@ export default function HomeScreen({route, navigation}) {
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  // socket.on('connect', () => {
+  //   console.log(socket.id);
+  // });
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);

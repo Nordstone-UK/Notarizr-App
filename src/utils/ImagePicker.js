@@ -124,6 +124,7 @@ export const chooseFile = async type => {
           } else if (response.errorCode === 'others') {
             reject(response.errorMessage);
           } else {
+            console.log(response);
             const imageUri = response.assets[0]?.uri;
             if (imageUri) {
               resolve(imageUri);

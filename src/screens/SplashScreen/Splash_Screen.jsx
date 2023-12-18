@@ -37,6 +37,7 @@ export default function Splash_Screen({navigation}) {
             } else {
               const response = await getAllChats();
               dispatch(setAllChats(response?.getAllChat));
+
               initializeOneSignal();
               navigation.navigate('HomeScreen');
             }
