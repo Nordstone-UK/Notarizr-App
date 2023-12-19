@@ -26,12 +26,6 @@ const uploadDirectOnS3 = async ({
     secretAccessKey: secretAccessKey,
     signatureVersion: signatureVersion,
   });
-  // const contentType = file.mime;
-  // const contentDisposition = `inline;filename="${file.path}"`;
-
-  // const base64 = await RNFS.readFile(file.path, 'base64');
-  // const arrayBuffer = decode(base64);
-  const blob = await uriToBlob(file);
 
   const keyName = `${type}/${title}/${file._data.name}`;
   const params = {

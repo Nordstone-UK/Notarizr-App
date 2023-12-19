@@ -44,9 +44,9 @@ const useCreateBooking = () => {
     // console.log('====================================');
     try {
       const response = await createBooking(request);
-      // console.log('====================================');
-      // console.log('Booking', response.data.status);
-      // console.log('====================================');
+      console.log('====================================');
+      console.log('Booking', response);
+      console.log('====================================');
       return response.data.createBookingR;
     } catch (error) {
       console.warn('is error from here:', error);

@@ -21,28 +21,52 @@ import {
   ChatOptions,
   ChatMessageChatType,
   ChatMessage,
-  ChatGroupMessageAck,
-  ChatMessageEventListener,
+  ChatFetchMessageOptions,
 } from 'react-native-agora-chat';
-import moment from 'moment';
-export default function ChatScreen({route}: any, props: any) {
-  const user = useSelector((state: any) => state.user.user);
+export default function ChatScreen({route}) {
+  const token = useSelector(state => state.chats.chatToken);
+  const {receiver, sender} = route.params;
   const title = 'AgoraChatQuickstart';
   const appKey = '411048105#1224670';
-  // const [chatToken, setChatToken] = React.useState(
-  //   '007eJxTYHgQ+UotOVJS+srVS8mPLiw9x3LnaAcHu4/Xg/QMXu3YI7sUGBKTUsxT0swNU1MNjEzMjEyTjJKTLc0tUw2NElOTTQxMcyMaUhsCGRlaDS6xMjKwMjACIYivwpCWZGCUbJ5koGuZYmmuawg0QTcp0TxV1yTFwjDNwDAxKS3ZAgCz+yhf',
-  // );
-  // const [targetId, setTargetId] = React.useState('Client0001');
-  // const [username, setUsername] = React.useState('Agent0001');
-
-  const [username, setUsername] = React.useState('Client0001');
-  const [chatToken, setChatToken] = React.useState(
-    '007eJxTYFiu5j3V6tjeK8/uhE0UuFNTbnK0eiXzdeEp5wJbX1VKZS1QYEhMSjFPSTM3TE01MDIxMzJNMkpOtjS3TDU0SkxNNjEwbY1oSG0IZGRY8PIqKyMDKwMjEIL4KgyGiUlJiZYGBrqWKZYWuoZAE3QTzQ0NdVPTkpLMjJIMzc0NEgEwKimg',
-  );
-  const [targetId, setTargetId] = React.useState('Agent0001');
+  const [chatToken, setChatToken] = React.useState(token);
+  const [targetId, setTargetId] = React.useState(receiver?._id);
+  const [username, setUsername] = React.useState(sender?._id);
+  const options = {};
+  const [convID, setConId] = React.useState();
+  const [convType, setConvType] = React.useState();
   const [content, setContent] = React.useState([]);
   const chatClient = ChatClient.getInstance();
   const chatManager = chatClient.chatManager;
+
+  useEffect(() => {
+    login();
+  }, []);
+  const retreiveConverstation = async () => {
+    chatManager
+      .fetchConversationsFromServerWithCursor('newest', 100)
+      .then(data => {
+        console.log('get conversions success', data);
+        setConId(data?.list[0]?.convId);
+        setConvType(data?.list[0]?.convType);
+      })
+      .catch(reason => {
+        console.log('get conversions fail.', reason);
+      })
+      .then(() => {
+        chatManager
+          .fetchHistoryMessagesByOptions(convID, convType, {
+            cursor: '',
+            pageSize: 1,
+            options: options as ChatFetchMessageOptions,
+          })
+          .then(result => {
+            console.log('get history message success', result);
+          })
+          .catch(reason => {
+            console.log('get history message fail.', reason);
+          });
+      });
+  };
   useEffect(() => {
     const setMessageListener = () => {
       let msgListener = {
@@ -54,7 +78,7 @@ export default function ChatScreen({route}: any, props: any) {
                 text: messages[index].body.content,
                 createdAt: messages[index].localTime,
                 user: {
-                  _id: 2, // Assuming the current user ID is 1
+                  _id: 2,
                 },
               },
             ];
@@ -67,7 +91,7 @@ export default function ChatScreen({route}: any, props: any) {
         onMessagesRead: (messages: any) => {},
         onGroupMessageRead: (groupMessageAcks: any) => {},
         onMessagesDelivered: (messages: any) => {},
-        // onMessagesRecalled: (messages: any) => {},
+        onMessagesRecalled: (messages: any) => {},
         onConversationsUpdate: () => {},
         onConversationRead: (from: any, to: any) => {},
       };
@@ -76,7 +100,7 @@ export default function ChatScreen({route}: any, props: any) {
     };
     const init = () => {
       let o = new ChatOptions({
-        autoLogin: false,
+        autoLogin: true,
         appKey: appKey,
       });
       chatClient.removeAllConnectionListener();
@@ -95,14 +119,15 @@ export default function ChatScreen({route}: any, props: any) {
             onConnected() {
               console.log('onConnected');
               setMessageListener();
+              retreiveConverstation();
             },
-            onDisconnected(errorCode: string) {
+            onDisconnected(errorCode) {
               console.log('onDisconnected:' + errorCode);
             },
           };
           chatClient.addConnectionListener(listener);
         })
-        .catch((error: any) => {
+        .catch(error => {
           console.log(
             'init fail: ' +
               (error instanceof Object ? JSON.stringify(error) : error),
@@ -110,42 +135,7 @@ export default function ChatScreen({route}: any, props: any) {
         });
     };
     init();
-    login();
-
-    // const listener = new ChatMessageEvent();
-    // ChatClient.getInstance().chatManager.addMessageListener(listener);
-
-    // ChatClient.getInstance().chatManager.removeMessageListener(listener);
-
-    // ChatClient.getInstance().chatManager.removeAllMessageListener();
   }, [chatClient, chatManager, appKey]);
-  // class ChatMessageEvent implements ChatMessageEventListener {
-  //   onMessagesReceived(messages: ChatMessage[]): void {
-  //     console.log(`onMessagesReceived: `, messages);
-  //   }
-  //   onCmdMessagesReceived(messages: ChatMessage[]): void {
-  //     console.log(`onCmdMessagesReceived: `, messages);
-  //   }
-  //   onMessagesRead(messages: ChatMessage[]): void {
-  //     console.log(`onMessagesRead: `, messages);
-  //   }
-  //   onGroupMessageRead(groupMessageAcks: ChatGroupMessageAck[]): void {
-  //     console.log(`onGroupMessageRead: `, groupMessageAcks);
-  //   }
-  //   onMessagesDelivered(messages: ChatMessage[]): void {
-  //     console.log(`onMessagesDelivered: ${messages.length}: `, messages);
-  //   }
-  //   onMessagesRecalled(messages: ChatMessage[]): void {
-  //     console.log(`onMessagesRecalled: `, messages);
-  //   }
-  //   onConversationsUpdate(): void {
-  //     console.log(`onConversationsUpdate: `);
-  //   }
-  //   onConversationRead(from: string, to?: string): void {
-  //     console.log(`onConversationRead: `, from, to);
-  //   }
-  // }
-
   const login = () => {
     if (this.isInitialized === false || this.isInitialized === undefined) {
       console.log('Perform initialization first.');
@@ -160,12 +150,9 @@ export default function ChatScreen({route}: any, props: any) {
         console.log('login fail: ' + JSON.stringify(reason));
       });
   };
-
-  const sendmsg = (newMessage: any) => {
-    // Assuming `content` is the message content obtained from the input area
+  const sendmsg = newMessage => {
     const content = newMessage.text;
 
-    // Agora Chat SDK logic for sending messages
     if (this.isInitialized === false || this.isInitialized === undefined) {
       console.log('Perform initialization first.');
       return;
@@ -190,14 +177,13 @@ export default function ChatScreen({route}: any, props: any) {
       onSuccess(message: {localMsgId: string}) {
         console.log('send message success: ' + message.localMsgId);
 
-        // Update the `messages` state with the new message
         const newMessages = [
           {
             _id: message.localMsgId,
             text: content,
             createdAt: new Date(),
             user: {
-              _id: 1, // Assuming the current user ID is 1
+              _id: 1,
             },
           },
         ];
@@ -221,8 +207,8 @@ export default function ChatScreen({route}: any, props: any) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
-        Title={user.first_name + ' ' + user.last_name}
-        ProfilePic={{uri: user.profile_picture}}
+        Title={receiver?.first_name + ' ' + receiver?.last_name}
+        ProfilePic={{uri: receiver?.profile_picture}}
       />
       <View style={styles.bottonSheet}>
         <GiftedChat
@@ -273,55 +259,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: heightToDp(2),
   },
 });
-// const userID = useSelector(state => state.user.user._id);
-// const socketID = useSelector(state => state.user.socketID);
-// const {user, chat} = route.params;
-// const [messages, setMessages] = useState([]);
-// const {allMessages, setAllMessages} = useState();
-// const {handleGetMessages} = useChatService();
-// socket.on('connect', () => {
-//   console.log(socket.id);
-// });
-// useEffect(() => {
-//   handleGetMessages(chat);
-
-//   if (socket) {
-//     socket.on('recieve-message', data => {
-//       console.log(data);
-//       socket.emit('message-recieved', data._id);
-
-//       setMessages(previousMessages =>
-//         GiftedChat.append(previousMessages, data),
-//       );
-//     });
-//   }
-// }, [socket]);
-// const onSend = useCallback(messages => {
-//   console.log('====================================');
-//   console.log('onsend');
-//   console.log('====================================');
-//   let socket_data = {
-//     _id: socketID,
-//     user: userID,
-//     chat: chat,
-//     text: messages,
-//     receiverId: user._id,
-//   };
-//   console.log(socket_data);
-//   try {
-//     socket.emit('send-message', socket_data, data => {
-//       console.log(data);
-//     });
-//   } catch (error) {
-//     console.error(error);
-//   }
-// }, []);
-// const renderSend = props => {
-//   return (
-//     <TouchableOpacity style={styles.button}>
-//       <Image
-//         source={require('../../../assets/send.png')}
-//         style={styles.icon}
-//       />
-//     </TouchableOpacity>
-//   );

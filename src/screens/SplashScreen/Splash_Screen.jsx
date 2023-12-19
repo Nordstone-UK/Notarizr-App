@@ -20,9 +20,7 @@ import {socket} from '../../utils/Socket';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
-  const {getAllChats} = useChatService();
-  const dispatch = useDispatch();
-  // const {fetchBookingInfo} = useFetchBooking();
+  const {getClientChats, getAgentChats} = useChatService();
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -35,9 +33,9 @@ export default function Splash_Screen({navigation}) {
             ) {
               navigation.navigate('AgentVerfiedScreen');
             } else {
-              const response = await getAllChats();
-              dispatch(setAllChats(response?.getAllChat));
-
+              response?.account_type === 'client'
+                ? getClientChats()
+                : getAgentChats();
               initializeOneSignal();
               navigation.navigate('HomeScreen');
             }

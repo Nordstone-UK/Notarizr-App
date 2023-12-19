@@ -45,10 +45,6 @@ export default function ProfilePictureScreen({navigation}) {
       [
         {
           text: 'Cancel',
-          onPress: () => {
-            // Handle Camera button press
-            // You can add your camera logic here
-          },
         },
         {
           text: 'Gallery',
@@ -132,13 +128,11 @@ export default function ProfilePictureScreen({navigation}) {
           color: '#121826',
         }}
       />
-
       <BottomSheetStyle>
         <ScrollView showsVerticalScrollIndicator={false}>
           <TouchableOpacity onPress={() => setImage('')}>
             <Text style={styles.textRemove}>Remove</Text>
           </TouchableOpacity>
-
           {image ? (
             <View>
               <Image source={{uri: image}} style={styles.profileImage} />

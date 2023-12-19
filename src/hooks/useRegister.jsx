@@ -12,7 +12,7 @@ const useRegister = () => {
   const [register] = useMutation(REGISTER_USER);
 
   const handleCompression = async image => {
-    // console.log('handleCompression', image);
+    console.log('handleCompression', image);
 
     try {
       const compressedImage = await compressImage(image);
@@ -24,8 +24,6 @@ const useRegister = () => {
   };
 
   const uploadBlobToS3 = async imageUri => {
-    // console.log('uploadBlobToS3', imageUri);
-
     const title = 'Profile Pictures';
     const type = 'images';
     const url = await uploadDirectOnS3({
@@ -33,7 +31,6 @@ const useRegister = () => {
       title: title,
       type: type,
     });
-    // console.log('uploadBlobToS3', url);
     return url;
   };
   const uploadFilestoS3 = async (fileUri, agentName) => {
@@ -64,20 +61,11 @@ const useRegister = () => {
           ...variables,
         },
       };
-      // Toast.show({
-      //   type: 'warning',
-      //   text1: 'Started the API call!',
-      // });
+
       const {data} = await register(request);
-      // Toast.show({
-      //   type: 'warning',
-      //   text1: 'API called responded!',
-      //   text2: data?.register?.status || 'No Msg from API',
-      // });
-      // console.log('After API', data);
+
       if (data?.register?.status === '201') {
         saveAccessTokenToStorage(data?.register?.access_token);
-        // console.log('Registered');
         return true;
       } else {
         return false;
