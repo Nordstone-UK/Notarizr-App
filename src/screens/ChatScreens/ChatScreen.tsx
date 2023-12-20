@@ -11,9 +11,8 @@ import React, {useState, useCallback, useEffect} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
-import {GiftedChat} from 'react-native-gifted-chat';
+import {GiftedChat, IMessage} from 'react-native-gifted-chat';
 import {useSelector} from 'react-redux';
-import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
 import useChatService from '../../hooks/useChatService';
 import {socket} from '../../utils/Socket';
 import {
@@ -22,6 +21,8 @@ import {
   ChatMessageChatType,
   ChatMessage,
   ChatFetchMessageOptions,
+  ChatConversation,
+  ChatConversationType,
 } from 'react-native-agora-chat';
 export default function ChatScreen({route}) {
   const token = useSelector(state => state.chats.chatToken);
@@ -31,41 +32,61 @@ export default function ChatScreen({route}) {
   const [chatToken, setChatToken] = React.useState(token);
   const [targetId, setTargetId] = React.useState(receiver?._id);
   const [username, setUsername] = React.useState(sender?._id);
-  const options = {};
-  const [convID, setConId] = React.useState();
-  const [convType, setConvType] = React.useState();
+  // const [convID, setConId] = React.useState('');
+  // const [convType, setConvType] = React.useState();
+  const [data, setData] = React.useState();
   const [content, setContent] = React.useState([]);
   const chatClient = ChatClient.getInstance();
   const chatManager = chatClient.chatManager;
-
+  const createIfNeed = true;
+  const convType = ChatConversationType.PeerChat;
+  let convID: string;
   useEffect(() => {
     login();
   }, []);
   const retreiveConverstation = async () => {
     chatManager
-      .fetchConversationsFromServerWithCursor('newest', 100)
+      .getAllConversations()
       .then(data => {
-        console.log('get conversions success', data);
-        setConId(data?.list[0]?.convId);
-        setConvType(data?.list[0]?.convType);
+        convID = data[0]?.convId;
+        // fetchHistoryMessages(convID, convType);
       })
       .catch(reason => {
-        console.log('get conversions fail.', reason);
-      })
-      .then(() => {
-        chatManager
-          .fetchHistoryMessagesByOptions(convID, convType, {
-            cursor: '',
-            pageSize: 1,
-            options: options as ChatFetchMessageOptions,
-          })
-          .then(result => {
-            console.log('get history message success', result);
-          })
-          .catch(reason => {
-            console.log('get history message fail.', reason);
-          });
+        console.log('Loading conversations fails', reason);
       });
+    // .then(() =>
+    //   chatManager
+    //     .getConversation(convID, convType, createIfNeed)
+    //     .then(conversation => {
+    //       console.log('Getting conversations succeeds', conversation);
+
+    //     })
+    //     .catch(reason => {
+    //       console.log('Getting conversations fails.', reason);
+    //     }),
+    // );
+  };
+  const fetchHistoryMessages = async (
+    convID: string,
+    convType: ChatConversationType,
+  ) => {
+    try {
+      const result =
+        await ChatClient.getInstance().chatManager.fetchHistoryMessagesByOptions(
+          convID,
+          convType,
+          {
+            cursor: '',
+            pageSize: 100,
+          },
+        );
+      console.log('Fetch history messages success', result?.list?.[0]?.body);
+      const formattedMessages = formatMessages(result?.list);
+      setContent(formattedMessages);
+      // Process the fetched messages
+    } catch (error) {
+      console.error('Fetch history messages failed', error);
+    }
   };
   useEffect(() => {
     const setMessageListener = () => {
@@ -121,7 +142,7 @@ export default function ChatScreen({route}) {
               setMessageListener();
               retreiveConverstation();
             },
-            onDisconnected(errorCode) {
+            onDisconnected(errorCode: string) {
               console.log('onDisconnected:' + errorCode);
             },
           };
@@ -144,13 +165,13 @@ export default function ChatScreen({route}) {
     chatClient
       .loginWithAgoraToken(username, chatToken)
       .then(() => {
-        // console.log('login operation success.');
+        console.log('login operation success.');
       })
       .catch(reason => {
         console.log('login fail: ' + JSON.stringify(reason));
       });
   };
-  const sendmsg = newMessage => {
+  const sendmsg = (newMessage: IMessage) => {
     const content = newMessage.text;
 
     if (this.isInitialized === false || this.isInitialized === undefined) {
@@ -203,6 +224,255 @@ export default function ChatScreen({route}) {
       .catch(reason => {
         console.log('send fail: ' + JSON.stringify(reason));
       });
+  };
+  const formatMessages = (messageList: any[]) => {
+    return messageList.map(
+      (message: {
+        msgId: any;
+        body: {text: any}[];
+        localTime: string | number | Date;
+        from: any;
+      }) => {
+        return {
+          _id: message.msgId,
+          text: message.body[0].content,
+          createdAt: new Date(message.localTime),
+          user: {
+            _id: message.from,
+          },
+        };
+      },
+    );
+  };
+  const conversation = {
+    cursor: '1225957875025709874',
+    list: [
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'send',
+        from: '655f8cfda98b2aabe64ea94c',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: true,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453426',
+        localTime: 1703068453426,
+        msgId: '1225958871747529526',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005593207,
+        status: 2,
+        to: '654a1aa24658e48139a20b91',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'rec',
+        from: '654a1aa24658e48139a20b91',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: false,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225958606168394594',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005531376,
+        status: 2,
+        to: '655f8cfda98b2aabe64ea94c',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'rec',
+        from: '654a1aa24658e48139a20b91',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: false,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225958262235466546',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005451296,
+        status: 2,
+        to: '655f8cfda98b2aabe64ea94c',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'send',
+        from: '655f8cfda98b2aabe64ea94c',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: true,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225958187669134170',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005433950,
+        status: 2,
+        to: '654a1aa24658e48139a20b91',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'send',
+        from: '655f8cfda98b2aabe64ea94c',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: true,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225958098468871002',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005413163,
+        status: 2,
+        to: '654a1aa24658e48139a20b91',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'rec',
+        from: '654a1aa24658e48139a20b91',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: false,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225958077853866802',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005408368,
+        status: 2,
+        to: '655f8cfda98b2aabe64ea94c',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'rec',
+        from: '654a1aa24658e48139a20b91',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: false,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225957978503383858',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005385233,
+        status: 2,
+        to: '655f8cfda98b2aabe64ea94c',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'send',
+        from: '655f8cfda98b2aabe64ea94c',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: true,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: '1703068453430',
+        to: '654a1aa24658e48139a20b91',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'send',
+        from: '655f8cfda98b2aabe64ea94c',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: true,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453430',
+        localTime: 1703068453430,
+        msgId: '1225957916150860634',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005370727,
+        status: 2,
+        to: '654a1aa24658e48139a20b91',
+      },
+      {
+        attributes: ['Object'],
+        body: [{content: 'Thanks'}],
+        chatType: 0,
+        conversationId: '654a1aa24658e48139a20b91',
+        deliverOnlineOnly: false,
+        direction: 'rec',
+        from: '654a1aa24658e48139a20b91',
+        groupAckCount: 0,
+        hasDeliverAck: false,
+        hasRead: false,
+        hasReadAck: false,
+        isChatThread: false,
+        isOnline: true,
+        localMsgId: '1703068453431',
+        localTime: 1703068453431,
+        msgId: '1225957875025709874',
+        needGroupAck: false,
+        receiverList: 'undefined',
+        serverTime: 1703005361138,
+        status: 2,
+        to: '655f8cfda98b2aabe64ea94c',
+      },
+    ],
   };
   return (
     <SafeAreaView style={styles.container}>
