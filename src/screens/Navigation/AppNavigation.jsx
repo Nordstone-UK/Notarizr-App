@@ -163,275 +163,240 @@ function TabNavigation() {
 export default function AppNavigation() {
   return (
     <>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Splash_Screen"
-          screenOptions={{
-            headerShown: false,
-          }}>
-          <Stack.Screen name="Splash_Screen" component={Splash_Screen} />
-          <Stack.Screen name="HomeScreen" component={TabNavigation} />
-          <Stack.Screen
-            name="AddObserverScreen"
-            component={AddObserverScreen}
-          />
-          <Stack.Screen
-            name="OnboardingScreen1"
-            component={OnboardingScreen1}
-          />
-          <Stack.Screen
-            name="OnboardingScreen2"
-            component={OnboardingScreen2}
-          />
-          <Stack.Screen
-            name="OnboardingScreen3"
-            component={OnboardingScreen3}
-          />
-          <Stack.Screen name="SignupAsScreen" component={SignupAsScreen} />
-          <Stack.Screen
-            name="AgentSignupScreen"
-            component={AgentSignupScreen}
-          />
-          <Stack.Screen
-            name="NotificationScreen"
-            component={NotificationScreen}
-          />
-          <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          <Stack.Screen
-            name="SignPhoneVerification"
-            component={SignPhoneVerification}
-          />
-          <Stack.Screen
-            name="PhoneVerification"
-            component={PhoneVerification}
-          />
-          <Stack.Screen name="AddNewAddress" component={AddNewAddress} />
-          <Stack.Screen
-            name="ProfilePictureScreen"
-            component={ProfilePictureScreen}
-          />
-          <Stack.Screen
-            name="SignUpDetailScreen"
-            component={SignUpDetailScreen}
-          />
-          <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
-          <Stack.Screen
-            name="TransactionScreen"
-            component={TransactionScreen}
-          />
-          <Stack.Screen
-            name="ServiceDetailScreen"
-            component={ServiceDetailScreen}
-          />
-          <Stack.Screen
-            name="ActiveServicesScreen"
-            component={ActiveServicesScreen}
-          />
-          <Stack.Screen name="RonDateDocScreen" component={RonDateDocScreen} />
-          <Stack.Screen name="CompletePayment" component={CompletePayment} />
-          <Stack.Screen
-            name="BusinessDocScreen"
-            component={BusinessDocScreen}
-          />
-          <Stack.Screen
-            name="MainBookingScreen"
-            component={MainBookingScreen}
-          />
-          <Stack.Screen
-            name="RegisterCompletionScreen"
-            component={RegisterCompletionScreen}
-          />
-          <Stack.Screen
-            name="MobileNotaryDateScreen"
-            component={MobileNotaryDateScreen}
-          />
-          <Stack.Screen
-            name="AgentVerfiedScreen"
-            component={AgentVerfiedScreen}
-          />
-          <Stack.Screen
-            name="AgentReviewScreen"
-            component={AgentReviewScreen}
-          />
-          <Stack.Screen
-            name="RONAgentReviewScreen"
-            component={RONAgentReviewScreen}
-          />
-          <Stack.Screen
-            name="AgentBookCompletion"
-            component={AgentBookCompletion}
-          />
-          <Stack.Screen
-            name="OnlineNotaryScreen"
-            component={OnlineNotaryScreen}
-          />
-          <Stack.Screen name="NotaryCallScreen" component={NotaryCallScreen} />
-          <Stack.Screen
-            name="MedicalBookingScreen"
-            component={MedicalBookingScreen}
-          />
-          <Stack.Screen
-            name="CancelledBookingScreen"
-            component={CancelledBookingScreen}
-          />
-          <Stack.Screen name="ChatScreen" component={ChatScreen} />
-          <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
-          <Stack.Screen
-            name="PaymentCompletionScreen"
-            component={PaymentCompletionScreen}
-          />
-          <Stack.Screen
-            name="RejectedByAgentScreen"
-            component={RejectedByAgentScreen}
-          />
-          <Stack.Screen name="MapArrivalScreen" component={MapArrivalScreen} />
-          <Stack.Screen
-            name="WaitingRoomScreen"
-            component={WaitingRoomScreen}
-          />
-          <Stack.Screen
-            name="FinalBookingScreen"
-            component={FinalBookingScreen}
-          />
-          <Stack.Screen
-            name="OnlineSessionDetail"
-            component={OnlineSessionDetail}
-          />
-          <Stack.Screen
-            name="ProfileDetailEditScreen"
-            component={ProfileDetailEditScreen}
-          />
-          <Stack.Screen
-            name="PasswordEditScreen"
-            component={PasswordEditScreen}
-          />
-          <Stack.Screen
-            name="PaymentUpdateScreen"
-            component={PaymentUpdateScreen}
-          />
-          <Stack.Screen name="AddCardScreen" component={AddCardScreen} />
-          <Stack.Screen name="AddressDetails" component={AddressDetails} />
-          <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
-          <Stack.Screen name="SettingScreen" component={SettingScreen} />
-          <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
+      <Stack.Navigator
+        initialRouteName="Splash_Screen"
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="Splash_Screen" component={Splash_Screen} />
+        <Stack.Screen name="HomeScreen" component={TabNavigation} />
+        <Stack.Screen name="AddObserverScreen" component={AddObserverScreen} />
+        <Stack.Screen name="OnboardingScreen1" component={OnboardingScreen1} />
+        <Stack.Screen name="OnboardingScreen2" component={OnboardingScreen2} />
+        <Stack.Screen name="OnboardingScreen3" component={OnboardingScreen3} />
+        <Stack.Screen name="SignupAsScreen" component={SignupAsScreen} />
+        <Stack.Screen name="AgentSignupScreen" component={AgentSignupScreen} />
+        <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+        />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen
+          name="SignPhoneVerification"
+          component={SignPhoneVerification}
+        />
+        <Stack.Screen name="PhoneVerification" component={PhoneVerification} />
+        <Stack.Screen name="AddNewAddress" component={AddNewAddress} />
+        <Stack.Screen
+          name="ProfilePictureScreen"
+          component={ProfilePictureScreen}
+        />
+        <Stack.Screen
+          name="SignUpDetailScreen"
+          component={SignUpDetailScreen}
+        />
+        <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
+        <Stack.Screen name="TransactionScreen" component={TransactionScreen} />
+        <Stack.Screen
+          name="ServiceDetailScreen"
+          component={ServiceDetailScreen}
+        />
+        <Stack.Screen
+          name="ActiveServicesScreen"
+          component={ActiveServicesScreen}
+        />
+        <Stack.Screen name="RonDateDocScreen" component={RonDateDocScreen} />
+        <Stack.Screen name="CompletePayment" component={CompletePayment} />
+        <Stack.Screen name="BusinessDocScreen" component={BusinessDocScreen} />
+        <Stack.Screen name="MainBookingScreen" component={MainBookingScreen} />
+        <Stack.Screen
+          name="RegisterCompletionScreen"
+          component={RegisterCompletionScreen}
+        />
+        <Stack.Screen
+          name="MobileNotaryDateScreen"
+          component={MobileNotaryDateScreen}
+        />
+        <Stack.Screen
+          name="AgentVerfiedScreen"
+          component={AgentVerfiedScreen}
+        />
+        <Stack.Screen name="AgentReviewScreen" component={AgentReviewScreen} />
+        <Stack.Screen
+          name="RONAgentReviewScreen"
+          component={RONAgentReviewScreen}
+        />
+        <Stack.Screen
+          name="AgentBookCompletion"
+          component={AgentBookCompletion}
+        />
+        <Stack.Screen
+          name="OnlineNotaryScreen"
+          component={OnlineNotaryScreen}
+        />
+        <Stack.Screen name="NotaryCallScreen" component={NotaryCallScreen} />
+        <Stack.Screen
+          name="MedicalBookingScreen"
+          component={MedicalBookingScreen}
+        />
+        <Stack.Screen
+          name="CancelledBookingScreen"
+          component={CancelledBookingScreen}
+        />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
+        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
+        <Stack.Screen
+          name="PaymentCompletionScreen"
+          component={PaymentCompletionScreen}
+        />
+        <Stack.Screen
+          name="RejectedByAgentScreen"
+          component={RejectedByAgentScreen}
+        />
+        <Stack.Screen name="MapArrivalScreen" component={MapArrivalScreen} />
+        <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
+        <Stack.Screen
+          name="FinalBookingScreen"
+          component={FinalBookingScreen}
+        />
+        <Stack.Screen
+          name="OnlineSessionDetail"
+          component={OnlineSessionDetail}
+        />
+        <Stack.Screen
+          name="ProfileDetailEditScreen"
+          component={ProfileDetailEditScreen}
+        />
+        <Stack.Screen
+          name="PasswordEditScreen"
+          component={PasswordEditScreen}
+        />
+        <Stack.Screen
+          name="PaymentUpdateScreen"
+          component={PaymentUpdateScreen}
+        />
+        <Stack.Screen name="AddCardScreen" component={AddCardScreen} />
+        <Stack.Screen name="AddressDetails" component={AddressDetails} />
+        <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
+        <Stack.Screen name="SettingScreen" component={SettingScreen} />
+        <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
 
-          <Stack.Screen
-            name="NearbyLoadingScreen"
-            component={NearbyLoadingScreen}
-          />
-          <Stack.Screen
-            name="BookingPreferenceScreen"
-            component={BookingPreferenceScreen}
-          />
-          <Stack.Screen name="MapScreen" component={MapScreen} />
-          <Stack.Screen name="SessionScreen" component={SessionScreen} />
-          <Stack.Screen
-            name="LocalNotaryBookingScreen"
-            component={LocalNotaryBookingScreen}
-          />
-          <Stack.Screen
-            name="LocalNotaryAgentReview"
-            component={LocalNotaryAgentReview}
-          />
-          <Stack.Screen
-            name="LocalNotaryMapScreen"
-            component={LocalNotaryMapScreen}
-          />
-          <Stack.Screen
-            name="LocalNotaryDateScreen"
-            component={LocalNotaryDateScreen}
-          />
-          <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
-          <Stack.Screen
-            name="AgentBookingClientDetail"
-            component={AgentBookingClientDetail}
-          />
-          <Stack.Screen
-            name="AgentMainBookingScreen"
-            component={AgentMainBookingScreen}
-          />
-          <Stack.Screen
-            name="ClientBookingScreen"
-            component={ClientBookingScreen}
-          />
-          <Stack.Screen
-            name="AgentLocalClientReviewScreen"
-            component={AgentLocalClientReviewScreen}
-          />
-          <Stack.Screen
-            name="AgentRONLocationScreen"
-            component={AgentRONLocationScreen}
-          />
-          <Stack.Screen
-            name="AgentMainAvailabilityScreen"
-            component={AgentMainAvailabilityScreen}
-          />
-          <Stack.Screen
-            name="AgentLocationScreen"
-            component={AgentLocationScreen}
-          />
-          <Stack.Screen
-            name="BookingAcceptedScreen"
-            component={BookingAcceptedScreen}
-          />
-          <Stack.Screen
-            name="AgentMobileNotaryStartScreen"
-            component={AgentMobileNotaryStartScreen}
-          />
-          <Stack.Screen
-            name="AgentMobileNotaryDocScreen"
-            component={AgentMobileNotaryDocScreen}
-          />
-          <Stack.Screen
-            name="AgentBookingComplete"
-            component={AgentBookingComplete}
-          />
-          <Stack.Screen
-            name="AgentMobileNotarySummaryScreen"
-            component={AgentMobileNotarySummaryScreen}
-          />
-          <Stack.Screen
-            name="AgentSessionInviteScreen"
-            component={AgentSessionInviteScreen}
-          />
-          <Stack.Screen
-            name="AgentRemoteOnlineNotaryScreen"
-            component={AgentRemoteOnlineNotaryScreen}
-          />
-          <Stack.Screen
-            name="AgentAvailabilitySetupScreen"
-            component={AgentAvailabilitySetupScreen}
-          />
-          <Stack.Screen
-            name="ProfilePreferenceCompletion"
-            component={ProfilePreferenceCompletion}
-          />
-          <Stack.Screen
-            name="AgentServicePereference"
-            component={AgentServicePereference}
-          />
-          <Stack.Screen
-            name="AgentVerificationScreen"
-            component={AgentVerificationScreen}
-          />
-          <Stack.Screen
-            name="AgentLocalNotaryEndScreen"
-            component={AgentLocalNotaryEndScreen}
-          />
-          <Stack.Screen
-            name="AgentDocumentCompletion"
-            component={AgentDocumentCompletion}
-          />
-          <Stack.Screen
-            name="AgentProfileEditScreen"
-            component={AgentProfileEditScreen}
-          />
-          <Stack.Screen
-            name="ClientDetailsScreen"
-            component={ClientDetailsScreen}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+        <Stack.Screen
+          name="NearbyLoadingScreen"
+          component={NearbyLoadingScreen}
+        />
+        <Stack.Screen
+          name="BookingPreferenceScreen"
+          component={BookingPreferenceScreen}
+        />
+        <Stack.Screen name="MapScreen" component={MapScreen} />
+        <Stack.Screen name="SessionScreen" component={SessionScreen} />
+        <Stack.Screen
+          name="LocalNotaryBookingScreen"
+          component={LocalNotaryBookingScreen}
+        />
+        <Stack.Screen
+          name="LocalNotaryAgentReview"
+          component={LocalNotaryAgentReview}
+        />
+        <Stack.Screen
+          name="LocalNotaryMapScreen"
+          component={LocalNotaryMapScreen}
+        />
+        <Stack.Screen
+          name="LocalNotaryDateScreen"
+          component={LocalNotaryDateScreen}
+        />
+        <Stack.Screen name="CompletionScreen" component={CompletionScreen} />
+        <Stack.Screen
+          name="AgentBookingClientDetail"
+          component={AgentBookingClientDetail}
+        />
+        <Stack.Screen
+          name="AgentMainBookingScreen"
+          component={AgentMainBookingScreen}
+        />
+        <Stack.Screen
+          name="ClientBookingScreen"
+          component={ClientBookingScreen}
+        />
+        <Stack.Screen
+          name="AgentLocalClientReviewScreen"
+          component={AgentLocalClientReviewScreen}
+        />
+        <Stack.Screen
+          name="AgentRONLocationScreen"
+          component={AgentRONLocationScreen}
+        />
+        <Stack.Screen
+          name="AgentMainAvailabilityScreen"
+          component={AgentMainAvailabilityScreen}
+        />
+        <Stack.Screen
+          name="AgentLocationScreen"
+          component={AgentLocationScreen}
+        />
+        <Stack.Screen
+          name="BookingAcceptedScreen"
+          component={BookingAcceptedScreen}
+        />
+        <Stack.Screen
+          name="AgentMobileNotaryStartScreen"
+          component={AgentMobileNotaryStartScreen}
+        />
+        <Stack.Screen
+          name="AgentMobileNotaryDocScreen"
+          component={AgentMobileNotaryDocScreen}
+        />
+        <Stack.Screen
+          name="AgentBookingComplete"
+          component={AgentBookingComplete}
+        />
+        <Stack.Screen
+          name="AgentMobileNotarySummaryScreen"
+          component={AgentMobileNotarySummaryScreen}
+        />
+        <Stack.Screen
+          name="AgentSessionInviteScreen"
+          component={AgentSessionInviteScreen}
+        />
+        <Stack.Screen
+          name="AgentRemoteOnlineNotaryScreen"
+          component={AgentRemoteOnlineNotaryScreen}
+        />
+        <Stack.Screen
+          name="AgentAvailabilitySetupScreen"
+          component={AgentAvailabilitySetupScreen}
+        />
+        <Stack.Screen
+          name="ProfilePreferenceCompletion"
+          component={ProfilePreferenceCompletion}
+        />
+        <Stack.Screen
+          name="AgentServicePereference"
+          component={AgentServicePereference}
+        />
+        <Stack.Screen
+          name="AgentVerificationScreen"
+          component={AgentVerificationScreen}
+        />
+        <Stack.Screen
+          name="AgentLocalNotaryEndScreen"
+          component={AgentLocalNotaryEndScreen}
+        />
+        <Stack.Screen
+          name="AgentDocumentCompletion"
+          component={AgentDocumentCompletion}
+        />
+        <Stack.Screen
+          name="AgentProfileEditScreen"
+          component={AgentProfileEditScreen}
+        />
+        <Stack.Screen
+          name="ClientDetailsScreen"
+          component={ClientDetailsScreen}
+        />
+      </Stack.Navigator>
       <CustomToast />
     </>
   );

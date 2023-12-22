@@ -16,6 +16,9 @@ import {polyfill as polyfillReadableStream} from 'react-native-polyfill-globals/
 import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch';
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {initializeOneSignal} from './src/utils/oneSignal';
+
+import Wrapper from './src/routes/Root';
 // import {ZoomVideoSdkProvider} from 'react-native-zoom-video-sdk';
 
 polyfillReadableStream();
@@ -23,16 +26,8 @@ polyfillEncoding();
 polyfillFetch();
 
 const client = init();
+initializeOneSignal();
 
-const handleDeepLink = () => {
-  const isClicked = notification.getData().userInteraction === 1;
-  Linking.openURL(notification.getMessage());
-};
-
-// Set up the deep link listener
-Linking.addEventListener('url', event => {
-  handleDeepLink(event.url);
-});
 function App(): JSX.Element {
   const publishableKey = 'pk_test_FSxGM2WbrX0AZFSi8KLj9s4D00IxKQrrDI';
 
@@ -47,7 +42,8 @@ function App(): JSX.Element {
                 domain: 'zoom.us',
                 enableLog: true,
               }}> */}
-            <AppNavigation />
+
+            <Wrapper />
             {/* </ZoomVideoSdkProvider> */}
           </GestureHandlerRootView>
         </StripeProvider>

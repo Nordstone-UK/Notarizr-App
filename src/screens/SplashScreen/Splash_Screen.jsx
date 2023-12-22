@@ -13,15 +13,7 @@ import Colors from '../../themes/Colors';
 import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
-import OneSignal from 'react-native-onesignal';
 import useChatService from '../../hooks/useChatService';
-import {useDispatch} from 'react-redux';
-import {setAllChats} from '../../features/chats/chatsSlice';
-import {socket} from '../../utils/Socket';
-import {initializeOneSignal} from '../../utils/oneSignal';
-import {NavigationContainer, useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
-import {EventRegister} from 'react-native-event-listeners';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
@@ -41,7 +33,6 @@ export default function Splash_Screen({navigation}) {
               response?.account_type === 'client'
                 ? getClientChats()
                 : getAgentChats();
-              initializeOneSignal();
               navigation.navigate('HomeScreen');
             }
           })
@@ -55,46 +46,7 @@ export default function Splash_Screen({navigation}) {
       console.error('Error checking authentication:', error);
     }
   };
-  const Root = () => {
-    const navigation = useNavigation();
 
-    const [stack, setStack] = (useState < 'auth') | ('app' > 'auth');
-
-    useEffect(() => {
-      const listener = EventRegister.addEventListener(
-        'notfication',
-        async data => {
-          if (stack === 'app') {
-            const {type, user, chatID} = data?.notification?.additionalData;
-
-            if (type === 'chat_notification' && user && chatID) {
-              // navigate to chat screen
-              navigation.navigate(SCREENS.PERSONAL_CHAT, {
-                user: user,
-                chatID: chatID,
-              });
-            }
-            if (type === 'general_notification') {
-              notificationCacheMethods.reload();
-              // navigate to notification screen
-              navigation.navigate(SCREENS.NOTIFICATIONS);
-            }
-          }
-        },
-      );
-      return () => {
-        EventRegister.removeAllListeners();
-      };
-    }, [navigation, stack]);
-  };
-
-  const Wrapper = () => {
-    return (
-      <NavigationContainer>
-        <Root />
-      </NavigationContainer>
-    );
-  };
   const isFirstLaunch = async () => {
     try {
       const value = await AsyncStorage.getItem('isFirstLaunch');

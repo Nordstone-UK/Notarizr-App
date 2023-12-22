@@ -102,16 +102,21 @@ export default function ProfilePictureScreen({navigation}) {
         profilePicture: profilePicture,
       };
 
-      if (await handleRegister(params)) {
+      const isRegistered = await handleRegister(params);
+      if (isRegistered) {
         settempLoading(false);
         navigation.navigate('RegisterCompletionScreen');
       } else {
-        Alert.alert('Problem while registering');
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Problem while registering',
+        });
         settempLoading(false);
       }
     } else {
       settempLoading(false);
-      dispatch(profilePictureSet(profilePicture));
+      dispatch(profilePictureSet(url));
       navigation.navigate('AgentVerificationScreen');
     }
   };
