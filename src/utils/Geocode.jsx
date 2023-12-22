@@ -21,7 +21,6 @@ export const handleGetLocation = async () => {
       coordinates.longitude,
     );
     return response;
-    // setCountryState(response);
   } catch (error) {
     console.log(error);
   }
@@ -36,9 +35,9 @@ const getLocation = () => {
       error => {
         reject(error);
       },
-      Platform.OS === 'android'
-        ? {}
-        : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+      // Platform.OS === 'android'
+      //   ? {}
+      //   : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
     );
   });
 };

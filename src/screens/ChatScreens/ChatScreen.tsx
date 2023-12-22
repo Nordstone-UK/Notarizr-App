@@ -259,21 +259,18 @@ export default function ChatScreen({route}) {
   const [chatToken, setChatToken] = React.useState(token);
   const [targetId, setTargetId] = React.useState(receiver?._id);
   const [username, setUsername] = React.useState(sender?._id);
-
-  // const [convID, setConId] = React.useState('');
-  // const [convType, setConvType] = React.useState();
-  const [data, setData] = React.useState();
   const [content, setContent] = React.useState([]);
   const chatClient = ChatClient.getInstance();
   const chatManager = chatClient.chatManager;
   const createIfNeed = true;
   const convType = ChatConversationType.PeerChat;
   let convID: string;
-  useEffect(() => {
-    login();
-    // const formattedMessages = formatMessages(conversation);
-    // setContent(formattedMessages);
-  }, []);
+  const functionName = () => {
+    useEffect(() => {
+      login();
+    }, []);
+  };
+
   const retreiveConverstation = async () => {
     chatManager
       .getAllConversations()
@@ -284,17 +281,6 @@ export default function ChatScreen({route}) {
       .catch(reason => {
         console.log('Loading conversations fails', reason);
       });
-    // .then(() =>
-    //   chatManager
-    //     .getConversation(convID, convType, createIfNeed)
-    //     .then(conversation => {
-    //       console.log('Getting conversations succeeds', conversation);
-
-    //     })
-    //     .catch(reason => {
-    //       console.log('Getting conversations fails.', reason);
-    //     }),
-    // );
   };
   const fetchHistoryMessages = async (
     convID: string,
@@ -311,8 +297,6 @@ export default function ChatScreen({route}) {
           },
         );
       console.log('Fetch history messages success', result?.list?.[0]?.body);
-
-      // Process the fetched messages
     } catch (error) {
       console.error('Fetch history messages failed', error);
     }
@@ -328,7 +312,7 @@ export default function ChatScreen({route}) {
                 text: messages[index].body.content,
                 createdAt: messages[index].localTime,
                 user: {
-                  _id: 2,
+                  _id: receiver?._id,
                 },
               },
             ];
@@ -385,6 +369,7 @@ export default function ChatScreen({route}) {
         });
     };
     init();
+    login();
   }, [chatClient, chatManager, appKey]);
   const login = () => {
     if (this.isInitialized === false || this.isInitialized === undefined) {
@@ -433,7 +418,7 @@ export default function ChatScreen({route}) {
             text: content,
             createdAt: new Date(),
             user: {
-              _id: 1,
+              _id: sender?._id,
             },
           },
         ];

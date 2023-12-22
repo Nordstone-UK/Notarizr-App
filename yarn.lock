@@ -6730,6 +6730,13 @@ react-native-dropdown-select-list@^2.0.5:
   resolved "https://registry.npmjs.org/react-native-dropdown-select-list/-/react-native-dropdown-select-list-2.0.5.tgz"
   integrity sha512-TepbcagQVUMB6nLuIlVU2ghRpQHAECOeZWe8K04ymW6NqbKbxuczZSDFfdCiABiiQ2dFD+8Dz65y4K7/uUEqGg==
 
+react-native-event-listeners@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.npmjs.org/react-native-event-listeners/-/react-native-event-listeners-1.0.7.tgz"
+  integrity sha512-yne2ldnqGtABnuN6VSPgs5afaHZZYIAGMoyBUJFn5O2t5t78eCbX9vNa3hvOIIwulKMkZVfqyRtYcSOrNMmMhg==
+  dependencies:
+    type-detect "^4.0.8"
+
 react-native-extended-stylesheet@^0.12.0:
   version "0.12.0"
   resolved "https://registry.npmjs.org/react-native-extended-stylesheet/-/react-native-extended-stylesheet-0.12.0.tgz"
@@ -7947,7 +7954,7 @@ type-check@^0.4.0, type-check@~0.4.0:
   dependencies:
     prelude-ls "^1.2.1"
 
-type-detect@4.0.8:
+type-detect@^4.0.8, type-detect@4.0.8:
   version "4.0.8"
   resolved "https://registry.npmjs.org/type-detect/-/type-detect-4.0.8.tgz"
   integrity sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==

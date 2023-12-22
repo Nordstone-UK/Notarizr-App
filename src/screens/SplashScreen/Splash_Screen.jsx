@@ -6,6 +6,7 @@ import {
   ImageBackground,
   SafeAreaView,
   PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import React, {useEffect} from 'react';
 import Colors from '../../themes/Colors';
@@ -17,6 +18,10 @@ import useChatService from '../../hooks/useChatService';
 import {useDispatch} from 'react-redux';
 import {setAllChats} from '../../features/chats/chatsSlice';
 import {socket} from '../../utils/Socket';
+import {initializeOneSignal} from '../../utils/oneSignal';
+import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import {useState} from 'react';
+import {EventRegister} from 'react-native-event-listeners';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
@@ -50,13 +55,45 @@ export default function Splash_Screen({navigation}) {
       console.error('Error checking authentication:', error);
     }
   };
-  const initializeOneSignal = () => {
-    // OneSignal Initialization
-    OneSignal.setAppId('dc4e3a66-402e-41d7-832d-25b70c16fdea');
+  const Root = () => {
+    const navigation = useNavigation();
 
-    if (Platform.OS !== 'android') {
-      OneSignal.promptForPushNotificationsWithUserResponse(response => {});
-    }
+    const [stack, setStack] = (useState < 'auth') | ('app' > 'auth');
+
+    useEffect(() => {
+      const listener = EventRegister.addEventListener(
+        'notfication',
+        async data => {
+          if (stack === 'app') {
+            const {type, user, chatID} = data?.notification?.additionalData;
+
+            if (type === 'chat_notification' && user && chatID) {
+              // navigate to chat screen
+              navigation.navigate(SCREENS.PERSONAL_CHAT, {
+                user: user,
+                chatID: chatID,
+              });
+            }
+            if (type === 'general_notification') {
+              notificationCacheMethods.reload();
+              // navigate to notification screen
+              navigation.navigate(SCREENS.NOTIFICATIONS);
+            }
+          }
+        },
+      );
+      return () => {
+        EventRegister.removeAllListeners();
+      };
+    }, [navigation, stack]);
+  };
+
+  const Wrapper = () => {
+    return (
+      <NavigationContainer>
+        <Root />
+      </NavigationContainer>
+    );
   };
   const isFirstLaunch = async () => {
     try {

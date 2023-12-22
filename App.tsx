@@ -4,7 +4,7 @@
  *
  * @format
  */
-import PermissionsAndroid from 'react-native';
+import PermissionsAndroid, {Linking} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {ApolloClient, InMemoryCache, ApolloProvider, gql} from '@apollo/client';
 import AppNavigation from './src/screens/Navigation/AppNavigation';
@@ -24,6 +24,15 @@ polyfillFetch();
 
 const client = init();
 
+const handleDeepLink = () => {
+  const isClicked = notification.getData().userInteraction === 1;
+  Linking.openURL(notification.getMessage());
+};
+
+// Set up the deep link listener
+Linking.addEventListener('url', event => {
+  handleDeepLink(event.url);
+});
 function App(): JSX.Element {
   const publishableKey = 'pk_test_FSxGM2WbrX0AZFSi8KLj9s4D00IxKQrrDI';
 

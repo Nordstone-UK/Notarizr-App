@@ -32,9 +32,9 @@ export default function NearbyLoadingScreen({route, navigation}) {
           const {booking} = response;
 
           const bookingData = await fetchBookingByID(booking._id);
-          // console.log('====================================');
-          // console.log('booking', bookingData.getBookingById);
-          // console.log('====================================');
+          console.log('====================================');
+          console.log('booking', bookingData.getBookingById);
+          console.log('====================================');
           if (response.status === '201') {
             navigation.navigate('ToBePaidScreen', {
               bookingData: bookingData.getBookingById.booking,
