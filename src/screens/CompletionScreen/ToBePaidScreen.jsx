@@ -23,14 +23,8 @@ export default function ToBePaidScreen({route, navigation}) {
   const dispatch = useDispatch();
   const init = async () => {
     await handleUpdateBookingStatus('pending', bookingData._id);
-    // console.log('====================================');
-    // console.log('bookingData', bookingData.agent);
-    // console.log('====================================');
-    await createChatWithUser(bookingData?.agent?._id);
     dispatch(setBookingInfoState(bookingData));
-    dispatch(
-      setCoordinates(bookingData?.booked_by?.current_location?.coordinates),
-    );
+    dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
     dispatch(setUser(bookingData?.agent));
   };
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
@@ -82,7 +76,7 @@ export default function ToBePaidScreen({route, navigation}) {
       console.log('error.message', error.message);
       navigation.navigate('HomeScreen');
     } else {
-      init();
+      await init();
       navigation.navigate('AgentBookCompletion');
     }
     setLoading(false);

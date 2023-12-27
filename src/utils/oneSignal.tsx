@@ -25,7 +25,6 @@ const initializeOneSignal = () => {
 
   OneSignal.setNotificationOpenedHandler(notification => {
     EventRegister.emit('notfication', notification);
-    console.log('Is it this one? ', notification);
   });
 };
 

@@ -36,22 +36,15 @@ export default function AgentAllBookingScreen({navigation}) {
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
     const sessionDetail = await handleAgentSessions(status);
-    // console.log('bookingDetail', bookingDetail);
+    console.log('bookingDetail', bookingDetail);
+    console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
 
     const sortedDetails = mergedDetails.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
-    // mergedDetails.sort((a, b) => {
-    //   const timestampA = new Date(a.createdAt).getTime();
-    //   const timestampB = new Date(b.createdAt).getTime();
-    //   return timestampA - timestampB;
-    // });
-    console.log('====================================');
-    console.log('mergedDetails', sortedDetails[0]);
-    console.log('====================================');
+
     setMergerData(sortedDetails);
-    // setBooking(bookingDetail);
   };
 
   useEffect(() => {
@@ -225,6 +218,7 @@ export default function AgentAllBookingScreen({navigation}) {
                   data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
+                    console.log('item', item?.booked_by?.profile_picture);
                     return (
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}

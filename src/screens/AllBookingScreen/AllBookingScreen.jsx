@@ -42,11 +42,8 @@ export default function AllBookingScreen({route, navigation}) {
     const sortedDetails = mergedDetails.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
-    // console.log('====================================');
-    // console.log('mergedDetails', mergedDetails[0]);
-    // console.log('====================================');
+
     setMergerData(sortedDetails);
-    // setBooking(bookingDetail);
   };
 
   useEffect(() => {

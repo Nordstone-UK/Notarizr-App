@@ -4,10 +4,8 @@
  *
  * @format
  */
-import PermissionsAndroid, {Linking} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {ApolloClient, InMemoryCache, ApolloProvider, gql} from '@apollo/client';
-import AppNavigation from './src/screens/Navigation/AppNavigation';
+import {ApolloProvider} from '@apollo/client';
 import {store} from './src/app/store';
 import {Provider} from 'react-redux';
 import init from './apollo/init';
@@ -17,9 +15,7 @@ import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {initializeOneSignal} from './src/utils/oneSignal';
-
 import Wrapper from './src/routes/Root';
-// import {ZoomVideoSdkProvider} from 'react-native-zoom-video-sdk';
 
 polyfillReadableStream();
 polyfillEncoding();
@@ -36,15 +32,7 @@ function App(): JSX.Element {
       <Provider store={store}>
         <StripeProvider publishableKey={publishableKey}>
           <GestureHandlerRootView style={{flex: 1}}>
-            {/* <ZoomVideoSdkProvider
-              config={{
-                appGroupId: 'group.test.sdk',
-                domain: 'zoom.us',
-                enableLog: true,
-              }}> */}
-
             <Wrapper />
-            {/* </ZoomVideoSdkProvider> */}
           </GestureHandlerRootView>
         </StripeProvider>
       </Provider>

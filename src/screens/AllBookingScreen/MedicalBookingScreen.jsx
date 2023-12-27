@@ -81,9 +81,6 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
-      console.log('====================================');
-      console.log(bookingDetail?._id);
-      console.log('====================================');
       const status = await handlegetBookingStatus(bookingDetail?._id);
       setStatus(capitalizeFirstLetter(status));
     } catch (error) {
@@ -351,7 +348,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 columnGap: widthToDp(2),
                 rowGap: widthToDp(2),
               }}>
-              {documents !== null ? (
+              {documents ? (
                 Object.keys(documents).length !== 0 ? (
                   Object.keys(documents).map((key, index) => (
                     <Image

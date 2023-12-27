@@ -84,11 +84,13 @@ export default function ProfileInfoScreen({navigation}) {
               Title="Address"
               onPress={() => navigation.navigate('AddressDetails')}
             />
-            <SettingOptions
-              icon={require('../../../assets/blueCard.png')}
-              Title="Payment Method"
-              onPress={() => navigation.navigate('PaymentUpdateScreen')}
-            />
+            {account_type !== 'client' && (
+              <SettingOptions
+                icon={require('../../../assets/blueCard.png')}
+                Title="Payment Method"
+                onPress={() => navigation.navigate('PaymentUpdateScreen')}
+              />
+            )}
 
             {account_type !== 'client' && (
               <SettingOptions

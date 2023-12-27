@@ -39,10 +39,6 @@ export default function SettingScreen({navigation}, props) {
             Title="Terms & Conditions"
           />
           <SettingOptions
-            icon={require('../../../assets/logout.png')}
-            Title="Log out"
-          />
-          <SettingOptions
             icon={require('../../../assets/delete.png')}
             Title="Delete Account"
           />

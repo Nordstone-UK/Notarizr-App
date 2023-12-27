@@ -53,7 +53,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const [description, setDescription] = useState(oldDescription);
   const [tempLoading, settempLoading] = useState(false);
   const [profilePicture, setProfilePicure] = useState(profile_picture);
-  const accountType = useSelector(state => state.register.accountType);
+  const {account_type} = useSelector(state => state.user.user);
   const {fetchUserInfo} = useFetchUser();
   const {countryCode, phoneNumberWithoutCode} = removeCountryCode(phoneNumber);
   const {handleCompression, uploadBlobToS3} = useRegister();
@@ -97,7 +97,6 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       const imageBlob = await handleCompression(image);
       const url = await uploadBlobToS3(imageBlob);
       setImage(url);
-      // console.log('conversion: ', url);
     }
 
     const params = {
@@ -129,9 +128,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       settempLoading(false);
     }
   };
-  console.log('====================================');
-  console.log('Country: ', removeCountryCode(phoneNumber));
-  console.log('====================================');
+
+  console.log('user', account_type);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Profile Details" />
@@ -193,13 +191,15 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               LabelTextInput={'Address'}
               onChangeText={text => setlocation(text)}
             />
-            <MultiLineTextInput
-              Label={true}
-              placeholder={'Enter description here'}
-              defaultValue={description}
-              LabelTextInput={'Description'}
-              onChangeText={text => setDescription(text)}
-            />
+            {account_type !== 'client' && (
+              <MultiLineTextInput
+                Label={true}
+                placeholder={'Enter description here'}
+                defaultValue={description}
+                LabelTextInput={'Description'}
+                onChangeText={text => setDescription(text)}
+              />
+            )}
             <View
               style={{
                 marginTop: heightToDp(10),
