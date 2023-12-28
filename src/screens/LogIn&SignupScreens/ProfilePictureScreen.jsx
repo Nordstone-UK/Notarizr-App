@@ -14,16 +14,11 @@ import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Colors from '../../themes/Colors';
 import SkipButton from '../../components/MainGradientButton/SkipButton';
-import ProfilePicture from '../../../assets/profilePicture.png';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch, useSelector} from 'react-redux';
 
-import SplashScreen from 'react-native-splash-screen';
 import {captureImage, chooseFile} from '../../utils/ImagePicker';
 
 import {profilePictureSet} from '../../features/register/registerSlice';
@@ -141,10 +136,6 @@ export default function ProfilePictureScreen({navigation}) {
           {image ? (
             <View>
               <Image source={{uri: image}} style={styles.profileImage} />
-              <TouchableOpacity
-                onPress={() => Alert.alert('This feature is in development')}>
-                <Text style={styles.textEdit}>Edit Profile Image</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             <TouchableOpacity

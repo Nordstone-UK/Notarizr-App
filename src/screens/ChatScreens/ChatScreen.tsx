@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   View,
   SafeAreaView,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
@@ -24,238 +26,28 @@ import {
   ChatConversation,
   ChatConversationType,
 } from 'react-native-agora-chat';
+import {
+  ClientRoleType,
+  createAgoraRtcEngine,
+  IRtcEngine,
+  ChannelProfileType,
+} from 'react-native-agora';
 export default function ChatScreen({route}) {
-  // const conversation = [
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: 'Hello'}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'send',
-  //     from: '655f8cfda98b2aabe64ea94c',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: true,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453426',
-  //     localTime: 1703068453426,
-  //     msgId: '1225958871747529526',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005593207,
-  //     status: 2,
-  //     to: '654a1aa24658e48139a20b91',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: 'How are you?'}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'rec',
-  //     from: '654a1aa24658e48139a20b91',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: false,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225958606168394594',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005531376,
-  //     status: 2,
-  //     to: '655f8cfda98b2aabe64ea94c',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: 'Nice to meet you'}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'rec',
-  //     from: '654a1aa24658e48139a20b91',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: false,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225958262235466546',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005451296,
-  //     status: 2,
-  //     to: '655f8cfda98b2aabe64ea94c',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: "I'm doing well, thanks!"}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'send',
-  //     from: '655f8cfda98b2aabe64ea94c',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: true,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225958187669134170',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005433950,
-  //     status: 2,
-  //     to: '654a1aa24658e48139a20b91',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: "That's great to hear!"}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'send',
-  //     from: '655f8cfda98b2aabe64ea94c',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: true,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225958098468871002',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005413163,
-  //     status: 2,
-  //     to: '654a1aa24658e48139a20b91',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: "How's your day going?"}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'rec',
-  //     from: '654a1aa24658e48139a20b91',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: false,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225958077853866802',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005408368,
-  //     status: 2,
-  //     to: '655f8cfda98b2aabe64ea94c',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: "It's been a busy day"}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'rec',
-  //     from: '654a1aa24658e48139a20b91',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: false,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225957978503383858',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005385233,
-  //     status: 2,
-  //     to: '655f8cfda98b2aabe64ea94c',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: 'I can imagine! Anything exciting happening?'}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'send',
-  //     from: '655f8cfda98b2aabe64ea94c',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: true,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: '1703068453430',
-  //     to: '654a1aa24658e48139a20b91',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: 'Just the usual, work and stuff'}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'send',
-  //     from: '655f8cfda98b2aabe64ea94c',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: true,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453430',
-  //     localTime: 1703068453430,
-  //     msgId: '1225957916150860634',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005370727,
-  //     status: 2,
-  //     to: '654a1aa24658e48139a20b91',
-  //   },
-  //   {
-  //     attributes: ['Object'],
-  //     body: [{content: 'Sounds like a typical day'}],
-  //     chatType: 0,
-  //     conversationId: '654a1aa24658e48139a20b91',
-  //     deliverOnlineOnly: false,
-  //     direction: 'rec',
-  //     from: '654a1aa24658e48139a20b91',
-  //     groupAckCount: 0,
-  //     hasDeliverAck: false,
-  //     hasRead: false,
-  //     hasReadAck: false,
-  //     isChatThread: false,
-  //     isOnline: true,
-  //     localMsgId: '1703068453431',
-  //     localTime: 1703068453431,
-  //     msgId: '1225957875025709874',
-  //     needGroupAck: false,
-  //     receiverList: 'undefined',
-  //     serverTime: 1703005361138,
-  //     status: 2,
-  //     to: '655f8cfda98b2aabe64ea94c',
-  //   },
-  // ];
-
+  const getPermission = async () => {
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      ]);
+    }
+  };
   const token = useSelector(state => state.chats.chatToken);
   const {receiver, sender} = route.params;
+  const appId = 'abd7df71ee024625b2cc979e12aec405';
   const appKey = '411048105#1224670';
+  const channelName = 'TestCall';
+  const callToken =
+    '007eJxTYHj1KTU1s89oW+01wSpvo7SDf3jqltX0r39yxenQT5tyrk8KDIlJKeYpaeaGqakGRiZmRqZJRsnJluaWqYZGianJJgamkxb2pjYEMjJcEMpiZWSAQBCfgyEktbjEOTEnh4EBAHsJIu4=';
+  const uid = 0;
   const [chatToken, setChatToken] = React.useState(token);
   const [targetId, setTargetId] = React.useState(receiver?._id);
   const [username, setUsername] = React.useState(sender?._id);
@@ -265,12 +57,19 @@ export default function ChatScreen({route}) {
   const createIfNeed = true;
   const convType = ChatConversationType.PeerChat;
   let convID: string;
+  const agoraEngineRef = useRef<IRtcEngine>(); // Agora engine instance
+  const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
+  const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
+  const [message, setMessage] = useState(''); // Message to the user
+
+  function showMessage(msg: string) {
+    setMessage(msg);
+  }
   const functionName = () => {
     useEffect(() => {
       login();
     }, []);
   };
-
   const retreiveConverstation = async () => {
     chatManager
       .getAllConversations()
@@ -281,6 +80,34 @@ export default function ChatScreen({route}) {
       .catch(reason => {
         console.log('Loading conversations fails', reason);
       });
+  };
+  const setupVoiceSDKEngine = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        await getPermission();
+      }
+      agoraEngineRef.current = createAgoraRtcEngine();
+      const agoraEngine = agoraEngineRef.current;
+      agoraEngine.registerEventHandler({
+        onJoinChannelSuccess: () => {
+          showMessage('Successfully joined the channel ' + channelName);
+          setIsJoined(true);
+        },
+        onUserJoined: (_connection: any, Uid: number) => {
+          showMessage('Remote user joined with uid ' + Uid);
+          setRemoteUid(Uid);
+        },
+        onUserOffline: (_connection: any, Uid: number) => {
+          showMessage('Remote user left the channel. uid: ' + Uid);
+          setRemoteUid(0);
+        },
+      });
+      agoraEngine.initialize({
+        appId: appId,
+      });
+    } catch (e) {
+      console.log(e);
+    }
   };
   const fetchHistoryMessages = async (
     convID: string,
@@ -370,6 +197,7 @@ export default function ChatScreen({route}) {
     };
     init();
     login();
+    setupVoiceSDKEngine();
   }, [chatClient, chatManager, appKey]);
   const login = () => {
     if (this.isInitialized === false || this.isInitialized === undefined) {
@@ -457,12 +285,38 @@ export default function ChatScreen({route}) {
       };
     });
   };
-
+  const join = async () => {
+    if (isJoined) {
+      return;
+    }
+    try {
+      agoraEngineRef.current?.setChannelProfile(
+        ChannelProfileType.ChannelProfileCommunication,
+      );
+      agoraEngineRef.current?.joinChannel(callToken, channelName, uid, {
+        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const leave = () => {
+    try {
+      agoraEngineRef.current?.leaveChannel();
+      setRemoteUid(0);
+      setIsJoined(false);
+      showMessage('You left the channel');
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title={receiver?.first_name + ' ' + receiver?.last_name}
         ProfilePic={{uri: receiver?.profile_picture}}
+        lastImg={require('../../../assets/voiceCallIcon.png')}
+        lastImgPress={() => join()}
       />
       <View style={styles.bottonSheet}>
         <GiftedChat
