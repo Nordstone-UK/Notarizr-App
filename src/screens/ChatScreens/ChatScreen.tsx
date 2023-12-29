@@ -15,8 +15,6 @@ import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import {GiftedChat, IMessage} from 'react-native-gifted-chat';
 import {useSelector} from 'react-redux';
-import useChatService from '../../hooks/useChatService';
-import {socket} from '../../utils/Socket';
 import {
   ChatClient,
   ChatOptions,
@@ -32,7 +30,8 @@ import {
   IRtcEngine,
   ChannelProfileType,
 } from 'react-native-agora';
-export default function ChatScreen({route}) {
+import useChatService from '../../hooks/useChatService';
+export default function ChatScreen({route, navigation}: any) {
   const getPermission = async () => {
     if (Platform.OS === 'android') {
       await PermissionsAndroid.requestMultiple([
@@ -40,14 +39,13 @@ export default function ChatScreen({route}) {
       ]);
     }
   };
+  const {getAgoraCallToken} = useChatService();
   const token = useSelector(state => state.chats.chatToken);
   const {receiver, sender} = route.params;
-  const appId = 'abd7df71ee024625b2cc979e12aec405';
   const appKey = '411048105#1224670';
-  const channelName = 'TestCall';
-  const callToken =
-    '007eJxTYHj1KTU1s89oW+01wSpvo7SDf3jqltX0r39yxenQT5tyrk8KDIlJKeYpaeaGqakGRiZmRqZJRsnJluaWqYZGianJJgamkxb2pjYEMjJcEMpiZWSAQBCfgyEktbjEOTEnh4EBAHsJIu4=';
   const uid = 0;
+  const [channelName, setChannelName] = useState('');
+  const [callToken, setCallToken] = useState('');
   const [chatToken, setChatToken] = React.useState(token);
   const [targetId, setTargetId] = React.useState(receiver?._id);
   const [username, setUsername] = React.useState(sender?._id);
@@ -60,16 +58,10 @@ export default function ChatScreen({route}) {
   const agoraEngineRef = useRef<IRtcEngine>(); // Agora engine instance
   const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
   const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
-  const [message, setMessage] = useState(''); // Message to the user
-
+  const [message, setMessage] = useState('');
   function showMessage(msg: string) {
     setMessage(msg);
   }
-  const functionName = () => {
-    useEffect(() => {
-      login();
-    }, []);
-  };
   const retreiveConverstation = async () => {
     chatManager
       .getAllConversations()
@@ -81,34 +73,7 @@ export default function ChatScreen({route}) {
         console.log('Loading conversations fails', reason);
       });
   };
-  const setupVoiceSDKEngine = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        await getPermission();
-      }
-      agoraEngineRef.current = createAgoraRtcEngine();
-      const agoraEngine = agoraEngineRef.current;
-      agoraEngine.registerEventHandler({
-        onJoinChannelSuccess: () => {
-          showMessage('Successfully joined the channel ' + channelName);
-          setIsJoined(true);
-        },
-        onUserJoined: (_connection: any, Uid: number) => {
-          showMessage('Remote user joined with uid ' + Uid);
-          setRemoteUid(Uid);
-        },
-        onUserOffline: (_connection: any, Uid: number) => {
-          showMessage('Remote user left the channel. uid: ' + Uid);
-          setRemoteUid(0);
-        },
-      });
-      agoraEngine.initialize({
-        appId: appId,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
+
   const fetchHistoryMessages = async (
     convID: string,
     convType: ChatConversationType,
@@ -197,7 +162,6 @@ export default function ChatScreen({route}) {
     };
     init();
     login();
-    setupVoiceSDKEngine();
   }, [chatClient, chatManager, appKey]);
   const login = () => {
     if (this.isInitialized === false || this.isInitialized === undefined) {
@@ -285,45 +249,26 @@ export default function ChatScreen({route}) {
       };
     });
   };
-  const join = async () => {
-    if (isJoined) {
-      return;
-    }
-    try {
-      agoraEngineRef.current?.setChannelProfile(
-        ChannelProfileType.ChannelProfileCommunication,
-      );
-      agoraEngineRef.current?.joinChannel(callToken, channelName, uid, {
-        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  const leave = () => {
-    try {
-      agoraEngineRef.current?.leaveChannel();
-      setRemoteUid(0);
-      setIsJoined(false);
-      showMessage('You left the channel');
-    } catch (e) {
-      console.log(e);
-    }
-  };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title={receiver?.first_name + ' ' + receiver?.last_name}
         ProfilePic={{uri: receiver?.profile_picture}}
         lastImg={require('../../../assets/voiceCallIcon.png')}
-        lastImgPress={() => join()}
+        lastImgPress={() =>
+          navigation.navigate('VoiceCallScreen', {
+            sender: sender,
+            receiver: receiver,
+          })
+        }
       />
       <View style={styles.bottonSheet}>
         <GiftedChat
           messages={content}
           onSend={setContent => sendmsg(setContent[0])}
           user={{
-            _id: sender?._id, // user id
+            _id: sender?._id,
           }}
         />
       </View>

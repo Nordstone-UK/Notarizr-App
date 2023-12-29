@@ -9,6 +9,7 @@ import {setAllChats, setChatToken} from '../features/chats/chatsSlice';
 import {GET_CHAT_TOKEN} from '../../request/mutations/getUserChatToken.mutation';
 import {GET_AGENT_BOOKING_CHAT} from '../../request/queries/getAgentBookingChat.query';
 import {GET_AGENT_SESSION_CHAT} from '../../request/queries/getAgentSessionChat.query';
+import {GET_AGORA_CALL_TOKEN} from '../../request/queries/getAgoraTokenCName.query';
 
 function useChatService() {
   const [createChat] = useMutation(CREATE_CHAT);
@@ -19,6 +20,7 @@ function useChatService() {
   const [getAgentBooking] = useLazyQuery(GET_AGENT_BOOKING_CHAT);
   const [getAgentSession] = useLazyQuery(GET_AGENT_SESSION_CHAT);
   const [getChatToken] = useMutation(GET_CHAT_TOKEN);
+  const [getAgoraTokenCname] = useLazyQuery(GET_AGORA_CALL_TOKEN);
   const dispatch = useDispatch();
   const clientBooking = {
     status: 'accepted',
@@ -51,7 +53,6 @@ function useChatService() {
 
     return response.data;
   };
-
   const getClientChats = async () => {
     const request = {
       variables: {
@@ -85,7 +86,6 @@ function useChatService() {
     dispatch(setAllChats(filteredChats));
     dispatch(setChatToken(data?.getUserChatToken?.token));
   };
-
   const getAgentChats = async () => {
     const request = {
       variables: {
@@ -154,9 +154,19 @@ function useChatService() {
 
     return resultArray;
   };
+  const getAgoraCallToken = async _id => {
+    const request = {
+      variables: {
+        userId: _id,
+      },
+    };
+    const {data} = await getAgoraTokenCname(request);
+    return data?.getAgoraTokenCName;
+  };
   return {
     createChatWithUser,
     getClientChats,
+    getAgoraCallToken,
     getAllChats,
     getAgentChats,
     handleGetMessages,

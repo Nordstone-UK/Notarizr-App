@@ -98,6 +98,7 @@ import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
 import TransactionScreen from '../TransactionScreen/TransactionScreen';
 import {socket} from '../../utils/Socket';
 import {setSocketID} from '../../features/user/userSlice';
+import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -205,6 +206,7 @@ export default function AppNavigation() {
           name="ActiveServicesScreen"
           component={ActiveServicesScreen}
         />
+        <Stack.Screen name="VoiceCallScreen" component={VoiceCallScreen} />
         <Stack.Screen name="RonDateDocScreen" component={RonDateDocScreen} />
         <Stack.Screen name="CompletePayment" component={CompletePayment} />
         <Stack.Screen name="BusinessDocScreen" component={BusinessDocScreen} />
