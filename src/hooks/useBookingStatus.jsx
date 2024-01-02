@@ -3,10 +3,12 @@ import {UPDATE_BOOKING_STATUS} from '../../request/mutations/updateBookingStatus
 import {useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {GET_BOOKING_STATUS} from '../../request/queries/getBookingStatus.query';
+import {GET_SESSION_STATUS} from '../../request/queries/getSessionStatus.query';
 const useBookingStatus = () => {
   const navigation = useNavigation();
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS);
   const [getBookingStatus] = useLazyQuery(GET_BOOKING_STATUS);
+  const [getSession] = useLazyQuery(GET_SESSION_STATUS);
   const handleUpdateBookingStatus = async (status, id) => {
     const request = {
       variables: {
@@ -42,7 +44,25 @@ const useBookingStatus = () => {
       console.error(error);
     }
   };
-  return {handleUpdateBookingStatus, handlegetBookingStatus};
+  const handleSessionStatus = async id => {
+    const request = {
+      variables: {
+        sessionId: id,
+      },
+    };
+    try {
+      const response = await getSession(request);
+      console.log(response.data.getSession.session);
+      return response.data.getSession.session?.status;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  return {
+    handleUpdateBookingStatus,
+    handlegetBookingStatus,
+    handleSessionStatus,
+  };
 };
 
 export default useBookingStatus;

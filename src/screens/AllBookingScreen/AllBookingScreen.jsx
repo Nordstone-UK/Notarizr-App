@@ -37,6 +37,8 @@ export default function AllBookingScreen({route, navigation}) {
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     const sessionDetail = await handleClientSessions(status);
+    // console.log('bookingDetail', bookingDetail);
+    // console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
 
     const sortedDetails = mergedDetails.sort(
@@ -67,9 +69,7 @@ export default function AllBookingScreen({route, navigation}) {
     init(status);
   };
   const handleAgentData = item => {
-    navigation.navigate('MedicalBookingScreen', {
-      item: item,
-    });
+    navigation.navigate('MedicalBookingScreen');
     dispatch(setBookingInfoState(item));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
     dispatch(setUser(item?.agent));
@@ -199,7 +199,6 @@ export default function AllBookingScreen({route, navigation}) {
                   data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
-                    // console.log('item', item);
                     return (
                       <TouchableOpacity onPress={() => handleAgentData(item)}>
                         <AgentCard

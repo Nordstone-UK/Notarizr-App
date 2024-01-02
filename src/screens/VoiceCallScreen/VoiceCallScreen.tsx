@@ -11,8 +11,6 @@ import {
 import React, {useEffect, useRef, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import LottieView from 'lottie-react-native';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {
   ClientRoleType,
   createAgoraRtcEngine,
@@ -21,20 +19,27 @@ import {
 } from 'react-native-agora';
 import useChatService from '../../hooks/useChatService';
 export default function VoiceCallScreen({route, navigation}: any) {
-  const {sender, receiver} = route.params;
+  const {sender, receiver, ChannelName, CallToken} = route.params;
   const {getAgoraCallToken} = useChatService();
   const appId = 'abd7df71ee024625b2cc979e12aec405';
-  const agoraEngineRef = useRef<IRtcEngine>(); // Agora engine instance
-  const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
-  const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
+  const agoraEngineRef = useRef<IRtcEngine>();
+  const [isJoined, setIsJoined] = useState(false);
+  const [remoteUid, setRemoteUid] = useState(0);
   const [message, setMessage] = useState('');
-  const [channel, setChannelName] = useState('');
-  const [callToken, setCallToken] = useState('');
-  const uid = sender?._id;
+  const [CName, setChannelName] = useState<string>('');
+  const [CToken, setCallToken] = useState<string>('');
+  const uid = 0;
   const getVoiceToken = async () => {
-    const {channelName, token} = await getAgoraCallToken(receiver._id);
-    setChannelName(channelName);
-    setCallToken(token);
+    try {
+      const {channelName, token} = await getAgoraCallToken(receiver._id);
+      setChannelName(channelName);
+      setCallToken(token);
+
+      console.log('Channel Name:', channelName);
+      console.log('Token:', token);
+    } catch (error) {
+      console.log('API Error:', error);
+    }
   };
   const setupVoiceSDKEngine = async () => {
     try {
@@ -45,7 +50,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
       const agoraEngine = agoraEngineRef.current;
       agoraEngine.registerEventHandler({
         onJoinChannelSuccess: () => {
-          showMessage('Successfully joined the channel ' + channelName);
+          showMessage('Successfully joined the channel ' + ChannelName);
           setIsJoined(true);
         },
         onUserJoined: (_connection: any, Uid: number) => {
@@ -65,12 +70,16 @@ export default function VoiceCallScreen({route, navigation}: any) {
     }
   };
   const CallSetup = async () => {
-    await getVoiceToken();
     await setupVoiceSDKEngine();
-    join();
+    await join();
   };
+
   useEffect(() => {
-    CallSetup();
+    const init = async () => {
+      // await getVoiceToken();
+      CallSetup();
+    };
+    init();
   }, []);
   const getPermission = async () => {
     if (Platform.OS === 'android') {
@@ -91,8 +100,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
       agoraEngineRef.current?.setChannelProfile(
         ChannelProfileType.ChannelProfileCommunication,
       );
-      console.log('call', callToken, channel);
-      agoraEngineRef.current?.joinChannel(callToken, channel, uid, {
+      agoraEngineRef.current?.joinChannel(CallToken, ChannelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
     } catch (e) {
@@ -128,6 +136,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
         </View>
 
         <TouchableOpacity
+          onPress={() => leave()}
           style={{
             alignItems: 'center',
             marginBottom: heightToDp(5),

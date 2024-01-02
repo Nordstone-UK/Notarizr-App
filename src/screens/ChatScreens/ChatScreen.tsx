@@ -59,6 +59,18 @@ export default function ChatScreen({route, navigation}: any) {
   const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
   const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
   const [message, setMessage] = useState('');
+  const getVoiceToken = async () => {
+    try {
+      const {channelName, token} = await getAgoraCallToken(receiver._id);
+      setChannelName(channelName);
+      setCallToken(token);
+
+      console.log('Channel Name:', channelName);
+      console.log('Token:', token);
+    } catch (error) {
+      console.log('API Error:', error);
+    }
+  };
   function showMessage(msg: string) {
     setMessage(msg);
   }
@@ -152,6 +164,7 @@ export default function ChatScreen({route, navigation}: any) {
             },
           };
           chatClient.addConnectionListener(listener);
+          login();
         })
         .catch(error => {
           console.log(
@@ -161,7 +174,7 @@ export default function ChatScreen({route, navigation}: any) {
         });
     };
     init();
-    login();
+    getVoiceToken();
   }, [chatClient, chatManager, appKey]);
   const login = () => {
     if (this.isInitialized === false || this.isInitialized === undefined) {
@@ -260,6 +273,8 @@ export default function ChatScreen({route, navigation}: any) {
           navigation.navigate('VoiceCallScreen', {
             sender: sender,
             receiver: receiver,
+            ChannelName: channelName,
+            CallToken: callToken,
           })
         }
       />

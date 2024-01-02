@@ -34,9 +34,6 @@ export const CREATE_SESSION = gql`
         agent_document
         createdAt
         updatedAt
-        zoom_id
-        zoom_join_url
-        zoom_password
       }
       message
       status

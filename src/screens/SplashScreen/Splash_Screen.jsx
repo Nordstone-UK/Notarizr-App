@@ -14,10 +14,12 @@ import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
 import useChatService from '../../hooks/useChatService';
+import {useSession} from '../../hooks/useSession';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
   const {getClientChats, getAgentChats} = useChatService();
+  const {getSessionByID} = useSession();
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('token');

@@ -38,8 +38,11 @@ import ModalCheck from '../../components/ModalComponent/ModalCheck';
 import {downloadFile} from '../../utils/RnDownload';
 
 export default function MedicalBookingScreen({route, navigation}) {
-  const {handlegetBookingStatus, handleUpdateBookingStatus} =
-    useBookingStatus();
+  const {
+    handlegetBookingStatus,
+    handleSessionStatus,
+    handleUpdateBookingStatus,
+  } = useBookingStatus();
   const {handleReviewSubmit} = useFetchBooking();
   const payment = useSelector(state => state.payment.payment);
   const dispatch = useDispatch();
@@ -55,6 +58,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
+  let statusUpdate;
 
   const handleStarPress = selectedRating => {
     setRating(selectedRating);
@@ -81,8 +85,12 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
-      const status = await handlegetBookingStatus(bookingDetail?._id);
-      setStatus(capitalizeFirstLetter(status));
+      if (bookingDetail?.__typename === 'Session') {
+        statusUpdate = await handleSessionStatus(bookingDetail?._id);
+      } else {
+        statusUpdate = await handlegetBookingStatus(bookingDetail?._id);
+      }
+      setStatus(capitalizeFirstLetter(statusUpdate));
     } catch (error) {
       console.error('Error retrieving booking status:', error);
     }
@@ -149,6 +157,7 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return namesString;
   }
+  // console.log(bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader

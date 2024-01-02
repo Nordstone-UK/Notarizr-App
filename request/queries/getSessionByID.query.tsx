@@ -1,11 +1,9 @@
 import gql from 'graphql-tag';
 
-export const GET_CLIENT_SESSION = gql`
-  query GetClientSessions($status: String!, $page: Int!, $pageSize: Int!) {
-    getClientSessions(status: $status, page: $page, pageSize: $pageSize) {
-      status
-      message
-      sessions {
+export const GET_SESSION_BY_ID = gql`
+  query GetSession($sessionId: String!) {
+    getSession(sessionId: $sessionId) {
+      session {
         _id
         agent {
           _id
@@ -79,15 +77,8 @@ export const GET_CLIENT_SESSION = gql`
         createdAt
         updatedAt
       }
-      totalDocs
-      limit
-      totalPages
-      page
-      pagingCounter
-      hasPrevPage
-      hasNextPage
-      prevPage
-      nextPage
+      message
+      status
     }
   }
 `;

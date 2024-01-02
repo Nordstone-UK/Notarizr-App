@@ -154,7 +154,6 @@ const useFetchBooking = () => {
     };
     try {
       const {data} = await getAgentSession(request);
-
       return sortBookingByDate(data?.getAgentSessions?.sessions);
     } catch (error) {
       console.log(error);

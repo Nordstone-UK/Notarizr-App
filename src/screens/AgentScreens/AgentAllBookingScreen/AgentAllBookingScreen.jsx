@@ -36,8 +36,8 @@ export default function AgentAllBookingScreen({navigation}) {
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
     const sessionDetail = await handleAgentSessions(status);
-    console.log('bookingDetail', bookingDetail);
-    console.log('sessionDetail', sessionDetail);
+    // console.log('bookingDetail', bookingDetail);
+    // console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
 
     const sortedDetails = mergedDetails.sort(
@@ -49,7 +49,7 @@ export default function AgentAllBookingScreen({navigation}) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      console.log('sending...');
+      // console.log('sending...');
       init('accepted');
       setIsFocused('accepted');
     });
@@ -218,19 +218,27 @@ export default function AgentAllBookingScreen({navigation}) {
                   data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
-                    console.log('item', item?.booked_by?.profile_picture);
                     return (
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
-                        source={{uri: item?.booked_by?.profile_picture}}
+                        source={{
+                          uri: item?.booked_by?.profile_picture
+                            ? `${item?.booked_by?.profile_picture}`
+                            : `${item?.client?.profile_picture}`,
+                        }}
                         bottomRightText={item?.document_type}
                         bottomLeftText="Total"
                         agentName={
-                          item?.booked_by?.first_name +
-                          ' ' +
+                          item?.booked_by?.first_name &&
                           item?.booked_by?.last_name
+                            ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
+                            : `${item.client.first_name} ${item.client.last_name}`
                         }
-                        agentAddress={item?.booked_by?.location}
+                        agentAddress={
+                          item?.booked_by?.location
+                            ? `${item?.booked_by?.location}`
+                            : `${item?.client?.location}`
+                        }
                         task={item?.status}
                         OrangeText="At Home"
                         onPress={

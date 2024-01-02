@@ -10,11 +10,13 @@ import {
   setCoordinates,
   setUser,
 } from '../features/booking/bookingSlice';
+import {useSession} from '../hooks/useSession';
 
 const Root: FC = (): JSX.Element => {
   const navigation: any = useNavigation();
   const dispatch: any = useDispatch();
   const {fetchBookingByID} = useFetchBooking();
+  const {getSessionByID} = useSession();
   const dispatchingAgentData = async (bookingData: any) => {
     await dispatch(setBookingInfoState(bookingData));
     await dispatch(
@@ -36,8 +38,11 @@ const Root: FC = (): JSX.Element => {
         const {type, value} = data?.notification?.additionalData;
         console.log(type, value);
         if (type === 'session_created') {
-          //get session by ID API
-          //navigation.navigate('MedicalBookingScreen);
+          const item = await getSessionByID(value);
+          dispatch(setBookingInfoState(item));
+          dispatch(setCoordinates(item?.client?.current_location?.coordinates));
+          dispatch(setUser(item?.agent));
+          navigation.navigate('MedicalBookingScreen');
         } else if (type === 'booking_accepted') {
           console.log('Am I running? ');
           const bookingData = await fetchBookingByID(value);

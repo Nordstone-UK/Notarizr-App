@@ -10,30 +10,9 @@ export default function ClientTimeCard(props) {
   let time;
   let month;
 
-  const monthNamesShort = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  // if (props.dateofBooking === null && props.timeofBooking === null) {
-  date = moment(props.dateofBooking).format('D');
-  month = moment(props.dateofBooking).format('MMM');
-  // time = moment(props.dateofBooking).format('h:mm A');
-  // } else {
-  //   const dateObject = new Date(props.dateofBooking);
-  //   month = monthNamesShort[dateObject.getMonth()];
-  //   date = dateObject.getDate();
-  //   time = props.timeofBooking.split(' - ')[0];
-  // }
+  date = moment(props?.dateofBooking).format('D');
+  month = moment(props?.dateofBooking).format('MMM');
+  time = moment(props?.createdAt).format('h:mm A');
   function capitalizeFirstLetter(str) {
     if (typeof str !== 'string' || str.length === 0) {
       return str;
@@ -77,7 +56,7 @@ export default function ClientTimeCard(props) {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
         <View>
-          <Text style={styles.dateStyle}>{props.timeofBooking}</Text>
+          <Text style={styles.dateStyle}>{props.timeofBooking || time}</Text>
           <Text
             style={[
               styles.dateStyle,
