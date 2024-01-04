@@ -46,7 +46,7 @@ export default function ToBePaidScreen({route, navigation}) {
       TotalPayment * 100,
       bookingData._id,
     );
-
+    console.log('payment', response);
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
 

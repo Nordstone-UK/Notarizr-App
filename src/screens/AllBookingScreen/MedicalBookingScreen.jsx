@@ -402,7 +402,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             )}
           </View>
-          {bookingDetail?.service_type === 'ron' && (
+          {bookingDetail?.service_type === 'ron' && status === 'Accepted' && (
             <GradientButton
               Title="Join Session"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}

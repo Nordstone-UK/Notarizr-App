@@ -77,9 +77,19 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     handleUpdateBookingStatus('accepted', clientDetail._id);
     dispatch(setBookingInfoState(clientDetail));
     dispatch(
-      setCoordinates(clientDetail?.booked_by?.current_location?.coordinates),
+      setCoordinates(
+        clientDetail?.booked_by?.current_location?.coordinates
+          ? clientDetail?.booked_by?.current_location?.coordinates
+          : clientDetail?.client?.current_location?.coordinates,
+      ),
     );
-    dispatch(setUser(clientDetail?.booked_by));
+    dispatch(
+      setUser(
+        clientDetail?.booked_by
+          ? clientDetail?.booked_by
+          : clientDetail?.client,
+      ),
+    );
   };
   const getBookingStatus = async () => {
     try {
@@ -236,15 +246,24 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           </View>
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
-            source={{uri: clientDetail.booked_by.profile_picture}}
+            source={{
+              uri: clientDetail.booked_by.profile_picture
+                ? `${clientDetail.booked_by.profile_picture}`
+                : `${clientDetail.client.profile_picture}`,
+            }}
             bottomRightText={clientDetail.document_type}
             bottomLeftText="Total"
             agentName={
-              clientDetail.booked_by.first_name +
-              ' ' +
+              clientDetail.booked_by.first_name &&
               clientDetail.booked_by.last_name
+                ? `${clientDetail.booked_by.first_name} ${clientDetail.booked_by.last_name}`
+                : `${clientDetail.client.first_name} ${clientDetail.client.last_name}`
             }
-            agentAddress={clientDetail.booked_by.location}
+            agentAddress={
+              clientDetail.booked_by.location
+                ? `${clientDetail.booked_by.location}`
+                : `${clientDetail.client.location}`
+            }
             task={clientDetail?.status}
             OrangeText="At Home"
             onPress={() =>
@@ -354,7 +373,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 columnGap: widthToDp(2),
                 rowGap: widthToDp(2),
               }}>
-              {/* {documentArray !== null ? (
+              {documentArray !== null ? (
                 Object.keys(documentArray).length !== 0 ? (
                   Object.keys(documentArray).map((key, index) => (
                     <TouchableOpacity
@@ -371,7 +390,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 )
               ) : (
                 <Text style={styles.preference}>No Documents</Text>
-              )} */}
+              )}
             </View>
           </View>
           <View style={styles.addressView}>
@@ -427,50 +446,49 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
             />
           )}
           <View style={styles.buttonFlex}>
-            {clientDetail?.service_type === 'mobile_notary' &&
-              status === 'Pending' && (
-                <>
-                  <MainButton
-                    Title="Accept"
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    onPress={() => handleClientData()}
-                    GradiStyles={{
-                      width: widthToDp(40),
-                      paddingHorizontal: widthToDp(0),
-                      paddingVertical: heightToDp(3),
-                    }}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(4),
-                    }}
-                  />
-                  <MainButton
-                    Title="Reject"
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    onPress={() =>
-                      handleUpdateBookingStatus('rejected', clientDetail._id)
-                    }
-                    GradiStyles={{
-                      width: widthToDp(40),
-                      paddingHorizontal: widthToDp(0),
-                      paddingVertical: heightToDp(3),
-                    }}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(4),
-                    }}
-                  />
-                </>
-              )}
+            {status === 'Pending' && (
+              <>
+                <MainButton
+                  Title="Accept"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  onPress={() => handleClientData()}
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    paddingHorizontal: widthToDp(0),
+                    paddingVertical: heightToDp(3),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                />
+                <MainButton
+                  Title="Reject"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  onPress={() =>
+                    handleUpdateBookingStatus('rejected', clientDetail._id)
+                  }
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    paddingHorizontal: widthToDp(0),
+                    paddingVertical: heightToDp(3),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                />
+              </>
+            )}
           </View>
           <View style={styles.buttonFlex}>
-            {clientDetail?.service_type === 'ron' && (
+            {clientDetail?.service_type === 'ron' && notary === 'Accepted' && (
               <>
                 <MainButton
                   Title="Add Observers"

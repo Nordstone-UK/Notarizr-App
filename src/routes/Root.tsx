@@ -48,7 +48,11 @@ const Root: FC = (): JSX.Element => {
           const bookingData = await fetchBookingByID(value);
           await dispatchingClientData(bookingData?.getBookingById?.booking);
           navigation.navigate('MedicalBookingScreen');
-        } else if (type === 'booking_completed') {
+        } else if (
+          type === 'booking_completed' ||
+          type === 'booking_ongoing' ||
+          type === 'booking_paid'
+        ) {
           const bookingData = await fetchBookingByID(value);
           await dispatchingAgentData(bookingData?.getBookingById?.booking);
           navigation.navigate('ClientDetailsScreen');
