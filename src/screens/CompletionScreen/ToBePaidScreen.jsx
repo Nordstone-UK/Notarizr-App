@@ -26,7 +26,7 @@ export default function ToBePaidScreen({route, navigation}) {
     if (bookingData?.__typename !== 'Session') {
       await handleUpdateBookingStatus('pending', bookingData._id);
     } else {
-      await updateSession('accepted', bookingData?._id);
+      await updateSession('accepted', bookingData._id);
     }
     dispatch(setBookingInfoState(bookingData));
     dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));

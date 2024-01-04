@@ -102,7 +102,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     }
   };
   useEffect(() => {
-    getBookingStatus();
+    const unsubscribe = navigation.addListener('focus', () => {
+      getBookingStatus();
+    });
+    return unsubscribe;
+    console.log(clientDetail);
   }, [status]);
   const handleNext = () => {
     if (!signaturePage || !notaryBlock) {
@@ -248,22 +252,22 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             source={{
-              uri: clientDetail.booked_by.profile_picture
-                ? `${clientDetail.booked_by.profile_picture}`
-                : `${clientDetail.client.profile_picture}`,
+              uri: clientDetail?.booked_by?.profile_picture
+                ? `${clientDetail?.booked_by?.profile_picture}`
+                : `${clientDetail?.client?.profile_picture}`,
             }}
-            bottomRightText={clientDetail.document_type}
+            bottomRightText={clientDetail?.document_type}
             bottomLeftText="Total"
             agentName={
-              clientDetail.booked_by.first_name &&
-              clientDetail.booked_by.last_name
-                ? `${clientDetail.booked_by.first_name} ${clientDetail.booked_by.last_name}`
-                : `${clientDetail.client.first_name} ${clientDetail.client.last_name}`
+              clientDetail?.booked_by?.first_name &&
+              clientDetail?.booked_by?.last_name
+                ? `${clientDetail?.booked_by?.first_name} ${clientDetail?.booked_by?.last_name}`
+                : `${clientDetail?.client?.first_name} ${clientDetail?.client?.last_name}`
             }
             agentAddress={
-              clientDetail.booked_by.location
-                ? `${clientDetail.booked_by.location}`
-                : `${clientDetail.client.location}`
+              clientDetail?.booked_by?.location
+                ? `${clientDetail?.booked_by?.location}`
+                : `${clientDetail?.client.location}`
             }
             task={clientDetail?.status}
             OrangeText="At Home"
@@ -272,10 +276,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 clientDetail: clientDetail,
               })
             }
-            status={clientDetail.status}
-            dateofBooking={clientDetail.date_of_booking}
-            timeofBooking={clientDetail.time_of_booking}
-            createdAt={clientDetail.createdAt}
+            status={clientDetail?.status}
+            dateofBooking={clientDetail?.date_of_booking}
+            timeofBooking={clientDetail?.time_of_booking}
+            createdAt={clientDetail?.createdAt}
           />
           <View style={styles.sheetContainer}>
             <Text style={[styles.insideHeading]}>Booking Preferences</Text>
@@ -290,7 +294,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 Document Type:
               </Text>
               <Text style={[styles.detail, {marginLeft: widthToDp(7)}]}>
-                {displayNamesWithCommas(clientDetail.document_type)}
+                {displayNamesWithCommas(clientDetail?.document_type)}
               </Text>
             </View>
             {booked_for?.first_name && (
@@ -374,7 +378,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                 columnGap: widthToDp(2),
                 rowGap: widthToDp(2),
               }}>
-              {documentArray !== null ? (
+              {documentArray ? (
                 Object.keys(documentArray).length !== 0 ? (
                   Object.keys(documentArray).map((key, index) => (
                     <TouchableOpacity

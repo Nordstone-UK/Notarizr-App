@@ -9,21 +9,6 @@ export default function AgentTimeCard(props) {
   let date;
   let time;
   let month;
-  const monthNamesShort = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
   date = moment(props.dateofBooking).format('D');
   month = moment(props.dateofBooking).format('MMM');
   time = moment(props?.createdAt).format('h:mm A');
@@ -58,7 +43,7 @@ export default function AgentTimeCard(props) {
             backgroundColor: Colors.Orange,
           },
         ]}>
-        {props.task === 'to_be_paid' ? (
+        {props.task === 'to_be_paid' || props.task === 'To_be_paid' ? (
           <Text style={styles.text}>To be Paid</Text>
         ) : (
           <Text style={styles.text}>{capitalizeFirstLetter(props.task)}</Text>

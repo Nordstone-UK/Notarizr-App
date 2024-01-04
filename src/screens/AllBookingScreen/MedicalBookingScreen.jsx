@@ -182,7 +182,7 @@ export default function MedicalBookingScreen({route, navigation}) {
         {bookingDetail?.service_type === 'mobile_notary' && (
           <Text style={styles.Heading}>Mobile Notary</Text>
         )}
-        {bookingDetail?.service_type === 'ron' && (
+        {bookingDetail?.service_type !== 'mobile_notary' && (
           <Text style={styles.Heading}>Remote Online Notary</Text>
         )}
       </View>

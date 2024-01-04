@@ -64,19 +64,15 @@ export const useSession = () => {
       console.error(error);
     }
   };
-  const updateSession = async (id, updatedStatus) => {
+  const updateSession = async (updatedStatus, id) => {
     const request = {
       variables: {
         sessionId: id,
         status: updatedStatus,
       },
     };
-    console.log('upadte: ', request);
     const response = await updateSessionStatus(request);
-    console.log(response);
-    console.log(response?.errors[0]?.extensions);
-    console.log(response?.errors[0]?.locations);
-    console.log(response?.errors[0]?.path);
+    console.log(response?.updateSessionStatus?.status);
   };
   return {
     handleSessionCreation,
