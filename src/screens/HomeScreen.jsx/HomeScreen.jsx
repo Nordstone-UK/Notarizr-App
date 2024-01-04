@@ -35,9 +35,6 @@ export default function HomeScreen({route, navigation}) {
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  // socket.on('connect', () => {
-  //   console.log(socket.id);
-  // });
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);

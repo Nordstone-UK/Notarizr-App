@@ -35,6 +35,7 @@ import Toast from 'react-native-toast-message';
 import {BottomSheet, Overlay} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
 import {downloadFile} from '../../../utils/RnDownload';
+import {useSession} from '../../../hooks/useSession';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
@@ -43,19 +44,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const {handlegetBookingStatus, handleUpdateBookingStatus} =
     useBookingStatus();
   const {handleupdateBookingInfo} = useFetchBooking();
-  const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
+  const {uploadAllDocuments} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
+  const {updateSession} = useSession();
+
   let {documents: documentArray} = clientDetail;
   const {booked_for} = clientDetail;
   const {proof_documents} = clientDetail;
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [isVisible, setIsVisible] = useState(false);
-  // console.log('====================================');
-  // console.log(clientDetail);
-  // console.log('====================================');
+
   const [notary, setNotary] = useState();
-  // const [documents, setDocuments] = useState({});
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -118,14 +118,15 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   const handleStatusChange = async string => {
     setLoading(true);
     try {
-      await handleUpdateBookingStatus(string, clientDetail?._id);
+      if (clientDetail?.__typename !== 'Session') {
+        await handleUpdateBookingStatus(string, clientDetail?._id);
+      } else {
+        await updateSession(string, clientDetail?._id);
+      }
       await getBookingStatus();
       console.log('====================================');
       console.log('status', status);
       console.log('====================================');
-      if (status === 'to_be_paid') {
-        navigation.navigate('PaymentCompletionScreen');
-      }
     } catch (error) {
       console.error('Error updating and fetching booking status:', error);
     }

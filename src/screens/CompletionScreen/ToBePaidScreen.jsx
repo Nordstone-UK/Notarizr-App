@@ -14,15 +14,20 @@ import useStripeApi from '../../hooks/useStripeApi';
 import {useStripe} from '@stripe/stripe-react-native';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import useChatService from '../../hooks/useChatService';
+import {useSession} from '../../hooks/useSession';
 
 export default function ToBePaidScreen({route, navigation}) {
   const {bookingData} = route.params;
   const {handleUpdateBookingStatus} = useBookingStatus();
-  const {createChatWithUser} = useChatService();
+  const {updateSession} = useSession();
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
   const init = async () => {
-    await handleUpdateBookingStatus('pending', bookingData._id);
+    if (bookingData?.__typename !== 'Session') {
+      await handleUpdateBookingStatus('pending', bookingData._id);
+    } else {
+      await updateSession('accepted', bookingData?._id);
+    }
     dispatch(setBookingInfoState(bookingData));
     dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
     dispatch(setUser(bookingData?.agent));
@@ -31,7 +36,6 @@ export default function ToBePaidScreen({route, navigation}) {
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
   const DocumentPrice = bookingData?.document_type?.price;
-  const TotalPayment = DocumentPrice + numberOfDocs * 10;
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
       (total, document) => total + document.price,
@@ -45,8 +49,8 @@ export default function ToBePaidScreen({route, navigation}) {
     const response = await fetchPaymentSheetParams(
       TotalPayment * 100,
       bookingData._id,
+      bookingData.__typename === 'Session' ? true : false,
     );
-    console.log('payment', response);
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
 
@@ -74,7 +78,7 @@ export default function ToBePaidScreen({route, navigation}) {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('error.message', error.message);
-      navigation.navigate('HomeScreen');
+      // navigation.navigate('HomeScreen');
     } else {
       await init();
       navigation.navigate('AgentBookCompletion');

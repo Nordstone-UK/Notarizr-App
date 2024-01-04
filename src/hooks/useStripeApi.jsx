@@ -32,11 +32,12 @@ const useStripeApi = () => {
       console.log('error', error);
     }
   };
-  const fetchPaymentSheetParams = async (amount, bookingId) => {
+  const fetchPaymentSheetParams = async (amount, bookingId, isSession) => {
     const request = {
       variables: {
-        amount,
-        bookingId,
+        amount: amount,
+        createPaymentIntentRId: bookingId,
+        isSession: isSession,
       },
     };
     // console.log('Before Payment Intent: ', request);

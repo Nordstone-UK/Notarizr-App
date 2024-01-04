@@ -1,13 +1,21 @@
 import gql from 'graphql-tag';
 
 export const CREATE_PAYMENT_INTENT = gql`
-  mutation CreatePaymentIntentR($amount: Float!, $bookingId: String!) {
-    createPaymentIntentR(amount: $amount, bookingId: $bookingId) {
+  mutation CreatePaymentIntentR(
+    $amount: Float!
+    $createPaymentIntentRId: String!
+    $isSession: Boolean!
+  ) {
+    createPaymentIntentR(
+      amount: $amount
+      id: $createPaymentIntentRId
+      is_session: $isSession
+    ) {
       status
       message
-      customer_id
-      ephemeralKey
       paymentIntent
+      ephemeralKey
+      customer_id
     }
   }
 `;
