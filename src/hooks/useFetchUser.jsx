@@ -14,11 +14,14 @@ const useFetchUser = () => {
   const [searchUser] = useLazyQuery(SEARCH_USER);
   const dispatch = useDispatch();
   let info;
-
   const fetchUserInfo = async () => {
     await user().then(response => {
-      dispatch(saveUserInfo(response.data.user));
       info = response.data.user;
+      if (!info.profile_picture) {
+        info.profile_picture =
+          'https://notarizr-app-data.s3.us-east-2.amazonaws.com/static/unnamed.jpg';
+      }
+      dispatch(saveUserInfo(info));
     });
     return info;
   };
@@ -33,9 +36,6 @@ const useFetchUser = () => {
     };
 
     await getDocuments(request).then(response => {
-      // console.log('====================================');
-      // console.log(response.data.getPaginatedDocumentTypes.status);
-      // console.log('====================================');
       info = response.data.getPaginatedDocumentTypes;
     });
     return info;

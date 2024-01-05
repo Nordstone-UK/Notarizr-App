@@ -52,7 +52,6 @@ const useBookingStatus = () => {
     };
     try {
       const response = await getSession(request);
-      console.log(response.data.getSession.session);
       return response.data.getSession.session?.status;
     } catch (error) {
       console.error(error);

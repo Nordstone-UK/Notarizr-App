@@ -35,6 +35,7 @@ export default function Splash_Screen({navigation}) {
               response?.account_type === 'client'
                 ? getClientChats()
                 : getAgentChats();
+
               navigation.navigate('HomeScreen');
             }
           })

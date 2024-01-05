@@ -81,7 +81,7 @@ export default function NotaryCallScreen({route, navigation}) {
     };
   }, []);
   console.log('====================================');
-  console.log(remoteUids);
+  console.log(remoteUids, isJoined);
   console.log('====================================');
   const join = async () => {
     if (isJoined) {
@@ -95,6 +95,7 @@ export default function NotaryCallScreen({route, navigation}) {
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
+      setIsJoined(true);
     } catch (e) {
       console.log(e);
     }
@@ -126,9 +127,6 @@ export default function NotaryCallScreen({route, navigation}) {
     console.log('====================================');
     agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
   };
-  // const handleTimezoneSelect = doc => {
-  //   setSelectDocument(doc);
-  // };
 
   const displayValue = () => {
     return (
