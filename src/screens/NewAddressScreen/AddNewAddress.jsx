@@ -31,27 +31,35 @@ export default function AddNewAddress({navigation}, props) {
   const [pin, setPin] = useState();
   const [tempLoading, settempLoading] = useState(false);
   const submitRegister = async () => {
-    settempLoading(true);
-    const newLocation = building + '  ' + street + ' ' + address + ' ' + pin;
-    const params = {
-      location: newLocation,
-      tag: 'Home',
-    };
-    const isUpdated = await hadleUpdateAddress(params);
-    if (isUpdated) {
-      fetchUserInfo();
-      settempLoading(false);
-      Toast.show({
-        type: 'success',
-        text1: 'Address Updated!',
-        text2: 'Your address has been updated successfully.',
-      });
-      navigation.goBack();
+    if (building && street && address && pin) {
+      settempLoading(true);
+      const newLocation = building + '  ' + street + ' ' + address + ' ' + pin;
+      const params = {
+        location: newLocation,
+        tag: 'Home',
+      };
+      const isUpdated = await hadleUpdateAddress(params);
+      if (isUpdated) {
+        fetchUserInfo();
+        settempLoading(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Address Updated!',
+          text2: 'Your address has been updated successfully.',
+        });
+        navigation.goBack();
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Problem while updating',
+        });
+        settempLoading(false);
+      }
     } else {
       Toast.show({
         type: 'error',
-        text1: 'Error',
-        text2: 'Problem while updating',
+        text1: 'Please enter all details',
       });
       settempLoading(false);
     }

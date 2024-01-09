@@ -88,9 +88,15 @@ const useAgentService = () => {
     };
     // console.log(request);
     const {data} = await createService(request);
-    // console.log('wdawd', reponse);
+    // console.log('wdawd', data);
+
     if (data.createService.status === '201') {
       navigation.navigate('ProfilePreferenceCompletion');
+    } else if (data?.createService?.status === '400') {
+      Toast.show({
+        type: 'error',
+        text1: 'Service already exists for this agent!',
+      });
     } else {
       Toast.show({
         type: 'error',

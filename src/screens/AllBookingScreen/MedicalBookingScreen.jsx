@@ -35,8 +35,9 @@ import moment from 'moment';
 import useFetchBooking from '../../hooks/useFetchBooking';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
-import {downloadFile} from '../../utils/RnDownload';
 import {useSession} from '../../hooks/useSession';
+import {useLiveblocks} from '../../store/liveblocks';
+import Loading from '../../components/LiveBlocksComponents/loading';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -61,7 +62,19 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   let statusUpdate;
+  const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
+  const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
+  const isStorageLoading = useLiveblocks(
+    state => state.liveblocks.isStorageLoading,
+  );
 
+  React.useEffect(() => {
+    enterRoom('test-room');
+
+    return () => {
+      leaveRoom();
+    };
+  }, [enterRoom, leaveRoom]);
   const handleStarPress = selectedRating => {
     setRating(selectedRating);
   };
@@ -411,28 +424,31 @@ export default function MedicalBookingScreen({route, navigation}) {
             )}
           </View>
           {bookingDetail?.service_type !== 'mobile_notary' &&
-            (status === 'Accepted' || status === 'Ongoing') && (
-              <GradientButton
-                Title="Join Session"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  width: widthToDp(90),
-                  paddingVertical: widthToDp(4),
-                  marginTop: widthToDp(10),
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  fontSize: widthToDp(6),
-                }}
-                onPress={() =>
-                  navigation.navigate('NotaryCallScreen', {
-                    uid: bookingDetail?._id,
-                    channel: bookingDetail?.agora_channel_name,
-                    token: bookingDetail?.agora_channel_token,
-                  })
-                }
-              />
-            )}
+          (status === 'Accepted' || status === 'Ongoing') &&
+          !isStorageLoading ? (
+            <GradientButton
+              Title="Join Session"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                width: widthToDp(90),
+                paddingVertical: widthToDp(4),
+                marginTop: widthToDp(10),
+              }}
+              styles={{
+                padding: widthToDp(0),
+                fontSize: widthToDp(6),
+              }}
+              onPress={() =>
+                navigation.navigate('NotaryCallScreen', {
+                  uid: bookingDetail?._id,
+                  channel: bookingDetail?.agora_channel_name,
+                  token: bookingDetail?.agora_channel_token,
+                })
+              }
+            />
+          ) : (
+            <Loading />
+          )}
           {status === 'Pending' ? null : (
             <View style={styles.buttonFlex}>
               {status === 'Accepted' &&

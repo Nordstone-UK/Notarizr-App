@@ -44,14 +44,21 @@ export default function AgentRONLocationScreen({route, navigation}) {
     setIsDisabled(false);
   };
   function checkAndAddCity(city) {
-    if (cityArray.includes(city)) {
+    if (city) {
+      if (cityArray.includes(city)) {
+        Toast.show({
+          type: 'error',
+          text1: 'City already added',
+        });
+      } else {
+        setCityArray(prevArray => [...prevArray, city]);
+        console.log('Added:', city);
+      }
+    } else {
       Toast.show({
         type: 'error',
-        text1: 'City already added',
+        text1: 'Enter a City Name',
       });
-    } else {
-      setCityArray(prevArray => [...prevArray, city]);
-      console.log('Added:', city);
     }
   }
   function removeCity(city) {
