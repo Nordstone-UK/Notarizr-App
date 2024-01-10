@@ -39,7 +39,25 @@ import {useLiveblocks} from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 const pdfUrl = 'https://www.africau.edu/images/default/sample.pdf';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
+import HeaderRight from '../../components/LiveBlocksComponents/header-right';
+import {Picker} from '@react-native-picker/picker';
 export default function NotaryCallScreen({route, navigation}: any) {
+  const arrayOfDocs = [
+    {
+      id: 1,
+      name: 'Document 1',
+      url: 'https://www.africau.edu/images/default/sample.pdf',
+    },
+    {
+      id: 2,
+      name: 'Document 2',
+      url: 'https://www.africau.edu/images/default/sample.pdf',
+    },
+  ];
+  const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
+
+  const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
+
   const {channel, token: CutomToken, uid: _id} = route.params;
   const uid = parseInt(_id, 16);
   const channelName = channel;
@@ -65,8 +83,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
   const [pdfSource, setPdfSource] = React.useState<Source | null>(null);
 
-  const onUpdatePdf = useCallback(async () => {
-    const pdfFile = await ReactNativeBlobUtil.fetch('GET', pdfUrl);
+  const onUpdatePdf = useCallback(async (link: string) => {
+    const pdfFile = await ReactNativeBlobUtil.fetch('GET', link);
     const pdfDoc = await PDFDocument.load(pdfFile.base64());
 
     const base64Pdf = await pdfDoc.saveAsBase64({dataUri: true});
@@ -74,7 +92,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
       uri: base64Pdf,
     });
   }, []);
-
+  const handleLinkChange = (linkId: number) => {
+    const selectedDoc = arrayOfDocs.find(doc => doc.id === linkId);
+    setSelectedLink(linkId);
+    deleteAllObjects();
+    onUpdatePdf(selectedDoc?.url);
+  };
   const onLabelAdd = React.useCallback(() => {
     insertObject(new Date().toISOString(), {
       type: 'label',
@@ -112,10 +135,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
   }, [currentPage, insertObject]);
 
   React.useEffect(() => {
-    onUpdatePdf();
+    onUpdatePdf(arrayOfDocs[0].url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   React.useEffect(() => {
     if (remoteCurrentPage !== currentPage) {
       pdfRef.current?.setPage(remoteCurrentPage);
@@ -221,7 +243,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       ]);
     }
   };
-
   return (
     <SafeAreaView style={styles.Maincontainer}>
       {/* <View style={styles.NavbarContainer}>
@@ -336,6 +357,16 @@ export default function NotaryCallScreen({route, navigation}: any) {
           </View>
         </View>
       </View>
+      <View>
+        <Picker
+          selectedValue={selectedLink}
+          onValueChange={itemValue => handleLinkChange(itemValue)}
+          style={styles.picker}>
+          {arrayOfDocs.map(doc => (
+            <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
+          ))}
+        </Picker>
+      </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
           {pdfSource && (
@@ -348,6 +379,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
               horizontal={true}
               singlePage={true}
               onLoadComplete={numberOfPages => {
+                console.log('Func', numberOfPages);
                 setCurrentPage(1);
                 setTotalPages(numberOfPages);
               }}
@@ -385,6 +417,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
             <Pressable onPress={() => onStampAdd()}>
               <PageEdit width={26} height={26} color="#000000" />
             </Pressable>
+            <HeaderRight />
           </View>
           <View style={styles.navigation}>
             <Pressable
@@ -488,10 +521,8 @@ const styles = StyleSheet.create({
   },
   picker: {
     borderWidth: 2,
+    backgroundColor: Colors.white,
     borderColor: Colors.DisableColor,
-    width: widthToDp(90),
-    marginHorizontal: widthToDp(5),
-    borderRadius: 15,
   },
   NavTextContainer: {
     // borderWidth: 1,
@@ -567,8 +598,8 @@ const styles = StyleSheet.create({
     columnGap: widthToDp(4),
   },
   videoView: {
-    // width: widthToDp(15),
-    // height: heightToDp(20),
+    width: widthToDp(25),
+    height: heightToDp(30),
     resizeMode: 'contain',
     borderRadius: 15,
   },
