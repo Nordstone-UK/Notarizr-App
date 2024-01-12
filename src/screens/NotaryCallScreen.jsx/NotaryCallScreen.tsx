@@ -153,7 +153,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       const {channelName, token} = await getAgoraCallToken(userID);
       setChannelName(channelName);
       setCallToken(token);
-      console.log(channelName, token);
       console.log('Channel Name:', channelName);
       console.log('Token:', token);
     } catch (error) {
