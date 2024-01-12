@@ -36,13 +36,18 @@ import {BottomSheet, Overlay} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
 import {downloadFile} from '../../../utils/RnDownload';
 import {useSession} from '../../../hooks/useSession';
+import {useLiveblocks} from '../../../store/liveblocks';
+import Loading from '../../../components/LiveBlocksComponents/loading';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}) {
   // const {clientDetail} = route.params;
   const clientDetail = useSelector(state => state.booking.booking);
 
-  const {handlegetBookingStatus, handleUpdateBookingStatus} =
-    useBookingStatus();
+  const {
+    handlegetBookingStatus,
+    handleSessionStatus,
+    handleUpdateBookingStatus,
+  } = useBookingStatus();
   const {handleupdateBookingInfo} = useFetchBooking();
   const {uploadAllDocuments} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
@@ -93,13 +98,23 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
   };
   const getBookingStatus = async () => {
     try {
-      const status = await handlegetBookingStatus(clientDetail._id);
-      setNotary(capitalizeFirstLetter(status));
-      setStatus(capitalizeFirstLetter(status));
-      // console.log('status', clientDetail._id, status);
+      if (clientDetail?.__typename === 'Session') {
+        statusUpdate = await handleSessionStatus(clientDetail?._id);
+      } else {
+        statusUpdate = await handlegetBookingStatus(clientDetail?._id);
+      }
+      setStatus(capitalizeFirstLetter(statusUpdate));
     } catch (error) {
       console.error('Error retrieving booking status:', error);
     }
+    // try {
+    //   const status = await handlegetBookingStatus(clientDetail._id);
+    //   setNotary(capitalizeFirstLetter(status));
+    //   setStatus(capitalizeFirstLetter(status));
+    //   // console.log('status', clientDetail._id, status);
+    // } catch (error) {
+    //   console.error('Error retrieving booking status:', error);
+    // }
   };
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -186,6 +201,20 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
     const namesString = names.join(', ');
     return namesString;
   }
+
+  const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
+  const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
+  const isStorageLoading = useLiveblocks(
+    state => state.liveblocks.isStorageLoading,
+  );
+
+  React.useEffect(() => {
+    enterRoom('test-room');
+
+    return () => {
+      leaveRoom();
+    };
+  }, [enterRoom, leaveRoom]);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -493,7 +522,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
             )}
           </View>
           <View style={styles.buttonFlex}>
-            {clientDetail?.service_type === 'ron' && notary === 'Accepted' && (
+            {clientDetail?.service_type !== 'mobile_notary' &&
+            (status === 'Accepted' || status === 'Ongoing') &&
+            !isStorageLoading ? (
               <>
                 <MainButton
                   Title="Add Observers"
@@ -540,6 +571,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   }}
                 />
               </>
+            ) : (
+              <Loading />
             )}
           </View>
           <View style={styles.buttonBottom}>

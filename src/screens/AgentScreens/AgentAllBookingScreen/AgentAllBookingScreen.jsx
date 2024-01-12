@@ -71,7 +71,7 @@ export default function AgentAllBookingScreen({navigation}) {
   }, []);
   const checkStatusNavigation = (status, item) => {
     // console.log('item?.status', item._id, item?.status);
-    if (status === 'accepted') {
+    if (status === 'accepted' && item?.__typename === 'mobile_notary') {
       dispatch(setBookingInfoState(item));
       dispatch(setUser(item?.booked_by));
       dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));

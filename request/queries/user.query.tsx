@@ -12,6 +12,7 @@ export const FETCH_USER_INFO = gql`
       gender
       isBlocked
       chatPrivacy
+      notarySeal
       location
       rating
       subscriptionType

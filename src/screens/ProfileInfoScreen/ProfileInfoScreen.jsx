@@ -95,7 +95,7 @@ export default function ProfileInfoScreen({navigation}) {
             {account_type !== 'client' && (
               <SettingOptions
                 icon={require('../../../assets/license.png')}
-                Title="Update License"
+                Title="Update License and Notary Seal"
                 // onPress={() => navigation.navigate('PasswordEditScreen')}
               />
             )}

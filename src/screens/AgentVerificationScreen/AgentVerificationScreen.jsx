@@ -29,11 +29,29 @@ export default function AgentVerificationScreen({navigation}, props) {
   const variables = useSelector(state => state.register);
   const [photoID, setphotoID] = useState(null);
   const [Certificate, setCertificate] = useState(null);
+  const [Seal, setSeal] = useState(null);
   const [loading, setLoading] = useState(false);
   const {uploadFiles, handleCompression, uploadFilestoS3, handleRegister} =
     useRegister();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [uploadedDocuments, setUploadedDocuments] = useState([]);
+
+  const handleUpload = documentType => {
+    setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
+    setCurrentStep(currentStep + 1);
+  };
+
+  const handleDelete = documentType => {
+    setUploadedDocuments(prevDocuments =>
+      prevDocuments.filter(doc => doc !== documentType),
+    );
+    setCurrentStep(currentStep - 1);
+  };
   const deletePhotoID = () => {
     setphotoID(null);
+  };
+  const deleteSeal = () => {
+    setSeal(null);
   };
   const deleteCertificate = () => {
     setCertificate(null);
@@ -63,6 +81,19 @@ export default function AgentVerificationScreen({navigation}, props) {
         text1: 'Please try again ',
       });
       setCertificate(null);
+    }
+  };
+  const selectSeal = async () => {
+    const response = await uploadFiles();
+    if (response) {
+      console.log('Send: ', response);
+      setSeal(response);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please try again ',
+      });
+      setSeal(null);
     }
   };
   const submitRegister = async () => {
@@ -135,12 +166,13 @@ export default function AgentVerificationScreen({navigation}, props) {
           <View style={styles.flexContainer}>
             <Text style={styles.subHeading}>1. Picture ID</Text>
             <Text style={styles.subHeading}>2. Notary Certificate</Text>
+            <Text style={styles.subHeading}>3. Notary Seal</Text>
           </View>
           <View
             style={{
               marginVertical: heightToDp(2),
             }}>
-            {photoID && Certificate ? null : photoID === null ? (
+            {photoID && Certificate && Seal ? null : photoID === null ? (
               <MainButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 Title="Upload Photo ID"
@@ -155,7 +187,7 @@ export default function AgentVerificationScreen({navigation}, props) {
                 }}
                 onPress={() => selectPhotoID()}
               />
-            ) : (
+            ) : Certificate === null ? (
               <MainButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 Title="Upload Certificate"
@@ -169,6 +201,21 @@ export default function AgentVerificationScreen({navigation}, props) {
                   fontSize: widthToDp(4),
                 }}
                 onPress={() => selectCertificate()}
+              />
+            ) : (
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Upload Notary Seal"
+                GradiStyles={{
+                  width: widthToDp(50),
+                  paddingVertical: widthToDp(1.5),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => selectSeal()}
               />
             )}
           </View>
@@ -187,10 +234,17 @@ export default function AgentVerificationScreen({navigation}, props) {
                 onPress={() => deleteCertificate()}
               />
             )}
+            {Seal && (
+              <DocumentComponent
+                Title="Notary Seal"
+                image={require('../../../assets/Pdf.png')}
+                onPress={() => deleteSeal()}
+              />
+            )}
           </View>
           <View
             style={{
-              marginTop: heightToDp(10),
+              marginVertical: heightToDp(10),
             }}>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -220,8 +274,10 @@ const styles = StyleSheet.create({
   },
   flexContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginVertical: heightToDp(2),
+    marginHorizontal: heightToDp(5),
+    flexWrap: 'wrap',
   },
   subHeading: {
     fontSize: widthToDp(4.5),

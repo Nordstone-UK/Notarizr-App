@@ -37,31 +37,35 @@ import {
 } from 'iconoir-react-native';
 import {useLiveblocks} from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
-const pdfUrl = 'https://www.africau.edu/images/default/sample.pdf';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import {Picker} from '@react-native-picker/picker';
+import useChatService from '../../hooks/useChatService';
+import {useSelector} from 'react-redux';
 export default function NotaryCallScreen({route, navigation}: any) {
+  const userID = useSelector(state => state.user.user._id);
   const arrayOfDocs = [
     {
       id: 1,
       name: 'Document 1',
-      url: 'https://www.africau.edu/images/default/sample.pdf',
+      url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
     },
     {
       id: 2,
       name: 'Document 2',
-      url: 'https://www.africau.edu/images/default/sample.pdf',
+      url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
     },
   ];
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
+  const {getAgoraCallToken} = useChatService();
 
   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
+  // const {channel, token: CutomToken} = route.params;
+  // const uid = parseInt(_id, 16);
 
-  const {channel, token: CutomToken, uid: _id} = route.params;
-  const uid = parseInt(_id, 16);
-  const channelName = channel;
-  const token = CutomToken;
+  const uid = 0;
+  // const channelName = channel;
+  // const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
   const [remoteUids, setRemoteUids] = useState<number[]>([]);
   const agoraEngineRef = useRef<IRtcEngine>();
@@ -77,7 +81,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const insertObject = useLiveblocks(state => state.insertObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const [totalPages, setTotalPages] = React.useState<number>(0);
-
+  const [channelName, setChannelName] = useState('');
+  const [token, setCallToken] = useState('');
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
 
@@ -86,8 +91,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const onUpdatePdf = useCallback(async (link: string) => {
     const pdfFile = await ReactNativeBlobUtil.fetch('GET', link);
     const pdfDoc = await PDFDocument.load(pdfFile.base64());
-
     const base64Pdf = await pdfDoc.saveAsBase64({dataUri: true});
+
     setPdfSource({
       uri: base64Pdf,
     });
@@ -143,9 +148,21 @@ export default function NotaryCallScreen({route, navigation}: any) {
       pdfRef.current?.setPage(remoteCurrentPage);
     }
   }, [remoteCurrentPage, currentPage]);
-
+  const getVoiceToken = async () => {
+    try {
+      const {channelName, token} = await getAgoraCallToken(userID);
+      setChannelName(channelName);
+      setCallToken(token);
+      console.log(channelName, token);
+      console.log('Channel Name:', channelName);
+      console.log('Token:', token);
+    } catch (error) {
+      console.log('API Error:', error);
+    }
+  };
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
+      await getVoiceToken();
       try {
         if (Platform.OS === 'android') {
           await getPermission();
@@ -195,7 +212,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
-      setIsJoined(true);
     } catch (e) {
       console.log(e);
     }
@@ -215,6 +231,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
     SplashScreen.hide();
   }, []);
   function showMessage(msg: string) {
+    console.log(msg);
     Toast.show({
       type: 'success',
       text1: msg,
@@ -378,7 +395,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
               showsHorizontalScrollIndicator={false}
               horizontal={true}
               singlePage={true}
-              onLoadComplete={numberOfPages => {
+              onLoadComplete={(numberOfPages, filepath) => {
                 console.log('Func', numberOfPages);
                 setCurrentPage(1);
                 setTotalPages(numberOfPages);
