@@ -7,11 +7,15 @@ export const REGISTER_USER = gql`
     $email: String!
     $phoneNumber: String!
     $location: String!
-    $gender: String
     $accountType: String
-    $profilePicture: String
-    $certificateUrl: String
     $photoId: String
+    $certificateUrl: String
+    $profilePicture: String
+    $gender: String
+    $description: String
+    $state: String
+    $notarySeal: String
+    $dateOfBirth: String
   ) {
     register(
       first_name: $firstName
@@ -19,11 +23,15 @@ export const REGISTER_USER = gql`
       email: $email
       phone_number: $phoneNumber
       location: $location
-      gender: $gender
       account_type: $accountType
-      profile_picture: $profilePicture
-      certificate_url: $certificateUrl
       photoId: $photoId
+      certificate_url: $certificateUrl
+      profile_picture: $profilePicture
+      gender: $gender
+      description: $description
+      state: $state
+      notarySeal: $notarySeal
+      date_of_birth: $dateOfBirth
     ) {
       message
       status

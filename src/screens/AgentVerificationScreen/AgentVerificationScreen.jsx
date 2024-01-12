@@ -98,7 +98,7 @@ export default function AgentVerificationScreen({navigation}, props) {
   };
   const submitRegister = async () => {
     setLoading(true);
-    if (photoID && Certificate) {
+    if (photoID && Certificate && Seal) {
       const photeBlob = await uriToBlob(photoID);
       console.log('====================================');
       console.log('photoblob', photeBlob);
@@ -108,17 +108,23 @@ export default function AgentVerificationScreen({navigation}, props) {
       console.log('====================================');
       console.log('CertificateBlob', CertificateBlob);
       console.log('====================================');
+      const SealBlob = await uriToBlob(Seal);
+
+      console.log('====================================');
+      console.log('CertificateBlob', SealBlob);
+      console.log('====================================');
 
       const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
       const CertificateURL = await uploadFilestoS3(
         CertificateBlob,
         variables.firstName,
       );
-
+      const SealUrl = await uploadFilestoS3(SealBlob, variables.firstName);
       const params = {
         ...variables,
         certificateUrl: CertificateURL,
         photoId: photoURL,
+        notarySeal: SealUrl,
       };
 
       const isRegister = await handleRegister(params);

@@ -60,12 +60,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const {getAgoraCallToken} = useChatService();
 
   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
-  // const {channel, token: CutomToken} = route.params;
+  const {channel, token: CutomToken} = route.params;
   // const uid = parseInt(_id, 16);
 
   const uid = 0;
-  // const channelName = channel;
-  // const token = CutomToken;
+  const channelName = channel;
+  const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
   const [remoteUids, setRemoteUids] = useState<number[]>([]);
   const agoraEngineRef = useRef<IRtcEngine>();
@@ -81,8 +81,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const insertObject = useLiveblocks(state => state.insertObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const [totalPages, setTotalPages] = React.useState<number>(0);
-  const [channelName, setChannelName] = useState('');
-  const [token, setCallToken] = useState('');
+  // const [channelName, setChannelName] = useState('');
+  // const [token, setCallToken] = useState('');
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
 
@@ -148,20 +148,10 @@ export default function NotaryCallScreen({route, navigation}: any) {
       pdfRef.current?.setPage(remoteCurrentPage);
     }
   }, [remoteCurrentPage, currentPage]);
-  const getVoiceToken = async () => {
-    try {
-      const {channelName, token} = await getAgoraCallToken(userID);
-      setChannelName(channelName);
-      setCallToken(token);
-      console.log('Channel Name:', channelName);
-      console.log('Token:', token);
-    } catch (error) {
-      console.log('API Error:', error);
-    }
-  };
+
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
-      await getVoiceToken();
+      // await getVoiceToken();
       try {
         if (Platform.OS === 'android') {
           await getPermission();
@@ -394,7 +384,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
               showsHorizontalScrollIndicator={false}
               horizontal={true}
               singlePage={true}
-              onLoadComplete={(numberOfPages, filepath) => {
+              onLoadComplete={numberOfPages => {
                 console.log('Func', numberOfPages);
                 setCurrentPage(1);
                 setTotalPages(numberOfPages);

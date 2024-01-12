@@ -13,28 +13,35 @@ export default function TimePicker(props) {
   };
   return (
     <View>
-      <TouchableOpacity onPress={() => setOpen(true)}>
+      <TouchableOpacity
+        onPress={() => setOpen(true)}
+        style={props.containerStyle}>
         {props.Text && (
           <Text
-            style={{
-              fontFamily: 'Manrope-Bold',
-              fontSize: widthToDp(4),
-              color: Colors.TextColor,
-              // borderWidth: 1,
-            }}>
+            style={[
+              {
+                fontFamily: 'Manrope-Bold',
+                fontSize: widthToDp(4),
+                color: Colors.TextColor,
+              },
+              props.labelStyle,
+            ]}>
             {props.Text}
           </Text>
         )}
         <Text
-          style={{
-            color: Colors.Orange,
-            fontFamily: 'Manrope-Bold',
-            fontSize: widthToDp(5),
-            borderWidth: 1,
-            borderColor: Colors.Orange,
-            paddingHorizontal: widthToDp(2),
-            borderRadius: widthToDp(2),
-          }}>
+          style={[
+            {
+              color: Colors.Orange,
+              fontFamily: 'Manrope-Bold',
+              fontSize: widthToDp(5),
+              borderWidth: 1,
+              borderColor: Colors.Orange,
+              paddingHorizontal: widthToDp(2),
+              borderRadius: widthToDp(2),
+            },
+            props.textStyle,
+          ]}>
           {moment(selectedDate).format('h:mm A')}
         </Text>
       </TouchableOpacity>
@@ -48,7 +55,7 @@ export default function TimePicker(props) {
           setOpen(false);
         }}
         onCancel={handleCancel}
-        mode="time"
+        mode={props.mode || 'time'}
       />
     </View>
   );

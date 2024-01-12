@@ -27,8 +27,10 @@ import Toast from 'react-native-toast-message';
 import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
+import TimePicker from '../../components/TimePicker/TimePicker';
 
 export default function SignUpDetailScreen({navigation}, props) {
+  const [date, setDate] = useState(new Date());
   const [firstName, setfirstName] = useState('');
   const [lastName, setlastName] = useState('');
   const [phoneNumber, setNumber] = useState('');
@@ -191,6 +193,20 @@ export default function SignUpDetailScreen({navigation}, props) {
                 Label={true}
                 placeholder={'XXXXXXXXXXX'}
               />
+              <TimePicker
+                onConfirm={date => setDate(date)}
+                Text="Start Time"
+                mode="date"
+                date={date}
+                labelStyle={{}}
+                containerStyle={{
+                  paddingVertical: widthToDp(4),
+                  width: widthToDp(90),
+                  alignSelf: 'center',
+                }}
+                textStyle={{}}
+              />
+
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}
                 Label={true}

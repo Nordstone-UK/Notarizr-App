@@ -52,7 +52,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
   const [feedback, setFeedback] = useState();
-  const {documents} = bookingDetail;
+  const documents = bookingDetail?.documents;
   const {booked_for} = bookingDetail;
   const [modalShow, setModalShow] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
