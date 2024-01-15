@@ -24,6 +24,7 @@ export default function SignPhoneVerification({route, navigation}) {
     location,
     gender,
     phoneNumber,
+    date,
   } = route.params;
   // console.log('route.params', route.params);
   // const Statemail = useSelector(state => state.register.email);
@@ -46,6 +47,7 @@ export default function SignPhoneVerification({route, navigation}) {
             email,
             phoneNumber,
             description,
+            date,
           }),
         );
         navigation.navigate('ProfilePictureScreen');

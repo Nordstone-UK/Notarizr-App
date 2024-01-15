@@ -55,7 +55,8 @@ export default function SignUpDetailScreen({navigation}, props) {
       !phoneNumber ||
       !firstName ||
       !lastName ||
-      !gender
+      !gender ||
+      !date
     ) {
       Toast.show({
         type: 'warning',
@@ -120,19 +121,8 @@ export default function SignUpDetailScreen({navigation}, props) {
             email,
             phoneNumber,
             description,
+            date,
           });
-          // dispatch(
-          //   ceredentailSet({
-          //     firstName,
-          //     lastName,
-          //     location,
-          //     gender,
-          //     email,
-          //     phoneNumber,
-          //     description,
-          //   }),
-          // );
-          // navigation.navigate('ProfilePictureScreen');
         }
       });
     } catch (error) {
