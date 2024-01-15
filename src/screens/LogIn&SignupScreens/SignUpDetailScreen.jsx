@@ -27,8 +27,7 @@ import Toast from 'react-native-toast-message';
 import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
-import TimePicker from '../../components/TimePicker/TimePicker';
-
+import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
 export default function SignUpDetailScreen({navigation}, props) {
   const [date, setDate] = useState(new Date());
   const [firstName, setfirstName] = useState('');
@@ -193,9 +192,9 @@ export default function SignUpDetailScreen({navigation}, props) {
                 Label={true}
                 placeholder={'XXXXXXXXXXX'}
               />
-              <TimePicker
+              <CustomDatePicker
                 onConfirm={date => setDate(date)}
-                Text="Start Time"
+                Text="Date Of Birth"
                 mode="date"
                 date={date}
                 labelStyle={{}}
@@ -223,9 +222,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                   onChangeText={text => setDescription(text)}
                 />
               )}
-              {/* <View>
-              <GooglePlacesInput />
-            </View> */}
+
               <View style={styles.GenderContainer}>
                 <Picker
                   selectedValue={gender}

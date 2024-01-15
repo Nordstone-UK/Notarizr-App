@@ -129,5 +129,6 @@ const styles = StyleSheet.create({
     width: widthToDp(5),
     height: heightToDp(5),
     marginHorizontal: widthToDp(1),
+    tintColor: Colors.DisableColor,
   },
 });
