@@ -76,7 +76,7 @@ export default function LabelTextInput(props) {
 const styles = StyleSheet.create({
   container: {
     marginBottom: heightToDp(2),
-    marginTop: heightToDp(5),
+    marginTop: heightToDp(3),
     alignItems: 'center',
     alignSelf: 'center',
   },

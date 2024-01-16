@@ -32,42 +32,53 @@ export default function LoginScreen({navigation}, props) {
   const dispath = useDispatch();
 
   const handleGetPhoneOtp = () => {
-    dispath(emailSet(email));
-    try {
-      getPhoneOtp({
-        variables: {email},
-      }).then(response => {
-        if (response?.data?.getPhoneOTP?.status === '403') {
-          Toast.show({
-            type: 'error',
-            text1: 'We are Sorry!',
-            text2: 'This User is Blocked',
-          });
-        } else if (response?.data?.getPhoneOTP?.status === '401') {
-          Toast.show({
-            type: 'error',
-            text1: 'Email does not exist!',
-            text2: 'Please sign up for a new account',
-          });
-        } else if (response?.data?.getPhoneOTP?.status !== '200') {
-          Toast.show({
-            type: 'error',
-            text1: 'OTP not sent!',
-            text2: 'We encountered a problem please try again',
-          });
-        } else {
-          Toast.show({
-            type: 'success',
-            text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
-            text2: '',
-          });
-          navigation.navigate('PhoneVerification', {
-            message: response.data.getPhoneOTP.phoneNumber,
-          });
-        }
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+    if (!emailRegex.test(email)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email!',
+        text2: 'Please enter a valid email address',
       });
-    } catch (error) {
-      console.log(error);
+      return;
+    } else {
+      dispath(emailSet(email));
+      try {
+        getPhoneOtp({
+          variables: {email},
+        }).then(response => {
+          if (response?.data?.getPhoneOTP?.status === '403') {
+            Toast.show({
+              type: 'error',
+              text1: 'We are Sorry!',
+              text2: 'This User is Blocked',
+            });
+          } else if (response?.data?.getPhoneOTP?.status === '401') {
+            Toast.show({
+              type: 'error',
+              text1: 'Email does not exist!',
+              text2: 'Please sign up for a new account',
+            });
+          } else if (response?.data?.getPhoneOTP?.status !== '200') {
+            Toast.show({
+              type: 'error',
+              text1: 'OTP not sent!',
+              text2: 'We encountered a problem please try again',
+            });
+          } else {
+            Toast.show({
+              type: 'success',
+              text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
+              text2: '',
+            });
+            navigation.navigate('PhoneVerification', {
+              message: response.data.getPhoneOTP.phoneNumber,
+            });
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 

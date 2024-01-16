@@ -311,7 +311,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() => setSelected('ID Card')}
+                onPress={() => setSelected('user_id')}
               />
               <MainButton
                 Title="Passport"
@@ -328,7 +328,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() => setSelected('Passport')}
+                onPress={() => setSelected('user_passport')}
               />
             </View>
           </View>

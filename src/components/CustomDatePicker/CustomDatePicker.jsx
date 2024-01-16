@@ -24,7 +24,8 @@ export default function CustomDatePicker(props) {
           borderColor: '#D3D5DA',
           width: widthToDp(90),
           alignSelf: 'center',
-          marginTop: heightToDp(4),
+          marginTop: heightToDp(5),
+          marginBottom: heightToDp(2),
         }}>
         <Image
           source={require('../../../assets/calenderIcon.png')}
@@ -39,7 +40,7 @@ export default function CustomDatePicker(props) {
           style={[
             {
               fontFamily: 'Manrope-Bold',
-              fontSize: widthToDp(4.5),
+              fontSize: widthToDp(4),
               alignSelf: 'center',
               marginLeft: widthToDp(5),
               color: Colors.Black,
@@ -67,7 +68,7 @@ export default function CustomDatePicker(props) {
             {
               position: 'absolute',
               left: widthToDp(15),
-              top: widthToDp(1),
+              top: widthToDp(2),
               padding: 2,
               fontSize: 15,
               color: Colors.InputTextColor,

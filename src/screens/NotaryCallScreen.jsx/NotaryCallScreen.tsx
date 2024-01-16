@@ -57,12 +57,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
     },
   ];
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
-  const {getAgoraCallToken} = useChatService();
 
   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
   const {channel, token: CutomToken} = route.params;
-  // const uid = parseInt(_id, 16);
-
   const uid = 0;
   const channelName = channel;
   const token = CutomToken;
@@ -73,7 +70,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [remoteUid, setRemoteUid] = useState(0);
   const [selected, setSelected] = useState('notary room');
   const [value, setValue] = useState(50);
-
+  console.log(channel, CutomToken);
   const pdfRef = React.useRef<PdfView>(null);
   const objects = useLiveblocks(state => state.objects);
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
@@ -151,7 +148,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
-      // await getVoiceToken();
       try {
         if (Platform.OS === 'android') {
           await getPermission();
@@ -216,9 +212,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       console.log(e);
     }
   };
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
   function showMessage(msg: string) {
     console.log(msg);
     Toast.show({
