@@ -78,8 +78,9 @@ export default function AgentSessionInviteScreen({navigation}) {
   };
   const handleDocumentSelection = async () => {
     const response = await uploadMultipleFiles();
-
-    setFileResponse(response);
+    if (response) {
+      setFileResponse(response);
+    }
   };
 
   const getState = async query => {
@@ -101,30 +102,55 @@ export default function AgentSessionInviteScreen({navigation}) {
 
   const printEverything = async () => {
     setLoading(true);
-    if (fileResponse) {
-      urlResponse = await uploadDocArray(fileResponse);
-    }
-    const documentObjects = documentSelect.map(item => {
-      const [name, price] = item.split(' - $');
-      return {name, price: parseFloat(price)};
-    });
-    const totalPrice = calculateTotalPrice(documentObjects);
-    const response = await handleSessionCreation(
-      urlResponse,
-      selectedClient,
-      'schedule_later',
-      date.toString(),
-      selected,
-      observerEmail,
-      totalPrice,
-      documentObjects,
-    );
-    if (response === '200') {
-      navigation.navigate('AllBookingScreen');
+
+    if (
+      fileResponse.length !== 0 &&
+      selectedClient &&
+      observerEmail.length !== 0 &&
+      documentSelect.length !== 0
+    ) {
+      console.log(
+        'working',
+        urlResponse,
+        selectedClient,
+        'schedule_later',
+        date.toString(),
+        selected,
+        observerEmail,
+        totalPrice,
+        documentObjects,
+      );
+      if (fileResponse) {
+        urlResponse = await uploadDocArray(fileResponse);
+      }
+      const documentObjects = documentSelect.map(item => {
+        const [name, price] = item.split(' - $');
+        return {name, price: parseFloat(price)};
+      });
+      const totalPrice = calculateTotalPrice(documentObjects);
+      const response = await handleSessionCreation(
+        urlResponse,
+        selectedClient,
+        'schedule_later',
+        date.toString(),
+        selected,
+        observerEmail,
+        totalPrice,
+        documentObjects,
+      );
+      if (response === '200') {
+        navigation.navigate('SessionCreation');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Something went wrong',
+        });
+      }
+      setLoading(false);
     } else {
       Toast.show({
         type: 'error',
-        text1: 'Something went wrong',
+        text1: 'Please fill in all the fields',
       });
     }
     setLoading(false);
@@ -271,9 +297,9 @@ export default function AgentSessionInviteScreen({navigation}) {
                 onPress={() => setSelected('client_choose')}
               />
               <MainButton
-                Title="US Citizens + KBA"
+                Title="ID Card"
                 colors={
-                  selected === 'US Citizens + KBA'
+                  selected === 'ID Card'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
@@ -285,12 +311,12 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() => setSelected('US Citizens + KBA')}
+                onPress={() => setSelected('ID Card')}
               />
               <MainButton
-                Title="US Citizens/Foreigners + Biometrics"
+                Title="Passport"
                 colors={
-                  selected === 'US Citizens/Foreigners + Biometrics'
+                  selected === 'Passport'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
@@ -302,50 +328,12 @@ export default function AgentSessionInviteScreen({navigation}) {
                   padding: heightToDp(2),
                   fontSize: widthToDp(3.5),
                 }}
-                onPress={() =>
-                  setSelected('US Citizens/Foreigners + Biometrics')
-                }
+                onPress={() => setSelected('Passport')}
               />
             </View>
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Session Schedule</Text>
-            {/* <View style={styles.buttonBottom}>
-              <MainButton
-                Title="Notarize Now"
-                colors={
-                  session === 'Notarize Now'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => handleNotarizeNow()}
-              />
-              <MainButton
-                Title="Schedule for Later"
-                colors={
-                  session === 'Schedule for Later'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => handleSchedule()}
-              />
-            </View> */}
           </View>
           <View style={styles.buttonFlex}>
             <TouchableOpacity onPress={() => setOpen(true)}>
@@ -367,7 +355,6 @@ export default function AgentSessionInviteScreen({navigation}) {
               mode="datetime"
               minimumDate={new Date()}
               open={open}
-              // androidVariant="iosClone"
               date={date}
               onConfirm={date => {
                 setOpen(false);
@@ -380,7 +367,7 @@ export default function AgentSessionInviteScreen({navigation}) {
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Document</Text>
-            {fileResponse.length === 0 ? (
+            {fileResponse?.length === 0 ? (
               <TouchableOpacity
                 style={styles.dottedContianer}
                 onPress={handleDocumentSelection}>
@@ -408,7 +395,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   marginLeft: widthToDp(5),
                   columnGap: widthToDp(3),
                 }}>
-                {fileResponse.map((item, index) => (
+                {fileResponse?.map((item, index) => (
                   <TouchableOpacity key={index}>
                     <Image
                       source={require('../../../../assets/docPic.png')}
@@ -620,3 +607,41 @@ const styles = StyleSheet.create({
 //      </Picker>
 //    )}
 //  </View>;
+{
+  /* <View style={styles.buttonBottom}>
+              <MainButton
+                Title="Notarize Now"
+                colors={
+                  session === 'Notarize Now'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                GradiStyles={{
+                  paddingVertical: heightToDp(1),
+                  paddingHorizontal: widthToDp(5),
+                }}
+                styles={{
+                  padding: heightToDp(2),
+                  fontSize: widthToDp(3.5),
+                }}
+                onPress={() => handleNotarizeNow()}
+              />
+              <MainButton
+                Title="Schedule for Later"
+                colors={
+                  session === 'Schedule for Later'
+                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                    : [Colors.DisableColor, Colors.DisableColor]
+                }
+                GradiStyles={{
+                  paddingVertical: heightToDp(1),
+                  paddingHorizontal: widthToDp(5),
+                }}
+                styles={{
+                  padding: heightToDp(2),
+                  fontSize: widthToDp(3.5),
+                }}
+                onPress={() => handleSchedule()}
+              />
+            </View> */
+}

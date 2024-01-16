@@ -99,6 +99,7 @@ import TransactionScreen from '../TransactionScreen/TransactionScreen';
 import {socket} from '../../utils/Socket';
 import {setSocketID} from '../../features/user/userSlice';
 import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
+import SessionCreation from '../CompletionScreen/SessionCreation';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -211,6 +212,7 @@ export default function AppNavigation() {
         <Stack.Screen name="CompletePayment" component={CompletePayment} />
         <Stack.Screen name="BusinessDocScreen" component={BusinessDocScreen} />
         <Stack.Screen name="MainBookingScreen" component={MainBookingScreen} />
+        <Stack.Screen name="SessionCreation" component={SessionCreation} />
         <Stack.Screen
           name="RegisterCompletionScreen"
           component={RegisterCompletionScreen}

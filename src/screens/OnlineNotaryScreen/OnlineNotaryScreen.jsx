@@ -44,12 +44,12 @@ export default function OnlineNotaryScreen({route, navigation}) {
             isDisabled={isDisabled}
             onPress={() => handleFetchAPI()}
           />
-          <TypesofServiceButton
+          {/* <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Sessions"
             Image={require('../../../assets/service2Pic.png')}
             onPress={() => navigation.navigate('SessionScreen')}
-          />
+          /> */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

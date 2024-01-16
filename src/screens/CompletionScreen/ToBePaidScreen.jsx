@@ -129,6 +129,7 @@ export default function ToBePaidScreen({route, navigation}) {
           <GradientButton
             Title="Proceed to Pay"
             loading={loading}
+            isDisabled={loading}
             onPress={() => openPaymentSheet()}
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           />
