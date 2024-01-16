@@ -3,26 +3,34 @@ import {
   Text,
   View,
   Image,
-  ImageBackground,
   SafeAreaView,
+  ImageBackground,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import useLogin from '../../hooks/useLogin';
 import LottieView from 'lottie-react-native';
 
-export default function RegisterCompletionScreen({navigation}) {
-  const {resetStack} = useLogin();
+export default function SessionCreation({navigation}) {
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    const delay = 3000;
+    setIsMounted(true);
+
+    const delay = 5000;
 
     const timer = setTimeout(() => {
-      resetStack('signup');
+      if (isMounted) {
+        navigation.navigate('AllBookingScreen');
+      }
     }, delay);
 
-    return () => clearTimeout(timer);
-  }, [navigation]);
+    return () => {
+      clearTimeout(timer);
+      setIsMounted(false);
+    };
+  }, [navigation, isMounted]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View
@@ -49,7 +57,7 @@ export default function RegisterCompletionScreen({navigation}) {
         />
 
         <Text style={styles.text}>
-          Congratulations,{'\n'} you have successfully registered!
+          Congratulations,{'\n'} you have created a booking!
         </Text>
       </View>
       <Image
@@ -63,6 +71,7 @@ export default function RegisterCompletionScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
     backgroundColor: Colors.PinkBackground,
   },
   completeIcon: {
@@ -87,7 +96,8 @@ const styles = StyleSheet.create({
 
   complete: {
     alignSelf: 'flex-end',
-    width: widthToDp(70),
+    width: widthToDp(75),
+    height: widthToDp(75),
     resizeMode: 'contain',
     flex: 1,
     justifyContent: 'flex-end',

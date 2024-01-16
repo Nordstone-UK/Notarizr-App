@@ -10,23 +10,17 @@ import {
   ScrollView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
-import SignupButton from '../../components/SingupButton.jsx/SignupButton';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import MainButton from '../../components/MainGradientButton/MainButton';
+
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
-import AgentCard from '../../components/AgentCard/AgentCard';
-import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
+
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
 import {handleGetLocation} from '../../utils/Geocode';
-import Geolocation from '@react-native-community/geolocation';
 import useFetchUser from '../../hooks/useFetchUser';
 // import {ScrollView} from 'react-native-virtualized-view';
 import {useDispatch, useSelector} from 'react-redux';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
-import DropDownPicker from 'react-native-dropdown-picker';
 import {MultipleSelectList} from 'react-native-dropdown-select-list';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Toast from 'react-native-toast-message';
@@ -54,26 +48,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const [selected, setSelected] = React.useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
-  // const onItemsSelect = selectedValues => {
-  //   setValue(selectedValues);
 
-  //   // Map selected values to their corresponding details
-  //   const selectedDocuments = documents.filter(doc =>
-  //     selectedValues.includes(doc.value),
-  //   );
-
-  //   setSelectedItems(selectedDocuments);
-
-  //   // Extract and store selected prices
-  //   const prices = selectedValues.map(selectedValue => {
-  //     const selectedDocument = documents.find(
-  //       doc => doc.value === selectedValue,
-  //     );
-  //     return selectedDocument.price;
-  //   });
-
-  //   setSelectedPrices(prices);
-  // };
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
       (total, document) => total + document.price,
@@ -141,15 +116,11 @@ export default function RonDateDocScreen({route, navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader
-        Title="Select Date and Documents"
-        // midImg={require('../../../assets/Search.png')}
-        // midImgPress={() => setIsVisible(!isVisible)}
-      />
+      <NavigationHeader Title="Select Date and Documents" />
 
       <BottomSheetStyle>
         <ScrollView
-          scrollEnabled={true}
+          // scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <View style={{marginVertical: heightToDp(2)}}>
             <Text style={styles.Heading}>Date & Time:</Text>
@@ -194,6 +165,7 @@ export default function RonDateDocScreen({route, navigation}) {
             }}>
             {documentArray ? (
               <MultipleSelectList
+                // maxHeight={heightToDp(30)}
                 setSelected={val => setSelected(val)}
                 data={documentArray.map(item => ({
                   value: `${item.name} - $${item.statePrices[0].price}`,
@@ -236,30 +208,28 @@ export default function RonDateDocScreen({route, navigation}) {
 
           <View
             style={{
-              marginVertical: widthToDp(15),
+              borderWidth: 1,
+              marginTop: widthToDp(5),
+
+              marginVertical: widthToDp(2),
+            }}
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginBottom: widthToDp(2),
             }}>
-            <View
-              style={{
-                borderWidth: 1,
-                marginVertical: widthToDp(2),
-              }}
-            />
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: widthToDp(2),
-              }}>
-              <Text style={styles.Heading}>Total Price:</Text>
-              <Text style={styles.Heading}>${totalPrice}</Text>
-            </View>
-            <GradientButton
-              Title="Proceed"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{borderRadius: 15, marginTop: heightToDp(2)}}
-              onPress={() => submitAddressDetails(selectedDocs)}
-            />
+            <Text style={styles.Heading}>Total Price:</Text>
+            <Text style={styles.Heading}>${totalPrice}</Text>
           </View>
+          <GradientButton
+            Title="Proceed"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            GradiStyles={{borderRadius: 15, marginTop: heightToDp(2)}}
+            onPress={() => submitAddressDetails(selectedDocs)}
+          />
+          {/* </View> */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -272,8 +242,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   contentContainer: {
-    flex: 1,
-    marginVertical: heightToDp(3),
+    // flex: 10,
+    paddingBottom: heightToDp(8),
   },
   buttonFlex: {
     flexDirection: 'row',

@@ -424,31 +424,29 @@ export default function MedicalBookingScreen({route, navigation}) {
             )}
           </View>
           {bookingDetail?.service_type !== 'mobile_notary' &&
-          (status === 'Accepted' || status === 'Ongoing') &&
-          !isStorageLoading ? (
-            <GradientButton
-              Title="Join Session"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                width: widthToDp(90),
-                paddingVertical: widthToDp(4),
-                marginTop: widthToDp(10),
-              }}
-              styles={{
-                padding: widthToDp(0),
-                fontSize: widthToDp(6),
-              }}
-              onPress={() =>
-                navigation.navigate('NotaryCallScreen', {
-                  uid: bookingDetail?._id,
-                  channel: bookingDetail?.agora_channel_name,
-                  token: bookingDetail?.agora_channel_token,
-                })
-              }
-            />
-          ) : (
-            <Loading />
-          )}
+            (status === 'Accepted' || status === 'Ongoing') &&
+            !isStorageLoading && (
+              <GradientButton
+                Title="Join Session"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  width: widthToDp(90),
+                  paddingVertical: widthToDp(4),
+                  marginTop: widthToDp(10),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(6),
+                }}
+                onPress={() =>
+                  navigation.navigate('NotaryCallScreen', {
+                    uid: bookingDetail?._id,
+                    channel: bookingDetail?.agora_channel_name,
+                    token: bookingDetail?.agora_channel_token,
+                  })
+                }
+              />
+            )}
           {status === 'Pending' ? null : (
             <View style={styles.buttonFlex}>
               {status === 'Accepted' &&
