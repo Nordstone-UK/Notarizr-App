@@ -6,6 +6,7 @@ import {
   Animated,
   View,
   TextInput,
+  Platform,
 } from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -94,6 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: '#D3D5DA',
     width: widthToDp(90),
+    height: Platform.OS == 'ios' ? heightToDp(30) : 40,
     paddingLeft: widthToDp(2),
   },
   icon: {

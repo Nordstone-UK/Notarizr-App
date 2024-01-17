@@ -34,7 +34,7 @@ import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import Toast from 'react-native-toast-message';
 import {BottomSheet, Overlay} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
-import {downloadFile} from '../../../utils/RnDownload';
+// import {downloadFile} from '../../../utils/RnDownload';
 import {useSession} from '../../../hooks/useSession';
 import {useLiveblocks} from '../../../store/liveblocks';
 import Loading from '../../../components/LiveBlocksComponents/loading';
@@ -412,7 +412,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}) {
                   Object.keys(documentArray).map((key, index) => (
                     <TouchableOpacity
                       key={index}
-                      onPress={() => downloadFile(documentArray[key])}>
+                      // onPress={() => downloadFile(documentArray[key])}
+                    >
                       <Image
                         source={require('../../../../assets/docPic.png')}
                         style={{width: widthToDp(10), height: heightToDp(10)}}

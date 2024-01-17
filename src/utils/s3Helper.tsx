@@ -1,5 +1,5 @@
 import S3 from 'aws-sdk/clients/s3';
-import RNFetchBlob from 'rn-fetch-blob';
+// import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 import {decode} from 'base64-arraybuffer';
 import {uriToBlob} from './ImagePicker';
@@ -46,7 +46,7 @@ const uploadDocumentsOnS3 = async ({
   title,
   type,
 }: UploadFileOptions): Promise<any> => {
-  const fileContent = await RNFetchBlob.fs.readFile(file, 'base64');
+  // const fileContent = await RNFetchBlob.fs.readFile(file, 'base64');
   const s3bucket = new S3({
     accessKeyId: accessKeyId,
     secretAccessKey: secretAccessKey,

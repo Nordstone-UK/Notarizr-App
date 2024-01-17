@@ -1,4 +1,4 @@
-import RNFetchBlob from 'rn-fetch-blob';
+// import RNFetchBlob from 'rn-fetch-blob';
 import {Platform} from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -40,41 +40,41 @@ const getFileExtention = fileUrl => {
 //     console.log('Error downloading file:', error);
 //   }
 // };
-download;
-export const downloadFile = fileUrl => {
-  // Get today's date to add the time suffix in filename
-  let date = new Date();
-  // File URL which we want to download
-  let FILE_URL = fileUrl;
-  // Function to get extention of the file url
-  let file_ext = getFileExtention(FILE_URL);
 
-  file_ext = '.' + file_ext[0];
+// export const downloadFile = fileUrl => {
+//   // Get today's date to add the time suffix in filename
+//   let date = new Date();
+//   // File URL which we want to download
+//   let FILE_URL = fileUrl;
+//   // Function to get extention of the file url
+//   let file_ext = getFileExtention(FILE_URL);
 
-  // config: To get response by passing the downloading related options
-  // fs: Root directory path to download
-  const {config, fs} = RNFetchBlob;
-  let RootDir = fs.dirs.DownloadDir;
-  let options = {
-    fileCache: true,
-    addAndroidDownloads: {
-      path:
-        RootDir +
-        '/file_' +
-        Math.floor(date.getTime() + date.getSeconds() / 2) +
-        file_ext,
-      description: 'downloading file...',
-      notification: true,
-      useDownloadManager: true,
-    },
-  };
-  config(options)
-    .fetch('GET', FILE_URL)
-    .then(res => {
-      console.log('res -> ', JSON.stringify(res));
-      Toast.show({
-        type: 'success',
-        text1: 'File Downloaded Successfully.',
-      });
-    });
-};
+//   file_ext = '.' + file_ext[0];
+
+//   // config: To get response by passing the downloading related options
+//   // fs: Root directory path to download
+//   const {config, fs} = RNFetchBlob;
+//   let RootDir = fs.dirs.DownloadDir;
+//   let options = {
+//     fileCache: true,
+//     addAndroidDownloads: {
+//       path:
+//         RootDir +
+//         '/file_' +
+//         Math.floor(date.getTime() + date.getSeconds() / 2) +
+//         file_ext,
+//       description: 'downloading file...',
+//       notification: true,
+//       useDownloadManager: true,
+//     },
+//   };
+//   config(options)
+//     .fetch('GET', FILE_URL)
+//     .then(res => {
+//       console.log('res -> ', JSON.stringify(res));
+//       Toast.show({
+//         type: 'success',
+//         text1: 'File Downloaded Successfully.',
+//       });
+//     });
+// };
