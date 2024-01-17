@@ -17,27 +17,19 @@ export default function NearbyLoadingScreen({route, navigation}) {
   const handleAgentSearch = async () => {
     try {
       const response = await FetchMobileNotary(serviceType);
-      // console.log('====================================');
-      // console.log('fetching agent', response);
-      // console.log('====================================');
       const {user} = response;
       const {service} = user;
 
       if (response?.status === '200') {
         try {
           const response = await handleBookingCreation(user._id, service._id);
-          // console.log('====================================');
-          // console.log(response);
-          // console.log('====================================');
+
           const {booking} = response;
 
           const bookingData = await fetchBookingByID(booking._id);
-          // console.log('====================================');
-          // console.log('booking', bookingData.getBookingById);
-          // console.log('====================================');
           if (response.status === '201') {
             navigation.navigate('ToBePaidScreen', {
-              bookingData: bookingData.getBookingById.booking,
+              bookingData: bookingData?.getBookingById?.booking,
             });
           } else {
             Toast.show({
