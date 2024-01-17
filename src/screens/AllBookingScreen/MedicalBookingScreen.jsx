@@ -64,9 +64,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   let statusUpdate;
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
-  const isStorageLoading = useLiveblocks(
-    state => state.liveblocks.isStorageLoading,
-  );
+  // const isStorageLoading = useLiveblocks(
+  //   state => state.liveblocks.isStorageLoading,
+  // );
 
   React.useEffect(() => {
     enterRoom('test-room');
@@ -235,50 +235,48 @@ export default function MedicalBookingScreen({route, navigation}) {
               )}
             </View>
           </View>
-          {bookingDetail &&
-            (status !== 'Completed' ? (
-              <AgentCard
+          {bookingDetail && status !== 'Completed' ? (
+            <AgentCard
+              source={{uri: bookingDetail?.agent?.profile_picture}}
+              bottomRightText={bookingDetail?.document_type}
+              bottomLeftText="Total"
+              image={require('../../../assets/agentLocation.png')}
+              agentName={
+                bookingDetail?.agent?.first_name +
+                ' ' +
+                bookingDetail?.agent?.last_name
+              }
+              agentAddress={bookingDetail?.agent?.location}
+              task={status || 'Loading'}
+              OrangeText={'At Office'}
+              dateofBooking={bookingDetail?.date_of_booking}
+              timeofBooking={bookingDetail?.time_of_booking}
+              createdAt={bookingDetail?.createdAt}
+            />
+          ) : (
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                marginHorizontal: widthToDp(5),
+                marginVertical: widthToDp(2),
+              }}>
+              <Image
                 source={{uri: bookingDetail?.agent?.profile_picture}}
-                bottomRightText={bookingDetail?.document_type}
-                bottomLeftText="Total"
-                image={require('../../../assets/agentLocation.png')}
-                agentName={
-                  bookingDetail?.agent?.first_name +
-                  ' ' +
-                  bookingDetail?.agent?.last_name
-                }
-                agentAddress={bookingDetail?.agent?.location}
-                task={status || 'Loading'}
-                OrangeText={'At Office'}
-                dateofBooking={bookingDetail?.date_of_booking}
-                timeofBooking={bookingDetail?.time_of_booking}
-                createdAt={bookingDetail?.createdAt}
-              />
-            ) : (
-              <View
                 style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-start',
-                  alignItems: 'center',
-                  marginHorizontal: widthToDp(5),
-                  marginVertical: widthToDp(2),
-                }}>
-                <Image
-                  source={{uri: bookingDetail?.agent?.profile_picture}}
-                  style={{
-                    width: widthToDp(15),
-                    height: widthToDp(15),
-                    borderRadius: widthToDp(5),
-                  }}
-                />
-                <Text
-                  style={[styles.insideHeading, {fontSize: widthToDp(4.5)}]}>
-                  {bookingDetail?.agent?.first_name +
-                    ' ' +
-                    bookingDetail?.agent?.last_name}
-                </Text>
-              </View>
-            ))}
+                  width: widthToDp(15),
+                  height: widthToDp(15),
+                  borderRadius: widthToDp(5),
+                }}
+              />
+              <Text style={[styles.insideHeading, {fontSize: widthToDp(4.5)}]}>
+                {bookingDetail?.agent?.first_name +
+                  ' ' +
+                  bookingDetail?.agent?.last_name}
+              </Text>
+            </View>
+          )}
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
             <View>
@@ -424,8 +422,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             )}
           </View>
           {bookingDetail?.service_type !== 'mobile_notary' &&
-            (status === 'Accepted' || status === 'Ongoing') &&
-            !isStorageLoading && (
+            (status === 'Accepted' || status === 'Ongoing') && (
               <GradientButton
                 Title="Join Session"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -439,10 +436,12 @@ export default function MedicalBookingScreen({route, navigation}) {
                   fontSize: widthToDp(6),
                 }}
                 onPress={() =>
-                  navigation.navigate('NotaryCallScreen', {
+                  navigation.navigate('WaitingRoomScreen', {
                     uid: bookingDetail?._id,
                     channel: bookingDetail?.agora_channel_name,
                     token: bookingDetail?.agora_channel_token,
+                    time: bookingDetail?.time_of_booking,
+                    date: bookingDetail?.date_of_booking,
                   })
                 }
               />

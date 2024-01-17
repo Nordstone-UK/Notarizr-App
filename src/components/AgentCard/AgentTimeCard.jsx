@@ -19,6 +19,12 @@ export default function AgentTimeCard(props) {
 
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+  // console.log(
+  //   moment(props.dateofBooking).format('MMM'),
+  //   moment(props.dateofBooking).format('D'),
+  //   moment(props?.createdAt).format('D'),
+  //   moment(props?.createdAt).format('h:mm A'),
+  // );
   return (
     <View>
       <View

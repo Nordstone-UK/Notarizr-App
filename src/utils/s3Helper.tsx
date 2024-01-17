@@ -2,6 +2,8 @@ import S3 from 'aws-sdk/clients/s3';
 // import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 import {decode} from 'base64-arraybuffer';
+// import RNFS from 'react-native-fs';
+// import {decode} from 'base64-arraybuffer';
 import {uriToBlob} from './ImagePicker';
 const {Buffer} = require('buffer');
 

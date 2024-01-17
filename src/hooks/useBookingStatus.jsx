@@ -36,10 +36,8 @@ const useBookingStatus = () => {
         bookingId: id,
       },
     };
-    console.log(request);
     try {
       const response = await getBookingStatus(request);
-      console.log('response for Booking Status', response?.data);
       return response.data.getBookingStatus.booking_status;
     } catch (error) {
       console.error(error);
