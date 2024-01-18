@@ -131,7 +131,13 @@ function TabNavigation() {
           key: 'HomeScreen',
         }}
       />
-      <Tab.Screen name="AllBookingScreen" component={AllBookingScreen} />
+      <Tab.Screen
+        name="AllBookingScreen"
+        component={AllBookingScreen}
+        options={{
+          tabBarLabel: 'All Bookings',
+        }}
+      />
       <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
       <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
     </Tab.Navigator>

@@ -27,7 +27,7 @@ import Toast from 'react-native-toast-message';
 import {PDFDocument} from 'pdf-lib';
 import PdfView, {Source} from 'react-native-pdf';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-
+import RNPickerSelect from 'react-native-picker-select';
 import {
   Edit,
   NavArrowLeft,
@@ -42,8 +42,14 @@ import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import {Picker} from '@react-native-picker/picker';
 import useChatService from '../../hooks/useChatService';
 import {useSelector} from 'react-redux';
+import {
+  MultipleSelectList,
+  SelectList,
+} from 'react-native-dropdown-select-list';
 export default function NotaryCallScreen({route, navigation}: any) {
-  const userID = useSelector(state => state.user.user._id);
+  const User = useSelector(state => state?.user?.user);
+  const agent = useSelector(state => state?.booking?.booking?.agent);
+  const booked_by = useSelector(state => state?.booking?.booking?.booked_by);
   const arrayOfDocs = [
     {
       id: 1,
@@ -57,7 +63,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
     },
   ];
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
-
   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
   const {channel, token: CutomToken} = route.params;
   const uid = 0;
@@ -70,7 +75,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [remoteUid, setRemoteUid] = useState(0);
   const [selected, setSelected] = useState('notary room');
   const [value, setValue] = useState(50);
-  console.log(channel, CutomToken);
   const pdfRef = React.useRef<PdfView>(null);
   const objects = useLiveblocks(state => state.objects);
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
@@ -78,8 +82,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const insertObject = useLiveblocks(state => state.insertObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const [totalPages, setTotalPages] = React.useState<number>(0);
-  // const [channelName, setChannelName] = useState('');
-  // const [token, setCallToken] = useState('');
+
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
 
@@ -145,7 +148,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       pdfRef.current?.setPage(remoteCurrentPage);
     }
   }, [remoteCurrentPage, currentPage]);
-
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
       try {
@@ -179,13 +181,17 @@ export default function NotaryCallScreen({route, navigation}: any) {
         console.log(e);
       }
     };
-    setupVideoSDKEngine();
-
+    console.log('useEffect');
+    setupVideoSDKEngine().then(() => {
+      join();
+    });
     return () => {
       agoraEngineRef.current?.leaveChannel();
     };
   }, []);
+
   const join = async () => {
+    console.log('====================================');
     if (isJoined) {
       return;
     }
@@ -323,20 +329,51 @@ export default function NotaryCallScreen({route, navigation}: any) {
               <React.Fragment key={0}>
                 <RtcSurfaceView canvas={{uid: 0}} style={styles.videoView} />
               </React.Fragment>
-            ) : null}
-            {remoteUids.map(uid => (
-              <React.Fragment key={uid}>
+            ) : (
+              <View
+                style={{
+                  // borderWidth: 2,
+                  // borderRadius: 5,
+                  // borderColor: Colors.DullTextColor,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  source={{uri: User?.profile_picture}}
+                  style={{
+                    width: widthToDp(25),
+                    height: widthToDp(25),
+                    borderRadius: 100,
+                  }}
+                />
+              </View>
+            )}
+            {remoteUids.map((uid, index) => (
+              <View key={index}>
                 <RtcSurfaceView canvas={{uid}} style={styles.videoView} />
-              </React.Fragment>
+              </View>
             ))}
           </ScrollView>
           <View style={{flex: 0.2, justifyContent: 'space-evenly'}}>
-            <TouchableOpacity style={styles.hourGlass} onPress={() => join()}>
-              <Image
-                source={require('../../../assets/join.png')}
-                style={{width: widthToDp(10), height: widthToDp(10)}}
-              />
-            </TouchableOpacity>
+            {isJoined ? (
+              <TouchableOpacity
+                style={styles.hourGlass}
+                onPress={() => setIsJoined(!isJoined)}>
+                <Image
+                  source={require('../../../assets/videoOff.png')}
+                  style={{width: widthToDp(10), height: widthToDp(10)}}
+                />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.hourGlass}
+                onPress={() => setIsJoined(!isJoined)}>
+                <Image
+                  source={require('../../../assets/video.png')}
+                  style={{width: widthToDp(10), height: widthToDp(10)}}
+                />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.hourGlass} onPress={() => mute()}>
               <Image
                 source={
@@ -347,24 +384,29 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 style={{width: widthToDp(10), height: widthToDp(10)}}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.hourGlass} onPress={() => leave()}>
+            {/* <TouchableOpacity style={styles.hourGlass} onPress={() => leave()}>
               <Image
                 source={require('../../../assets/callDrop.png')}
                 style={{width: widthToDp(10), height: widthToDp(10)}}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </View>
-      <View>
-        <Picker
+      <View style={{backgroundColor: Colors.white}}>
+        <RNPickerSelect
+          style={pickerSelectStyles}
+          onValueChange={itemValue => handleLinkChange(itemValue)}
+          items={arrayOfDocs.map(doc => ({label: doc.name, value: doc.url}))}
+        />
+        {/* <Picker
           selectedValue={selectedLink}
           onValueChange={itemValue => handleLinkChange(itemValue)}
           style={styles.picker}>
           {arrayOfDocs.map(doc => (
             <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
           ))}
-        </Picker>
+        </Picker> */}
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
@@ -447,7 +489,28 @@ export default function NotaryCallScreen({route, navigation}: any) {
     </SafeAreaView>
   );
 }
-
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: 'purple',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+});
 const styles = StyleSheet.create({
   container: {
     flex: 1,

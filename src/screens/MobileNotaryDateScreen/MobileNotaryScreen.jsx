@@ -79,51 +79,9 @@ export default function MobileNotaryDateScreen({route, navigation}) {
         midImgPress={() => handleCallSupport()}
         lastImg={require('../../../assets/bellIcon.png')}
       />
-      <Text style={styles.heading}>Please select Date and Time</Text>
+      <Text style={styles.heading}>Please select a Document</Text>
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
-          {/* <View style={{marginVertical: heightToDp(2)}}>
-            <Text style={styles.headingContainer}>Date & Time:</Text>
-            <View style={styles.buttonFlex}>
-              <TouchableOpacity onPress={() => setOpen(true)}>
-                <Text
-                  style={{
-                    color: Colors.Orange,
-                    fontFamily: 'Manrope-Bold',
-                    fontSize: widthToDp(5),
-                    borderWidth: 1,
-                    borderColor: Colors.Orange,
-                    paddingHorizontal: widthToDp(2),
-                    borderRadius: widthToDp(2),
-                  }}>
-                  {moment(date).format('MM-DD-YYYY hh:mm A')}
-                </Text>
-              </TouchableOpacity>
-              <DatePicker
-                modal
-                mode="datetime"
-                minimumDate={date}
-                open={open}
-                androidVariant="iosClone"
-                date={date}
-                onConfirm={date => {
-                  setOpen(false);
-                  setDate(date);
-                }}
-                onCancel={() => {
-                  setOpen(false);
-                }}
-              />
-            </View>
-          </View> */}
-          {/* <Text style={styles.headingContainer}>Time:</Text>
-          <View style={styles.buttonFlex}>
-            <TimePicker
-              onConfirm={date => setStartTime(date)}
-              date={startTime}
-            />
-          </View> */}
-
           <View
             style={{
               flexDirection: 'row',

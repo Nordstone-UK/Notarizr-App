@@ -159,7 +159,7 @@ export default function WaitingRoomScreen({route, navigation}) {
               <Text style={styles.textSession}>Notary Session has started</Text>
               <Image
                 source={require('../../../assets/Support.png')}
-                style={styles.hourGlass}
+                style={styles.HourGlass}
               />
               <MainButton
                 colors={['#fff', '#fff']}

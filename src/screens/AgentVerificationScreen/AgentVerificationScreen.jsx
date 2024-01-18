@@ -172,7 +172,7 @@ export default function AgentVerificationScreen({navigation}, props) {
           <View style={styles.flexContainer}>
             <Text style={styles.subHeading}>1. Picture ID</Text>
             <Text style={styles.subHeading}>2. Notary Certificate</Text>
-            <Text style={styles.subHeading}>3. Notary Seal</Text>
+            <Text style={styles.subHeading}>3. Notary Stamp</Text>
           </View>
           <View
             style={{
@@ -211,7 +211,7 @@ export default function AgentVerificationScreen({navigation}, props) {
             ) : (
               <MainButton
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload Notary Seal"
+                Title="Upload Notary Stamp"
                 GradiStyles={{
                   width: widthToDp(50),
                   paddingVertical: widthToDp(1.5),
@@ -242,7 +242,7 @@ export default function AgentVerificationScreen({navigation}, props) {
             )}
             {Seal && (
               <DocumentComponent
-                Title="Notary Seal"
+                Title="Notary Stamp"
                 image={require('../../../assets/Pdf.png')}
                 onPress={() => deleteSeal()}
               />

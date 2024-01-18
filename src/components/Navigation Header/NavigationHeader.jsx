@@ -2,11 +2,19 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
-import {useNavigation} from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
+
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function NavigationHeader(props) {
   const navigation = useNavigation();
+  const handleNavigateToTabScreen = () => {
+    navigation.dispatch(
+      CommonActions.navigate('HomeScreen', {
+        screen: 'AllBookingScreen',
+      }),
+    );
+  };
   return (
     <View
       style={[
@@ -17,12 +25,7 @@ export default function NavigationHeader(props) {
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           {props.reset ? (
             <TouchableOpacity
-              onPress={() =>
-                navigation.reset({
-                  index: 0,
-                  routes: [{name: 'HomeScreen'}],
-                })
-              }
+              onPress={() => handleNavigateToTabScreen()}
               style={styles.touchContainer}>
               <Image
                 source={require('../../../assets/backIcon.png')}

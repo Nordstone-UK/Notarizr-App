@@ -5,6 +5,7 @@ import {
   Image,
   SafeAreaView,
   ImageBackground,
+  BackHandler,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
@@ -12,6 +13,20 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LottieView from 'lottie-react-native';
 
 export default function AgentBookCompletion({navigation}) {
+  React.useEffect(() => {
+    const disableBackButtonHandler = () => {
+      return true;
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
+
+    return () => {
+      BackHandler.removeEventListener(
+        'hardwareBackPress',
+        disableBackButtonHandler,
+      );
+    };
+  }, []);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {

@@ -26,6 +26,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Toast from 'react-native-toast-message';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
+import useRegister from '../../hooks/useRegister';
 
 export default function RonDateDocScreen({route, navigation}) {
   // const [location, setLocation] = useState();
@@ -48,6 +49,8 @@ export default function RonDateDocScreen({route, navigation}) {
   const [selected, setSelected] = React.useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
+  const [fileResponse, setFileResponse] = useState([]);
+  const {uploadMultipleFiles} = useRegister();
 
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
@@ -90,7 +93,7 @@ export default function RonDateDocScreen({route, navigation}) {
             phone_number: null,
           },
           bookingType: 'self',
-          documents: null,
+          documents: fileResponse,
 
           preferenceAnalysis: 'distance',
         }),
@@ -109,7 +112,12 @@ export default function RonDateDocScreen({route, navigation}) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
   };
-
+  const handleDocumentSelection = async () => {
+    const response = await uploadMultipleFiles();
+    if (response) {
+      setFileResponse(response);
+    }
+  };
   useEffect(() => {
     getState();
   }, []);
@@ -205,7 +213,45 @@ export default function RonDateDocScreen({route, navigation}) {
               </View>
             )}
           </View>
-
+          <View style={styles.headingContainer}>
+            <Text style={styles.Heading}>Document</Text>
+            {fileResponse?.length === 0 ? (
+              <TouchableOpacity
+                style={styles.dottedContianer}
+                onPress={handleDocumentSelection}>
+                <Image source={require('../../../assets/upload.png')} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    columnGap: widthToDp(2),
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
+                    Upload
+                  </Text>
+                  <Image source={require('../../../assets/uploadIcon.png')} />
+                </View>
+                <Text>Upload your File here...</Text>
+              </TouchableOpacity>
+            ) : (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginLeft: widthToDp(5),
+                  columnGap: widthToDp(3),
+                }}>
+                {fileResponse?.map((item, index) => (
+                  <TouchableOpacity key={index}>
+                    <Image
+                      source={require('../../../assets/docPic.png')}
+                      style={{width: widthToDp(10), height: heightToDp(10)}}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           <View
             style={{
               borderWidth: 1,
@@ -214,6 +260,7 @@ export default function RonDateDocScreen({route, navigation}) {
               marginVertical: widthToDp(2),
             }}
           />
+
           <View
             style={{
               flexDirection: 'row',
@@ -268,41 +315,15 @@ const styles = StyleSheet.create({
     width: widthToDp(20),
     height: heightToDp(20),
   },
+  dottedContianer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    borderColor: Colors.DisableColor,
+    borderRadius: 5,
+    marginVertical: heightToDp(3),
+    paddingVertical: heightToDp(2),
+    width: widthToDp(80),
+  },
 });
-
-{
-  /* {documentArray ? (
-            documentArray.length !== 0 ? (
-              <FlatList
-                data={documentArray}
-                renderItem={renderItem}
-                keyExtractor={item => item._id}
-                onScroll={handleScroll}
-                scrollEventThrottle={16}
-              />
-            ) : (
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  height: heightToDp(100),
-                  justifyContent: 'center',
-                }}>
-                <Image
-                  source={require('../../../assets/emptyBox.png')}
-                  style={styles.picture}
-                />
-                <Text style={styles.subheading}>No Documents Found...</Text>
-              </View>
-            )
-          ) : (
-            <View
-              style={{
-                // borderWidth: 1,
-                height: heightToDp(100),
-                justifyContent: 'center',
-              }}>
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            </View>
-          )} */
-}

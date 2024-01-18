@@ -1,4 +1,12 @@
-import {StyleSheet, Text, View, Image, SafeAreaView, Alert} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  SafeAreaView,
+  Alert,
+  BackHandler,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -88,6 +96,20 @@ export default function ToBePaidScreen({route, navigation}) {
   useEffect(() => {
     initializePaymentSheet();
   }, [navigation]);
+  React.useEffect(() => {
+    const disableBackButtonHandler = () => {
+      return true; // Returning `true` will prevent the default back behavior
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
+
+    return () => {
+      BackHandler.removeEventListener(
+        'hardwareBackPress',
+        disableBackButtonHandler,
+      );
+    };
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <View
