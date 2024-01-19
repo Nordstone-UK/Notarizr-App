@@ -19,7 +19,7 @@ export default function BookingAcceptedScreen({route, navigation}) {
     const delay = 3000;
     dispatch(serviceCheck());
     const timer = setTimeout(() => {
-      navigation.navigate('MapArrivalScreen');
+      navigation.navigate('ClientDetailsScreen');
     }, delay);
 
     return () => clearTimeout(timer);

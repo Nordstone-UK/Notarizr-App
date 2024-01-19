@@ -48,10 +48,12 @@ export default function RonDateDocScreen({route, navigation}) {
   const [value, setValue] = useState([]);
   const [selected, setSelected] = React.useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [selectedDocs, setSelectedDocs] = useState([]);
+  const [selectedDocs, setSelectedDocs] = useState([
+    {name: 'Unclaimed Property Form', price: 150},
+  ]);
   const [fileResponse, setFileResponse] = useState([]);
   const {uploadMultipleFiles} = useRegister();
-
+  // console.log(selectedDocs);
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
       (total, document) => total + document.price,
@@ -93,7 +95,7 @@ export default function RonDateDocScreen({route, navigation}) {
             phone_number: null,
           },
           bookingType: 'self',
-          documents: fileResponse,
+          documents: null,
 
           preferenceAnalysis: 'distance',
         }),
@@ -124,7 +126,7 @@ export default function RonDateDocScreen({route, navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Select Date and Documents" />
+      <NavigationHeader Title="Select Date and Time" />
 
       <BottomSheetStyle>
         <ScrollView
@@ -163,10 +165,10 @@ export default function RonDateDocScreen({route, navigation}) {
               />
             </View>
           </View>
-          <Text style={styles.Heading}>
+          {/* <Text style={styles.Heading}>
             Please select the documents you want to get notarized.
-          </Text>
-          <View
+          </Text> */}
+          {/* <View
             style={{
               marginTop: widthToDp(2),
               paddingHorizontal: widthToDp(2),
@@ -251,8 +253,8 @@ export default function RonDateDocScreen({route, navigation}) {
                 ))}
               </View>
             )}
-          </View>
-          <View
+          </View> */}
+          {/* <View
             style={{
               borderWidth: 1,
               marginTop: widthToDp(5),
@@ -269,7 +271,7 @@ export default function RonDateDocScreen({route, navigation}) {
             }}>
             <Text style={styles.Heading}>Total Price:</Text>
             <Text style={styles.Heading}>${totalPrice}</Text>
-          </View>
+          </View> */}
           <GradientButton
             Title="Proceed"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}

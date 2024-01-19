@@ -51,6 +51,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
+
   const [feedback, setFeedback] = useState();
   const documents = bookingDetail?.documents;
   const {booked_for} = bookingDetail;
@@ -88,13 +89,13 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
-  const handleStatusChange = async () => {
+  const handleStatusChange = async StatusPassed => {
     setLoading(true);
     try {
       if (bookingDetail?.__typename !== 'Session') {
-        await handleUpdateBookingStatus('ongoing', bookingDetail?._id);
+        await handleUpdateBookingStatus(StatusPassed, bookingDetail?._id);
       } else {
-        await updateSession('ongoing', bookingDetail?._id);
+        await updateSession(StatusPassed, bookingDetail?._id);
       }
       await getBookingStatus();
     } catch (error) {
@@ -139,9 +140,6 @@ export default function MedicalBookingScreen({route, navigation}) {
       review,
       rating,
     );
-    console.log('====================================');
-    console.log(response);
-    console.log('====================================');
     if (response === '200') {
       setModalShow(true);
     }
@@ -162,7 +160,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       {
         text: 'Yes',
         onPress: () => {
-          handleStatusChange();
+          handleStatusChange('ongoing');
         },
         style: 'cancel',
       },
@@ -179,6 +177,7 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return namesString;
   }
+  // console.log('bookingDetail', bookingDetail.agent);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -186,7 +185,13 @@ export default function MedicalBookingScreen({route, navigation}) {
         payment={true}
         reset={true}
         lastImg={require('../../../assets/chatIcon.png')}
-        lastImgPress={() => navigation.navigate('ChatScreen')}
+        lastImgPress={() =>
+          navigation.navigate('ChatScreen', {
+            sender: bookingDetail?.booked_by,
+            receiver: bookingDetail?.agent,
+            chat: bookingDetail?._id,
+          })
+        }
         midImg={require('../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}
       />
@@ -206,9 +211,9 @@ export default function MedicalBookingScreen({route, navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           <View style={styles.insideContainer}>
-            <Text style={styles.insideHeading}>Selected agent</Text>
+            <Text style={styles.insideHeading}>Selected Agent</Text>
             <View style={styles.iconContainer}>
-              {status === 'Pending' && (
+              {(status === 'Pending' || status === 'Cancelled') && (
                 <Image
                   source={require('../../../assets/pending.png')}
                   style={styles.greenIcon}
@@ -246,6 +251,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 ' ' +
                 bookingDetail?.agent?.last_name
               }
+              rating={bookingDetail?.agent?.rating}
               agentAddress={bookingDetail?.agent?.location}
               task={status || 'Loading'}
               OrangeText={'At Office'}
@@ -279,7 +285,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           )}
           <View style={styles.sheetContainer}>
             <Text style={styles.insideHeading}>Booking Preferences</Text>
-            <View>
+            {/* <View>
               <Text
                 style={{
                   fontSize: widthToDp(4),
@@ -293,7 +299,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               <Text style={[styles.detail, {marginLeft: widthToDp(6)}]}>
                 {displayNamesWithCommas(bookingDetail?.document_type)}
               </Text>
-            </View>
+            </View> */}
             {booked_for?.first_name && (
               <View>
                 <View style={styles.addressView}>
@@ -356,7 +362,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 {bookingDetail?.time_of_booking}
               </Text>
             </View>
-            <View style={styles.addressView}>
+            {/* <View style={styles.addressView}>
               <Text
                 style={{
                   fontSize: widthToDp(4),
@@ -366,8 +372,8 @@ export default function MedicalBookingScreen({route, navigation}) {
                 }}>
                 Client Documents
               </Text>
-            </View>
-            <View
+            </View> */}
+            {/* <View
               style={{
                 flexDirection: 'row',
                 marginHorizontal: widthToDp(7),
@@ -391,7 +397,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               ) : (
                 <Text style={styles.preference}>No Documents</Text>
               )}
-            </View>
+            </View> */}
             {bookingDetail?.review && (
               <View>
                 <View style={styles.addressView}>
@@ -511,6 +517,46 @@ export default function MedicalBookingScreen({route, navigation}) {
               )}
             </View>
           )}
+          {(status === 'Pending' || status === 'To_be_paid') &&
+            bookingDetail?.service_type === 'ron' && (
+              <View style={[styles.buttonFlex, {marginTop: heightToDp(6)}]}>
+                <MainButton
+                  Title="Make Payment"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    paddingHorizontal: widthToDp(0),
+                    paddingVertical: heightToDp(3),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                />
+                <MainButton
+                  Title="Cancel Booking"
+                  loading={loading}
+                  isDisabled={loading}
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  onPress={() => handleStatusChange('cancelled')}
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    paddingHorizontal: widthToDp(0),
+                    paddingVertical: heightToDp(3),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                />
+              </View>
+            )}
         </ScrollView>
         {isVisible ? (
           <BottomSheet modalProps={{}} isVisible={isVisible}>

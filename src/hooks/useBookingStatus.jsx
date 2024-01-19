@@ -18,7 +18,6 @@ const useBookingStatus = () => {
     };
     try {
       const response = await updateBookingStatus(request);
-      // console.log('response for Booking Status', response.data);
       if (response.data.updateBookingStatusR.booking.status === 'accepted') {
         navigation.navigate('BookingAcceptedScreen');
       } else if (

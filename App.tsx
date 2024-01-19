@@ -16,6 +16,7 @@ import {StripeProvider} from '@stripe/stripe-react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {initializeOneSignal} from './src/utils/oneSignal';
 import Wrapper from './src/routes/Root';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 polyfillReadableStream();
 polyfillEncoding();
@@ -32,7 +33,9 @@ function App(): JSX.Element {
       <Provider store={store}>
         <StripeProvider publishableKey={publishableKey}>
           <GestureHandlerRootView style={{flex: 1}}>
-            <Wrapper />
+            <BottomSheetModalProvider>
+              <Wrapper />
+            </BottomSheetModalProvider>
           </GestureHandlerRootView>
         </StripeProvider>
       </Provider>

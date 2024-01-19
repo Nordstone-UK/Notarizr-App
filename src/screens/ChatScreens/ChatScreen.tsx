@@ -65,8 +65,8 @@ export default function ChatScreen({route, navigation}: any) {
       setChannelName(channelName);
       setCallToken(token);
 
-      console.log('Channel Name:', channelName);
-      console.log('Token:', token);
+      // console.log('Channel Name:', channelName);
+      // console.log('Token:', token);
     } catch (error) {
       console.log('API Error:', error);
     }

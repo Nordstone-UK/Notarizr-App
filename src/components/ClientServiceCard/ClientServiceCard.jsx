@@ -10,6 +10,7 @@ import {
 import React from 'react';
 import {
   calculateTotalPrice,
+  capitalizeFirstLetter,
   height,
   heightToDp,
   width,
@@ -21,13 +22,16 @@ import AgentCardPicture from '../AgentCardPicture/AgentCardPicture';
 import MainButton from '../MainGradientButton/MainButton';
 import {useNavigation} from '@react-navigation/native';
 import ClientTimeCard from '../ClientTimeCard/ClientTimeCard';
+import {useSelector} from 'react-redux';
 
 export default function ClientServiceCard(props) {
   const navigation = useNavigation();
   const address = props?.agentAddress;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   const Button = props?.Button || false;
-  const Price = calculateTotalPrice(props.bottomRightText);
+  const clientDetail = useSelector(state => state.booking.booking);
+  const client = clientDetail?.booked_by;
+  // const Price = calculateTotalPrice(props.bottomRightText);
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -91,68 +95,95 @@ export default function ClientServiceCard(props) {
               width: widthToDp(55),
             }}>
             <View>
-              <Text style={styles.nameHeading}>{props?.agentName}</Text>
+              <Text style={styles.nameHeading}>
+                {capitalizeFirstLetter(props?.agentName)}
+              </Text>
             </View>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-            }}>
-            <Image source={props.image} />
-            {OrangeGradient(props?.OrangeText)}
+          {clientDetail?.service_type !== 'ron' && (
             <View
               style={{
-                marginLeft: widthToDp(1),
+                flexDirection: 'row',
               }}>
-              <Text style={styles.address}>{firstPart}</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={[styles.address, {marginLeft: widthToDp(7)}]}>
-              {secondPart}
-            </Text>
-          </View>
-          {props?.Time || false ? (
-            <View style={styles.calenderStyles}>
-              <Image
-                source={require('../../../assets/calenderIcon.png')}
+              <Image source={props.image} />
+              <View
                 style={{
-                  tintColor: Colors.DullTextColor,
-                  width: widthToDp(5),
-                  height: heightToDp(5),
+                  marginLeft: widthToDp(1),
+                }}>
+                <Text style={styles.address}>{address}</Text>
+              </View>
+            </View>
+          )}
+          <View
+            style={{
+              marginLeft: widthToDp(1),
+            }}>
+            <Text style={styles.address}>
+              Gender: {capitalizeFirstLetter(client?.gender)}
+            </Text>
+            <Text style={styles.address}>Age: 20</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                columnGap: 1,
+                // borderWidth: 1,
+              }}>
+              <Text style={styles.address}>Rating: {client?.rating || 4} </Text>
+              <Image
+                source={require('../../../assets/star.png')}
+                style={{
+                  width: widthToDp(3),
+                  height: heightToDp(3),
+                  marginBottom: heightToDp(1),
                 }}
               />
-              <Text style={styles.address}>02/08/1995, 04:30 PM</Text>
             </View>
-          ) : (
+          </View>
+          {clientDetail?.service_type === 'mobile_notary' ? (
+            props?.Time || false ? (
+              <View style={styles.calenderStyles}>
+                <Image
+                  source={require('../../../assets/calenderIcon.png')}
+                  style={{
+                    tintColor: Colors.DullTextColor,
+                    width: widthToDp(5),
+                    height: heightToDp(5),
+                  }}
+                />
+                <Text style={styles.address}>02/08/1995, 04:30 PM</Text>
+              </View>
+            ) : (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: heightToDp(1),
+                }}>
+                <Text style={styles.distanceStyles}>0.5 Miles</Text>
+                <Text style={styles.distanceStyles}>30 Minutes</Text>
+              </View>
+            )
+          ) : null}
+          <View style={styles.orangeline} />
+
+          {clientDetail?.service_type === 'mobile_notary' && (
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                marginLeft: heightToDp(1),
+                paddingTop: heightToDp(2),
               }}>
-              <Text style={styles.distanceStyles}>0.5 Miles</Text>
-              <Text style={styles.distanceStyles}>30 Minutes</Text>
-            </View>
-          )}
-          <View style={styles.orangeline} />
+              <Text
+                style={[
+                  styles.totalStyles,
+                  props.leftSideStyles,
 
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingTop: heightToDp(2),
-            }}>
-            <Text
-              style={[
-                styles.totalStyles,
-                props.leftSideStyles,
-
-                {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
-              ]}>
-              {props.bottomLeftText}
-            </Text>
-            <Text
+                  {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
+                ]}>
+                {props.bottomLeftText}
+              </Text>
+              {/* <Text
               style={[
                 styles.paymentStyle,
                 props.rightSideStyles,
@@ -162,8 +193,9 @@ export default function ClientServiceCard(props) {
                 },
               ]}>
               ${Price}
-            </Text>
-          </View>
+            </Text> */}
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -227,7 +259,7 @@ const styles = StyleSheet.create({
     width: widthToDp(60),
     right: widthToDp(5),
     zIndex: -2,
-    paddingVertical: heightToDp(2),
+    // paddingVertical: heightToDp(2),
   },
   totalStyles: {
     color: Colors.TextColor,

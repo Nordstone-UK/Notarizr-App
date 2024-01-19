@@ -34,7 +34,7 @@ export default function AgentCard(props) {
   const address = props?.agentAddress;
   const name = props?.agentName;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
-  const TotalPrice = calculateTotalPrice(props.bottomRightText);
+  // const TotalPrice = calculateTotalPrice(props.bottomRightText);
   function splitStringBefore2ndWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
@@ -103,9 +103,6 @@ export default function AgentCard(props) {
               source={props.image}
               style={{width: widthToDp(4), height: heightToDp(4)}}
             />
-            {props?.dateofBooking
-              ? OrangeGradient('At Office')
-              : OrangeGradient('At Home')}
             <View
               style={{
                 marginLeft: widthToDp(1),
@@ -120,43 +117,54 @@ export default function AgentCard(props) {
               {secondPart}
             </Text>
           </View>
-          <View style={[styles.orangeline]} />
           <View
             style={{
               flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingTop: heightToDp(2),
+              alignItems: 'center',
+              columnGap: widthToDp(1),
             }}>
-            <Text
-              style={[
-                styles.totalStyles,
-                props.leftSideStyles,
-
-                {
-                  fontFamily: 'Poppins-Bold',
-                  fontSize: widthToDp(4.5),
-                },
-              ]}>
-              {props.bottomLeftText}
-            </Text>
-            <Text
-              style={[
-                styles.paymentStyle,
-                props.rightSideStyles,
-                {
-                  fontFamily: 'Poppins-Bold',
-                  fontSize: widthToDp(4.5),
-                },
-              ]}>
-              ${TotalPrice}
-            </Text>
+            <Text style={styles.rating}>Rating: {props?.rating || 5}</Text>
+            <Image
+              source={require('../../../assets/star.png')}
+              style={{width: widthToDp(3), height: heightToDp(3)}}
+            />
           </View>
+          <View style={[styles.orangeline]} />
         </View>
       </View>
     </View>
   );
 }
+//  <View
+//    style={{
+//      flexDirection: 'row',
+//      justifyContent: 'space-between',
+//      paddingTop: heightToDp(2),
+//    }}>
+//    <Text
+//      style={[
+//        styles.totalStyles,
+//        props.leftSideStyles,
 
+//        {
+//          fontFamily: 'Poppins-Bold',
+//          fontSize: widthToDp(4.5),
+//        },
+//      ]}>
+//      {props.bottomLeftText}
+//    </Text>
+//    {/* <Text
+//               style={[
+//                 styles.paymentStyle,
+//                 props.rightSideStyles,
+//                 {
+//                   fontFamily: 'Poppins-Bold',
+//                   fontSize: widthToDp(4.5),
+//                 },
+//               ]}>
+//               ${TotalPrice}
+//             </Text> */}
+//  </View>;
 const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
@@ -193,7 +201,6 @@ const styles = StyleSheet.create({
     width: widthToDp(60),
     right: widthToDp(6),
     zIndex: -2,
-    // paddingVertical: heightToDp(2),
   },
   totalStyles: {
     color: Colors.TextColor,
@@ -202,5 +209,11 @@ const styles = StyleSheet.create({
   },
   paymentStyle: {
     color: Colors.TextColor,
+  },
+  rating: {
+    color: Colors.TextColor,
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Poppins-Regular',
+    marginTop: widthToDp(1),
   },
 });

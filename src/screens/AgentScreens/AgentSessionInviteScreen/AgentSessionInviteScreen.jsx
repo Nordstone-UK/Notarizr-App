@@ -127,7 +127,7 @@ export default function AgentSessionInviteScreen({navigation}) {
         const [name, price] = item.split(' - $');
         return {name, price: parseFloat(price)};
       });
-      const totalPrice = calculateTotalPrice(documentObjects);
+      // const totalPrice = calculateTotalPrice(documentObjects);
       const response = await handleSessionCreation(
         urlResponse,
         selectedClient,
