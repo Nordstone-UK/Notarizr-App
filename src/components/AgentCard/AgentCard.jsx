@@ -34,7 +34,6 @@ export default function AgentCard(props) {
   const address = props?.agentAddress;
   const name = props?.agentName;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
-  // const TotalPrice = calculateTotalPrice(props.bottomRightText);
   function splitStringBefore2ndWord(inputString) {
     if (inputString) {
       const words = inputString.split(' ');
@@ -68,7 +67,21 @@ export default function AgentCard(props) {
       return [inputString, ''];
     }
   }
+  const renderImages = count => {
+    const images = [];
 
+    for (let i = 0; i < count; i++) {
+      images.push(
+        <Image
+          key={i}
+          source={require('../../../assets/star.png')}
+          style={{width: widthToDp(3), height: heightToDp(3)}}
+        />,
+      );
+    }
+
+    return images;
+  };
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row', margin: heightToDp(1)}}>
@@ -112,22 +125,23 @@ export default function AgentCard(props) {
               </Text>
             </View>
           </View>
-          <View>
-            <Text style={[styles.address, {marginLeft: widthToDp(6)}]}>
-              {secondPart}
-            </Text>
-          </View>
+          {secondPart && (
+            <View>
+              <Text style={[styles.address, {marginLeft: widthToDp(6)}]}>
+                {secondPart}
+              </Text>
+            </View>
+          )}
           <View
             style={{
+              marginTop: widthToDp(3),
               flexDirection: 'row',
               alignItems: 'center',
               columnGap: widthToDp(1),
+              marginLeft: widthToDp(1),
             }}>
-            <Text style={styles.rating}>Rating: {props?.rating || 5}</Text>
-            <Image
-              source={require('../../../assets/star.png')}
-              style={{width: widthToDp(3), height: heightToDp(3)}}
-            />
+            <Text style={styles.rating}>Rating: </Text>
+            {renderImages(props?.rating || 5)}
           </View>
           <View style={[styles.orangeline]} />
         </View>
@@ -214,6 +228,6 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontSize: widthToDp(3.5),
     fontFamily: 'Poppins-Regular',
-    marginTop: widthToDp(1),
+    marginTop: heightToDp(0.5),
   },
 });

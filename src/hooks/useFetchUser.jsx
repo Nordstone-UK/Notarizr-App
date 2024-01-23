@@ -17,7 +17,7 @@ const useFetchUser = () => {
   const fetchUserInfo = async () => {
     await user().then(response => {
       info = response.data.user;
-      if (!info.profile_picture) {
+      if (info.profile_picture === null || !info.profile_picture) {
         info.profile_picture =
           'https://notarizr-app-data.s3.us-east-2.amazonaws.com/static/unnamed.jpg';
       }

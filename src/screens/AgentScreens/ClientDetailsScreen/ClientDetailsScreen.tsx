@@ -43,8 +43,7 @@ import {BottomSheetModal} from '@gorhom/bottom-sheet';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   // const {clientDetail} = route.params;
-  const clientDetail = useSelector(state => state.booking.booking);
-
+  const clientDetail = useSelector((state: any) => state?.booking?.booking);
   const {
     handlegetBookingStatus,
     handleSessionStatus,
@@ -69,7 +68,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [notes, setNotes] = useState('');
   const [signaturePage, setSignaturePage] = useState();
   const [notaryBlock, setNotaryBlock] = useState();
-  const [AmountEntered, setAmountEntered] = useState();
+  const [AmountEntered, setAmountEntered] = useState<any>();
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -81,16 +80,14 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const capitalizeFirstLetter = (string: string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  // variables
   const snapPoints = useMemo(() => ['25%', '40%'], []);
 
   // callbacks
-  const handleSheetChanges = useCallback((index: any) => {
-    console.log('handleSheetChanges', index);
-  }, []);
+  // const handleSheetChanges = useCallback((index: any) => {
+  //   console.log('handleSheetChanges', index);
+  // }, []);
 
   const handleClientData = () => {
     setLoading(true);
@@ -125,6 +122,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     setLoading(false);
   };
   const getBookingStatus = async () => {
+    let statusUpdate;
     try {
       if (clientDetail?.__typename === 'Session') {
         statusUpdate = await handleSessionStatus(clientDetail?._id);
@@ -221,9 +219,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     return namesString;
   }
 
-  const handleCloseBottomSheet = () => {
-    setIsVisible(false);
-  };
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const isStorageLoading = useLiveblocks(
@@ -231,7 +226,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   );
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
-    console.log('presented');
+    console.log(AmountEntered);
+  }, []);
+  const handleCloseModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.close();
+    console.log(AmountEntered);
   }, []);
   React.useEffect(() => {
     enterRoom('test-room');
@@ -248,7 +247,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
         lastImgPress={() =>
           navigation.navigate('ChatScreen', {
             sender: clientDetail?.agent,
-            receiver: clientDetail?.booked_by,
+            receiver: clientDetail?.booked_by || clientDetail?.client,
             chat: clientDetail?._id,
           })
         }
@@ -266,7 +265,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           {clientDetail?.service_type === 'mobile_notary' && (
             <Text style={styles.Heading}>Mobile Notary</Text>
           )}
-          {clientDetail?.service_type === 'ron' && (
+          {clientDetail?.service_type !== 'mobile_notary' && (
             <Text style={styles.Heading}>Remote Online Notary</Text>
           )}
         </View>
@@ -342,7 +341,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           />
           <View style={styles.sheetContainer}>
             <Text style={[styles.insideHeading]}>Booking Preferences</Text>
-            {clientDetail?.service_type !== 'ron' && (
+            {clientDetail?.service_type === 'mobile_notary' && (
               <View>
                 <Text
                   style={{
@@ -514,7 +513,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               }
             />
           )}
-          <View style={styles.buttonFlex}>
+          <View style={[styles.buttonFlex, {marginTop: heightToDp(5)}]}>
             {status === 'Pending' && (
               <>
                 <MainButton
@@ -610,24 +609,28 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </>
             ) : null}
           </View>
-          {clientDetail?.service_type === 'ron' && status === 'To_be_paid' && (
-            <View>
-              <GradientButton
-                Title="Request Payment"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  width: widthToDp(90),
-                  paddingVertical: widthToDp(4),
-                  marginTop: widthToDp(10),
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  fontSize: widthToDp(6),
-                }}
-                onPress={handlePresentModalPress}
-              />
-            </View>
-          )}
+          {clientDetail?.service_type !== 'mobile_notary' &&
+            status === 'To_be_paid' && (
+              <View>
+                <GradientButton
+                  Title="Request Payment"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(90),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(6),
+                  }}
+                  onPress={handlePresentModalPress}
+                />
+              </View>
+            )}
           <View style={styles.buttonBottom}>
             {notary === 'Ongoing' && (!notaryBlock || !signaturePage) && (
               <GradientButton
@@ -712,10 +715,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           ref={bottomSheetModalRef}
           index={1}
           snapPoints={snapPoints}
-          onChange={handleSheetChanges}>
+          // onChange={handleSheetChanges}
+        >
           <RequestPayment
             amount={AmountEntered}
-            onChangeText={text => setAmountEntered(text)}
+            onChangeText={(text: string) => setAmountEntered(text)}
+            onPress={handleCloseModalPress}
           />
         </BottomSheetModal>
       </BottomSheetStyle>

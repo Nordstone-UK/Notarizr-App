@@ -31,6 +31,7 @@ import useRegister from '../../hooks/useRegister';
 import useFetchUser from '../../hooks/useFetchUser';
 import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
 import {removeCountryCode} from '../../utils/CountryCode';
+import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
 
 export default function ProfileDetailEditScreen({navigation}, props) {
   const {
@@ -43,6 +44,8 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     phone_number,
     description: oldDescription,
   } = useSelector(state => state.user.user);
+  // const data = useSelector(state => state.user.user);
+  // console.log(new Date());
   const [firstName, setfirstName] = useState(first_name);
   const [lastName, setlastName] = useState(last_name);
   const [phoneNumber, setNumber] = useState(phone_number);
@@ -54,9 +57,12 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const [description, setDescription] = useState(oldDescription);
   const [tempLoading, settempLoading] = useState(false);
   const [profilePicture, setProfilePicure] = useState(profile_picture);
+  const [date, setDate] = useState(new Date());
+
   const {account_type} = useSelector(state => state.user.user);
   const {fetchUserInfo} = useFetchUser();
   const {countryCode, phoneNumberWithoutCode} = removeCountryCode(phoneNumber);
+  console.log(countryCode);
   const {handleCompression, uploadBlobToS3} = useRegister();
   const {handleProfileUpdate} = useUpdate();
   const showCameraGalleryAlert = () => {
@@ -136,7 +142,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       <NavigationHeader Title="Profile Details" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
+        style={{flex: 1, paddingBottom: heightToDp(10)}}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
@@ -169,6 +175,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 LabelTextInput={'Last Name'}
                 onChangeText={text => setlastName(text)}
               />
+
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/emailIcon.png')}
                 placeholder={'Enter your email address'}
@@ -190,6 +197,19 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultCode={countryCode}
                 value={phoneNumberWithoutCode}
                 placeholder={'XXXXXXXXXXX'}
+              />
+              <CustomDatePicker
+                onConfirm={date => setDate(date)}
+                Text="Date Of Birth"
+                mode="date"
+                date={date}
+                labelStyle={{}}
+                containerStyle={{
+                  paddingVertical: widthToDp(4),
+                  width: widthToDp(90),
+                  alignSelf: 'center',
+                }}
+                textStyle={{}}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}

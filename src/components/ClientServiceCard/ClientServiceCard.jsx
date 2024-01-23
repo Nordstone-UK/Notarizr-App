@@ -30,7 +30,7 @@ export default function ClientServiceCard(props) {
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
   const Button = props?.Button || false;
   const clientDetail = useSelector(state => state.booking.booking);
-  const client = clientDetail?.booked_by;
+  const client = clientDetail?.booked_by || clientDetail?.client;
   // const Price = calculateTotalPrice(props.bottomRightText);
   const OrangeGradient = string => {
     return (
@@ -64,6 +64,21 @@ export default function ClientServiceCard(props) {
       return ['', '']; // Return empty strings if the inputString is empty
     }
   }
+  const renderImages = count => {
+    const images = [];
+
+    for (let i = 0; i < count; i++) {
+      images.push(
+        <Image
+          key={i}
+          source={require('../../../assets/star.png')}
+          style={{width: widthToDp(3), height: heightToDp(3)}}
+        />,
+      );
+    }
+
+    return images;
+  };
 
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
@@ -126,18 +141,10 @@ export default function ClientServiceCard(props) {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                columnGap: 1,
-                // borderWidth: 1,
+                columnGap: widthToDp(1),
               }}>
-              <Text style={styles.address}>Rating: {client?.rating || 4} </Text>
-              <Image
-                source={require('../../../assets/star.png')}
-                style={{
-                  width: widthToDp(3),
-                  height: heightToDp(3),
-                  marginBottom: heightToDp(1),
-                }}
-              />
+              <Text style={styles.rating}>Rating: </Text>
+              {renderImages(props?.rating || 5)}
             </View>
           </View>
           {clientDetail?.service_type === 'mobile_notary' ? (
@@ -269,101 +276,10 @@ const styles = StyleSheet.create({
   paymentStyle: {
     color: Colors.TextColor,
   },
+  rating: {
+    color: Colors.TextColor,
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Poppins-Regular',
+    marginTop: heightToDp(0.5),
+  },
 });
-//  <View
-//             style={{
-//               flexDirection: 'row',
-//               justifyContent: 'space-between',
-//               marginLeft: heightToDp(1),
-//               paddingTop: heightToDp(2),
-//             }}>
-//             <Text
-//               style={[
-//                 styles.totalStyles,
-//                 props.leftSideStyles,
-//                 {fontFamily: 'Poppins-Bold', fontSize: widthToDp(4.5)},
-//               ]}>
-//               ${props.bottomLeftText}
-//             </Text>
-//             {props?.status === 'rejected' && (
-//               <View
-//                 style={{
-//                   flexDirection: 'row',
-//                   alignItems: 'center',
-//                   justifyContent: 'space-evenly',
-//                 }}>
-//                 <Image source={require('../../../assets/pending.png')} />
-
-//                 <Text
-//                   style={[
-//                     styles.distanceStyles,
-//                     {
-//                       fontSize: widthToDp(4.5),
-//                       marginHorizontal: widthToDp(2),
-//                     },
-//                   ]}>
-//                   {capitalizeFirstLetter(props?.status)}
-//                 </Text>
-//               </View>
-//             )}
-//             {props?.status === 'completed' && (
-//               <View
-//                 style={{
-//                   flexDirection: 'row',
-//                   alignItems: 'center',
-//                   justifyContent: 'space-evenly',
-//                 }}>
-//                 <Image source={require('../../../assets/greenIcon.png')} />
-//                 <Text
-//                   style={[
-//                     styles.distanceStyles,
-//                     {
-//                       fontSize: widthToDp(4.5),
-//                       marginHorizontal: widthToDp(2),
-//                     },
-//                   ]}>
-//                   {capitalizeFirstLetter(props?.status)}
-//                 </Text>
-//               </View>
-//             )}
-//             {props?.status === 'accepted' && (
-//               <View
-//                 style={{
-//                   flexDirection: 'row',
-//                   alignItems: 'center',
-//                   justifyContent: 'space-evenly',
-//                 }}>
-//                 <Image source={require('../../../assets/greenIcon.png')} />
-//                 <Text
-//                   style={[
-//                     styles.distanceStyles,
-//                     {
-//                       fontSize: widthToDp(4.5),
-//                       marginHorizontal: widthToDp(2),
-//                     },
-//                   ]}>
-//                   {capitalizeFirstLetter(props?.status)}
-//                 </Text>
-//               </View>
-
-//              {Button === false && props?.status === 'pending' && (
-//               <MainButton
-//                 Title="Accept"
-//                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-//                 GradiStyles={{
-//                   borderRadius: 5,
-//                   paddingHorizontal: widthToDp(1),
-//                 }}
-//                 styles={{
-//                   paddingHorizontal: widthToDp(4),
-//                   paddingVertical: widthToDp(1),
-//                   fontSize: widthToDp(4),
-//                 }}
-//                 onPress={() =>
-//                   navigation.navigate('ClientDetailsScreen', {
-//                     clientDetail: props?.clientDetail,
-//                   })
-//                 }
-//               />
-//             )}
-//           </View>

@@ -64,9 +64,6 @@ export default function ChatScreen({route, navigation}: any) {
       const {channelName, token} = await getAgoraCallToken(receiver._id);
       setChannelName(channelName);
       setCallToken(token);
-
-      // console.log('Channel Name:', channelName);
-      // console.log('Token:', token);
     } catch (error) {
       console.log('API Error:', error);
     }
@@ -163,8 +160,8 @@ export default function ChatScreen({route, navigation}: any) {
               console.log('onDisconnected:' + errorCode);
             },
           };
-          chatClient.addConnectionListener(listener);
           login();
+          chatClient.addConnectionListener(listener);
         })
         .catch(error => {
           console.log(

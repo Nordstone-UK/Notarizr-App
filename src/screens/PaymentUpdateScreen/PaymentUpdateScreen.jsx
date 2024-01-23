@@ -67,7 +67,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
               style={{
                 flex: 1,
                 borderWidth: 1,
-                height: heightToDp(200),
+                height: heightToDp(500),
                 marginVertical: heightToDp(2),
               }}
             />
@@ -79,6 +79,8 @@ export default function PaymentUpdateScreen({navigation}, props) {
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title="Create Stripe Account"
               onPress={() => CreateStripeAccount()}
+              loading={loading}
+              isDisabled={loading}
             />
           )}
         </View>

@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: '#D3D5DA',
     width: widthToDp(90),
-    height: Platform.OS == 'ios' ? heightToDp(30) : 40,
+    minHeight: Platform.OS == 'ios' ? heightToDp(30) : heightToDp(20),
     paddingLeft: widthToDp(2),
   },
   icon: {

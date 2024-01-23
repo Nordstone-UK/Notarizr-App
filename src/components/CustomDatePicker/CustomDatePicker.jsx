@@ -11,6 +11,8 @@ export default function CustomDatePicker(props) {
   const handleCancel = () => {
     setOpen(false);
   };
+  const maxDate = new Date('2021-01-01');
+  const minDate = new Date('1930-01-01');
   return (
     <View>
       <TouchableOpacity
@@ -39,7 +41,7 @@ export default function CustomDatePicker(props) {
         <Text
           style={[
             {
-              fontFamily: 'Manrope-Bold',
+              fontFamily: 'Manrope-SemiBold',
               fontSize: widthToDp(4),
               alignSelf: 'center',
               marginLeft: widthToDp(5),
@@ -53,7 +55,6 @@ export default function CustomDatePicker(props) {
       <DatePicker
         modal
         open={open}
-        date={selectedDate}
         onConfirm={date => {
           props.onConfirm(date);
           setSelectedDate(date);
@@ -61,6 +62,9 @@ export default function CustomDatePicker(props) {
         }}
         onCancel={handleCancel}
         mode="date"
+        maximumDate={new Date(2020, 11, 31)}
+        minimumDate={new Date(1950, 11, 31)}
+        date={selectedDate}
       />
       {props.Text && (
         <Text

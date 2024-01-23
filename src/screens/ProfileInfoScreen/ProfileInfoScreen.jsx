@@ -40,9 +40,9 @@ export default function ProfileInfoScreen({navigation}) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
-      console.log('====================================');
-      console.log('ProfileInfoScreen sending...', account_type);
-      console.log('====================================');
+      // console.log('====================================');
+      // console.log('ProfileInfoScreen sending...', account_type);
+      // console.log('====================================');
     });
     return unsubscribe;
   }, [navigation]);
@@ -52,7 +52,9 @@ export default function ProfileInfoScreen({navigation}) {
       <Image source={{uri: profile_picture}} style={styles.picture} />
       <Text style={styles.textheading}>{first_name}</Text>
       <BottomSheetStyle>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{paddingBottom: heightToDp(10)}}>
           <View style={styles.iconContainer}>
             <TouchableOpacity
               onPress={

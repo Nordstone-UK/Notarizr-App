@@ -452,7 +452,24 @@ export default function MedicalBookingScreen({route, navigation}) {
                 }
               />
             )}
-          {status === 'Pending' ? null : (
+          {status === 'Pending' ? (
+            <GradientButton
+              Title="Cancel Booking"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                width: widthToDp(90),
+                paddingVertical: widthToDp(4),
+                marginTop: widthToDp(10),
+              }}
+              styles={{
+                padding: widthToDp(0),
+                fontSize: widthToDp(6),
+              }}
+              onPress={() => handleStatusChange('cancelled')}
+              loading={loading}
+              isDisabled={loading}
+            />
+          ) : (
             <View style={styles.buttonFlex}>
               {status === 'Accepted' &&
                 bookingDetail?.service_type === 'mobile_notary' && (
@@ -492,71 +509,32 @@ export default function MedicalBookingScreen({route, navigation}) {
                     />
                   </>
                 )}
-              {status === 'To_be_paid' && (
-                <GradientButton
-                  Title="Make Payment"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{
-                    width: widthToDp(90),
-                    paddingVertical: widthToDp(4),
-                    marginTop: widthToDp(10),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(6),
-                  }}
-                  onPress={() =>
-                    navigation.navigate('ToBePaidScreen', {
-                      bookingData: bookingDetail,
-                    })
-                  }
-                />
-              )}
+              {status === 'To_be_paid' &&
+                bookingDetail?.service_type !== 'mobile_notary' && (
+                  <GradientButton
+                    Title="Make Payment"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      width: widthToDp(90),
+                      paddingVertical: widthToDp(4),
+                      marginTop: widthToDp(10),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      fontSize: widthToDp(6),
+                    }}
+                    onPress={() =>
+                      navigation.navigate('ToBePaidScreen', {
+                        bookingData: bookingDetail,
+                      })
+                    }
+                  />
+                )}
             </View>
           )}
-          {(status === 'Pending' || status === 'To_be_paid') &&
-            bookingDetail?.service_type === 'ron' && (
-              <View style={[styles.buttonFlex, {marginTop: heightToDp(6)}]}>
-                <MainButton
-                  Title="Make Payment"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{
-                    width: widthToDp(40),
-                    paddingHorizontal: widthToDp(0),
-                    paddingVertical: heightToDp(3),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(4),
-                  }}
-                />
-                <MainButton
-                  Title="Cancel Booking"
-                  loading={loading}
-                  isDisabled={loading}
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  onPress={() => handleStatusChange('cancelled')}
-                  GradiStyles={{
-                    width: widthToDp(40),
-                    paddingHorizontal: widthToDp(0),
-                    paddingVertical: heightToDp(3),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(4),
-                  }}
-                />
-              </View>
-            )}
         </ScrollView>
         {isVisible ? (
           <BottomSheet modalProps={{}} isVisible={isVisible}>
