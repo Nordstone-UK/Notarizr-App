@@ -28,9 +28,10 @@ import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofS
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
 import OneSignal from 'react-native-onesignal';
 import {socket} from '../../utils/Socket';
+import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
 
 export default function HomeScreen({route, navigation}) {
-  const {_id} = useSelector(state => state.user.user);
+  const {_id, first_name, last_name} = useSelector(state => state.user.user);
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
@@ -63,6 +64,9 @@ export default function HomeScreen({route, navigation}) {
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
     dispatch(setUser(item?.agent));
   };
+  // const [visible, setVisible] = useState(true);
+  // const [answer, setAnswer] = useState();
+  // console.log(answer, 'answer');
   return (
     <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="One Click and Select our services." />
@@ -149,6 +153,12 @@ export default function HomeScreen({route, navigation}) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
+      {/* <AuthenticateModal
+        modalVisible={visible}
+        setModalVisible={bool => setVisible(bool)}
+        handleConsent={answer => setAnswer(answer)}
+        name={first_name + ' ' + last_name}
+      /> */}
     </SafeAreaView>
   );
 }

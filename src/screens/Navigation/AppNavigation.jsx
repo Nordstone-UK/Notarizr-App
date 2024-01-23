@@ -100,6 +100,7 @@ import {socket} from '../../utils/Socket';
 import {setSocketID} from '../../features/user/userSlice';
 import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
 import SessionCreation from '../CompletionScreen/SessionCreation';
+import AuthenticationScreen from '../AuthenticationScreen.jsx/AuthenticationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -286,6 +287,10 @@ export default function AppNavigation() {
           component={PaymentUpdateScreen}
         />
         <Stack.Screen name="AddCardScreen" component={AddCardScreen} />
+        <Stack.Screen
+          name="AuthenticationScreen"
+          component={AuthenticationScreen}
+        />
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
         <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />

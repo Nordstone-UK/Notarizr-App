@@ -42,10 +42,10 @@ export default function ServiceDetailScreen({route, navigation}) {
   const [location, setlocation] = useState(null);
   const [email, setEmail] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [documents, setDocuments] = useState();
-  const [startTime, setStartTime] = useState(new Date());
+  // const [selectedDate, setSelectedDate] = useState('');
+  // const [isEnabled, setIsEnabled] = useState(false);
+  // const [documents, setDocuments] = useState();
+  // const [startTime, setStartTime] = useState(new Date());
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
 

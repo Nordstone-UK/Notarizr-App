@@ -49,26 +49,7 @@ export default function LegalDocScreen({route, navigation}) {
   const [selected, setSelected] = React.useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
-  // const onItemsSelect = selectedValues => {
-  //   setValue(selectedValues);
 
-  //   // Map selected values to their corresponding details
-  //   const selectedDocuments = documents.filter(doc =>
-  //     selectedValues.includes(doc.value),
-  //   );
-
-  //   setSelectedItems(selectedDocuments);
-
-  //   // Extract and store selected prices
-  //   const prices = selectedValues.map(selectedValue => {
-  //     const selectedDocument = documents.find(
-  //       doc => doc.value === selectedValue,
-  //     );
-  //     return selectedDocument.price;
-  //   });
-
-  //   setSelectedPrices(prices);
-  // };
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
       (total, document) => total + document.price,

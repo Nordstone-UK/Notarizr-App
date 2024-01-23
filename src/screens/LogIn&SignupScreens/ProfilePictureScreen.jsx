@@ -24,6 +24,7 @@ import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import {profilePictureSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
 import useRegister from '../../hooks/useRegister';
+import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
 
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState();
@@ -31,6 +32,7 @@ export default function ProfilePictureScreen({navigation}) {
   const [tempLoading, settempLoading] = useState(false);
   const [profilePicture, setProfilePicure] = useState('');
   const variables = useSelector(state => state.register);
+  const [visible, setVisible] = useState(true);
   const dispatch = useDispatch();
   const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
   const showCameraGalleryAlert = () => {
@@ -72,8 +74,14 @@ export default function ProfilePictureScreen({navigation}) {
       };
       const isRegistered = await handleRegister(params);
       if (isRegistered) {
+        // <AuthenticateModal
+        //   modalVisible={visible}
+        //   setModalVisible={bool => setVisible(bool)}
+        //   name={variables?.first_name + ' ' + variables?.last_name}
+        // />;
         settempLoading(false);
         navigation.navigate('RegisterCompletionScreen');
+        // registerAuthUser(); <--Authenticate
       } else {
         Toast.show({
           type: 'error',
