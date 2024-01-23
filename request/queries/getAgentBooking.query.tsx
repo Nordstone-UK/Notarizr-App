@@ -102,13 +102,7 @@ export const GET_AGENT_BOOKING = gql`
         review
         createdAt
         updatedAt
-        zoom_id
-        zoom_password
-        zoom_agenda
-        zoom_host_email
-        zoom_host_id
-        zoom_join_url
-        zoom_start_url
+
         agora_channel_name
         agora_channel_token
         signature_request_id

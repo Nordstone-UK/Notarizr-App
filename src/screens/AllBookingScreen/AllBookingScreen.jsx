@@ -37,8 +37,8 @@ export default function AllBookingScreen({route, navigation}) {
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     const sessionDetail = await handleClientSessions(status);
-    // console.log('bookingDetail', bookingDetail);
-    // console.log('sessionDetail', sessionDetail);
+    console.log('bookingDetail', bookingDetail);
+    console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
 
     const sortedDetails = mergedDetails.sort(

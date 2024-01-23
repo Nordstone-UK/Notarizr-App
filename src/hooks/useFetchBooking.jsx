@@ -32,6 +32,7 @@ const useFetchBooking = () => {
     };
     try {
       const data = await getClientBooking(request);
+      console.log('frhdkgvhkhdktg', data);
       return sortBookingByDate(data?.data?.getClientBookings?.bookings);
     } catch (error) {
       console.log(error);
