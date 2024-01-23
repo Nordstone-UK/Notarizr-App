@@ -31,10 +31,12 @@ export default function ToBePaidScreen({route, navigation}) {
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
   const init = async () => {
-    if (bookingData?.__typename !== 'Session') {
-      await handleUpdateBookingStatus('pending', bookingData._id);
-    } else {
+    if (bookingData?.__typename === 'Session') {
       await updateSession('accepted', bookingData._id);
+    } else if (bookingData?.service_type === 'ron') {
+      await handleUpdateBookingStatus('accepted', bookingData._id);
+    } else {
+      await handleUpdateBookingStatus('pending', bookingData._id);
     }
     dispatch(setBookingInfoState(bookingData));
     dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
@@ -50,10 +52,16 @@ export default function ToBePaidScreen({route, navigation}) {
       0,
     );
   }
+  console.log(bookingData);
   const initializePaymentSheet = async () => {
     setLoading(true);
-    var TotalPayment = await calculateTotalPrice(bookingData?.document_type);
-    TotalPayment = TotalPayment + numberOfDocs * 10;
+    let TotalPayment;
+    if (bookingData?.service_type === 'mobile_notary') {
+      TotalPayment = await calculateTotalPrice(bookingData?.document_type);
+      TotalPayment = TotalPayment + numberOfDocs * 10;
+    } else if (bookingData?.service_type === 'ron') {
+      TotalPayment = bookingData?.totalPrice;
+    }
     const response = await fetchPaymentSheetParams(
       TotalPayment * 100,
       bookingData._id,
@@ -96,20 +104,20 @@ export default function ToBePaidScreen({route, navigation}) {
   useEffect(() => {
     initializePaymentSheet();
   }, [navigation]);
-  React.useEffect(() => {
-    const disableBackButtonHandler = () => {
-      return true; // Returning `true` will prevent the default back behavior
-    };
+  // React.useEffect(() => {
+  //   const disableBackButtonHandler = () => {
+  //     return true; // Returning `true` will prevent the default back behavior
+  //   };
 
-    BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
+  //   BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
 
-    return () => {
-      BackHandler.removeEventListener(
-        'hardwareBackPress',
-        disableBackButtonHandler,
-      );
-    };
-  }, []);
+  //   return () => {
+  //     BackHandler.removeEventListener(
+  //       'hardwareBackPress',
+  //       disableBackButtonHandler,
+  //     );
+  //   };
+  // }, []);
   return (
     <SafeAreaView style={styles.container}>
       <View

@@ -42,14 +42,14 @@ import RequestPayment from '../../../components/RequestPayment/RequestPayment';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
-  // const {clientDetail} = route.params;
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
   const {
     handlegetBookingStatus,
     handleSessionStatus,
     handleUpdateBookingStatus,
   } = useBookingStatus();
-  const {handleupdateBookingInfo} = useFetchBooking();
+  const {handleupdateBookingInfo, setSessionPrice, setBookingPrice} =
+    useFetchBooking();
   const {uploadAllDocuments} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
   const {updateSession} = useSession();
@@ -60,7 +60,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [isVisible, setIsVisible] = useState(false);
-
+  const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
+  const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const [notary, setNotary] = useState();
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -68,7 +69,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [notes, setNotes] = useState('');
   const [signaturePage, setSignaturePage] = useState();
   const [notaryBlock, setNotaryBlock] = useState();
-  const [AmountEntered, setAmountEntered] = useState<any>();
+  const [AmountEntered, setAmountEntered] = useState<number>(0);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -81,17 +82,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
   const snapPoints = useMemo(() => ['25%', '40%'], []);
-
-  // callbacks
-  // const handleSheetChanges = useCallback((index: any) => {
-  //   console.log('handleSheetChanges', index);
-  // }, []);
-
   const handleClientData = () => {
     setLoading(true);
-    console.log('item');
     if (
       clientDetail?.service_type === 'mobile_notary' &&
       status === 'Accepted'
@@ -115,7 +108,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       );
       navigation.navigate('MapArrivalScreen');
     } else {
-      console.log('notary');
       handleUpdateBookingStatus('To_be_paid', clientDetail._id);
       getBookingStatus();
     }
@@ -160,9 +152,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
         await updateSession(string, clientDetail?._id);
       }
       await getBookingStatus();
-      console.log('====================================');
-      console.log('status', status);
-      console.log('====================================');
     } catch (error) {
       console.error('Error updating and fetching booking status:', error);
     }
@@ -218,19 +207,47 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     const namesString = names.join(', ');
     return namesString;
   }
+  const setBookingAmount = async () => {
+    try {
+      let response;
 
-  const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
-  const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
+      if (clientDetail?.__typename === 'Session') {
+        response = await setSessionPrice(
+          clientDetail?._id,
+          AmountEntered,
+          clientDetail?.documents,
+        );
+        console.log(response);
+      } else {
+        response = await setBookingPrice(
+          clientDetail?._id,
+          AmountEntered,
+          clientDetail?.review,
+          clientDetail?.rating,
+          clientDetail?.notes,
+          clientDetail?.documents,
+        );
+        console.log(response);
+      }
+      handleCloseModalPress();
+      if (response == 200) {
+        Toast.show({
+          type: 'success',
+          text1: 'Amount requested successfully',
+        });
+      }
+    } catch (error) {
+      console.error('Error setting booking price:', error);
+    }
+  };
   const isStorageLoading = useLiveblocks(
     state => state.liveblocks.isStorageLoading,
   );
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
-    console.log(AmountEntered);
   }, []);
   const handleCloseModalPress = useCallback(() => {
     bottomSheetModalRef.current?.close();
-    console.log(AmountEntered);
   }, []);
   React.useEffect(() => {
     enterRoom('test-room');
@@ -239,6 +256,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       leaveRoom();
     };
   }, [enterRoom, leaveRoom]);
+  // console.log('PPP', clientDetail._id);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -719,8 +737,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
         >
           <RequestPayment
             amount={AmountEntered}
-            onChangeText={(text: string) => setAmountEntered(text)}
-            onPress={handleCloseModalPress}
+            onChangeText={(text: number) => setAmountEntered(text)}
+            onPress={() => setBookingAmount()}
           />
         </BottomSheetModal>
       </BottomSheetStyle>

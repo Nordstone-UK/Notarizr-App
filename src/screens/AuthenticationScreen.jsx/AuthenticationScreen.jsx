@@ -29,6 +29,10 @@ import {
 
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import MainButton from '../../components/MainGradientButton/MainButton';
+import {
+  convertURIsToBase64,
+  handleConvertToBase64,
+} from '../../utils/ImagePicker';
 
 export default function AuthenticationScreen({route, navigation}) {
   const dispatch = useDispatch();
@@ -40,19 +44,21 @@ export default function AuthenticationScreen({route, navigation}) {
   // const [date, setDate] = useState(new Date());
 
   let urlResponse;
-  const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
+  const {uploadMultipleFiles} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
   const submitAddressDetails = async () => {
     setLoading(true);
-    if (documents) {
-      urlResponse = await uploadAllDocuments(documents);
-    }
-    dispatch(
-      setBookingInfoState({
-        ...bookingData,
-        documents: urlResponse,
-      }),
-    );
+    const response = await convertURIsToBase64(documents);
+    console.log(response);
+    // if (documents) {
+    //   urlResponse = await uploadAllDocuments(documents);
+    // }
+    // dispatch(
+    //   setBookingInfoState({
+    //     ...bookingData,
+    //     documents: urlResponse,
+    //   }),
+    // );
     setLoading(false);
     // navigation.navigate('NearbyLoadingScreen', {
     //   serviceType: 'mobile_notary',

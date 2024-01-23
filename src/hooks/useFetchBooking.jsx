@@ -9,6 +9,8 @@ import {GET_BOOKING_BY_ID} from '../../request/queries/getBookingByID.query';
 import {UPDATE_BOOKING_INFO} from '../../request/mutations/updateBookingInfo.mutation';
 import {GET_CLIENT_SESSION} from '../../request/queries/getClientSession.query';
 import {GET_AGENT_SESSION} from '../../request/queries/getAgentSessions.query';
+import {UPDATE_BOOKING_PRICE} from '../../request/mutations/updateBookingPrice.mutation';
+import {UPDATE_SESSION_PRICEDOCS} from '../../request/mutations/updateSessionPriceDocs.mutation';
 
 const useFetchBooking = () => {
   const [getClientBooking] = useLazyQuery(GET_CLIENT_BOOKING);
@@ -17,6 +19,8 @@ const useFetchBooking = () => {
   const [updateBookingInfo] = useMutation(UPDATE_BOOKING_INFO);
   const [getClientSession] = useLazyQuery(GET_CLIENT_SESSION);
   const [getAgentSession] = useLazyQuery(GET_AGENT_SESSION);
+  const [updateBookingPrice] = useMutation(UPDATE_BOOKING_PRICE);
+  const [updateSessionPricsDoc] = useMutation(UPDATE_SESSION_PRICEDOCS);
   const dispatch = useDispatch();
   const [clientBooking, setClientBooking] = useState({
     status: 'pending',
@@ -32,7 +36,7 @@ const useFetchBooking = () => {
     };
     try {
       const data = await getClientBooking(request);
-      console.log('frhdkgvhkhdktg', data);
+      // console.log('frhdkgvhkhdktg', data);
       return sortBookingByDate(data?.data?.getClientBookings?.bookings);
     } catch (error) {
       console.log(error);
@@ -160,7 +164,44 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
-
+  const setBookingPrice = async (
+    id,
+    price,
+    review,
+    rating,
+    notes,
+    documents,
+    client_docs,
+  ) => {
+    const request = {
+      variables: {
+        bookingId: id,
+        totalPrice: parseFloat(price),
+        review: review,
+        rating: rating,
+        notes: notes,
+        proofDocuments: documents,
+        documents: client_docs,
+      },
+    };
+    console.log('Request', request);
+    const response = await updateBookingPrice(request);
+    console.log('Answer', response?.data?.updateBookingsInfo?.status);
+    return response?.data?.updateBookingsInfo?.status;
+  };
+  const setSessionPrice = async (id, price, docs) => {
+    const request = {
+      variables: {
+        sessionId: id,
+        price: parseFloat(price),
+        clientDocuments: docs,
+      },
+    };
+    console.log('Request', request);
+    const response = await updateSessionPricsDoc(request);
+    console.log('Answer', response);
+    return response?.data?.updateSessionR?.status;
+  };
   return {
     fetchBookingInfo,
     fetchAgentBookingInfo,
@@ -170,6 +211,8 @@ const useFetchBooking = () => {
     getTotalBookings,
     handleClientSessions,
     handleAgentSessions,
+    setBookingPrice,
+    setSessionPrice,
   };
 };
 
