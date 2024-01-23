@@ -40,6 +40,7 @@ import {useSession} from '../../hooks/useSession';
 import {useLiveblocks} from '../../store/liveblocks';
 import Loading from '../../components/LiveBlocksComponents/loading';
 import useRegister from '../../hooks/useRegister';
+import {setBookingInfoState} from '../../features/booking/bookingSlice';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -48,7 +49,8 @@ export default function MedicalBookingScreen({route, navigation}) {
     handleUpdateBookingStatus,
   } = useBookingStatus();
   const {updateSession} = useSession();
-  const {handleReviewSubmit, setBookingPrice} = useFetchBooking();
+  const {handleReviewSubmit, setBookingPrice, fetchBookingByID} =
+    useFetchBooking();
   const payment = useSelector(state => state.payment.payment);
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
@@ -71,15 +73,21 @@ export default function MedicalBookingScreen({route, navigation}) {
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const [uploadShow, setUploadShow] = useState(true);
   const [showIcon, setShowIcon] = useState(true);
+  function isEmpty(obj) {
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) return false;
+    }
+
+    return true;
+  }
+  const documentCheck = isEmpty(bookingDetail?.documents);
   const selectDocuments = async () => {
     setShowIcon(false);
     let urlResponse;
     const response = await uploadMultipleFiles();
-    console.log(response);
     // setUploadingDocs(response);
     if (response) {
       urlResponse = await uploadAllDocuments(response);
-      console.log('response', urlResponse);
       if (urlResponse) {
         const response = await setBookingPrice(
           bookingDetail?._id,
@@ -87,16 +95,21 @@ export default function MedicalBookingScreen({route, navigation}) {
           bookingDetail?.review,
           bookingDetail?.rating,
           bookingDetail?.notes,
+          bookingDetail?.proof_documents,
           urlResponse,
         );
-        console.log(response);
+        // console.log(response);
+        const reponse = await fetchBookingByID(bookingDetail?._id);
+        // console.log(reponse);
+        dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
         setUploadShow(false);
         setShowIcon(true);
       }
     }
     setShowIcon(true);
   };
-  // console.log('bookingDetail', bookingDetail);
+  console.log(documentCheck);
+
   React.useEffect(() => {
     enterRoom('test-room');
 
@@ -456,7 +469,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           </View>
           {bookingDetail?.service_type === 'ron' &&
           status === 'Accepted' &&
-          !documents ? (
+          documentCheck ? (
             showIcon ? (
               <TouchableOpacity
                 style={styles.dottedContianer}

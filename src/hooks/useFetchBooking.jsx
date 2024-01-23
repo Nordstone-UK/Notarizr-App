@@ -171,6 +171,7 @@ const useFetchBooking = () => {
     rating,
     notes,
     documents,
+    client_docs,
   ) => {
     const request = {
       variables: {
@@ -180,14 +181,12 @@ const useFetchBooking = () => {
         rating: rating,
         notes: notes,
         proofDocuments: documents,
+        documents: client_docs,
       },
     };
     console.log('Request', request);
     const response = await updateBookingPrice(request);
-    console.log(
-      'Answer',
-      response?.data?.updateBookingsInfo?.booking?.proof_documents,
-    );
+    console.log('Answer', response?.data?.updateBookingsInfo?.status);
     return response?.data?.updateBookingsInfo?.status;
   };
   const setSessionPrice = async (id, price, docs) => {
@@ -201,7 +200,7 @@ const useFetchBooking = () => {
     console.log('Request', request);
     const response = await updateSessionPricsDoc(request);
     console.log('Answer', response);
-    return response?.data?.updateBookingsInfo?.status;
+    return response?.data?.updateSessionR?.status;
   };
   return {
     fetchBookingInfo,

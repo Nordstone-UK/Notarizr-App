@@ -31,10 +31,12 @@ export default function ToBePaidScreen({route, navigation}) {
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
   const init = async () => {
-    if (bookingData?.service_type !== 'mobile_notary') {
-      await handleUpdateBookingStatus('pending', bookingData._id);
-    } else {
+    if (bookingData?.__typename === 'Session') {
       await updateSession('accepted', bookingData._id);
+    } else if (bookingData?.service_type === 'ron') {
+      await handleUpdateBookingStatus('accepted', bookingData._id);
+    } else {
+      await handleUpdateBookingStatus('pending', bookingData._id);
     }
     dispatch(setBookingInfoState(bookingData));
     dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));

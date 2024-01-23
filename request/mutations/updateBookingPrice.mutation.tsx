@@ -1,8 +1,24 @@
 import gql from 'graphql-tag';
 
 export const UPDATE_BOOKING_PRICE = gql`
-  mutation UpdateBookingsInfo($bookingId: String!, $totalPrice: Float) {
-    updateBookingsInfo(bookingId: $bookingId, totalPrice: $totalPrice) {
+  mutation UpdateBookingsInfo(
+    $bookingId: String!
+    $proofDocuments: JSON
+    $review: String
+    $rating: Int
+    $notes: String
+    $totalPrice: Float
+    $documents: JSON
+  ) {
+    updateBookingsInfo(
+      bookingId: $bookingId
+      proof_documents: $proofDocuments
+      review: $review
+      rating: $rating
+      notes: $notes
+      totalPrice: $totalPrice
+      documents: $documents
+    ) {
       status
       message
       booking {
