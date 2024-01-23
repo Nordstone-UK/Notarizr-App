@@ -11,12 +11,14 @@ export const GET_AGENT_SESSION = gql`
           _id
           first_name
           last_name
+          date_of_birth
           email
           phone_number
           profile_picture
           gender
           isBlocked
           chatPrivacy
+          notarySeal
           location
           rating
           subscriptionType
@@ -33,17 +35,20 @@ export const GET_AGENT_SESSION = gql`
             tag
             location
           }
+          userAccessCode
         }
         client {
           _id
           first_name
           last_name
+          date_of_birth
           email
           phone_number
           profile_picture
           gender
           isBlocked
           chatPrivacy
+          notarySeal
           location
           rating
           subscriptionType
@@ -52,6 +57,7 @@ export const GET_AGENT_SESSION = gql`
           online_status
           description
           state
+          userAccessCode
         }
         price
         client_documents
@@ -66,7 +72,6 @@ export const GET_AGENT_SESSION = gql`
         session_schedule
         date_time_session
         agent_document
-
         agora_channel_name
         agora_channel_token
         signature_request_id

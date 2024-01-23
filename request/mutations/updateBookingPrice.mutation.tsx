@@ -1,11 +1,11 @@
 import gql from 'graphql-tag';
 
-export const GET_CLIENT_BOOKING = gql`
-  query GetClientBookings($status: String!, $page: Int!, $pageSize: Int!) {
-    getClientBookings(status: $status, page: $page, pageSize: $pageSize) {
+export const UPDATE_BOOKING_PRICE = gql`
+  mutation UpdateBookingsInfo($bookingId: String!, $totalPrice: Float) {
+    updateBookingsInfo(bookingId: $bookingId, totalPrice: $totalPrice) {
       status
       message
-      bookings {
+      booking {
         _id
         booked_by {
           _id
@@ -113,15 +113,6 @@ export const GET_CLIENT_BOOKING = gql`
           signature_url
         }
       }
-      totalDocs
-      limit
-      totalPages
-      page
-      pagingCounter
-      hasPrevPage
-      hasNextPage
-      prevPage
-      nextPage
     }
   }
 `;

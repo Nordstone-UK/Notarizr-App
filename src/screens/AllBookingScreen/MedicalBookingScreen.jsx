@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Alert,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -38,6 +39,7 @@ import ModalCheck from '../../components/ModalComponent/ModalCheck';
 import {useSession} from '../../hooks/useSession';
 import {useLiveblocks} from '../../store/liveblocks';
 import Loading from '../../components/LiveBlocksComponents/loading';
+import useRegister from '../../hooks/useRegister';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -46,12 +48,12 @@ export default function MedicalBookingScreen({route, navigation}) {
     handleUpdateBookingStatus,
   } = useBookingStatus();
   const {updateSession} = useSession();
-  const {handleReviewSubmit} = useFetchBooking();
+  const {handleReviewSubmit, setBookingPrice} = useFetchBooking();
   const payment = useSelector(state => state.payment.payment);
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
-
+  const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const [feedback, setFeedback] = useState();
   const documents = bookingDetail?.documents;
   const {booked_for} = bookingDetail;
@@ -62,13 +64,39 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
+  const [uploadingDocs, setUploadingDocs] = useState();
+  const [updatedDocs, setUpdatedDocs] = useState();
   let statusUpdate;
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
-  // const isStorageLoading = useLiveblocks(
-  //   state => state.liveblocks.isStorageLoading,
-  // );
-
+  const [uploadShow, setUploadShow] = useState(true);
+  const [showIcon, setShowIcon] = useState(true);
+  const selectDocuments = async () => {
+    setShowIcon(false);
+    let urlResponse;
+    const response = await uploadMultipleFiles();
+    console.log(response);
+    // setUploadingDocs(response);
+    if (response) {
+      urlResponse = await uploadAllDocuments(response);
+      console.log('response', urlResponse);
+      if (urlResponse) {
+        const response = await setBookingPrice(
+          bookingDetail?._id,
+          bookingDetail?.totalPrice,
+          bookingDetail?.review,
+          bookingDetail?.rating,
+          bookingDetail?.notes,
+          urlResponse,
+        );
+        console.log(response);
+        setUploadShow(false);
+        setShowIcon(true);
+      }
+    }
+    setShowIcon(true);
+  };
+  // console.log('bookingDetail', bookingDetail);
   React.useEffect(() => {
     enterRoom('test-room');
 
@@ -177,7 +205,6 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return namesString;
   }
-  // console.log('bookingDetail', bookingDetail.agent);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -362,7 +389,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 {bookingDetail?.time_of_booking}
               </Text>
             </View>
-            {/* <View style={styles.addressView}>
+            <View style={styles.addressView}>
               <Text
                 style={{
                   fontSize: widthToDp(4),
@@ -372,8 +399,8 @@ export default function MedicalBookingScreen({route, navigation}) {
                 }}>
                 Client Documents
               </Text>
-            </View> */}
-            {/* <View
+            </View>
+            <View
               style={{
                 flexDirection: 'row',
                 marginHorizontal: widthToDp(7),
@@ -397,7 +424,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               ) : (
                 <Text style={styles.preference}>No Documents</Text>
               )}
-            </View> */}
+            </View>
             {bookingDetail?.review && (
               <View>
                 <View style={styles.addressView}>
@@ -427,6 +454,32 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             )}
           </View>
+          {bookingDetail?.service_type === 'ron' &&
+          status === 'Accepted' &&
+          !documents ? (
+            showIcon ? (
+              <TouchableOpacity
+                style={styles.dottedContianer}
+                onPress={() => selectDocuments()}>
+                <Image source={require('../../../assets/upload.png')} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    columnGap: widthToDp(2),
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
+                    Upload
+                  </Text>
+                  <Image source={require('../../../assets/uploadIcon.png')} />
+                </View>
+                <Text>Upload your documents here...</Text>
+              </TouchableOpacity>
+            ) : (
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            )
+          ) : null}
           {bookingDetail?.service_type !== 'mobile_notary' &&
             (status === 'Accepted' || status === 'Ongoing') && (
               <GradientButton
@@ -639,4 +692,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginVertical: heightToDp(2),
   },
+  dottedContianer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    borderColor: Colors.DisableColor,
+    borderRadius: 5,
+    marginTop: heightToDp(5),
+    paddingVertical: heightToDp(2),
+    width: widthToDp(80),
+  },
 });
+{
+  /* <View
+                style={{
+                  flexDirection: 'row',
+                  marginHorizontal: widthToDp(8),
+                  marginVertical: widthToDp(2),
+                  flexWrap: 'wrap',
+                  columnGap: widthToDp(2),
+                  rowGap: widthToDp(2),
+                }}>
+                {/* {updatedDocs &&
+                  updatedDocs.map((image, index) => (
+                    <Image
+                      key={index}
+                      source={require('../../../assets/docPic.png')}
+                      style={{width: widthToDp(10), height: heightToDp(10)}}
+                    />
+                  ))} 
+              </View> */
+}

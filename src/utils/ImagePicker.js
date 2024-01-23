@@ -1,6 +1,7 @@
 import {PermissionsAndroid} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-
+import RNFS from 'react-native-fs';
+import {Blob} from 'react-native-blob-util';
 const requestCameraPermission = async () => {
   if (Platform.OS === 'android') {
     try {
@@ -161,4 +162,43 @@ export const convertToJsonObject = inputArray => {
   });
 
   return JSON.stringify(jsonArray, null, 2);
+};
+export const convertURIsToBase64 = async uris => {
+  try {
+    const base64Array = await Promise.all(
+      uris.map(async uri => {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        return await convertBlobToBase64(blob);
+      }),
+    );
+
+    return base64Array;
+  } catch (error) {
+    console.error('Error converting URIs to base64:', error);
+    return [];
+  }
+};
+export const handleConvertToBase64 = async imageUris => {
+  console.log('Image URIs:', imageUris);
+  Promise.all(
+    imageUris.map(uri => {
+      return RNFS.readFile(uri, 'base64')
+        .then(fileContent => {
+          const blob = Blob.build(fileContent, {type: 'image/jpeg'});
+          return Blob.toString(blob, 'base64');
+        })
+        .catch(error => {
+          console.log('Error reading file:', error);
+          return null;
+        });
+    }),
+  )
+    .then(base64Array => {
+      console.log('Base64 Array:', base64Array);
+      // Perform your desired actions with the base64 array
+    })
+    .catch(error => {
+      console.log('Error converting images to base64:', error);
+    });
 };

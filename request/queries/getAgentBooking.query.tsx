@@ -11,12 +11,14 @@ export const GET_AGENT_BOOKING = gql`
           _id
           first_name
           last_name
+          date_of_birth
           email
           phone_number
           profile_picture
           gender
           isBlocked
           chatPrivacy
+          notarySeal
           location
           rating
           subscriptionType
@@ -33,6 +35,7 @@ export const GET_AGENT_BOOKING = gql`
             tag
             location
           }
+          userAccessCode
         }
         service_type
         service {
@@ -60,12 +63,14 @@ export const GET_AGENT_BOOKING = gql`
           _id
           first_name
           last_name
+          date_of_birth
           email
           phone_number
           profile_picture
           gender
           isBlocked
           chatPrivacy
+          notarySeal
           location
           rating
           subscriptionType
@@ -74,16 +79,10 @@ export const GET_AGENT_BOOKING = gql`
           online_status
           description
           state
-          current_location {
-            type
-            coordinates
-          }
-          addresses {
-            tag
-            location
-          }
+          userAccessCode
         }
         preference_analysis
+        observers
         status
         documents
         booked_for {
@@ -102,7 +101,7 @@ export const GET_AGENT_BOOKING = gql`
         review
         createdAt
         updatedAt
-
+        totalPrice
         agora_channel_name
         agora_channel_token
         signature_request_id
