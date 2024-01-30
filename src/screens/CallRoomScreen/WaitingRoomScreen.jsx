@@ -122,6 +122,7 @@ export default function WaitingRoomScreen({route, navigation}) {
         />
       </View>
       <ScrollView
+        contentContainerStyle={{flex: 1}}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
@@ -186,7 +187,7 @@ export default function WaitingRoomScreen({route, navigation}) {
                       Colors.OrangeGradientEnd,
                     ]}
                     onPress={() =>
-                      navigation.navigate('NotaryCallScreen', {
+                      navigation.navigate('AuthenticationScreen', {
                         uid: uid,
                         channel: channel,
                         token: token,

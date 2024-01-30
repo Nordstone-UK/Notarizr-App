@@ -4,6 +4,7 @@ export const FETCH_USER_INFO = gql`
   query User {
     user {
       _id
+      date_of_birth
       first_name
       last_name
       email
@@ -29,6 +30,7 @@ export const FETCH_USER_INFO = gql`
         tag
         location
       }
+      userAccessCode
     }
   }
 `;

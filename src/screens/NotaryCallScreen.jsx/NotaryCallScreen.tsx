@@ -9,6 +9,7 @@ import {
   PermissionsAndroid,
   Platform,
   Alert,
+  BackHandler,
 } from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Colors from '../../themes/Colors';
@@ -42,14 +43,12 @@ import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import {Picker} from '@react-native-picker/picker';
 import useChatService from '../../hooks/useChatService';
 import {useSelector} from 'react-redux';
-import {
-  MultipleSelectList,
-  SelectList,
-} from 'react-native-dropdown-select-list';
+
 export default function NotaryCallScreen({route, navigation}: any) {
   const User = useSelector(state => state?.user?.user);
-  const agent = useSelector(state => state?.booking?.booking?.agent);
-  const booked_by = useSelector(state => state?.booking?.booking?.booked_by);
+  const bookingData = useSelector(state => state?.booking?.booking);
+  // console.log(bookingData?.documents);
+  // const arrayOfDocs = bookingData?.documents;
   const arrayOfDocs = [
     {
       id: 1,
@@ -89,20 +88,29 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [pdfSource, setPdfSource] = React.useState<Source | null>(null);
 
   const onUpdatePdf = useCallback(async (link: string) => {
+    console.log(link);
     const pdfFile = await ReactNativeBlobUtil.fetch('GET', link);
-    const pdfDoc = await PDFDocument.load(pdfFile.base64());
+    const pdfDoc = await PDFDocument.load(pdfFile.base64(), {
+      ignoreEncryption: true,
+    });
     const base64Pdf = await pdfDoc.saveAsBase64({dataUri: true});
-
     setPdfSource({
       uri: base64Pdf,
     });
   }, []);
   const handleLinkChange = (linkId: number) => {
-    const selectedDoc = arrayOfDocs.find(doc => doc.id === linkId);
+    console.log('Something', selectedDoc);
+    const selectedDoc = arrayOfDocs.find(
+      (doc: {id: number}) => doc.id === linkId,
+    );
+    console.log(selectedDoc);
     setSelectedLink(linkId);
     deleteAllObjects();
-    onUpdatePdf(selectedDoc?.url);
+    // onUpdatePdf(linkId);
   };
+  React.useEffect(() => {
+    onUpdatePdf(arrayOfDocs[0].url);
+  }, []);
   const onLabelAdd = React.useCallback(() => {
     insertObject(new Date().toISOString(), {
       type: 'label',
@@ -140,14 +148,28 @@ export default function NotaryCallScreen({route, navigation}: any) {
   }, [currentPage, insertObject]);
 
   React.useEffect(() => {
-    onUpdatePdf(arrayOfDocs[0].url);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  React.useEffect(() => {
     if (remoteCurrentPage !== currentPage) {
       pdfRef.current?.setPage(remoteCurrentPage);
     }
   }, [remoteCurrentPage, currentPage]);
+
+  const handleBackButton = () => {
+    navigation.navigate('WaitingRoomScreen', {
+      uid: bookingData?._id,
+      channel: bookingData?.agora_channel_name,
+      token: bookingData?.agora_channel_token,
+      time: bookingData?.time_of_booking,
+      date: bookingData?.date_of_booking,
+    });
+    return true;
+  };
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
+    };
+  }, []);
+
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
       try {
@@ -171,6 +193,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
             setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
           },
+          onRequestToken(connection) {},
         });
         agoraEngine.initialize({
           appId: appId,
@@ -181,7 +204,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
         console.log(e);
       }
     };
-    console.log('useEffect');
     setupVideoSDKEngine().then(() => {
       join();
     });
@@ -189,7 +211,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       agoraEngineRef.current?.leaveChannel();
     };
   }, []);
-
   const join = async () => {
     console.log('====================================');
     if (isJoined) {
@@ -200,6 +221,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
         ChannelProfileType.ChannelProfileCommunication,
       );
       agoraEngineRef.current?.startPreview();
+      // console.log(token, channelName, uid);
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
@@ -250,75 +272,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
   };
   return (
     <SafeAreaView style={styles.Maincontainer}>
-      {/* <View style={styles.NavbarContainer}>
-        <View style={styles.NavContainer}>
-          <Image
-            source={require('../../../assets/waitingNav.png')}
-            style={styles.waitingNav}
-          />
-          <View style={styles.NavTextContainer}>
-            <Text style={styles.textHead}>Notary Room</Text>
-          </View>
-        </View>
-        <Image
-          source={require('../../../assets/profileIcon.png')}
-          style={styles.profilePic}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <MainButton
-          Title="Notary Room"
-          onPress={() => setSelected('notary room')}
-          colors={
-            selected === 'notary room'
-              ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-              : [Colors.PinkBackground, Colors.PinkBackground]
-          }
-          styles={
-            selected === 'notary room'
-              ? {
-                  fontSize: widthToDp(4),
-                  paddingHorizontal: widthToDp(7),
-                  paddingVertical: widthToDp(3),
-                }
-              : {
-                  fontSize: widthToDp(4),
-                  paddingHorizontal: widthToDp(7),
-                  paddingVertical: widthToDp(3),
-                  color: Colors.TextColor,
-                }
-          }
-          GradiStyles={{
-            borderRadius: 0,
-          }}
-        />
-        <MainButton
-          Title="Participants"
-          onPress={() => setSelected('participants')}
-          colors={
-            selected === 'participants'
-              ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-              : [Colors.PinkBackground, Colors.PinkBackground]
-          }
-          styles={
-            selected === 'participants'
-              ? {
-                  fontSize: widthToDp(4),
-                  paddingHorizontal: widthToDp(7),
-                  paddingVertical: widthToDp(3),
-                }
-              : {
-                  fontSize: widthToDp(4),
-                  paddingHorizontal: widthToDp(7),
-                  paddingVertical: widthToDp(3),
-                  color: Colors.TextColor,
-                }
-          }
-          GradiStyles={{
-            borderRadius: 0,
-          }}
-        />
-      </View> */}
       <View style={styles.SecondContainer}>
         <View style={styles.flexContainer}>
           <ScrollView
@@ -332,9 +285,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
             ) : (
               <View
                 style={{
-                  // borderWidth: 2,
-                  // borderRadius: 5,
-                  // borderColor: Colors.DullTextColor,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
@@ -384,12 +334,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 style={{width: widthToDp(10), height: widthToDp(10)}}
               />
             </TouchableOpacity>
-            {/* <TouchableOpacity style={styles.hourGlass} onPress={() => leave()}>
-              <Image
-                source={require('../../../assets/callDrop.png')}
-                style={{width: widthToDp(10), height: widthToDp(10)}}
-              />
-            </TouchableOpacity> */}
           </View>
         </View>
       </View>
@@ -397,16 +341,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={itemValue => handleLinkChange(itemValue)}
-          items={arrayOfDocs.map(doc => ({label: doc.name, value: doc.url}))}
+          items={arrayOfDocs.map((doc: {name: any; url: any}) => ({
+            label: doc.name,
+            value: doc.url,
+          }))}
         />
-        {/* <Picker
-          selectedValue={selectedLink}
-          onValueChange={itemValue => handleLinkChange(itemValue)}
-          style={styles.picker}>
-          {arrayOfDocs.map(doc => (
-            <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
-          ))}
-        </Picker> */}
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>

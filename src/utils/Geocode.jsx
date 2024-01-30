@@ -7,8 +7,7 @@ export async function callGeocodingAPI(lat, long) {
 
   try {
     const response = await axios.get(apiUrl);
-
-    return response.data.results[0].address_components[4].long_name;
+    return response.data;
   } catch (error) {
     throw new Error('Error calling geocoding API: ' + error);
   }
@@ -35,9 +34,6 @@ const getLocation = () => {
       error => {
         reject(error);
       },
-      // Platform.OS === 'android'
-      //   ? {}
-      //   : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
     );
   });
 };

@@ -86,7 +86,12 @@ export default function LegalDocScreen({route, navigation}) {
   const getState = async query => {
     const reponse = await handleGetLocation();
     // console.log('Location', reponse);
-    const data = await fetchDocumentTypes(page, Limit, reponse, query);
+    const data = await fetchDocumentTypes(
+      page,
+      Limit,
+      reponse?.results[0]?.address_components[4]?.long_name,
+      query,
+    );
     // console.log('Docs', data);
     setTotalDocs(data?.totalDocs);
     setDocumentArray(data?.documentTypes);

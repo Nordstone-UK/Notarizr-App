@@ -63,7 +63,6 @@ const useRegister = () => {
       };
 
       const {data} = await register(request);
-
       if (data?.register?.status === '201') {
         saveAccessTokenToStorage(data?.register?.access_token);
         return true;
@@ -100,28 +99,53 @@ const useRegister = () => {
       console.warn(err);
     }
   }, []);
-
   const uploadAllDocuments = async documentURIs => {
     try {
       const uploadedFiles = await Promise.all(
-        documentURIs.map(async fileUri => {
+        documentURIs.map(async (fileUri, index) => {
           const uploadedLink = await uploadDocmmentToS3(fileUri);
-
-          return uploadedLink;
+          return {
+            id: index + 1,
+            name: `Document ${index + 1}`,
+            url: uploadedLink,
+          };
         }),
       );
 
-      const uploadedFilesObject = {};
-      uploadedFiles.forEach((link, index) => {
-        uploadedFilesObject[`file${index + 1}`] = link;
-      });
-      console.log('Uploaded Files Object:', uploadedFilesObject);
-      return uploadedFilesObject;
+      const uploadedFilesArray = uploadedFiles.map(({id, name, url}) => ({
+        id,
+        name,
+        url,
+      }));
+
+      return uploadedFilesArray;
     } catch (error) {
       console.error('Error uploading documents:', error);
       // Handle upload error
     }
   };
+
+  // const uploadAllDocuments = async documentURIs => {
+  //   try {
+  //     const uploadedFiles = await Promise.all(
+  //       documentURIs.map(async fileUri => {
+  //         const uploadedLink = await uploadDocmmentToS3(fileUri);
+
+  //         return uploadedLink;
+  //       }),
+  //     );
+
+  //     const uploadedFilesObject = {};
+  //     uploadedFiles.forEach((link, index) => {
+  //       uploadedFilesObject[`file${index + 1}`] = link;
+  //     });
+  //     console.log('Uploaded Files Object:', uploadedFilesObject);
+  //     return uploadedFilesObject;
+  //   } catch (error) {
+  //     console.error('Error uploading documents:', error);
+  //     // Handle upload error
+  //   }
+  // };
   const uploadDocArray = async documentURIs => {
     try {
       const uploadedFiles = await Promise.all(

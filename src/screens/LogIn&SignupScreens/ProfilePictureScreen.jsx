@@ -25,16 +25,22 @@ import {profilePictureSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
 import useRegister from '../../hooks/useRegister';
 import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
+import useAuthenticate from '../../hooks/useAuthenticate';
+import useFetchUser from '../../hooks/useFetchUser';
 
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState();
   const [errorMessage, setErrorMessage] = useState('');
   const [tempLoading, settempLoading] = useState(false);
   const [profilePicture, setProfilePicure] = useState('');
+  const [answer, setAnswer] = useState('');
   const variables = useSelector(state => state.register);
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const [skip, setSkip] = useState(false);
   const dispatch = useDispatch();
   const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
+  const {registerAuthUser, consentAuth} = useAuthenticate();
+  const {fetchUserInfo} = useFetchUser();
   const showCameraGalleryAlert = () => {
     Alert.alert(
       'Choose an option',
@@ -62,6 +68,31 @@ export default function ProfilePictureScreen({navigation}) {
       {cancelable: false},
     );
   };
+  const handleAuthPermission = async state => {
+    setSkip(state);
+    setVisible(true);
+  };
+  const AuthFuc = async state => {
+    setVisible(true);
+    console.log(state);
+    if (state) {
+      if (skip) {
+        console.log('Skipping');
+        await skipPciture();
+        setVisible(false);
+      } else {
+        console.log('submitRegister');
+        await submitRegister();
+        setVisible(false);
+      }
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'You need to consent to continue',
+      });
+      setVisible(false);
+    }
+  };
   const submitRegister = async () => {
     settempLoading(true);
 
@@ -74,14 +105,24 @@ export default function ProfilePictureScreen({navigation}) {
       };
       const isRegistered = await handleRegister(params);
       if (isRegistered) {
-        // <AuthenticateModal
-        //   modalVisible={visible}
-        //   setModalVisible={bool => setVisible(bool)}
-        //   name={variables?.first_name + ' ' + variables?.last_name}
-        // />;
         settempLoading(false);
+        await registerAuthUser()
+          .then(async () => {
+            await fetchUserInfo()
+              .then(async response => {
+                await consentAuth(
+                  response?.first_name + ' ' + response?.last_name,
+                  response?.userAccessCode,
+                );
+              })
+              .catch(error => {
+                console.log('Fetching user Auth', error);
+              });
+          })
+          .catch(error => {
+            console.log('Registering user Auth', error);
+          });
         navigation.navigate('RegisterCompletionScreen');
-        // registerAuthUser(); <--Authenticate
       } else {
         Toast.show({
           type: 'error',
@@ -108,6 +149,22 @@ export default function ProfilePictureScreen({navigation}) {
       const isRegistered = await handleRegister(params);
       if (isRegistered) {
         settempLoading(false);
+        await registerAuthUser()
+          .then(async () => {
+            await fetchUserInfo()
+              .then(async response => {
+                await consentAuth(
+                  response?.first_name + ' ' + response?.last_name,
+                  response?.userAccessCode,
+                );
+              })
+              .catch(error => {
+                console.log('Fetching user Auth', error);
+              });
+          })
+          .catch(error => {
+            console.log('Registering user Auth', error);
+          });
         navigation.navigate('RegisterCompletionScreen');
       } else {
         Toast.show({
@@ -176,15 +233,22 @@ export default function ProfilePictureScreen({navigation}) {
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             Title="Continue"
             loading={tempLoading}
-            onPress={() => submitRegister()}
+            onPress={() => handleAuthPermission(false)}
           />
           <SkipButton
             Title="Skip"
-            onPress={() => skipPciture()}
+            onPress={() => handleAuthPermission(true)}
             loading={tempLoading}
           />
         </ScrollView>
       </BottomSheetStyle>
+      {visible && (
+        <AuthenticateModal
+          modalVisible={visible}
+          setModalVisible={bool => setVisible(bool)}
+          handleConsent={answer => AuthFuc(answer)}
+        />
+      )}
     </SafeAreaView>
   );
 }

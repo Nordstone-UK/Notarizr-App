@@ -28,6 +28,7 @@ import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTex
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
 import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
+import moment from 'moment';
 export default function SignUpDetailScreen({navigation}, props) {
   const [date, setDate] = useState(new Date());
   const [firstName, setfirstName] = useState('');
@@ -183,7 +184,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 placeholder={'XXXXXXXXXXX'}
               />
               <CustomDatePicker
-                onConfirm={date => setDate(date)}
+                onConfirm={date => setDate(moment(date).format('DD-MM-YYYY'))}
                 Text="Date Of Birth"
                 mode="date"
                 date={date}

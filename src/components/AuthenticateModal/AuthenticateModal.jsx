@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import GradientButton from '../MainGradientButton/GradientButton';
 import Colors from '../../themes/Colors';
 import MainButton from '../MainGradientButton/MainButton';
@@ -23,26 +23,18 @@ export default function AuthenticateModal(props) {
     props?.setModalVisible(false);
     props?.handleConsent(false);
   };
-  const [Name, setName] = useState('');
-  const sendEmail = () => {
-    if (Name === '') {
-      Toast.show({
-        type: 'error',
-        text1: 'Please enter your full name',
-      });
-    } else if (Name === props?.name) {
+
+  const sendEmail = state => {
+    if (state) {
       Toast.show({
         type: 'success',
         text1: 'Your have successfully consented',
       });
-      props?.setModalVisible(false);
       props?.handleConsent(true);
     } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Your name is wrong',
-      });
+      props?.handleConsent(false);
     }
+    props?.setModalVisible(false);
   };
   return (
     <Modal
@@ -62,11 +54,11 @@ export default function AuthenticateModal(props) {
               marginHorizontal: widthToDp(4),
             }}>
             <Text style={styles.text}>
-              Do you consent sharing your sharing information with
-              Authenticate.com for verification purposes
+              Do you consent with your sharing information with Authenticate.com
+              for verification purposes
             </Text>
           </View>
-          <View style={styles.input}>
+          {/* <View style={styles.input}>
             <LabelTextInput
               LabelTextInput="Full Name"
               placeholder="Enter your full Name"
@@ -80,15 +72,16 @@ export default function AuthenticateModal(props) {
                 padding: widthToDp(3),
               }}
             />
-          </View>
+          </View> */}
 
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-around',
+              marginVertical: widthToDp(5),
             }}>
             <MainButton
-              onPress={() => closeModal()}
+              onPress={() => sendEmail(false)}
               Title="I, Don't Consent"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
@@ -103,7 +96,7 @@ export default function AuthenticateModal(props) {
               }}
             />
             <MainButton
-              onPress={() => sendEmail()}
+              onPress={() => sendEmail(true)}
               Title="I, Consent"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{

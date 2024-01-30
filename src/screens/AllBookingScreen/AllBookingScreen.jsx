@@ -20,7 +20,7 @@ import Colors from '../../themes/Colors';
 import AgentCard from '../../components/AgentCard/AgentCard';
 import {ScrollView} from 'react-native-virtualized-view';
 import useFetchBooking from '../../hooks/useFetchBooking';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -28,10 +28,10 @@ import {
 } from '../../features/booking/bookingSlice';
 
 export default function AllBookingScreen({route, navigation}) {
+  const user = useSelector(state => state.user.user);
   const [isFocused, setIsFocused] = useState('accepted');
   const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
   const [refreshing, setRefreshing] = useState(false);
-  const [booking, setBooking] = useState();
   const [mergerData, setMergerData] = useState([]);
   const dispatch = useDispatch();
   const init = async status => {
@@ -47,25 +47,29 @@ export default function AllBookingScreen({route, navigation}) {
 
     setMergerData(sortedDetails);
   };
-
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      init('accepted');
-      setIsFocused('accepted');
-    });
-    return unsubscribe;
+    if (user != null) {
+      const unsubscribe = navigation.addListener('focus', () => {
+        init(isFocused);
+        setIsFocused(isFocused);
+      });
+      return unsubscribe;
+    }
   }, [navigation]);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    init(isFocused);
+    if (user != null) {
+      init(isFocused);
+    }
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
   }, []);
   const callBookingsAPI = async status => {
-    setBooking(null);
     setIsFocused(status);
-    init(status);
+    if (user != null) {
+      init(status);
+    }
   };
   const handleAgentData = item => {
     navigation.navigate('MedicalBookingScreen');
@@ -75,7 +79,7 @@ export default function AllBookingScreen({route, navigation}) {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <HomeScreenHeader Title="Find all your bookings with our agents here" />
+      <HomeScreenHeader Title="My Journal" />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
@@ -191,61 +195,87 @@ export default function AllBookingScreen({route, navigation}) {
               />
             </View>
           </ScrollView>
-          <View style={styles.bookingContainer}>
-            {mergerData ? (
-              mergerData.length !== 0 ? (
-                <FlatList
-                  data={mergerData}
-                  keyExtractor={item => item._id}
-                  renderItem={({item}) => {
-                    return (
-                      <TouchableOpacity onPress={() => handleAgentData(item)}>
-                        <AgentCard
-                          source={{uri: item?.agent?.profile_picture}}
-                          bottomRightText={item?.document_type}
-                          bottomLeftText="Total"
-                          image={require('../../../assets/locationIcon.png')}
-                          agentName={
-                            item?.agent?.first_name +
-                            ' ' +
-                            item?.agent?.last_name
-                          }
-                          agentAddress={item?.agent?.location}
-                          task={item?.status || 'Loading'}
-                          OrangeText={'At Office'}
-                          dateofBooking={item?.date_of_booking}
-                          timeofBooking={item?.time_of_booking}
-                          createdAt={item?.createdAt}
-                        />
-                      </TouchableOpacity>
-                    );
-                  }}
-                />
+          {user != null ? (
+            <View style={styles.bookingContainer}>
+              {mergerData ? (
+                mergerData.length !== 0 ? (
+                  <FlatList
+                    data={mergerData}
+                    keyExtractor={item => item._id}
+                    renderItem={({item}) => {
+                      return (
+                        <TouchableOpacity onPress={() => handleAgentData(item)}>
+                          <AgentCard
+                            source={{uri: item?.agent?.profile_picture}}
+                            bottomRightText={item?.document_type}
+                            bottomLeftText="Total"
+                            image={require('../../../assets/locationIcon.png')}
+                            agentName={
+                              item?.agent?.first_name +
+                              ' ' +
+                              item?.agent?.last_name
+                            }
+                            agentAddress={item?.agent?.location}
+                            task={item?.status || 'Loading'}
+                            OrangeText={'At Office'}
+                            dateofBooking={item?.date_of_booking}
+                            timeofBooking={item?.time_of_booking}
+                            createdAt={item?.createdAt}
+                          />
+                        </TouchableOpacity>
+                      );
+                    }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      height: heightToDp(100),
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                    <Image
+                      source={require('../../../assets/emptyBox.png')}
+                      style={styles.picture}
+                    />
+                    <Text style={styles.subheading}>No Booking Found...</Text>
+                  </View>
+                )
               ) : (
                 <View
                   style={{
                     height: heightToDp(100),
-                    justifyContent: 'center',
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}>
-                  <Image
-                    source={require('../../../assets/emptyBox.png')}
-                    style={styles.picture}
-                  />
-                  <Text style={styles.subheading}>No Booking Found...</Text>
+                  <ActivityIndicator size="large" color={Colors.Orange} />
                 </View>
-              )
-            ) : (
-              <View
-                style={{
-                  height: heightToDp(100),
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <ActivityIndicator size="large" color={Colors.Orange} />
-              </View>
-            )}
-          </View>
+              )}
+            </View>
+          ) : (
+            <View
+              style={{
+                minHeight: heightToDp(100),
+                justifyContent: 'center',
+                alignSelf: 'center',
+              }}>
+              <Image
+                source={require('../../../assets/emptyBox.png')}
+                style={styles.picture}
+              />
+              <Text
+                style={[
+                  styles.Heading,
+
+                  {
+                    fontSize: widthToDp(4),
+                    fontFamily: 'Manrope-SemiBold',
+                    fontWeight: '600',
+                  },
+                ]}>
+                Please Login to see bookings
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
@@ -259,6 +289,7 @@ const styles = StyleSheet.create({
   },
   picture: {
     width: widthToDp(20),
+    alignSelf: 'center',
     height: heightToDp(20),
   },
   Heading: {

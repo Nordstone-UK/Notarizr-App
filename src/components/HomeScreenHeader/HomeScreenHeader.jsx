@@ -1,26 +1,55 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import {useSelector} from 'react-redux';
+import MainButton from '../MainGradientButton/MainButton';
+import {useNavigation} from '@react-navigation/native';
 export default function HomeScreenHeader(props) {
-  const {first_name, profile_picture} = useSelector(state => state.user.user);
-
+  const userInfo = useSelector(state => state.user.user);
+  const navigation = useNavigation();
   return (
     <View>
-      <View style={styles.namebar}>
-        <Image
-          source={{
-            uri: profile_picture,
-          }}
-          style={styles.imagestyles}
-          onError={error => console.error('Image load error:', error)}
-        />
-        <Text style={[styles.textHeading, props.HeaderStyle]}>
-          {first_name}
-        </Text>
-      </View>
+      {userInfo !== null ? (
+        <View style={styles.namebar}>
+          <Image
+            source={{
+              uri: userInfo?.profile_picture,
+            }}
+            style={styles.imagestyles}
+            onError={error => console.error('Image load error:', error)}
+          />
+          <Text
+            style={[
+              styles.textHeading,
+              props.HeaderStyle,
+              {marginLeft: widthToDp(5)},
+            ]}>
+            {userInfo?.first_name}
+          </Text>
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.namebar,
+            {justifyContent: 'space-between', alignItems: 'center'},
+          ]}>
+          <Text style={[styles.textHeading, props.HeaderStyle]}>Hi there,</Text>
+          <MainButton
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            Title="Log In"
+            TextStyle={{color: '#fff'}}
+            styles={{
+              padding: widthToDp(1),
+              fontSize: widthToDp(3.7),
+              minWidth: widthToDp(20),
+            }}
+            GradiStyles={{borderRadius: 5}}
+            onPress={() => navigation.navigate('LoginScreen')}
+          />
+        </View>
+      )}
       <Text style={styles.heading}>{props.Title}</Text>
     </View>
   );
@@ -37,10 +66,9 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(6),
     fontWeight: '700',
     color: Colors.TextColor,
-    marginLeft: widthToDp(5),
   },
   heading: {
-    fontSize: widthToDp(7),
+    fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),

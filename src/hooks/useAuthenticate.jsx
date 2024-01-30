@@ -15,7 +15,7 @@ const useAuthenticate = () => {
   const registerAuthUser = async () => {
     try {
       const response = await createAuthentication();
-      console.log(response?.data);
+      console.log(response);
     } catch (error) {
       console.log(error);
     }
@@ -35,6 +35,7 @@ const useAuthenticate = () => {
     try {
       const response = await testAuthencation();
       console.log(response?.data);
+      return response?.data?.testAuthenticationResult?.status;
     } catch (error) {
       console.log(error);
     }

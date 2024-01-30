@@ -29,13 +29,23 @@ import ModalCheck from '../../components/ModalComponent/ModalCheck';
 import OneSignal from 'react-native-onesignal';
 import {socket} from '../../utils/Socket';
 import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
+import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
 
 export default function HomeScreen({route, navigation}) {
-  const {_id, first_name, last_name} = useSelector(state => state.user.user);
+  const user = useSelector(state => state.user.user);
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
   const [Booking, setBooking] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const handleOpenModal = () => {
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);
@@ -49,11 +59,13 @@ export default function HomeScreen({route, navigation}) {
   }, []);
 
   useEffect(() => {
-    OneSignal.setExternalUserId(_id);
-    const unsubscribe = navigation.addListener('focus', () => {
-      init('pending');
-    });
-    return unsubscribe;
+    OneSignal.setExternalUserId(user?._id);
+    if (user?._id !== null) {
+      const unsubscribe = navigation.addListener('focus', () => {
+        init('pending');
+      });
+      return unsubscribe;
+    }
   }, [navigation]);
 
   const handleAgentData = item => {
@@ -64,12 +76,9 @@ export default function HomeScreen({route, navigation}) {
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
     dispatch(setUser(item?.agent));
   };
-  // const [visible, setVisible] = useState(true);
-  // const [answer, setAnswer] = useState();
-  // console.log(answer, 'answer');
   return (
     <SafeAreaView style={styles.container}>
-      <HomeScreenHeader Title="One Click and Select our services." />
+      <HomeScreenHeader Title="Please Choose Your Service" />
       <BottomSheetStyle>
         <ScrollView
           style={{flex: 1}}
@@ -84,81 +93,112 @@ export default function HomeScreen({route, navigation}) {
             Title="Mobile Notary"
             Image={require('../../../assets/service1Pic.png')}
             onPress={() =>
-              navigation.navigate('ServiceDetailScreen', {
-                serviceType: 'mobile_notary',
-              })
+              user != null
+                ? navigation.navigate('ServiceDetailScreen', {
+                    serviceType: 'mobile_notary',
+                  })
+                : handleOpenModal()
             }
           />
           <TypesofServiceButton
             backgroundColor={{backgroundColor: Colors.LightBlue}}
             Title="Remote Online Notary"
             Image={require('../../../assets/service2Pic.png')}
-            onPress={() => navigation.navigate('OnlineNotaryScreen')}
+            onPress={() =>
+              user != null
+                ? navigation.navigate('OnlineNotaryScreen')
+                : handleOpenModal()
+            }
           />
           <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>Active Services</Text>
+            <Text style={styles.Heading}>Active Bookings</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('AllBookingScreen')}>
               <Text style={styles.subheading}>View all</Text>
             </TouchableOpacity>
           </View>
-          <View style={{flex: 1}}>
-            {Booking ? (
-              Booking.length !== 0 ? (
-                <FlatList
-                  data={Booking.slice(0, 2)}
-                  keyExtractor={item => item._id}
-                  renderItem={({item}) => {
-                    return (
-                      <TouchableOpacity onPress={() => handleAgentData(item)}>
-                        <AgentCard
-                          source={{uri: item?.agent?.profile_picture}}
-                          bottomRightText={item?.document_type}
-                          bottomLeftText="Total"
-                          image={require('../../../assets/agentLocation.png')}
-                          agentName={
-                            item?.agent?.first_name +
-                            ' ' +
-                            item?.agent?.last_name
-                          }
-                          agentAddress={item?.agent?.location}
-                          task={item?.status}
-                          OrangeText={'At Office'}
-                          dateofBooking={item?.date_of_booking}
-                          timeofBooking={item?.time_of_booking}
-                          createdAt={item?.createdAt}
-                        />
-                      </TouchableOpacity>
-                    );
-                  }}
-                />
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: widthToDp(10),
-                  }}>
-                  <Image
-                    source={require('../../../assets/emptyBox.png')}
-                    style={styles.picture}
+          {user != null ? (
+            <View style={{flex: 1}}>
+              {Booking ? (
+                Booking.length !== 0 ? (
+                  <FlatList
+                    data={Booking.slice(0, 2)}
+                    keyExtractor={item => item._id}
+                    renderItem={({item}) => {
+                      return (
+                        <TouchableOpacity onPress={() => handleAgentData(item)}>
+                          <AgentCard
+                            source={{uri: item?.agent?.profile_picture}}
+                            bottomRightText={item?.document_type}
+                            bottomLeftText="Total"
+                            image={require('../../../assets/agentLocation.png')}
+                            agentName={
+                              item?.agent?.first_name +
+                              ' ' +
+                              item?.agent?.last_name
+                            }
+                            agentAddress={item?.agent?.location}
+                            task={item?.status}
+                            OrangeText={'At Office'}
+                            dateofBooking={item?.date_of_booking}
+                            timeofBooking={item?.time_of_booking}
+                            createdAt={item?.createdAt}
+                          />
+                        </TouchableOpacity>
+                      );
+                    }}
                   />
-                  <Text style={styles.subheading}>No Booking Found...</Text>
-                </View>
-              )
-            ) : (
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            )}
-          </View>
+                ) : (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginTop: widthToDp(10),
+                    }}>
+                    <Image
+                      source={require('../../../assets/emptyBox.png')}
+                      style={styles.picture}
+                    />
+                    <Text style={styles.subheading}>No Booking Found...</Text>
+                  </View>
+                )
+              ) : (
+                <ActivityIndicator size="large" color={Colors.Orange} />
+              )}
+            </View>
+          ) : (
+            <View
+              style={{
+                minHeight: heightToDp(40),
+                justifyContent: 'center',
+                alignSelf: 'center',
+              }}>
+              <Image
+                source={require('../../../assets/emptyBox.png')}
+                style={styles.picture}
+              />
+              <Text
+                style={[
+                  styles.Heading,
+
+                  {
+                    fontSize: widthToDp(4),
+                    fontFamily: 'Manrope-SemiBold',
+                    fontWeight: '600',
+                  },
+                ]}>
+                Please Login to see bookings
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </BottomSheetStyle>
-      {/* <AuthenticateModal
-        modalVisible={visible}
-        setModalVisible={bool => setVisible(bool)}
-        handleConsent={answer => setAnswer(answer)}
-        name={first_name + ' ' + last_name}
-      /> */}
+      <LoginBottomSheet
+        isVisible={isModalVisible}
+        onCloseModal={handleCloseModal}
+        Title="Please Login to use this service"
+      />
     </SafeAreaView>
   );
 }
@@ -212,49 +252,6 @@ const styles = StyleSheet.create({
   picture: {
     width: widthToDp(20),
     height: heightToDp(20),
+    alignSelf: 'center',
   },
 });
-{
-  /* <View style={styles.CategoryPictures}>
-            <View style={styles.PictureBar}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('LegalDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.LongImage}>Legal Documents</Text>
-                <Image
-                  source={require('../../../assets/legalDocIcon.png')}
-                  style={styles.ImageLong}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('RealEstateDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.ShortImage}>Real Estate Documents</Text>
-                <Image
-                  source={require('../../../assets/estateDocIcon.png')}
-                  style={styles.ImageShort}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.PictureBar}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('MedicalDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.ShortImage}>Medical Documents</Text>
-                <Image
-                  source={require('../../../assets/medicalDocIcon.png')}
-                  style={styles.ImageShort}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('BusinessDocScreen')}
-                style={{position: 'relative'}}>
-                <Text style={styles.LongImage}>Business Documents</Text>
-                <Image
-                  source={require('../../../assets/businessDocIcon.png')}
-                  style={styles.ImageLong}
-                />
-              </TouchableOpacity>
-            </View>
-          </View> */
-}

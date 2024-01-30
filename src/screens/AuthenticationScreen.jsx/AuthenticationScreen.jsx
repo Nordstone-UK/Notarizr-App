@@ -30,49 +30,164 @@ import {
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {
-  convertURIsToBase64,
+  convertURIToBase64,
   handleConvertToBase64,
 } from '../../utils/ImagePicker';
+import useAuthenticate from '../../hooks/useAuthenticate';
+import {handleGetLocation} from '../../utils/Geocode';
+import Toast from 'react-native-toast-message';
 
 export default function AuthenticationScreen({route, navigation}) {
+  const {uid, channel, token} = route.params;
   const dispatch = useDispatch();
-  const bookingData = useSelector(state => state.booking.booking);
+  const userData = useSelector(state => state.user.user);
   const [isFocused, setIsFocused] = useState('ID Card');
   const [isEnabled, setIsEnabled] = useState(false);
   const [documents, setDocuments] = useState();
   const [loading, setLoading] = useState(false);
-  // const [date, setDate] = useState(new Date());
-
-  let urlResponse;
-  const {uploadMultipleFiles} = useRegister();
+  const [IDFront, setIDFront] = useState(null);
+  const [IDBack, setIdBack] = useState(null);
+  const [Passport, setPassport] = useState(null);
+  const [country, setCountry] = useState('');
+  const {uploadUserPassport, uploadUserID, testAuth} = useAuthenticate();
+  const {uploadFiles} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
+
+  const getCountry = async () => {
+    const reponse = await handleGetLocation();
+    setCountry(reponse?.results[0]?.address_components[5]?.short_name);
+  };
+  useEffect(() => {
+    getCountry();
+  }, []);
   const submitAddressDetails = async () => {
     setLoading(true);
-    const response = await convertURIsToBase64(documents);
-    console.log(response);
-    // if (documents) {
-    //   urlResponse = await uploadAllDocuments(documents);
-    // }
-    // dispatch(
-    //   setBookingInfoState({
-    //     ...bookingData,
-    //     documents: urlResponse,
-    //   }),
-    // );
-    setLoading(false);
-    // navigation.navigate('NearbyLoadingScreen', {
-    //   serviceType: 'mobile_notary',
-    // });
-    setLoading(false);
-  };
 
-  const selectDocuments = async () => {
-    const response = await uploadMultipleFiles();
-    setDocuments(response);
+    if (isFocused === 'ID Card') {
+      if (!IDFront || !IDBack) {
+        Toast.show({
+          type: 'error',
+          text1: 'Please upload ID Card',
+        });
+      } else {
+        const front = await convertURIToBase64(IDFront);
+        const back = await convertURIToBase64(IDBack);
+        await uploadUserID(userData?.userAccessCode, front, back, country)
+          .then(async () => {
+            try {
+              const response = await testAuth();
+              if (response == '204') {
+                Toast.show({
+                  type: 'success',
+                  text1: 'Authentication Successful',
+                });
+                navigation.navigate('NotaryCallScreen', {
+                  uid: uid,
+                  channel: channel,
+                  token: token,
+                });
+              }
+            } catch (e) {
+              console.log('error', error);
+              Toast.show({
+                type: 'error',
+                text1: 'Error while Authenticating User',
+              });
+            }
+          })
+          .catch(error => {
+            console.log('error', error);
+            Toast.show({
+              type: 'error',
+              text1: 'Error while Scanning Document',
+            });
+          });
+      }
+    } else {
+      if (!Passport) {
+        Toast.show({
+          type: 'error',
+          text1: 'Please upload Passport',
+        });
+      } else {
+        const passport64 = await convertURIToBase64(Passport);
+        await uploadUserPassport(userData?.userAccessCode, passport64, country)
+          .then(async () => {
+            try {
+              const response = await testAuth();
+              if (response == '204') {
+                Toast.show({
+                  type: 'success',
+                  text1: 'Authentication Successful',
+                });
+                navigation.navigate('NotaryCallScreen', {
+                  uid: uid,
+                  channel: channel,
+                  token: token,
+                });
+              }
+            } catch (e) {
+              console.log('error', error);
+              Toast.show({
+                type: 'error',
+                text1: 'Error while Authenticating User',
+              });
+            }
+          })
+          .catch(error => {
+            console.log('error', error);
+            Toast.show({
+              type: 'error',
+              text1: 'Error while Scanning Document',
+            });
+          });
+      }
+    }
+    setLoading(false);
   };
   const handleFocusChange = value => {
     setIsFocused(value);
     setDocuments(null);
+  };
+  const SelectIDFront = async () => {
+    const response = await uploadFiles();
+
+    if (response) {
+      console.log('Send: ', response);
+      setIDFront(response);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please try again ',
+      });
+      setIDFront(null);
+    }
+  };
+  const SelectIDBack = async () => {
+    const response = await uploadFiles();
+    if (response) {
+      console.log('Send: ', response);
+      setIdBack(response);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please try again ',
+      });
+      setIdBack(null);
+    }
+  };
+  const SelectPassport = async () => {
+    const response = await uploadFiles();
+    if (response) {
+      console.log('Send: ', response);
+      setPassport(response);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please try again ',
+      });
+      setPassport(null);
+    }
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -135,7 +250,6 @@ export default function AuthenticationScreen({route, navigation}) {
               onPress={() => handleFocusChange('Passport')}
             />
           </View>
-
           {isFocused === 'ID Card' && (
             <Text style={[styles.detail]}>
               Please upload front and back side your ID Card
@@ -146,44 +260,86 @@ export default function AuthenticationScreen({route, navigation}) {
               Please upload a picture of youur Passport
             </Text>
           )}
-          {documents ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                marginHorizontal: widthToDp(8),
-                marginVertical: widthToDp(2),
-                flexWrap: 'wrap',
-                columnGap: widthToDp(2),
-                rowGap: widthToDp(2),
-              }}>
-              {documents &&
-                documents.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={require('../../../assets/docPic.png')}
-                    style={{width: widthToDp(10), height: heightToDp(10)}}
-                  />
-                ))}
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.dottedContianer}
-              onPress={() => selectDocuments()}>
-              <Image source={require('../../../assets/upload.png')} />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  columnGap: widthToDp(2),
-                  alignItems: 'center',
-                }}>
-                <Text style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
-                  Upload
-                </Text>
-                <Image source={require('../../../assets/uploadIcon.png')} />
-              </View>
-              <Text>Upload your documents here...</Text>
-            </TouchableOpacity>
-          )}
+          <View
+            style={{
+              flexDirection: 'row',
+              marginHorizontal: widthToDp(8),
+              marginVertical: widthToDp(2),
+              flexWrap: 'wrap',
+              columnGap: widthToDp(2),
+              rowGap: widthToDp(2),
+            }}>
+            {isFocused === 'ID Card' && IDFront && (
+              <Image
+                source={{uri: IDFront}}
+                style={{width: widthToDp(30), height: heightToDp(30)}}
+              />
+            )}
+            {isFocused === 'ID Card' && IDBack && (
+              <Image
+                source={{uri: IDBack}}
+                style={{width: widthToDp(30), height: heightToDp(30)}}
+              />
+            )}
+            {isFocused === 'Passport' && Passport && (
+              <Image
+                source={{uri: Passport}}
+                style={{width: widthToDp(30), height: heightToDp(30)}}
+              />
+            )}
+          </View>
+          {isFocused === 'ID Card' &&
+            (IDFront && IDBack ? null : IDFront === null ? (
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Upload ID Front"
+                GradiStyles={{
+                  width: widthToDp(50),
+                  paddingVertical: widthToDp(1.5),
+                  marginVertical: widthToDp(1.5),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => SelectIDFront()}
+              />
+            ) : IDBack === null ? (
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Upload ID Back"
+                GradiStyles={{
+                  width: widthToDp(50),
+                  paddingVertical: widthToDp(1.5),
+                  marginVertical: widthToDp(1.5),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => SelectIDBack()}
+              />
+            ) : null)}
+          {isFocused === 'Passport' ? (
+            Passport ? null : Passport === null ? (
+              <MainButton
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                Title="Upload Passport"
+                GradiStyles={{
+                  width: widthToDp(50),
+                  paddingVertical: widthToDp(1.5),
+                }}
+                styles={{
+                  paddingHorizontal: widthToDp(0),
+                  paddingVertical: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => SelectPassport()}
+              />
+            ) : null
+          ) : null}
           <GradientButton
             Title="Verify Identity"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}

@@ -109,7 +109,6 @@ export default function MedicalBookingScreen({route, navigation}) {
     setShowIcon(true);
   };
   console.log(documentCheck);
-
   React.useEffect(() => {
     enterRoom('test-room');
 

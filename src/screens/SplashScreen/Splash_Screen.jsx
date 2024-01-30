@@ -75,7 +75,7 @@ export default function Splash_Screen({navigation}) {
     } else {
       // User has already seen the introduction screens
       // Navigate to the login screen
-      navigation.navigate('LoginScreen');
+      navigation.navigate('HomeScreen');
     }
   };
 

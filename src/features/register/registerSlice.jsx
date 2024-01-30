@@ -11,6 +11,7 @@ const initialState = {
   photoId: 'none',
   accountType: 'client',
   location: 'none',
+  dateOfBirth: 'none',
 };
 
 export const registerSlice = createSlice({
@@ -28,6 +29,7 @@ export const registerSlice = createSlice({
       state.phoneNumber = action.payload.phoneNumber;
       state.gender = action.payload.gender;
       state.location = action.payload.location;
+      state.dateOfBirth = action.payload.date;
       // console.log('Redux ', state);
     },
     profilePictureSet: (state, action) => {

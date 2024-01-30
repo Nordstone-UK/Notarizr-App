@@ -2,6 +2,7 @@ import {PermissionsAndroid} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 import {Blob} from 'react-native-blob-util';
+
 const requestCameraPermission = async () => {
   if (Platform.OS === 'android') {
     try {
@@ -163,20 +164,22 @@ export const convertToJsonObject = inputArray => {
 
   return JSON.stringify(jsonArray, null, 2);
 };
-export const convertURIsToBase64 = async uris => {
-  try {
-    const base64Array = await Promise.all(
-      uris.map(async uri => {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        return await convertBlobToBase64(blob);
-      }),
-    );
+const convertBlobToBase64 = blob => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+};
 
-    return base64Array;
+export const convertURIToBase64 = async uri => {
+  try {
+    const base64 = await RNFS.readFile(uri, 'base64');
+    return base64;
   } catch (error) {
-    console.error('Error converting URIs to base64:', error);
-    return [];
+    console.error(`Error converting URI to base64 for ${uri}:`, error);
+    return null;
   }
 };
 export const handleConvertToBase64 = async imageUris => {
