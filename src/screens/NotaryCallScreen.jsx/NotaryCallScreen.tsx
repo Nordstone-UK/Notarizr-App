@@ -48,19 +48,19 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
   // console.log(bookingData?.documents);
-  // const arrayOfDocs = bookingData?.documents;
-  const arrayOfDocs = [
-    {
-      id: 1,
-      name: 'Document 1',
-      url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
-    },
-    {
-      id: 2,
-      name: 'Document 2',
-      url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
-    },
-  ];
+  const arrayOfDocs = bookingData?.documents;
+  // const arrayOfDocs = [
+  //   {
+  //     id: 1,
+  //     name: 'Document 1',
+  //     url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Document 2',
+  //     url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
+  //   },
+  // ];
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
   const {channel, token: CutomToken} = route.params;
@@ -84,7 +84,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
-
   const [pdfSource, setPdfSource] = React.useState<Source | null>(null);
 
   const onUpdatePdf = useCallback(async (link: string) => {
@@ -99,14 +98,13 @@ export default function NotaryCallScreen({route, navigation}: any) {
     });
   }, []);
   const handleLinkChange = (linkId: number) => {
-    console.log('Something', selectedDoc);
-    const selectedDoc = arrayOfDocs.find(
-      (doc: {id: number}) => doc.id === linkId,
-    );
-    console.log(selectedDoc);
-    setSelectedLink(linkId);
+    // console.log('Something', selectedDoc);
+    // const selectedDoc = arrayOfDocs.find(
+    //   (doc: {id: number}) => doc.id === linkId,
+    // );
+    // setSelectedLink(linkId);
     deleteAllObjects();
-    // onUpdatePdf(linkId);
+    onUpdatePdf(linkId);
   };
   React.useEffect(() => {
     onUpdatePdf(arrayOfDocs[0].url);
@@ -345,6 +343,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
             label: doc.name,
             value: doc.url,
           }))}
+          value={arrayOfDocs[0]?.url}
         />
       </View>
       <View style={styles.container}>

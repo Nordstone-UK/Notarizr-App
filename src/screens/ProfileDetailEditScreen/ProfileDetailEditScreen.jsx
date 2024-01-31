@@ -136,7 +136,6 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     }
   };
 
-  console.log('user', account_type);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Profile Details" />
