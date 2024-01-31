@@ -9,6 +9,7 @@ import {
 } from '../../utils/Responsive';
 
 export default function AddressCard(props) {
+  // console.log(props?.location);
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -24,7 +25,6 @@ export default function AddressCard(props) {
     <TouchableOpacity style={styles.flexContainer} onPress={props.onPress}>
       <Image source={require('../../../assets/addressPic.png')} />
       <View style={styles.textContainer}>
-        {/* {OrangeGradient('Home')} */}
         <Text style={styles.text}>
           {splitStringBefore2ndWord(props.location)}
         </Text>
@@ -39,7 +39,7 @@ export default function AddressCard(props) {
 const styles = StyleSheet.create({
   flexContainer: {
     flexDirection: 'row',
-    margin: widthToDp(5),
+    marginTop: widthToDp(7),
     padding: widthToDp(2),
     marginHorizontal: widthToDp(2),
     borderRadius: 10,

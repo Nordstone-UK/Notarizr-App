@@ -30,7 +30,6 @@ import PasswordEditScreen from '../PasswordEditScreen/PasswordEditScreen';
 import PaymentUpdateScreen from '../PaymentUpdateScreen/PaymentUpdateScreen';
 import AddCardScreen from '../AddCardScreen/AddCardScreen';
 import AddressDetails from '../AddressDetails/AddressDetails';
-import NewAddressScreen from '../NewAddressScreen/NewAddressScreen';
 import SettingScreen from '../SettingScreen/settingScreen';
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
@@ -321,7 +320,6 @@ export default function AppNavigation() {
           component={AuthenticationScreen}
         />
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
-        <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
 

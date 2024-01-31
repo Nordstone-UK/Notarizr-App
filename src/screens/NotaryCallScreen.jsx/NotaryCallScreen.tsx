@@ -40,8 +40,6 @@ import {useLiveblocks} from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import HeaderRight from '../../components/LiveBlocksComponents/header-right';
-import {Picker} from '@react-native-picker/picker';
-import useChatService from '../../hooks/useChatService';
 import {useSelector} from 'react-redux';
 
 export default function NotaryCallScreen({route, navigation}: any) {
@@ -97,12 +95,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
       uri: base64Pdf,
     });
   }, []);
-  const handleLinkChange = (linkId: number) => {
+  const handleLinkChange = (linkId: string) => {
     // console.log('Something', selectedDoc);
     // const selectedDoc = arrayOfDocs.find(
     //   (doc: {id: number}) => doc.id === linkId,
     // );
-    // setSelectedLink(linkId);
     deleteAllObjects();
     onUpdatePdf(linkId);
   };
@@ -343,7 +340,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
             label: doc.name,
             value: doc.url,
           }))}
-          value={arrayOfDocs[0]?.url}
         />
       </View>
       <View style={styles.container}>
@@ -366,6 +362,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 setCurrentPage(page);
                 setRemoteCurrentPage(page);
               }}
+              onError={error => console.error(error)}
             />
           )}
           <View style={styles.objectsWrapper}>
