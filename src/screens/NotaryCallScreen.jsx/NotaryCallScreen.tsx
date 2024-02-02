@@ -41,6 +41,7 @@ const appId = 'abd7df71ee024625b2cc979e12aec405';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import {useSelector} from 'react-redux';
+import Pdf from 'react-native-pdf';
 
 export default function NotaryCallScreen({route, navigation}: any) {
   const User = useSelector(state => state?.user?.user);
@@ -72,20 +73,19 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [remoteUid, setRemoteUid] = useState(0);
   const [selected, setSelected] = useState('notary room');
   const [value, setValue] = useState(50);
-  const pdfRef = React.useRef<PdfView>(null);
+  const pdfRef = React.useRef<Pdf>(null);
   const objects = useLiveblocks(state => state.objects);
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
   const setRemoteCurrentPage = useLiveblocks(state => state.setCurrentPage);
   const insertObject = useLiveblocks(state => state.insertObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const [totalPages, setTotalPages] = React.useState<number>(0);
-
+  const [newSource, setNewSource] = useState<object>();
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
   const [pdfSource, setPdfSource] = React.useState<Source | null>(null);
 
   const onUpdatePdf = useCallback(async (link: string) => {
-    console.log(link);
     const pdfFile = await ReactNativeBlobUtil.fetch('GET', link);
     const pdfDoc = await PDFDocument.load(pdfFile.base64(), {
       ignoreEncryption: true,
@@ -96,15 +96,16 @@ export default function NotaryCallScreen({route, navigation}: any) {
     });
   }, []);
   const handleLinkChange = (linkId: string) => {
-    // console.log('Something', selectedDoc);
-    // const selectedDoc = arrayOfDocs.find(
-    //   (doc: {id: number}) => doc.id === linkId,
-    // );
     deleteAllObjects();
-    onUpdatePdf(linkId);
+    // onUpdatePdf(linkId);
+    setNewSource({
+      uri: linkId,
+      cache: true,
+    });
   };
   React.useEffect(() => {
-    onUpdatePdf(arrayOfDocs[0].url);
+    setNewSource({uri: arrayOfDocs[0].url, cache: true});
+    // onUpdatePdf(arrayOfDocs[0].url);
   }, []);
   const onLabelAdd = React.useCallback(() => {
     insertObject(new Date().toISOString(), {
@@ -164,7 +165,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
     };
   }, []);
-
   useEffect(() => {
     const setupVideoSDKEngine = async () => {
       try {
@@ -265,6 +265,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
       ]);
     }
   };
+  const defaultOption = arrayOfDocs[0].url;
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -340,24 +341,26 @@ export default function NotaryCallScreen({route, navigation}: any) {
             label: doc.name,
             value: doc.url,
           }))}
+          value={defaultOption}
         />
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
-          {pdfSource && (
+          {newSource && (
             <PdfView
               ref={pdfRef}
               style={styles.pdfView}
-              source={pdfSource}
+              source={newSource}
+              trustAllCerts={false}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
               horizontal={true}
-              singlePage={true}
               onLoadComplete={numberOfPages => {
                 console.log('Func', numberOfPages);
                 setCurrentPage(1);
                 setTotalPages(numberOfPages);
               }}
+              singlePage={true}
               onPageChanged={page => {
                 setCurrentPage(page);
                 setRemoteCurrentPage(page);
@@ -365,6 +368,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
               onError={error => console.error(error)}
             />
           )}
+
           <View style={styles.objectsWrapper}>
             {Object.entries(objects).map(([objectId, object]) => {
               if (object.page !== currentPage) {
