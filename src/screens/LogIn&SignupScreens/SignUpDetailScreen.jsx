@@ -95,7 +95,7 @@ export default function SignUpDetailScreen({navigation}, props) {
       getPhoneOtp({
         variables: {phoneNumber},
       }).then(response => {
-        console.log('dawdads', response.data);
+        // console.log('dawdads', response.data);
         if (response?.data?.getValidPhoneOtp?.status === '403') {
           Toast.show({
             type: 'error',

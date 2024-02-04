@@ -80,10 +80,15 @@ export default function ProfilePictureScreen({navigation}) {
         console.log('Skipping');
         await skipPciture();
         setVisible(false);
-      } else {
+      } else if (image) {
         console.log('submitRegister');
         await submitRegister();
         setVisible(false);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Please add an image',
+        });
       }
     } else {
       Toast.show({

@@ -79,7 +79,7 @@ export default function ProfileInfoScreen({navigation}: any) {
       <BottomSheetStyle>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: heightToDp(10)}}>
+          contentContainerStyle={{paddingBottom: heightToDp(20)}}>
           {user != null && (
             <View style={styles.iconContainer}>
               <TouchableOpacity

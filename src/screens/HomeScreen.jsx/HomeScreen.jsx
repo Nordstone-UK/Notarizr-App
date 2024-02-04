@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  BackHandler,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -42,7 +43,20 @@ export default function HomeScreen({route, navigation}) {
   const handleOpenModal = () => {
     setModalVisible(true);
   };
+  // React.useEffect(() => {
+  //   const disableBackButtonHandler = () => {
+  //     return true;
+  //   };
 
+  //   BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
+
+  //   return () => {
+  //     BackHandler.removeEventListener(
+  //       'hardwareBackPress',
+  //       disableBackButtonHandler,
+  //     );
+  //   };
+  // }, []);
   const handleCloseModal = () => {
     setModalVisible(false);
   };

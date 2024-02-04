@@ -115,7 +115,7 @@ export default function AgentHomeScreen({navigation}) {
               onPress={() => navigation.navigate('TransactionScreen')}
             />
             <BigButton
-              number={totalBooking || 2}
+              number={totalBooking || 0}
               Heading="Total Bookings"
               onPress={() => navigation.navigate('BookScreen')}
             />
