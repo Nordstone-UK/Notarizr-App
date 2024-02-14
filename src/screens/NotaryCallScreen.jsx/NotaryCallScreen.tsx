@@ -46,22 +46,25 @@ import Pdf from 'react-native-pdf';
 export default function NotaryCallScreen({route, navigation}: any) {
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
+
   // console.log(bookingData?.documents);
-  const arrayOfDocs = bookingData?.documents;
-  // const arrayOfDocs = [
-  //   {
-  //     id: 1,
-  //     name: 'Document 1',
-  //     url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Document 2',
-  //     url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
-  //   },
-  // ];
+  //const arrayOfDocs = bookingData?.documents;
+
+  ////// we used arrayDocs for testing purpose in the  future we will use bookingData?.documents directly
+  const arrayOfDocs = [
+    {
+      id: 1,
+      name: 'Document 1',
+      url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
+    },
+    {
+      id: 2,
+      name: 'Document 2',
+      url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
+    },
+  ];
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
-  const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
+  // const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
   const {channel, token: CutomToken} = route.params;
   const uid = 0;
   const channelName = channel;
@@ -143,11 +146,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
     });
   }, [currentPage, insertObject]);
 
-  React.useEffect(() => {
-    if (remoteCurrentPage !== currentPage) {
-      pdfRef.current?.setPage(remoteCurrentPage);
-    }
-  }, [remoteCurrentPage, currentPage]);
+  // React.useEffect(() => {
+  //   if (remoteCurrentPage !== currentPage) {
+  //     pdfRef.current?.setPage(remoteCurrentPage);
+  //   }
+  // }, [remoteCurrentPage, currentPage]);
 
   const handleBackButton = () => {
     navigation.navigate('WaitingRoomScreen', {
@@ -265,7 +268,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
       ]);
     }
   };
-  const defaultOption = arrayOfDocs[0].url;
+  // const defaultOption = arrayOfDocs[0].url;
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -334,15 +337,17 @@ export default function NotaryCallScreen({route, navigation}: any) {
         </View>
       </View>
       <View style={{backgroundColor: Colors.white}}>
-        <RNPickerSelect
-          style={pickerSelectStyles}
-          onValueChange={itemValue => handleLinkChange(itemValue)}
-          items={arrayOfDocs.map((doc: {name: any; url: any}) => ({
-            label: doc.name,
-            value: doc.url,
-          }))}
-          value={defaultOption}
-        />
+        {newSource && (
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={itemValue => handleLinkChange(itemValue)}
+            items={arrayOfDocs.map((doc: {name: any; url: any}) => ({
+              label: doc.name,
+              value: doc.url,
+            }))}
+            value={newSource.uri}
+          />
+        )}
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
@@ -355,13 +360,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
               horizontal={true}
-              onLoadComplete={numberOfPages => {
-                console.log('Func', numberOfPages);
+              onLoadComplete={(numberOfPages, filePath) => {
                 setCurrentPage(1);
                 setTotalPages(numberOfPages);
               }}
-              singlePage={true}
-              onPageChanged={page => {
+              enablePaging={true}
+              onPageChanged={(page, numberOfPages) => {
                 setCurrentPage(page);
                 setRemoteCurrentPage(page);
               }}
@@ -402,9 +406,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
           <View style={styles.navigation}>
             <Pressable
               onPress={() => {
-                if (currentPage !== 1) {
-                  pdfRef.current?.setPage(currentPage - 1);
-                }
+                pdfRef.current?.setPage(currentPage - 1);
               }}>
               <NavArrowLeft
                 width={36}
