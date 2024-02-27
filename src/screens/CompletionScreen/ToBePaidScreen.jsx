@@ -30,6 +30,12 @@ export default function ToBePaidScreen({route, navigation}) {
   const {updateSession} = useSession();
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
+    const {initPaymentSheet, presentPaymentSheet} = useStripe();
+    const {fetchPaymentSheetParams} = useStripeApi();
+  const [loading, setLoading] = useState(false);
+  const DocumentPrice = bookingData?.document_type?.price;
+
+
   const init = async () => {
     if (bookingData?.__typename === 'Session') {
       await updateSession('accepted', bookingData._id);
@@ -42,23 +48,22 @@ export default function ToBePaidScreen({route, navigation}) {
     dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
     dispatch(setUser(bookingData?.agent));
   };
-  const {initPaymentSheet, presentPaymentSheet} = useStripe();
-  const {fetchPaymentSheetParams} = useStripeApi();
-  const [loading, setLoading] = useState(false);
-  const DocumentPrice = bookingData?.document_type?.price;
+
+
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
       (total, document) => total + document.price,
       0,
     );
   }
-  console.log(bookingData);
+  
   const initializePaymentSheet = async () => {
     setLoading(true);
     let TotalPayment;
     if (bookingData?.service_type === 'mobile_notary') {
       TotalPayment = await calculateTotalPrice(bookingData?.document_type);
       TotalPayment = TotalPayment + numberOfDocs * 10;
+    
     } else if (bookingData?.service_type === 'ron') {
       TotalPayment = bookingData?.totalPrice;
     }
@@ -82,6 +87,8 @@ export default function ToBePaidScreen({route, navigation}) {
           bookingData?.booked_by?.last_name,
       },
     });
+
+    console.log('error', error);
     if (!error) {
       setLoading(true);
     }
@@ -104,20 +111,7 @@ export default function ToBePaidScreen({route, navigation}) {
   useEffect(() => {
     initializePaymentSheet();
   }, [navigation]);
-  // React.useEffect(() => {
-  //   const disableBackButtonHandler = () => {
-  //     return true; // Returning `true` will prevent the default back behavior
-  //   };
-
-  //   BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
-
-  //   return () => {
-  //     BackHandler.removeEventListener(
-  //       'hardwareBackPress',
-  //       disableBackButtonHandler,
-  //     );
-  //   };
-  // }, []);
+ 
   return (
     <SafeAreaView style={styles.container}>
       <View
@@ -158,8 +152,8 @@ export default function ToBePaidScreen({route, navigation}) {
         <View style={{marginVertical: widthToDp(5)}}>
           <GradientButton
             Title="Proceed to Pay"
-            loading={loading}
-            isDisabled={loading}
+            loading={false}
+            isDisabled={false}
             onPress={() => openPaymentSheet()}
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           />
