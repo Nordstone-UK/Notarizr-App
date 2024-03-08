@@ -11,7 +11,7 @@ import {
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
@@ -252,14 +252,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  
   },
   GenderContainer: {
     alignSelf: 'center',
     marginTop: heightToDp(3),
-    paddingVertical: heightToDp(2),
+   // paddingVertical: heightToDp(2),
     borderWidth: 2,
     borderRadius: 15,
     borderColor: '#D3D5DA',
     width: widthToDp(90),
+   // height:height*.08
   },
 });

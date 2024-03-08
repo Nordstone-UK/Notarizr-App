@@ -43,20 +43,7 @@ export default function HomeScreen({route, navigation}) {
   const handleOpenModal = () => {
     setModalVisible(true);
   };
-  // React.useEffect(() => {
-  //   const disableBackButtonHandler = () => {
-  //     return true;
-  //   };
 
-  //   BackHandler.addEventListener('hardwareBackPress', disableBackButtonHandler);
-
-  //   return () => {
-  //     BackHandler.removeEventListener(
-  //       'hardwareBackPress',
-  //       disableBackButtonHandler,
-  //     );
-  //   };
-  // }, []);
   const handleCloseModal = () => {
     setModalVisible(false);
   };
@@ -202,7 +189,7 @@ export default function HomeScreen({route, navigation}) {
                     fontWeight: '600',
                   },
                 ]}>
-                Please Login to see bookings
+                Please Login to see your bookings
               </Text>
             </View>
           )}

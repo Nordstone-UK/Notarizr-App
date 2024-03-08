@@ -44,6 +44,7 @@ import {uploadSignedDocumentsOnS3} from '../../utils/s3Helper';
 import {useMutation} from '@apollo/client';
 import {SIGN_DOCS} from '../../../request/mutations/signDocument';
 import {launchImageLibrary} from 'react-native-image-picker';
+import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 
 export default function NotaryCallScreen({route, navigation}: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
@@ -158,7 +159,27 @@ export default function NotaryCallScreen({route, navigation}: any) {
     }
   };
 
+  ////////////// live bolcks ////////////////
+  const insertObject = useLiveblocks(state => state.insertObject);
+  const objects = useLiveblocks(state => state.objects);
+  const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
+
+  const onSignatureAdd = React.useCallback(() => {
+    insertObject(new Date().toISOString(), {
+      type: 'image',
+      sourceUrl: 'https://i.ibb.co/0XxrCH9/signature-40121.png',
+      page: currentPage,
+      position: {
+        x: 100,
+        y: 100,
+      },
+    });
+  }, []);
+  //////////////////////////////////////////
+
   const handleSingleTap = async (page, x, y) => {
+    console.log('page', page, x, y);
+    return;
     if (pdfEditMode) {
       setNewPdfSaved(false);
       setFilePath(null);
@@ -168,7 +189,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
       });
       const pages = pdfDoc.getPages();
       const firstPage = pages[page - 1];
-
       // The meat
       const signatureImage =
         signatureImageMimeType == 'image/png' || !signatureImageMimeType
@@ -193,15 +213,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
         });
       }
       // Play with these values as every project has different requirements
-
       const pdfBytes = await pdfDoc.save();
       const pdfBase64 = _uint8ToBase64(pdfBytes);
       const path = `${
         RNFS.DocumentDirectoryPath
       }/react-native_signed_${Date.now()}.pdf`;
-
       console.log('path', path);
-
       RNFS.writeFile(path, pdfBase64, 'base64')
         .then(async success => {
           setNewPdfPath(path);
@@ -456,7 +473,25 @@ export default function NotaryCallScreen({route, navigation}: any) {
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
-          {getSignaturePad ? (
+          <View style={styles.objectsWrapper}>
+            {Object.entries(objects).map(([objectId, object]) => {
+              console.log('object', currentPage, objectId);
+              if (object.page !== currentPage) {
+                return null;
+              }
+
+              return (
+                <PdfObject
+                  id={objectId}
+                  key={objectId}
+                  object={object}
+                  selected={selectedObjectId === objectId}
+                />
+              );
+            })}
+          </View>
+
+          {/* {getSignaturePad ? (
             <Signature
               onOK={sig => handleSignature(sig)}
               onEmpty={() => console.log('___onEmpty')}
@@ -529,7 +564,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 )}
               </>
             )
-          )}
+          )} */}
         </View>
         <View style={styles.actions}>
           <View style={styles.editActions}>
@@ -541,7 +576,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 paddingVertical: widthToDp(2),
               }}
               onPress={() => {
-                getSignature();
+                onSignatureAdd();
+                // getSignature();
               }}
             />
             <MainButton

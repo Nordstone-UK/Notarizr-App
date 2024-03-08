@@ -140,7 +140,7 @@ const uploadSignedDocumentsOnS3 = async base64Data => {
 
   const params = {
     Bucket: MUNROE_BUCKET_NAME,
-    Key: 'myFile.pdf',
+    Key: `signed-documents/${new Date().getTime()}.pdf`,
     Body: Buffer.from(base64Data, 'base64'),
     ContentType: 'application/pdf', // Adjust the content type accordingly
   };

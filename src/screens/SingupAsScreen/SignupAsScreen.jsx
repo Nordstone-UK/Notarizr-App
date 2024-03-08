@@ -20,6 +20,7 @@ import {accountTypeSet} from '../../features/register/registerSlice';
 export default function SignupAsScreen({navigation}) {
   const [colored, setColored] = useState('client');
   const [loading, setLoading] = useState(false);
+
   const dispatch = useDispatch();
   const handleUserType = async colored => {
     setLoading(true);
@@ -28,7 +29,9 @@ export default function SignupAsScreen({navigation}) {
         await navigation.navigate('SignUpDetailScreen');
         dispatch(accountTypeSet(colored));
       } else {
-        await navigation.navigate('AgentSignupScreen');
+        //await navigation.navigate('AgentSignupScreen');
+        dispatch(accountTypeSet('individual-agent'));
+        navigation.navigate('SignUpDetailScreen');
       }
     } catch (error) {
       console.error('Error occurred:', error);

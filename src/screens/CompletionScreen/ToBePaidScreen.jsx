@@ -58,6 +58,7 @@ export default function ToBePaidScreen({route, navigation}) {
   }
   
   const initializePaymentSheet = async () => {
+  
     setLoading(true);
     let TotalPayment;
     if (bookingData?.service_type === 'mobile_notary') {
@@ -68,10 +69,15 @@ export default function ToBePaidScreen({route, navigation}) {
       TotalPayment = bookingData?.totalPrice;
     }
     const response = await fetchPaymentSheetParams(
-      TotalPayment * 100,
+       100,
       bookingData._id,
       bookingData.__typename === 'Session' ? true : false,
     );
+
+
+
+
+
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
 

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import PhoneInput from 'react-native-phone-number-input';
 import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 // import styles from './Styles/index';
 
 export interface Props {
@@ -48,6 +48,9 @@ const PhoneTextInput = ({
         containerStyle={[styles.PhoneInputStyle, inputStyle]}
         textContainerStyle={[styles.PhoneTextContainerStyle, inputStyle]}
         ref={phoneInput}
+        textInputStyle={{
+          height: height * 0.08,
+        }}
         defaultValue={value}
         placeholder={placeholder}
         defaultCode={defaultCode || 'US'}
@@ -73,6 +76,7 @@ const styles = StyleSheet.create({
   PhoneTextContainerStyle: {
     backgroundColor: Colors.white,
     color: Colors.TextColor,
+    height: height * 0.08,
   },
   PhoneInputStyle: {
     borderRadius: 50,

@@ -38,6 +38,7 @@ import useRegister from '../../../hooks/useRegister';
 import SplashScreen from 'react-native-splash-screen';
 import {useSession} from '../../../hooks/useSession';
 import Toast from 'react-native-toast-message';
+import {CheckCircle, CheckCircleSolid} from 'iconoir-react-native';
 
 export default function AgentSessionInviteScreen({navigation}) {
   const [selected, setSelected] = useState('client_choose');
@@ -63,6 +64,8 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
+
+  const [paymentMethod, setPaymentMethod] = useState('invoice_client');
   let urlResponse;
   useEffect(() => {
     SplashScreen.hide();
@@ -102,24 +105,36 @@ export default function AgentSessionInviteScreen({navigation}) {
 
   const printEverything = async () => {
     setLoading(true);
-
+    console.log(
+      'workingggg',
+      urlResponse,
+      selectedClient,
+      'schedule_later',
+      date.toString(),
+      selected,
+      observerEmail,
+      totalPrice,
+      fileResponse,
+      documentSelect,
+      //  documentObjects,
+    );
     if (
       fileResponse.length !== 0 &&
       selectedClient &&
-      observerEmail.length !== 0 &&
-      documentSelect.length !== 0
+      observerEmail.length !== 0
+      // documentSelect.length !== 0
     ) {
-      console.log(
-        'working',
-        urlResponse,
-        selectedClient,
-        'schedule_later',
-        date.toString(),
-        selected,
-        observerEmail,
-        totalPrice,
-        documentObjects,
-      );
+      // console.log(
+      //   'working',
+      //   urlResponse,
+      //   selectedClient,
+      //   'schedule_later',
+      //   date.toString(),
+      //   selected,
+      //   observerEmail,
+      //   totalPrice,
+      //   documentObjects,
+      // );
       if (fileResponse) {
         urlResponse = await uploadDocArray(fileResponse);
       }
@@ -299,7 +314,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               <MainButton
                 Title="ID Card"
                 colors={
-                  selected === 'ID Card'
+                  selected === 'user_id'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
@@ -316,7 +331,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               <MainButton
                 Title="Passport"
                 colors={
-                  selected === 'Passport'
+                  selected === 'user_passport'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
@@ -364,6 +379,72 @@ export default function AgentSessionInviteScreen({navigation}) {
                 setOpen(false);
               }}
             />
+          </View>
+
+          <View style={styles.headingContainer}>
+            <Text style={styles.Heading}>Payment Info</Text>
+            <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginTop: 10,
+                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setPaymentMethod('invoice_client');
+                  }}>
+                  {paymentMethod == 'invoice_client' ? (
+                    <CheckCircleSolid
+                      width={24}
+                      height={24}
+                      strokeWidth={2}
+                      color={Colors.Orange}
+                    />
+                  ) : (
+                    <CheckCircle
+                      width={24}
+                      height={24}
+                      strokeWidth={2}
+                      color={'gray'}
+                    />
+                  )}
+                </TouchableOpacity>
+                <Text style={{color: 'black', marginLeft: 10}}>
+                  Invoice the client on your own{' '}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginTop: 10,
+                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setPaymentMethod('invoice_notarizr');
+                  }}>
+                  {paymentMethod == 'invoice_notarizr' ? (
+                    <CheckCircleSolid
+                      width={24}
+                      height={24}
+                      strokeWidth={2}
+                      color={Colors.Orange}
+                    />
+                  ) : (
+                    <CheckCircle
+                      width={24}
+                      height={24}
+                      strokeWidth={2}
+                      color={'gray'}
+                    />
+                  )}
+                </TouchableOpacity>
+                <Text style={{color: 'black', marginLeft: 10}}>
+                  Invoice the on client Notarizr{' '}
+                </Text>
+              </View>
+            </View>
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>Document</Text>

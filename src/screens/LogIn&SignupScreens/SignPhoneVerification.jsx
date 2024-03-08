@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, Alert} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -84,6 +91,10 @@ export default function SignPhoneVerification({route, navigation}) {
         <View style={styles.subContainer}>
           <Text style={styles.heading}>Enter OTP to Verify</Text>
           <Image source={require('../../../assets/otp.png')} />
+          <Text style={styles.subheading}>
+            We have sent an OTP on this number:
+          </Text>
+          <Text style={styles.subheading}>{phoneNumber}</Text>
           <OTPInputView
             style={{
               width: widthToDp(80),
@@ -100,13 +111,20 @@ export default function SignPhoneVerification({route, navigation}) {
             codeInputFieldStyle={styles.underlineStyleBase}
             codeInputHighlightStyle={styles.underlineStyleHighLighted}
           />
-          <Text style={styles.subheading}>
-            We have sent an OTP on this number:
-          </Text>
-          <Text style={styles.subheading}>{phoneNumber}</Text>
 
-          <View style={{marginVertical: heightToDp(5)}}>
-            <MainButton
+          <TouchableOpacity
+            onPress={() => handleResend()}
+            style={{marginVertical: heightToDp(5)}}>
+            <Text
+              style={{
+                color: Colors.Orange,
+                fontFamily: 'Manrope-Bold',
+                textAlign: 'center',
+              }}>
+              Resend OTP
+            </Text>
+
+            {/* <MainButton
               Title="Resend OTP"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
@@ -120,8 +138,8 @@ export default function SignPhoneVerification({route, navigation}) {
                 fontSize: widthToDp(4),
               }}
               // onPress={() => handleResend()}
-            />
-          </View>
+            /> */}
+          </TouchableOpacity>
         </View>
         <View style={{marginVertical: heightToDp(5)}}>
           <GradientButton

@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   input: {
-    padding: widthToDp(6),
+    padding: widthToDp(4),
     width: widthToDp(80),
     fontSize: 18,
     backgroundColor: 'transparent',

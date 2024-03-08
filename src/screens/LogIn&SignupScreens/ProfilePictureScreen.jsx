@@ -68,13 +68,36 @@ export default function ProfilePictureScreen({navigation}) {
       {cancelable: false},
     );
   };
+
   const handleAuthPermission = async state => {
+    console.log('state', state);
     setSkip(state);
     setVisible(true);
+
+    // if (state) {
+    if (skip) {
+      console.log('Skipping');
+      await skipPciture();
+      setVisible(false);
+    } else if (image) {
+      console.log('submitRegister');
+      await submitRegister();
+      setVisible(false);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please add an image',
+      });
+    }
+    // } else {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'You need to consent to continue',
+    //   });
+    //   setVisible(false);
+    // }
   };
   const AuthFuc = async state => {
-    setVisible(true);
-    console.log(state);
     if (state) {
       if (skip) {
         console.log('Skipping');
@@ -181,7 +204,7 @@ export default function ProfilePictureScreen({navigation}) {
       }
     } else {
       settempLoading(false);
-      dispatch(profilePictureSet(url));
+      // dispatch(profilePictureSet(url));
       navigation.navigate('AgentVerificationScreen');
     }
   };
@@ -247,13 +270,13 @@ export default function ProfilePictureScreen({navigation}) {
           />
         </ScrollView>
       </BottomSheetStyle>
-      {visible && (
+      {/* {visible && (
         <AuthenticateModal
           modalVisible={visible}
           setModalVisible={bool => setVisible(bool)}
           handleConsent={answer => AuthFuc(answer)}
         />
-      )}
+      )} */}
     </SafeAreaView>
   );
 }
