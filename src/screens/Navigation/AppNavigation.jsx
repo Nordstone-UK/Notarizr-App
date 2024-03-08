@@ -158,7 +158,7 @@ function TabNavigation() {
                 headerShown: false,
                 tabBarShowLabel: false,
                 tabBarStyle: {
-                  //  display: user.isVerified ? 'flex' : 'none',
+                  display: user.isVerified ? 'flex' : 'none',
                   height:
                     Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
                 },
