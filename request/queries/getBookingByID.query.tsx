@@ -95,6 +95,7 @@ export const GET_BOOKING_BY_ID = gql`
         review
         createdAt
         updatedAt
+        payment_type
 
         agora_channel_name
         agora_channel_token

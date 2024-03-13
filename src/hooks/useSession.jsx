@@ -19,6 +19,7 @@ export const useSession = () => {
     observerEmail,
     totalPrice,
     documentObjects,
+    payment_type,
   ) => {
     const request = {
       variables: {
@@ -30,10 +31,11 @@ export const useSession = () => {
         observers: observerEmail,
         price: totalPrice,
         documentType: documentObjects,
+        payment_type: payment_type,
       },
     };
     const response = await createSession(request);
-    console.log('Session Response', response.data);
+    console.log('Session Response', response);
     return response.data.createSessionR.status;
   };
   const handleSessionUpdation = async () => {};

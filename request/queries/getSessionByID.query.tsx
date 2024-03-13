@@ -76,6 +76,7 @@ export const GET_SESSION_BY_ID = gql`
         }
         createdAt
         updatedAt
+        payment_type
       }
       message
       status
