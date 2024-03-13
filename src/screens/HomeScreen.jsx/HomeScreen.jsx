@@ -107,8 +107,9 @@ export default function HomeScreen({route, navigation}) {
             Image={require('../../../assets/service2Pic.png')}
             onPress={() =>
               user != null
-                ? navigation.navigate('OnlineNotaryScreen')
-                : handleOpenModal()
+                ? navigation.navigate('RonDateDocScreen')
+                : //navigation.navigate('OnlineNotaryScreen')
+                  handleOpenModal()
             }
           />
           <View style={styles.CategoryBar}>

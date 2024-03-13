@@ -38,7 +38,7 @@ import useRegister from '../../../hooks/useRegister';
 import SplashScreen from 'react-native-splash-screen';
 import {useSession} from '../../../hooks/useSession';
 import Toast from 'react-native-toast-message';
-import {CheckCircle, CheckCircleSolid} from 'iconoir-react-native';
+import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 
 export default function AgentSessionInviteScreen({navigation}) {
   const [selected, setSelected] = useState('client_choose');
@@ -65,7 +65,14 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
 
-  const [paymentMethod, setPaymentMethod] = useState('invoice_client');
+  const [selectedClientData, setSelectedClientData] = useState(null);
+
+  const [observers, setObservers] = useState([]);
+
+  const [searchFor, setSearchFor] = useState('');
+  const [showObserverSearchView, setShowObserverSearchView] = useState(false);
+
+  const [paymentMethod, setPaymentMethod] = useState('on_noarizr');
   let urlResponse;
   useEffect(() => {
     SplashScreen.hide();
@@ -105,54 +112,52 @@ export default function AgentSessionInviteScreen({navigation}) {
 
   const printEverything = async () => {
     setLoading(true);
-    console.log(
-      'workingggg',
-      urlResponse,
-      selectedClient,
-      'schedule_later',
-      date.toString(),
-      selected,
-      observerEmail,
-      totalPrice,
-      fileResponse,
-      documentSelect,
-      //  documentObjects,
-    );
+    // console.log(
+    //   'workingggg',
+    //   urlResponse,
+    //   selectedClient,
+    //   'schedule_later',
+    //   date.toString(),
+    //   selected,
+    //   observerEmail,
+    //   totalPrice,
+    //   fileResponse,
+    //   documentSelect,
+    //   paymentMethod,
+    //   observers,
+    //   //  documentObjects,
+    // );
+
     if (
       fileResponse.length !== 0 &&
       selectedClient &&
-      observerEmail.length !== 0
+      observers.length !== 0
       // documentSelect.length !== 0
     ) {
-      // console.log(
-      //   'working',
-      //   urlResponse,
-      //   selectedClient,
-      //   'schedule_later',
-      //   date.toString(),
-      //   selected,
-      //   observerEmail,
-      //   totalPrice,
-      //   documentObjects,
-      // );
+      let urlResponse;
       if (fileResponse) {
         urlResponse = await uploadDocArray(fileResponse);
       }
+
+      console.log('urlResponse', urlResponse);
       const documentObjects = documentSelect.map(item => {
         const [name, price] = item.split(' - $');
         return {name, price: parseFloat(price)};
       });
-      // const totalPrice = calculateTotalPrice(documentObjects);
+
       const response = await handleSessionCreation(
         urlResponse,
         selectedClient,
         'schedule_later',
         date.toString(),
         selected,
-        observerEmail,
+        observers.map(item => item.email),
         totalPrice,
         documentObjects,
+        paymentMethod,
       );
+
+      console.log('response', response);
       if (response === '200') {
         navigation.navigate('SessionCreation');
       } else {
@@ -170,6 +175,7 @@ export default function AgentSessionInviteScreen({navigation}) {
     }
     setLoading(false);
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Invite Signer" />
@@ -183,13 +189,85 @@ export default function AgentSessionInviteScreen({navigation}) {
           <LabelTextInput
             placeholder="Search client by email"
             defaultValue={selectedClient}
-            onChangeText={text => SearchUser(text)}
+            onChangeText={text => {
+              SearchUser(text);
+              setSearchFor('Client');
+            }}
             InputStyles={{padding: widthToDp(2)}}
             AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
             rightImageSoucre={require('../../../../assets/close.png')}
-            rightImagePress={() => setSelectedClient(null)}
+            rightImagePress={() => {
+              setSearchedUser([]);
+              setSelectedClient(null);
+            }}
           />
-          {searchedUser.length !== 0 && selectedClient === null ? (
+
+          {selectedClientData && (
+            <View
+              style={{
+                width: widthToDp(90),
+
+                backgroundColor: 'red',
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: widthToDp(3),
+                borderRadius: widthToDp(2),
+                backgroundColor: 'white',
+                shadowColor: '#000',
+                shadowOffset: {
+                  width: 0,
+                  height: 2,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+
+                elevation: 5,
+                marginLeft: 3,
+              }}>
+              <View style={{marginRight: 10}}>
+                <Image
+                  source={{
+                    uri:
+                      selectedClientData.profile_picture != 'none'
+                        ? selectedClientData.profile_picture
+                        : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                  }}
+                  style={{
+                    width: widthToDp(14),
+                    height: widthToDp(14),
+                    borderRadius: widthToDp(7),
+                  }}
+                />
+              </View>
+              <View>
+                <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                  {selectedClientData?.email}
+                </Text>
+                <Text style={{color: 'black', fontFamily: 'Poppins-Regular'}}>
+                  {selectedClientData.first_name} {selectedClientData.last_name}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedClient(null);
+                  setSelectedClientData(null);
+                  setSearchedUser([]);
+                }}
+                style={{position: 'absolute', right: 5, top: 5}}>
+                <Xmark
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {searchFor == 'Client' &&
+          searchedUser.length !== 0 &&
+          selectedClient === null ? (
             isLoading ? (
               <ActivityIndicator
                 size="large"
@@ -203,7 +281,10 @@ export default function AgentSessionInviteScreen({navigation}) {
                 {searchedUser.map(item => (
                   <TouchableOpacity
                     key={item._id}
-                    onPress={() => setSelectedClient(item.email)}
+                    onPress={() => {
+                      setSelectedClient(item.email);
+                      setSelectedClientData(item);
+                    }}
                     style={{
                       borderColor: Colors.Orange,
                       borderWidth: 1,
@@ -244,7 +325,140 @@ export default function AgentSessionInviteScreen({navigation}) {
               An Observer is anyone with relevant information for all the
               signing that may need to be on the notarization session.
             </Text>
-            <View
+
+            <LabelTextInput
+              placeholder="Search observer by email"
+              defaultValue={''}
+              onChangeText={text => {
+                SearchUser(text);
+                setSearchFor('Observer');
+                setShowObserverSearchView(true);
+              }}
+              InputStyles={{padding: widthToDp(2)}}
+              AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
+              rightImageSoucre={require('../../../../assets/close.png')}
+              rightImagePress={() => {
+                setSearchedUser([]);
+              }}
+            />
+
+            {observers.length > 0 && (
+              <View>
+                {observers.map(item => {
+                  return (
+                    <View
+                      style={{
+                        width: widthToDp(90),
+                        marginTop: 10,
+
+                        backgroundColor: 'red',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: widthToDp(3),
+                        borderRadius: widthToDp(2),
+                        backgroundColor: 'white',
+                        shadowColor: '#000',
+                        shadowOffset: {
+                          width: 0,
+                          height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+
+                        elevation: 5,
+                        marginLeft: 3,
+                      }}>
+                      <View style={{marginRight: 10}}>
+                        <Image
+                          source={{
+                            uri:
+                              item.profile_picture != 'none'
+                                ? item.profile_picture
+                                : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                          }}
+                          style={{
+                            width: widthToDp(14),
+                            height: widthToDp(14),
+                            borderRadius: widthToDp(7),
+                          }}
+                        />
+                      </View>
+                      <View>
+                        <Text
+                          style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                          {item?.email}
+                        </Text>
+                        <Text
+                          style={{
+                            color: 'black',
+                            fontFamily: 'Poppins-Regular',
+                          }}>
+                          {item.first_name} {item.last_name}
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          setObservers(
+                            observers.filter(i => i._id !== item._id),
+                          );
+                        }}
+                        style={{position: 'absolute', right: 5, top: 5}}>
+                        <Xmark
+                          width={24}
+                          height={24}
+                          strokeWidth={2}
+                          color={Colors.Orange}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {showObserverSearchView &&
+            searchFor == 'Observer' &&
+            searchedUser.length !== 0 ? (
+              isLoading ? (
+                <ActivityIndicator
+                  size="large"
+                  color={Colors.Orange}
+                  style={{height: heightToDp(40)}}
+                />
+              ) : (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  style={{height: heightToDp(40), marginBottom: widthToDp(3)}}>
+                  {searchedUser.map(item => (
+                    <TouchableOpacity
+                      key={item._id}
+                      onPress={() => {
+                        setObservers(prev => [...prev, item]);
+                        setShowObserverSearchView(false);
+                      }}
+                      style={{
+                        borderColor: Colors.Orange,
+                        borderWidth: 1,
+                        padding: widthToDp(1),
+                        marginLeft: widthToDp(3),
+                        marginBottom: widthToDp(3),
+                        borderRadius: widthToDp(2),
+                        width: widthToDp(88),
+                      }}>
+                      <Text
+                        style={{
+                          color: Colors.TextColor,
+                          fontSize: widthToDp(4),
+                        }}>
+                        {item.email}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )
+            ) : null}
+            {/* <View
               style={{
                 marginTop: heightToDp(3),
                 marginHorizontal: widthToDp(2),
@@ -287,7 +501,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </View> */}
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>
@@ -392,9 +606,9 @@ export default function AgentSessionInviteScreen({navigation}) {
                 }}>
                 <TouchableOpacity
                   onPress={() => {
-                    setPaymentMethod('invoice_client');
+                    setPaymentMethod('on_agent');
                   }}>
-                  {paymentMethod == 'invoice_client' ? (
+                  {paymentMethod == 'on_agent' ? (
                     <CheckCircleSolid
                       width={24}
                       height={24}
@@ -422,9 +636,9 @@ export default function AgentSessionInviteScreen({navigation}) {
                 }}>
                 <TouchableOpacity
                   onPress={() => {
-                    setPaymentMethod('invoice_notarizr');
+                    setPaymentMethod('on_noarizr');
                   }}>
-                  {paymentMethod == 'invoice_notarizr' ? (
+                  {paymentMethod == 'on_noarizr' ? (
                     <CheckCircleSolid
                       width={24}
                       height={24}

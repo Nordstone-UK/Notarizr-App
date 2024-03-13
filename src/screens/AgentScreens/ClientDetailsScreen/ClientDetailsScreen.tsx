@@ -43,6 +43,7 @@ import {BottomSheetModal} from '@gorhom/bottom-sheet';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
+  console.log('######', clientDetail.payment_type);
   const {
     handlegetBookingStatus,
     handleSessionStatus,
@@ -243,9 +244,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const isStorageLoading = useLiveblocks(
     state => state.liveblocks.isStorageLoading,
   );
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
+  const handlePresentModalPress = () => {
+    if (clientDetail.payment_type == 'on_notarizr') {
+      bottomSheetModalRef.current?.present();
+    } else {
+      navigation.navigate('NotaryCallScreen', {
+        uid: clientDetail?._id,
+        channel: clientDetail?.agora_channel_name,
+        token: clientDetail?.agora_channel_token,
+      });
+    }
+  };
+
   const handleCloseModalPress = useCallback(() => {
     bottomSheetModalRef.current?.close();
   }, []);
@@ -358,7 +368,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             createdAt={clientDetail?.createdAt}
           />
           <View style={styles.sheetContainer}>
-            <Text style={[styles.insideHeading]}>Booking Preferences</Text>
+            {/* <Text style={[styles.insideHeading]}>Booking Preferences</Text>
             {clientDetail?.service_type === 'mobile_notary' && (
               <View>
                 <Text
@@ -374,7 +384,88 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   {displayNamesWithCommas(clientDetail?.document_type)}
                 </Text>
               </View>
+            )} */}
+            {clientDetail.client && (
+              <View>
+                <Text style={[styles.insideHeading]}>Client Email </Text>
+                <View style={{paddingHorizontal: widthToDp(7)}}>
+                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+                    {clientDetail.client.email}
+                  </Text>
+                </View>
+              </View>
             )}
+
+            {clientDetail.observers && clientDetail.observers.length > 0 && (
+              <View>
+                <Text style={[styles.insideHeading]}>Observers Emails </Text>
+                <View style={{paddingHorizontal: widthToDp(7)}}>
+                  {clientDetail.observers.map(item => {
+                    return (
+                      <Text
+                        style={{
+                          fontFamily: 'Poppins-Regular',
+                          color: 'black',
+                        }}>
+                        {item}
+                      </Text>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {clientDetail.payment_type && (
+              <View>
+                <Text style={[styles.insideHeading]}>Payment Info </Text>
+                <View style={{paddingHorizontal: widthToDp(7)}}>
+                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+                    {clientDetail.payment_type == 'on_notarizr'
+                      ? 'Invoice the client on Notarizr'
+                      : 'Invoice the client on your own'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {clientDetail.identity_authentication && (
+              <View>
+                <Text style={[styles.insideHeading]}>
+                  Identity Authentication{' '}
+                </Text>
+                <View style={{paddingHorizontal: widthToDp(7)}}>
+                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+                    {clientDetail.identity_authentication == 'user_id'
+                      ? 'ID Card'
+                      : clientDetail.identity_authentication == 'user_passport'
+                      ? 'Passport'
+                      : 'Allow user to choose'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {clientDetail.agent_document && (
+              <View>
+                <Text style={[styles.insideHeading]}>Agent Documents </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+                  {clientDetail.agent_document?.map((item, index) => (
+                    <TouchableOpacity key={index}>
+                      <Image
+                        source={require('../../../../assets/docPic.png')}
+                        style={{width: widthToDp(10), height: heightToDp(10)}}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
             {booked_for?.first_name && (
               <View>
                 <View style={styles.addressView}>
@@ -414,7 +505,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 </View>
               </View>
             )}
-            {!booked_for?.location && (
+            {/* {!booked_for?.location && (
               <View style={styles.addressView}>
                 <Image
                   source={require('../../../../assets/locationIcon.png')}
@@ -424,8 +515,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   {capitalizeFirstLetter(clientDetail?.agent?.location)}
                 </Text>
               </View>
-            )}
-            <View style={styles.addressView}>
+            )} */}
+            {/* <View style={styles.addressView}>
               <Image
                 source={require('../../../../assets/calenderIcon.png')}
                 style={styles.locationImage}
@@ -435,7 +526,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 {'  '}
                 {clientDetail?.time_of_booking}
               </Text>
-            </View>
+            </View> */}
             {/* <View style={styles.addressView}>
               <Text
                 style={{
@@ -631,7 +722,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             status === 'To_be_paid' && (
               <View>
                 <GradientButton
-                  Title="Request Payment"
+                  Title={
+                    clientDetail.payment_type == 'on_notarizr'
+                      ? 'Request Payment'
+                      : 'Join session'
+                  }
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,

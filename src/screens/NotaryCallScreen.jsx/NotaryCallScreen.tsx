@@ -47,6 +47,8 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 
 export default function NotaryCallScreen({route, navigation}: any) {
+  console.log('route', route.params);
+
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);

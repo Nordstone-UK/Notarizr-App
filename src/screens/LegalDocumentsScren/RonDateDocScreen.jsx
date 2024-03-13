@@ -52,6 +52,8 @@ export default function RonDateDocScreen({route, navigation}) {
     {name: 'Unclaimed Property Form', price: 150},
   ]);
   const [fileResponse, setFileResponse] = useState([]);
+
+  const [isYes, setIsYes] = useState(true);
   const {uploadMultipleFiles} = useRegister();
   // console.log(selectedDocs);
   function calculateTotalPrice(documentObjects) {
@@ -78,29 +80,32 @@ export default function RonDateDocScreen({route, navigation}) {
         text1: 'Please fill all the fields',
       });
     } else {
-      dispatch(
-        setBookingInfoState({
-          serviceType: 'ron',
-          service: null,
-          timeOfBooking: moment(date).format('h:mm A'),
-          dateOfBooking: moment(date).format('MM-DD-YYYY'),
-          agent: null,
-          documentType: docArray,
-          address: null,
-          bookedFor: {
-            email: null,
-            first_name: null,
-            last_name: null,
-            location: null,
-            phone_number: null,
-          },
-          bookingType: 'self',
-          documents: null,
+      if (!isYes) {
+        dispatch(
+          setBookingInfoState({
+            serviceType: 'ron',
+            service: null,
+            timeOfBooking: moment(date).format('h:mm A'),
+            dateOfBooking: moment(date).format('MM-DD-YYYY'),
+            agent: null,
+            documentType: docArray,
+            address: null,
+            bookedFor: {
+              email: null,
+              first_name: null,
+              last_name: null,
+              location: null,
+              phone_number: null,
+            },
+            bookingType: 'self',
+            documents: null,
 
-          preferenceAnalysis: 'distance',
-        }),
-      );
-      navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
+            preferenceAnalysis: 'distance',
+          }),
+        );
+        navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
+      } else {
+      }
     }
     setLoading(false);
   };
@@ -164,6 +169,70 @@ export default function RonDateDocScreen({route, navigation}) {
                 }}
               />
             </View>
+          </View>
+
+          <View style={{paddingHorizontal: widthToDp(5)}}>
+            <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+              Do you want to invite your known Agent to get your documents
+              Notarised?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginVertical: 10,
+              }}>
+              <TouchableOpacity
+                onPress={() => setIsYes(true)}
+                style={{
+                  borderWidth: 1,
+                  width: widthToDp(16),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 5,
+                  borderColor: Colors.Orange,
+                  paddingVertical: 5,
+                  backgroundColor: isYes ? Colors.Orange : Colors.white,
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: isYes ? 'white' : 'black',
+                  }}>
+                  Yes
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setIsYes(false)}
+                style={{
+                  borderWidth: 1,
+                  width: widthToDp(16),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 5,
+                  borderColor: Colors.Orange,
+                  paddingVertical: 5,
+                  backgroundColor: !isYes ? Colors.Orange : Colors.white,
+                  marginLeft: widthToDp(2),
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: !isYes ? 'white' : 'black',
+                  }}>
+                  No
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={{fontFamily: 'Poppins-Bold', color: 'black'}}>
+              Note:
+            </Text>
+            <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+              {isYes
+                ? 'We will provide you a invite link, which you can share it with the Agent'
+                : 'We will allocate our best agent for getting your documents notarized'}
+            </Text>
           </View>
           {/* <Text style={styles.Heading}>
             Please select the documents you want to get notarized.

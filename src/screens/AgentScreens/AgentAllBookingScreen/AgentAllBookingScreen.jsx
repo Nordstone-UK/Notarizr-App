@@ -77,6 +77,7 @@ export default function AgentAllBookingScreen({navigation}) {
       dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
       navigation.navigate('MapArrivalScreen');
     } else {
+      console.log('item', item.payment_type);
       dispatch(setBookingInfoState(item));
       navigation.navigate('ClientDetailsScreen', {
         clientDetail: item,
