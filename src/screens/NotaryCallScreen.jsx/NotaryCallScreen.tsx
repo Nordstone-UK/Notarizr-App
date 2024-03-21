@@ -50,7 +50,14 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
-  const [sourceUrl, setSourceUrl] = useState(bookingData?.documents[0].url);
+
+  console.log(bookingData);
+
+  const [sourceUrl, setSourceUrl] = useState(
+    bookingData.__typename == 'Session'
+      ? bookingData.client_documents['Document 1']
+      : bookingData?.documents[0].url,
+  );
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [getSignaturePad, setSignaturePad] = useState(false);
   const [pdfEditMode, setPdfEditMode] = useState(false);
@@ -179,7 +186,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
   const handleSingleTap = async (page, x, y) => {
     console.log('page', page, x, y);
-    return;
+    // return;
     if (pdfEditMode) {
       setNewPdfSaved(false);
       setFilePath(null);
@@ -465,15 +472,21 @@ export default function NotaryCallScreen({route, navigation}: any) {
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={itemValue => handleLinkChange(itemValue)}
-          items={bookingData.documents.map((doc: {name: any; url: any}) => ({
-            label: doc.name,
-            value: doc.url,
-          }))}
+          items={
+            bookingData.__typename == 'Session'
+              ? Object.keys(bookingData.client_documents).map(doc => {
+                  return {label: doc, value: bookingData.client_documents[doc]};
+                })
+              : bookingData.documents.map((doc: {name: any; url: any}) => ({
+                  label: doc.name,
+                  value: doc.url,
+                }))
+          }
         />
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
-          <View style={styles.objectsWrapper}>
+          {/* <View style={styles.objectsWrapper}>
             {Object.entries(objects).map(([objectId, object]) => {
               console.log('object', currentPage, objectId);
               if (object.page !== currentPage) {
@@ -489,9 +502,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 />
               );
             })}
-          </View>
+          </View> */}
 
-          {/* {getSignaturePad ? (
+          {getSignaturePad ? (
             <Signature
               onOK={sig => handleSignature(sig)}
               onEmpty={() => console.log('___onEmpty')}
@@ -564,7 +577,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 )}
               </>
             )
-          )} */}
+          )}
         </View>
         <View style={styles.actions}>
           <View style={styles.editActions}>
@@ -576,8 +589,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 paddingVertical: widthToDp(2),
               }}
               onPress={() => {
-                onSignatureAdd();
-                // getSignature();
+                //  onSignatureAdd();
+                getSignature();
               }}
             />
             <MainButton

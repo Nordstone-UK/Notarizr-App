@@ -63,16 +63,16 @@ const styles = StyleSheet.create({
   },
   textHeading: {
     alignSelf: 'center',
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontWeight: '700',
     color: Colors.TextColor,
   },
   heading: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),
-    marginBottom: height*.02
+    marginBottom: height * 0.02,
   },
   imagestyles: {
     width: widthToDp(15),

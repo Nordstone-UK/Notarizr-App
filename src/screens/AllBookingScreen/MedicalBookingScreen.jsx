@@ -41,6 +41,13 @@ import {useLiveblocks} from '../../store/liveblocks';
 import Loading from '../../components/LiveBlocksComponents/loading';
 import useRegister from '../../hooks/useRegister';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
+import {useLazyQuery, useMutation} from '@apollo/client';
+import {
+  UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
+  UPDATE_SESSION_CLIENT_DOCS,
+} from '../../../request/mutations/updateSessionClientDocs';
+import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -55,10 +62,13 @@ export default function MedicalBookingScreen({route, navigation}) {
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
+
+  const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
+
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const [feedback, setFeedback] = useState();
   const documents = bookingDetail?.documents;
-  const {booked_for} = bookingDetail;
+  //const {booked_for} = bookingDetail;
   const [modalShow, setModalShow] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -73,6 +83,13 @@ export default function MedicalBookingScreen({route, navigation}) {
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const [uploadShow, setUploadShow] = useState(true);
   const [showIcon, setShowIcon] = useState(true);
+
+  /////// update client docs /////
+
+  const [updateSessionClientDocs] = useMutation(
+    UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
+  );
+
   function isEmpty(obj) {
     for (var prop in obj) {
       if (obj.hasOwnProperty(prop)) return false;
@@ -81,6 +98,7 @@ export default function MedicalBookingScreen({route, navigation}) {
     return true;
   }
   const documentCheck = isEmpty(bookingDetail?.documents);
+
   const selectDocuments = async () => {
     setShowIcon(false);
     let urlResponse;
@@ -88,23 +106,76 @@ export default function MedicalBookingScreen({route, navigation}) {
     // setUploadingDocs(response);
     if (response) {
       urlResponse = await uploadAllDocuments(response);
-      if (urlResponse) {
-        const response = await setBookingPrice(
-          bookingDetail?._id,
-          bookingDetail?.totalPrice,
-          bookingDetail?.review,
-          bookingDetail?.rating,
-          bookingDetail?.notes,
-          bookingDetail?.proof_documents,
-          urlResponse,
-        );
-        // console.log(response);
-        const reponse = await fetchBookingByID(bookingDetail?._id);
-        // console.log(reponse);
+
+      urlResponse = urlResponse.map(item => ({
+        key: item.name,
+        value: item.url,
+      }));
+      console.log(urlResponse);
+
+      const request = {
+        variables: {
+          sessionId: bookingDetail?._id,
+          clientDocuments: urlResponse,
+        },
+      };
+
+      console.log('######', request);
+
+      const res = await updateSessionClientDocs(request);
+
+      var reponse;
+
+      if (bookingDetail.__typename == 'Session') {
+        console.log('heeeetre');
+        const request = {
+          variables: {
+            sessionId: bookingDetail?._id,
+          },
+        };
+
+        reponse = await getSession(request);
+        console.log('ressss', reponse.data.getSession.session);
+        dispatch(setBookingInfoState(reponse.data.getSession.session));
+      } else {
+        reponse = await fetchBookingByID(bookingDetail?._id);
         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-        setUploadShow(false);
-        setShowIcon(true);
       }
+
+      setUploadShow(false);
+      setShowIcon(true);
+
+      // console.log(res);
+
+      //  const request = {
+      //    variables: {
+      //       sessionId: bookingDetail?._id,
+      //       key: urlResponse[0].id,
+      //      // value:
+
+      //    },
+      //  };
+      //  const response = await createSession(request);
+
+      //  const re
+
+      // if (urlResponse) {
+      //   const response = await setBookingPrice(
+      //     bookingDetail?._id,
+      //     bookingDetail?.totalPrice,
+      //     bookingDetail?.review,
+      //     bookingDetail?.rating,
+      //     bookingDetail?.notes,
+      //     bookingDetail?.proof_documents,
+      //     urlResponse,
+      //   );
+      //   // console.log(response);
+      //   const reponse = await fetchBookingByID(bookingDetail?._id);
+      //   // console.log(reponse);
+      //   // dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
+      //   setUploadShow(false);
+      //   setShowIcon(true);
+      // }
     }
     setShowIcon(true);
   };
@@ -217,6 +288,14 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return namesString;
   }
+
+  if (!bookingDetail) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color={Colors.Orange} />
+      </View>
+    );
+  }
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -250,7 +329,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           <View style={styles.insideContainer}>
-            <Text style={styles.insideHeading}>Selected Agent</Text>
+            <Text style={styles.insideHeading}> </Text>
             <View style={styles.iconContainer}>
               {(status === 'Pending' || status === 'Cancelled') && (
                 <Image
@@ -279,250 +358,350 @@ export default function MedicalBookingScreen({route, navigation}) {
               )}
             </View>
           </View>
-          {bookingDetail && status !== 'Completed' ? (
-            <AgentCard
-              source={{uri: bookingDetail?.agent?.profile_picture}}
-              bottomRightText={bookingDetail?.document_type}
-              bottomLeftText="Total"
-              image={require('../../../assets/agentLocation.png')}
-              agentName={
-                bookingDetail?.agent?.first_name +
-                ' ' +
-                bookingDetail?.agent?.last_name
-              }
-              rating={bookingDetail?.agent?.rating}
-              agentAddress={bookingDetail?.agent?.location}
-              task={status || 'Loading'}
-              OrangeText={'At Office'}
-              dateofBooking={bookingDetail?.date_of_booking}
-              timeofBooking={bookingDetail?.time_of_booking}
-              createdAt={bookingDetail?.createdAt}
-            />
-          ) : (
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                marginHorizontal: widthToDp(5),
-                marginVertical: widthToDp(2),
-              }}>
-              <Image
-                source={{uri: bookingDetail?.agent?.profile_picture}}
+
+          {bookingDetail.client && (
+            <View>
+              <Text style={[styles.insideHeading]}>Client details</Text>
+
+              <View
                 style={{
-                  width: widthToDp(15),
-                  height: widthToDp(15),
-                  borderRadius: widthToDp(5),
-                }}
-              />
-              <Text style={[styles.insideHeading, {fontSize: widthToDp(4.5)}]}>
-                {bookingDetail?.agent?.first_name +
-                  ' ' +
-                  bookingDetail?.agent?.last_name}
-              </Text>
+                  width: widthToDp(90),
+                  marginTop: 10,
+                  marginHorizontal: widthToDp(5),
+
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: widthToDp(3),
+                  borderRadius: widthToDp(2),
+                  backgroundColor: 'white',
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+
+                  elevation: 5,
+                  // marginLeft: 3,
+                }}>
+                <View style={{marginRight: 10}}>
+                  <Image
+                    source={{
+                      uri:
+                        bookingDetail.client.profile_picture != 'none'
+                          ? bookingDetail.client.profile_picture
+                          : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                    }}
+                    style={{
+                      width: widthToDp(14),
+                      height: widthToDp(14),
+                      borderRadius: widthToDp(7),
+                    }}
+                  />
+                </View>
+                <View>
+                  <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                    {bookingDetail.client?.email}
+                  </Text>
+                  <Text
+                    style={{
+                      color: 'black',
+                      fontFamily: 'Poppins-Regular',
+                    }}>
+                    {bookingDetail.client.first_name}{' '}
+                    {bookingDetail.client.last_name}
+                  </Text>
+                </View>
+              </View>
             </View>
           )}
-          <View style={styles.sheetContainer}>
-            <Text style={styles.insideHeading}>Booking Preferences</Text>
-            {/* <View>
-              <Text
+
+          {bookingDetail.agent && (
+            <View>
+              <Text style={[styles.insideHeading]}>
+                Allocated agent details
+              </Text>
+
+              <View
                 style={{
-                  fontSize: widthToDp(4),
-                  marginLeft: widthToDp(1),
-                  fontFamily: 'Manrope-Bold',
-                  color: Colors.TextColor,
-                  marginLeft: widthToDp(6),
+                  width: widthToDp(90),
+                  marginTop: 10,
+                  marginHorizontal: widthToDp(5),
+
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: widthToDp(3),
+                  borderRadius: widthToDp(2),
+                  backgroundColor: 'white',
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+
+                  elevation: 5,
+                  // marginLeft: 3,
                 }}>
-                Document Type:
-              </Text>
-              <Text style={[styles.detail, {marginLeft: widthToDp(6)}]}>
-                {displayNamesWithCommas(bookingDetail?.document_type)}
-              </Text>
-            </View> */}
-            {booked_for?.first_name && (
-              <View>
-                <View style={styles.addressView}>
-                  <Text
-                    style={{
-                      fontSize: widthToDp(4),
-                      marginLeft: widthToDp(1),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Booked For:
-                  </Text>
-                  <Text style={styles.detail}>
-                    {booked_for?.first_name} {booked_for?.last_name}
-                  </Text>
-                </View>
-                <View style={styles.addressView}>
-                  <Text
-                    style={{
-                      fontSize: widthToDp(4),
-                      marginLeft: widthToDp(1),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Phone Number:
-                  </Text>
-                  <Text style={styles.detail}>{booked_for?.phone_number}</Text>
-                </View>
-                <View style={styles.addressView}>
+                <View style={{marginRight: 10}}>
                   <Image
-                    source={require('../../../assets/locationIcon.png')}
-                    style={styles.locationImage}
+                    source={{
+                      uri:
+                        bookingDetail.agent.profile_picture != 'none'
+                          ? bookingDetail.agent.profile_picture
+                          : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                    }}
+                    style={{
+                      width: widthToDp(14),
+                      height: widthToDp(14),
+                      borderRadius: widthToDp(7),
+                    }}
                   />
-                  <Text style={styles.detail}>
-                    {capitalizeFirstLetter(booked_for?.location)}
+                </View>
+                <View>
+                  <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                    {bookingDetail.agent?.email}
+                  </Text>
+                  <Text
+                    style={{
+                      color: 'black',
+                      fontFamily: 'Poppins-Regular',
+                    }}>
+                    {bookingDetail.agent.first_name}{' '}
+                    {bookingDetail.agent.last_name}
                   </Text>
                 </View>
               </View>
-            )}
-            {!booked_for?.location && (
-              <View style={styles.addressView}>
-                <Image
-                  source={require('../../../assets/locationIcon.png')}
-                  style={styles.locationImage}
+            </View>
+          )}
+
+          {bookingDetail.observers && bookingDetail.observers.length > 0 && (
+            <View>
+              <Text style={[styles.insideHeading]}>Observers </Text>
+              <View>
+                {bookingDetail.observers.map(item => {
+                  return (
+                    <View
+                      style={{
+                        width: widthToDp(90),
+                        marginTop: 10,
+                        marginHorizontal: widthToDp(5),
+
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: widthToDp(3),
+                        borderRadius: widthToDp(2),
+                        backgroundColor: 'white',
+                        shadowColor: '#000',
+                        shadowOffset: {
+                          width: 0,
+                          height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+
+                        elevation: 5,
+                        // marginLeft: 3,
+                      }}>
+                      <View style={{marginRight: 10}}>
+                        <Image
+                          source={{
+                            uri: 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                          }}
+                          style={{
+                            width: widthToDp(14),
+                            height: widthToDp(14),
+                            borderRadius: widthToDp(7),
+                          }}
+                        />
+                      </View>
+                      <View>
+                        <Text
+                          style={{
+                            color: 'black',
+                            fontFamily: 'Poppins-Bold',
+                          }}>
+                          {item}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+          <View style={{marginVertical: 10}}>
+            <Text style={[styles.insideHeading]}>Preferred date and time</Text>
+            <View style={{paddingHorizontal: widthToDp(7)}}>
+              <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}
+              </Text>
+            </View>
+          </View>
+
+          {bookingDetail.payment_type && (
+            <View>
+              <Text style={[styles.insideHeading]}>Payment Info </Text>
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <CheckCircleSolid
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
                 />
-                <Text style={styles.detail}>
-                  {capitalizeFirstLetter(bookingDetail?.agent?.location) ||
-                    capitalizeFirstLetter(booked_for?.location)}
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: 'black',
+                    marginLeft: 10,
+                  }}>
+                  {bookingDetail.payment_type == 'on_notarizr'
+                    ? 'Invoice the client on Notarizr'
+                    : 'Invoice the client on your own'}
                 </Text>
               </View>
-            )}
-            <View style={styles.addressView}>
-              <Image
-                source={require('../../../assets/calenderIcon.png')}
-                style={styles.locationImage}
-              />
-              <Text style={styles.detail}>
-                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}
-                {'  '}
-                {bookingDetail?.time_of_booking}
-              </Text>
             </View>
-            <View style={styles.addressView}>
-              <Text
+          )}
+          {bookingDetail.identity_authentication && (
+            <View>
+              <Text style={[styles.insideHeading]}>ID options</Text>
+              <View
                 style={{
-                  fontSize: widthToDp(4),
-                  marginLeft: widthToDp(1),
-                  fontFamily: 'Manrope-Bold',
-                  color: Colors.TextColor,
+                  paddingHorizontal: widthToDp(7),
+                  backgroundColor: Colors.OrangeGradientEnd,
+                  marginLeft: widthToDp(5),
+                  width: widthToDp(60),
+                  paddingVertical: 6,
+                  borderRadius: 20,
                 }}>
-                Client Documents
-              </Text>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                marginHorizontal: widthToDp(7),
-                marginVertical: widthToDp(2),
-                flexWrap: 'wrap',
-                columnGap: widthToDp(2),
-                rowGap: widthToDp(2),
-              }}>
-              {documents ? (
-                Object.keys(documents).length !== 0 ? (
-                  Object.keys(documents).map((key, index) => (
-                    <Image
-                      key={index}
-                      source={require('../../../assets/docPic.png')}
-                      style={{width: widthToDp(10), height: heightToDp(10)}}
-                    />
-                  ))
-                ) : (
-                  <Text style={styles.preference}>No Documents</Text>
-                )
-              ) : (
-                <Text style={styles.preference}>No Documents</Text>
-              )}
-            </View>
-            {bookingDetail?.review && (
-              <View>
-                <View style={styles.addressView}>
-                  <Text
-                    style={{
-                      fontSize: widthToDp(4),
-                      marginLeft: widthToDp(1),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Rating:
-                  </Text>
-                  <Text style={styles.detail}>{bookingDetail?.rating}</Text>
-                </View>
-                <View style={styles.addressView}>
-                  <Text
-                    style={{
-                      fontSize: widthToDp(4),
-                      marginLeft: widthToDp(1),
-                      fontFamily: 'Manrope-Bold',
-                      color: Colors.TextColor,
-                    }}>
-                    Review:
-                  </Text>
-                  <Text style={styles.detail}>"{bookingDetail?.review}"</Text>
-                </View>
+                <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
+                  {bookingDetail.identity_authentication == 'user_id'
+                    ? 'ID Card'
+                    : bookingDetail.identity_authentication == 'user_passport'
+                    ? 'Passport'
+                    : 'Allow user to choose'}
+                </Text>
               </View>
-            )}
-          </View>
-          {bookingDetail?.service_type === 'ron' &&
-          status === 'Accepted' &&
-          documentCheck ? (
-            showIcon ? (
-              <TouchableOpacity
-                style={styles.dottedContianer}
-                onPress={() => selectDocuments()}>
-                <Image source={require('../../../assets/upload.png')} />
+            </View>
+          )}
+
+          {bookingDetail.client_documents &&
+            Object.values(bookingDetail.client_documents)?.length > 0 && (
+              <View style={{marginVertical: 10}}>
+                <Text style={[styles.insideHeading]}>
+                  Client uploaded documents
+                </Text>
                 <View
                   style={{
                     flexDirection: 'row',
-                    columnGap: widthToDp(2),
-                    alignItems: 'center',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
                   }}>
-                  <Text
-                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
-                    Upload
-                  </Text>
-                  <Image source={require('../../../assets/uploadIcon.png')} />
+                  {Object.values(bookingDetail.client_documents)?.map(
+                    (item, index) => (
+                      <TouchableOpacity key={index}>
+                        <Image
+                          source={require('../../../assets/docPic.png')}
+                          style={{width: widthToDp(10), height: heightToDp(10)}}
+                        />
+                      </TouchableOpacity>
+                    ),
+                  )}
                 </View>
-                <Text>Upload your documents here...</Text>
-              </TouchableOpacity>
-            ) : (
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            )
-          ) : null}
-          {bookingDetail?.service_type !== 'mobile_notary' &&
-            (status === 'Accepted' || status === 'Ongoing') && (
-              <GradientButton
-                Title="Join Session"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  width: widthToDp(90),
-                  paddingVertical: widthToDp(4),
-                  marginTop: widthToDp(10),
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  fontSize: widthToDp(6),
-                }}
-                onPress={() =>
-                  navigation.navigate('WaitingRoomScreen', {
-                    uid: bookingDetail?._id,
-                    channel: bookingDetail?.agora_channel_name,
-                    token: bookingDetail?.agora_channel_token,
-                    time: bookingDetail?.time_of_booking,
-                    date: bookingDetail?.date_of_booking,
-                  })
-                }
-              />
+              </View>
             )}
-          {status === 'Pending' ? (
+          {bookingDetail.agent_document && (
+            <View>
+              <Text style={[styles.insideHeading]}>
+                Agent uploaded documents
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginLeft: widthToDp(5),
+                  columnGap: widthToDp(3),
+                }}>
+                {bookingDetail.agent_document?.map((item, index) => (
+                  <TouchableOpacity key={index}>
+                    <Image
+                      source={require('../../../assets/docPic.png')}
+                      style={{width: widthToDp(10), height: heightToDp(10)}}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {bookingDetail.notarized_docs &&
+            bookingDetail.notarized_docs.length > 0 && (
+              <View style={{marginTop: 10}}>
+                <Text style={[styles.insideHeading]}>Notarized documents</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+                  {bookingDetail.notarized_docs?.map((item, index) => (
+                    <TouchableOpacity key={index}>
+                      <Image
+                        source={require('../../../assets/docPic.png')}
+                        style={{width: widthToDp(10), height: heightToDp(10)}}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+          {/* )} */}
+
+          {/*  */}
+
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: widthToDp(2),
+              paddingBottom: 20,
+            }}>
             <GradientButton
-              Title="Cancel Booking"
+              Title={'Join session'}
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                width: widthToDp(90),
+                width: widthToDp(30),
+                paddingVertical: widthToDp(4),
+                marginTop: widthToDp(10),
+              }}
+              styles={{
+                padding: widthToDp(0),
+                fontSize: widthToDp(4),
+              }}
+              onPress={() => {
+                navigation.navigate('WaitingRoomScreen', {
+                  uid: bookingDetail?._id,
+                  channel: bookingDetail?.agora_channel_name,
+                  token: bookingDetail?.agora_channel_token,
+                  time: bookingDetail?.time_of_booking,
+                  date: bookingDetail?.date_of_booking,
+                });
+              }}
+              fontSize={widthToDp(4)}
+            />
+            <GradientButton
+              Title={'Upload documents'}
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+                width: widthToDp(32),
                 paddingVertical: widthToDp(4),
                 marginTop: widthToDp(10),
               }}
@@ -530,76 +709,33 @@ export default function MedicalBookingScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(6),
               }}
-              onPress={() => handleStatusChange('cancelled')}
-              loading={loading}
-              isDisabled={loading}
+              onPress={() => {
+                selectDocuments();
+              }}
+              fontSize={widthToDp(3)}
             />
-          ) : (
-            <View style={styles.buttonFlex}>
-              {status === 'Accepted' &&
-                bookingDetail?.service_type === 'mobile_notary' && (
-                  <>
-                    <MainButton
-                      Title="Track"
-                      colors={[
-                        Colors.OrangeGradientStart,
-                        Colors.OrangeGradientEnd,
-                      ]}
-                      GradiStyles={{
-                        width: widthToDp(40),
-                        paddingVertical: widthToDp(2),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(5),
-                      }}
-                      onPress={() => navigation.navigate('MapArrivalScreen')}
-                    />
-                    <MainButton
-                      Title="Start Notary"
-                      colors={[
-                        Colors.OrangeGradientStart,
-                        Colors.OrangeGradientEnd,
-                      ]}
-                      GradiStyles={{
-                        width: widthToDp(40),
-                        paddingVertical: widthToDp(2),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(5),
-                      }}
-                      onPress={() => showConfirmation()}
-                      loading={loading}
-                    />
-                  </>
-                )}
-              {status === 'To_be_paid' &&
-                bookingDetail?.service_type !== 'mobile_notary' && (
-                  <GradientButton
-                    Title="Make Payment"
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    GradiStyles={{
-                      width: widthToDp(90),
-                      paddingVertical: widthToDp(4),
-                      marginTop: widthToDp(10),
-                    }}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(6),
-                    }}
-                    onPress={() =>
-                      navigation.navigate('ToBePaidScreen', {
-                        bookingData: bookingDetail,
-                      })
-                    }
-                  />
-                )}
-            </View>
-          )}
+            {bookingDetail.payment_type == 'on_notarizr' && (
+              <GradientButton
+                Title={'Make payment'}
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  width: widthToDp(32),
+                  paddingVertical: widthToDp(4),
+                  marginTop: widthToDp(10),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(6),
+                }}
+                onPress={() => {
+                  navigation.navigate('ToBePaidScreen', {
+                    bookingData: bookingDetail,
+                  });
+                }}
+                fontSize={widthToDp(3.5)}
+              />
+            )}
+          </View>
         </ScrollView>
         {isVisible ? (
           <BottomSheet modalProps={{}} isVisible={isVisible}>
@@ -634,7 +770,7 @@ const styles = StyleSheet.create({
   },
   Heading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
   },
   headingContainer: {
@@ -643,7 +779,7 @@ const styles = StyleSheet.create({
   },
   insideHeading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(4),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(6),

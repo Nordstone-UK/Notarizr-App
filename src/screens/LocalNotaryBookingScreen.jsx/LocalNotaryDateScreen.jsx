@@ -80,6 +80,7 @@ export default function LocalNotaryDateScreen({route, navigation}) {
     setDocuments(response);
   };
   const TimeAvailable = generateTimeSlots('08:00 AM', '5:00 PM');
+
   return (
     <SafeAreaView style={styles.container}>
       <View>

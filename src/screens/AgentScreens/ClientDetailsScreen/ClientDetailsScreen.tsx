@@ -40,6 +40,7 @@ import {useLiveblocks} from '../../../store/liveblocks';
 import Loading from '../../../components/LiveBlocksComponents/loading';
 import RequestPayment from '../../../components/RequestPayment/RequestPayment';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 
 export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
@@ -267,6 +268,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     };
   }, [enterRoom, leaveRoom]);
   // console.log('PPP', clientDetail._id);
+
+  console.log(clientDetail.date_time_session);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -306,7 +309,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           <View style={styles.insideContainer}>
-            <Text style={styles.insideHeading}>Client details</Text>
+            <Text style={[styles.insideHeading, {fontSize: widthToDp(6)}]}>
+              {' '}
+            </Text>
             <View style={[styles.iconContainer]}>
               {status === 'Pending' && (
                 <Image
@@ -335,7 +340,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               )}
             </View>
           </View>
-          <ClientServiceCard
+          {/* <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             source={{
               uri: clientDetail?.booked_by?.profile_picture
@@ -366,7 +371,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             dateofBooking={clientDetail?.date_of_booking}
             timeofBooking={clientDetail?.time_of_booking}
             createdAt={clientDetail?.createdAt}
-          />
+          /> */}
           <View style={styles.sheetContainer}>
             {/* <Text style={[styles.insideHeading]}>Booking Preferences</Text>
             {clientDetail?.service_type === 'mobile_notary' && (
@@ -387,42 +392,218 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             )} */}
             {clientDetail.client && (
               <View>
-                <Text style={[styles.insideHeading]}>Client Email </Text>
-                <View style={{paddingHorizontal: widthToDp(7)}}>
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                    {clientDetail.client.email}
-                  </Text>
+                <Text style={[styles.insideHeading]}>Client details</Text>
+
+                <View
+                  style={{
+                    width: widthToDp(90),
+                    marginTop: 10,
+                    marginHorizontal: widthToDp(5),
+
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: widthToDp(3),
+                    borderRadius: widthToDp(2),
+                    backgroundColor: 'white',
+                    shadowColor: '#000',
+                    shadowOffset: {
+                      width: 0,
+                      height: 2,
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+
+                    elevation: 5,
+                    // marginLeft: 3,
+                  }}>
+                  <View style={{marginRight: 10}}>
+                    <Image
+                      source={{
+                        uri:
+                          clientDetail.client.profile_picture != 'none'
+                            ? clientDetail.client.profile_picture
+                            : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                      }}
+                      style={{
+                        width: widthToDp(14),
+                        height: widthToDp(14),
+                        borderRadius: widthToDp(7),
+                      }}
+                    />
+                  </View>
+                  <View>
+                    <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                      {clientDetail.client?.email}
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontFamily: 'Poppins-Regular',
+                      }}>
+                      {clientDetail.client.first_name}{' '}
+                      {clientDetail.client.last_name}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {clientDetail.agent && (
+              <View>
+                <Text style={[styles.insideHeading]}>
+                  Allocated agent details
+                </Text>
+
+                <View
+                  style={{
+                    width: widthToDp(90),
+                    marginTop: 10,
+                    marginHorizontal: widthToDp(5),
+
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: widthToDp(3),
+                    borderRadius: widthToDp(2),
+                    backgroundColor: 'white',
+                    shadowColor: '#000',
+                    shadowOffset: {
+                      width: 0,
+                      height: 2,
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+
+                    elevation: 5,
+                    // marginLeft: 3,
+                  }}>
+                  <View style={{marginRight: 10}}>
+                    <Image
+                      source={{
+                        uri:
+                          clientDetail.agent.profile_picture != 'none'
+                            ? clientDetail.agent.profile_picture
+                            : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                      }}
+                      style={{
+                        width: widthToDp(14),
+                        height: widthToDp(14),
+                        borderRadius: widthToDp(7),
+                      }}
+                    />
+                  </View>
+                  <View>
+                    <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                      {clientDetail.agent?.email}
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontFamily: 'Poppins-Regular',
+                      }}>
+                      {clientDetail.agent.first_name}{' '}
+                      {clientDetail.agent.last_name}
+                    </Text>
+                  </View>
                 </View>
               </View>
             )}
 
             {clientDetail.observers && clientDetail.observers.length > 0 && (
               <View>
-                <Text style={[styles.insideHeading]}>Observers Emails </Text>
-                <View style={{paddingHorizontal: widthToDp(7)}}>
+                <Text style={[styles.insideHeading]}>Observers </Text>
+                <View>
                   {clientDetail.observers.map(item => {
                     return (
-                      <Text
+                      <View
                         style={{
-                          fontFamily: 'Poppins-Regular',
-                          color: 'black',
+                          width: widthToDp(90),
+                          marginTop: 10,
+                          marginHorizontal: widthToDp(5),
+
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          padding: widthToDp(3),
+                          borderRadius: widthToDp(2),
+                          backgroundColor: 'white',
+                          shadowColor: '#000',
+                          shadowOffset: {
+                            width: 0,
+                            height: 2,
+                          },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+
+                          elevation: 5,
+                          // marginLeft: 3,
                         }}>
-                        {item}
-                      </Text>
+                        <View style={{marginRight: 10}}>
+                          <Image
+                            source={{
+                              uri: 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                            }}
+                            style={{
+                              width: widthToDp(14),
+                              height: widthToDp(14),
+                              borderRadius: widthToDp(7),
+                            }}
+                          />
+                        </View>
+                        <View>
+                          <Text
+                            style={{
+                              color: 'black',
+                              fontFamily: 'Poppins-Bold',
+                            }}>
+                            {item}
+                          </Text>
+                        </View>
+                      </View>
                     );
                   })}
                 </View>
               </View>
             )}
 
+            {/* {clientDetail.date_time_session && ( */}
+            <View style={{marginVertical: 10}}>
+              <Text style={[styles.insideHeading]}>
+                Preferred date and time
+              </Text>
+              <View style={{paddingHorizontal: widthToDp(7)}}>
+                <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+                  {/* {clientDetail.date_time_session} */}
+                  {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')}
+                </Text>
+              </View>
+            </View>
+            {/* )} */}
+
             {clientDetail.payment_type && (
               <View>
                 <Text style={[styles.insideHeading]}>Payment Info </Text>
-                <View style={{paddingHorizontal: widthToDp(7)}}>
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                    {clientDetail.payment_type == 'on_notarizr'
-                      ? 'Invoice the client on Notarizr'
-                      : 'Invoice the client on your own'}
+                <View
+                  style={{
+                    paddingHorizontal: widthToDp(7),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                  <CheckCircleSolid
+                    width={24}
+                    height={24}
+                    strokeWidth={2}
+                    color={Colors.Orange}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: 'Poppins-Regular',
+                      color: 'black',
+                      marginLeft: 10,
+                    }}>
+                    {/* {clientDetail.payment_type == 'on_notarizr'
+                      ? */}
+                    Invoice the client on Notarizr
+                    {/* :
+                       'Invoice the client on your own'} */}
                   </Text>
                 </View>
               </View>
@@ -430,11 +611,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
 
             {clientDetail.identity_authentication && (
               <View>
-                <Text style={[styles.insideHeading]}>
-                  Identity Authentication{' '}
-                </Text>
-                <View style={{paddingHorizontal: widthToDp(7)}}>
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+                <Text style={[styles.insideHeading]}>ID options</Text>
+                <View
+                  style={{
+                    paddingHorizontal: widthToDp(7),
+                    backgroundColor: Colors.OrangeGradientEnd,
+                    marginLeft: widthToDp(5),
+                    width: widthToDp(60),
+                    paddingVertical: 6,
+                    borderRadius: 20,
+                  }}>
+                  <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
                     {clientDetail.identity_authentication == 'user_id'
                       ? 'ID Card'
                       : clientDetail.identity_authentication == 'user_passport'
@@ -446,8 +633,53 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             )}
 
             {clientDetail.agent_document && (
+              <View style={{marginVertical: 10}}>
+                <Text style={[styles.insideHeading]}>
+                  Client uploaded documents
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+                  {clientDetail.agent_document?.map((item, index) => (
+                    <TouchableOpacity key={index}>
+                      <Image
+                        source={require('../../../../assets/docPic.png')}
+                        style={{width: widthToDp(10), height: heightToDp(10)}}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+            {clientDetail.agent_document && (
               <View>
-                <Text style={[styles.insideHeading]}>Agent Documents </Text>
+                <Text style={[styles.insideHeading]}>
+                  Agent uploaded documents
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+                  {clientDetail.agent_document?.map((item, index) => (
+                    <TouchableOpacity key={index}>
+                      <Image
+                        source={require('../../../../assets/docPic.png')}
+                        style={{width: widthToDp(10), height: heightToDp(10)}}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {clientDetail.agent_document && (
+              <View style={{marginTop: 10}}>
+                <Text style={[styles.insideHeading]}>Notarized documents</Text>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -720,7 +952,13 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           </View>
           {clientDetail?.service_type !== 'mobile_notary' &&
             status === 'To_be_paid' && (
-              <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingHorizontal: widthToDp(2),
+                }}>
                 <GradientButton
                   Title={
                     clientDetail.payment_type == 'on_notarizr'
@@ -732,7 +970,30 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     Colors.OrangeGradientEnd,
                   ]}
                   GradiStyles={{
-                    width: widthToDp(90),
+                    width: widthToDp(45),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                  onPress={handlePresentModalPress}
+                  fontSize={widthToDp(4)}
+                />
+                <GradientButton
+                  Title={
+                    // clientDetail.payment_type == 'on_notarizr'
+                    //   ? 'Request Payment'
+                    //   : 'Join session'
+                    'Upload documents'
+                  }
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(45),
                     paddingVertical: widthToDp(4),
                     marginTop: widthToDp(10),
                   }}
@@ -740,7 +1001,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     padding: widthToDp(0),
                     fontSize: widthToDp(6),
                   }}
-                  onPress={handlePresentModalPress}
+                  onPress={() => setIsVisible(true)}
+                  fontSize={widthToDp(4)}
                 />
               </View>
             )}
@@ -880,7 +1142,7 @@ const styles = StyleSheet.create({
   },
   insideHeading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(4),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
     marginHorizontal: widthToDp(7),

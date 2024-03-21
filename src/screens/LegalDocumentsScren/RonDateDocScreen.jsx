@@ -27,6 +27,7 @@ import Toast from 'react-native-toast-message';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 import useRegister from '../../hooks/useRegister';
+import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
 export default function RonDateDocScreen({route, navigation}) {
   // const [location, setLocation] = useState();
@@ -234,6 +235,19 @@ export default function RonDateDocScreen({route, navigation}) {
                 : 'We will allocate our best agent for getting your documents notarized'}
             </Text>
           </View>
+          {isYes && (
+            <View>
+              <LabelTextInput
+                placeholder="Search client by email"
+                defaultValue={''}
+                onChangeText={text => {}}
+                InputStyles={{padding: widthToDp(2)}}
+                AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
+                rightImageSoucre={require('../../../assets/close.png')}
+                rightImagePress={() => {}}
+              />
+            </View>
+          )}
           {/* <Text style={styles.Heading}>
             Please select the documents you want to get notarized.
           </Text> */}
