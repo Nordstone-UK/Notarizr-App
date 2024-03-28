@@ -70,28 +70,28 @@ export default function AddNewAddress({navigation}, props) {
       <BottomSheetStyle>
         <ScrollView style={{marginTop: heightToDp(5)}}>
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/locationIcon.png')}
+            leftImageSoucre={require('../../../assets/buildingsIcon.png')}
             placeholder={'Enter your building/flat number'}
             LabelTextInput={'Building / Flat'}
             Label={true}
             onChangeText={text => setBuilding(text)}
           />
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/locationIcon.png')}
+            leftImageSoucre={require('../../../assets/roadIcon.png')}
             placeholder={'Enter your street address'}
             LabelTextInput={'Street'}
             onChangeText={text => setStreet(text)}
             Label={true}
           />
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/locationIcon.png')}
+            leftImageSoucre={require('../../../assets/homeAddressIcon.png')}
             placeholder={'Enter your address'}
             LabelTextInput={'Address'}
             onChangeText={text => setAddress(text)}
             Label={true}
           />
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/locationIcon.png')}
+            leftImageSoucre={require('../../../assets/mailbox.png')}
             placeholder={'Enter your POST code'}
             LabelTextInput={'POST Code'}
             onChangeText={text => setPin(text)}

@@ -26,7 +26,9 @@ export default function GradientButton({fontSize = widthToDp(6), ...props}) {
             />
           ) : (
             <Text
-              style={[props?.styles, styles.buttonText, {fontSize: fontSize}]}>
+              style={[props?.styles, styles.buttonText, { 
+      fontSize: props?.buttonFontSize || fontSize, // Adjust font size dynamically
+    }]}>
               {props?.Title}
             </Text>
           )}
@@ -43,6 +45,7 @@ const styles = StyleSheet.create({
     width: '90%',
     justifyContent: 'center',
     alignItems: 'center',
+    margin:15
   },
 
   buttonText: {

@@ -149,7 +149,7 @@ export default function SignUpDetailScreen({navigation}, props) {
           <BottomSheetStyle>
             <View style={{marginVertical: heightToDp(5)}}>
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your first name'}
                 Label={true}
                 defaultValue={firstName}
@@ -157,7 +157,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 onChangeText={text => setfirstName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your last name'}
                 defaultValue={lastName}
                 Label={true}

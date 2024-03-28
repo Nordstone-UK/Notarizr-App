@@ -351,7 +351,8 @@ export default function AgentCard(props) {
                 textAlign: 'center',
                 fontSize: 14,
               }}>
-              {props.task == 'to_be_paid' ? 'To Be Paid' : props.task}
+              {props.task === 'to_be_paid' ? 'To Be Paid' : (props.task === 'pending' ? 'Pending' : (props.task === 'rejected' ? 'Rejected' : props.task))}
+
             </Text>
           </View>
         </View>
@@ -400,10 +401,14 @@ export default function AgentCard(props) {
               flexDirection: 'row',
               alignItems: 'center',
               columnGap: widthToDp(1),
-              marginLeft: widthToDp(1),
+              marginBottom:20,
             }}>
+              <Image
+              source={props.calendarImage}
+              style={{width: widthToDp(4), height: heightToDp(4)}}
+            />
             <Text style={[styles.rating, {color: Colors.OrangeGradientEnd}]}>
-              {moment(props.date).format('do MMM yyyy')}
+               {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking}
             </Text>
           </View>
         </View>
@@ -423,7 +428,7 @@ export default function AgentCard(props) {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        <Text>{props.task == 'to_be_paid' ? 'To Be Paid' : props.task}</Text>
+          <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'No Type')}</Text>
       </View>
     </View>
   );
@@ -435,7 +440,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     elevation: 10,
     borderRadius: 10,
-    marginHorizontal: heightToDp(8),
+    marginHorizontal: heightToDp(7),
     marginVertical: heightToDp(2),
   },
   nameHeading: {

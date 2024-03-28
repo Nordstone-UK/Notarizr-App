@@ -50,6 +50,8 @@ export default function AgentHomeScreen({navigation}) {
   const [Booking, setBooking] = useState([]);
   const [totalBooking, setTotalBooknig] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadingButton, setLoadingButton] = useState(null);
+
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
     const totalBookings = await getTotalBookings();
@@ -72,13 +74,16 @@ export default function AgentHomeScreen({navigation}) {
     return unsubscribe;
   }, [navigation]);
   const handleNavigation = item => {
-    navigation.navigate('ClientDetailsScreen');
+    navigation.navigate('ClientDetailsScreen', {
+        clientDetail: item,
+      });
     dispatch(setBookingInfoState(item));
     dispatch(setUser(item?.booked_by));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
   };
   const handleStripeAccount = async service => {
     setLoading(true);
+    setLoadingButton(service);
     const {isUserStripeOnboard} = await checkUserStipeAccount();
     if (
       isUserStripeOnboard.has_stripe_account &&
@@ -109,6 +114,7 @@ export default function AgentHomeScreen({navigation}) {
       );
     }
     setLoading(false);
+    setLoadingButton(null);
   };
 
   return (
@@ -150,22 +156,29 @@ export default function AgentHomeScreen({navigation}) {
                 marginVertical: heightToDp(5),
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent:'center'
               }}>
               <GradientButton
-                viewStyle={{width: widthToDp(50)}}
+                viewStyle={{width: widthToDp(35)}}
                 Title="Mobile Notary Preferences"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => handleStripeAccount('mobile_notary')}
+                onPress={() => {
+                  setLoadingButton('mobile_notary');
+                  handleStripeAccount('mobile_notary')}}
+                loading={loading && loadingButton === 'mobile_notary'}
                 fontSize={widthToDp(4)}
-                loading={loading}
+                
                 GradiStyles={{height: height * 0.1}}
               />
               <GradientButton
-                viewStyle={{width: widthToDp(50)}}
+                viewStyle={{width: widthToDp(35)}}
                 Title="Book RON Services"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => handleStripeAccount('ron')}
-                loading={loading}
+                onPress={() =>{
+                  
+setLoadingButton('ron');
+                   handleStripeAccount('ron')}}
+               loading={loading && loadingButton === 'ron'}
                 fontSize={widthToDp(4)}
                 GradiStyles={{height: height * 0.1}}
               />
@@ -185,9 +198,11 @@ export default function AgentHomeScreen({navigation}) {
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
+                      console.log("items",item.date_of_booking)
                       return (
                         <ClientServiceCard
                           image={require('../../../../assets/agentLocation.png')}
+                          calendarImage={require('../../../../assets/calenderIcon.png')}
                           source={{uri: item.booked_by.profile_picture}}
                           bottomRightText={item.document_type}
                           bottomLeftText="Total"
@@ -205,7 +220,8 @@ export default function AgentHomeScreen({navigation}) {
                           dateofBooking={item.date_of_booking}
                           timeofBooking={item.time_of_booking}
                           createdAt={item.createdAt}
-                          status={item.status}
+                          servicetype={item.service_type}
+                          
                         />
                       );
                     }}

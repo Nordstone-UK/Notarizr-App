@@ -134,6 +134,8 @@ export default function HomeScreen({route, navigation}) {
                             bottomRightText={item?.document_type}
                             bottomLeftText="Total"
                             image={require('../../../assets/agentLocation.png')}
+                            calendarImage={require('../../../assets/calenderIcon.png')}
+                             servicetype={item.service_type}
                             agentName={
                               item?.agent?.first_name +
                               ' ' +

@@ -7,21 +7,21 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 import SettingOptions from '../../components/SettingOptions/SettingOptions';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchUser from '../../hooks/useFetchUser';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
-import {saveUserInfo} from '../../features/user/userSlice';
-export default function ProfileInfoScreen({navigation}: any) {
+import { saveUserInfo } from '../../features/user/userSlice';
+export default function ProfileInfoScreen({ navigation }: any) {
   const user = useSelector(state => state.user.user);
-  const {fetchUserInfo} = useFetchUser();
+  const { fetchUserInfo } = useFetchUser();
   const dispatch = useDispatch();
 
   const clearTokenFromStorage = async () => {
@@ -39,7 +39,7 @@ export default function ProfileInfoScreen({navigation}: any) {
       dispatch(saveUserInfo(null));
       navigation.reset({
         index: 0,
-        routes: [{name: 'HomeScreen'}],
+        routes: [{ name: 'HomeScreen' }],
       });
     }
   };
@@ -64,7 +64,7 @@ export default function ProfileInfoScreen({navigation}: any) {
     <SafeAreaView style={styles.container}>
       {user != null ? (
         <View>
-          <Image source={{uri: user?.profile_picture}} style={styles.picture} />
+          <Image source={{ uri: user?.profile_picture }} style={styles.picture} />
           <Text style={styles.textheading}>{user?.first_name}</Text>
         </View>
       ) : (
@@ -79,7 +79,7 @@ export default function ProfileInfoScreen({navigation}: any) {
       <BottomSheetStyle>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: heightToDp(50)}}>
+          contentContainerStyle={{ paddingBottom: heightToDp(50) }}>
           {user != null && (
             <View style={styles.iconContainer}>
               <TouchableOpacity
@@ -90,19 +90,21 @@ export default function ProfileInfoScreen({navigation}: any) {
                 }>
                 <Image
                   source={require('../../../assets/editIcon.png')}
-                  style={styles.icon}
+                  style={[styles.icon, { tintColor: Colors.Orange }]}
+
                 />
               </TouchableOpacity>
+
               <TouchableOpacity
                 onPress={() => navigation.navigate('SettingScreen')}>
                 <Image
-                  source={require('../../../assets/settingIcon.png')}
-                  style={styles.icon}
+                  source={require('../../../assets/setting.png')}
+                  style={[styles.icon, { tintColor: Colors.Orange }]}
                 />
               </TouchableOpacity>
             </View>
           )}
-          <View style={{marginBottom: heightToDp(2)}}>
+          <View style={{ marginBottom: heightToDp(2) }}>
             <SettingOptions
               icon={require('../../../assets/settingProfile.png')}
               Title="Profile Details"
@@ -133,14 +135,14 @@ export default function ProfileInfoScreen({navigation}: any) {
               <SettingOptions
                 icon={require('../../../assets/license.png')}
                 Title="Update License and Notary Seal"
-                // onPress={() => navigation.navigate('PasswordEditScreen')}
+              // onPress={() => navigation.navigate('PasswordEditScreen')}
               />
             )}
             {user != null && user?.account_type !== 'client' && (
               <SettingOptions
                 icon={require('../../../assets/training.png')}
                 Title="Trainings"
-                // onPress={() => navigation.navigate('PasswordEditScreen')}
+              // onPress={() => navigation.navigate('PasswordEditScreen')}
               />
             )}
             {user != null && (
@@ -180,7 +182,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginHorizontal: widthToDp(2),
+    width: widthToDp(5),
+    height: heightToDp(5),
+
   },
+
   textheading: {
     fontSize: widthToDp(6),
     alignSelf: 'center',

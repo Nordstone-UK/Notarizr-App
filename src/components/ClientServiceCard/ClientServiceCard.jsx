@@ -29,6 +29,7 @@ export default function ClientServiceCard(props) {
   const navigation = useNavigation();
   const address = props?.agentAddress;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
+ 
   const Button = props?.Button || false;
   const clientDetail = useSelector(state => state.booking.booking);
   const client = clientDetail?.booked_by || clientDetail?.client;
@@ -80,7 +81,7 @@ export default function ClientServiceCard(props) {
 
     return images;
   };
-
+console.log("dateof bootii",props.dateofBooking)
   return (
     <TouchableOpacity onPress={props.onPress} style={styles.cardContainer}>
       <View style={{flexDirection: 'row', margin: widthToDp(2)}}>
@@ -109,7 +110,8 @@ export default function ClientServiceCard(props) {
                 textAlign: 'center',
                 fontSize: 14,
               }}>
-              {props.task == 'to_be_paid' ? 'To Be Paid' : props.task}
+             {props.task === 'to_be_paid' ? 'To Be Paid' : (props.task === 'pending' ? 'Pending' : (props.task === 'rejected' ? 'Rejected' : props.task))}
+
             </Text>
           </View>
         </View>
@@ -132,6 +134,7 @@ export default function ClientServiceCard(props) {
           <View
             style={{
               flexDirection: 'row',
+             
             }}>
             <Image
               source={props.image}
@@ -140,15 +143,16 @@ export default function ClientServiceCard(props) {
 
             <View
               style={{
-                marginLeft: widthToDp(1),
-                flexDirection: 'row',
-                alignItems: 'center',
+                marginLeft: widthToDp(2),
+                paddingHorizontal:5,
+                // flexDirection: 'row',
+                // justifyContent: 'center',
               }}>
               <Text style={styles.address}>
                 {capitalizeFirstLetter(firstPart)}
               </Text>
               {secondPart && (
-                <Text style={[styles.address]}> | {secondPart}</Text>
+                <Text style={[styles.address]}>{secondPart}</Text>
               )}
             </View>
           </View>
@@ -157,11 +161,16 @@ export default function ClientServiceCard(props) {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              columnGap: widthToDp(1),
+              columnGap: widthToDp(2),
               marginLeft: widthToDp(1),
+              marginBottom:20,
             }}>
+              <Image
+              source={props.calendarImage}
+              style={{width: widthToDp(4), height: heightToDp(4)}}
+            />
             <Text style={[styles.rating, {color: Colors.OrangeGradientEnd}]}>
-              {moment(props.date).format('do MMM yyyy')}
+              {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking}
             </Text>
           </View>
         </View>
@@ -181,8 +190,10 @@ export default function ClientServiceCard(props) {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        <Text>{props.task == 'to_be_paid' ? 'To Be Paid' : props.task}</Text>
+        <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'No Type')}</Text>
+
       </View>
+      
     </TouchableOpacity>
   );
   return (
@@ -321,7 +332,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 10,
     marginVertical: widthToDp(2),
-    marginHorizontal: heightToDp(8),
+    marginHorizontal: heightToDp(7),
   },
   calenderStyles: {
     flexDirection: 'row',

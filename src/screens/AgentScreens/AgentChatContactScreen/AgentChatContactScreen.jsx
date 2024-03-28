@@ -15,6 +15,7 @@ import {useSelector} from 'react-redux';
 
 export default function AgentChatContactScreen({navigation}) {
   const chats = useSelector(state => state.chats.allChats);
+  console.log("remdereote,",chats)
   const renderItem = ({item}) => {
     const user = item.booked_by; // Assuming either "agent" or "client" property exists in each item
 
@@ -32,6 +33,32 @@ export default function AgentChatContactScreen({navigation}) {
       />
     );
   };
+   const renderEmptyComponent = () => (
+    <View
+            style={{
+              minHeight: heightToDp(100),
+              justifyContent: 'center',
+              alignSelf: 'center',
+            }}>
+            <Image
+              source={require('../../../../assets/emptyBox.png')}
+              style={styles.picture}
+            />
+            <Text
+              style={[
+                styles.Heading,
+
+                {
+                  fontSize: widthToDp(4),
+                  fontFamily: 'Manrope-SemiBold',
+                  fontWeight: '600',
+                },
+              ]}>
+             No chats available
+            </Text>
+          </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
@@ -44,6 +71,7 @@ export default function AgentChatContactScreen({navigation}) {
           data={chats}
           keyExtractor={item => item._id} // Assuming "_id" is the unique identifier for each booking/session
           renderItem={renderItem}
+          ListEmptyComponent={renderEmptyComponent}
         />
       </BottomSheetStyle>
     </SafeAreaView>
