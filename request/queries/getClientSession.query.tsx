@@ -7,6 +7,7 @@ export const GET_CLIENT_SESSION = gql`
       message
       sessions {
         _id
+        payment_type
         agent {
           _id
           first_name

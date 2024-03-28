@@ -9,7 +9,7 @@ import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {width, widthToDp} from '../../utils/Responsive';
 
-export default function GradientButton(props) {
+export default function GradientButton({fontSize = widthToDp(6), ...props}) {
   return (
     <TouchableOpacity onPress={props.onPress} disabled={props?.isDisabled}>
       <LinearGradient
@@ -25,7 +25,10 @@ export default function GradientButton(props) {
               color="#ffff"
             />
           ) : (
-            <Text style={[styles.buttonText, props?.styles]}>
+            <Text
+              style={[props?.styles, styles.buttonText, { 
+      fontSize: props?.buttonFontSize || fontSize, // Adjust font size dynamically
+    }]}>
               {props?.Title}
             </Text>
           )}
@@ -40,12 +43,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignSelf: 'center',
     width: '90%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin:15
   },
 
   buttonText: {
     padding: '5%',
     color: '#fff',
-    fontSize: widthToDp(6),
+    // fontSize: widthToDp(6),
     textAlign: 'center',
     fontFamily: 'Manrope-Bold',
   },

@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, SafeAreaView} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -50,6 +57,11 @@ export default function PhoneVerification({route, navigation}) {
         <View style={styles.subContainer}>
           <Text style={styles.heading}>Enter OTP to Verify</Text>
           <Image source={require('../../../assets/otp.png')} />
+
+          <Text style={styles.subheading}>
+            We have sent an OTP on this number:
+          </Text>
+          <Text style={styles.subheading}>{message}</Text>
           <OTPInputView
             style={{
               width: widthToDp(80),
@@ -66,15 +78,11 @@ export default function PhoneVerification({route, navigation}) {
             codeInputFieldStyle={styles.underlineStyleBase}
             codeInputHighlightStyle={styles.underlineStyleHighLighted}
           />
-          <Text style={styles.subheading}>
-            We have sent an OTP on this number:
-          </Text>
-          <Text style={styles.subheading}>{message}</Text>
 
           <View style={{marginVertical: heightToDp(5)}}>
             <MainButton
               Title="Resend OTP"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              colors={['transparent', 'transparent']}
               GradiStyles={{
                 width: widthToDp(40),
                 marginTop: heightToDp(2),
@@ -84,6 +92,7 @@ export default function PhoneVerification({route, navigation}) {
               styles={{
                 padding: 0,
                 fontSize: widthToDp(4),
+                color: Colors.OrangeGradientStart,
               }}
               onPress={() => handleResend()}
             />

@@ -1,5 +1,5 @@
 import {View, Text, Platform} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import OnboardingScreen2 from '../OnboardingScreens/OnboardingScreen2';
 import OnboardingScreen3 from '../OnboardingScreens/OnboardingScreen3';
 import SignupAsScreen from '../SingupAsScreen/SignupAsScreen';
@@ -30,7 +30,6 @@ import PasswordEditScreen from '../PasswordEditScreen/PasswordEditScreen';
 import PaymentUpdateScreen from '../PaymentUpdateScreen/PaymentUpdateScreen';
 import AddCardScreen from '../AddCardScreen/AddCardScreen';
 import AddressDetails from '../AddressDetails/AddressDetails';
-import NewAddressScreen from '../NewAddressScreen/NewAddressScreen';
 import SettingScreen from '../SettingScreen/settingScreen';
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
@@ -101,101 +100,128 @@ import {setSocketID} from '../../features/user/userSlice';
 import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
 import SessionCreation from '../CompletionScreen/SessionCreation';
 import AuthenticationScreen from '../AuthenticationScreen.jsx/AuthenticationScreen';
+import BottomSheet, {
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user);
-  if (user) {
-    return user?.account_type === 'client' ? (
-      <Tab.Navigator
-        screenOptions={({route}) => ({
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            height: Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
-          },
-          tabBarIcon: ({focused}) => {
-            return <Ionicons focused={focused} name={route.name} />;
-          },
-        })}>
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            key: 'HomeScreen',
-          }}
-        />
-        <Tab.Screen
-          name="AllBookingScreen"
-          component={AllBookingScreen}
-          options={{
-            tabBarLabel: 'All Bookings',
-          }}
-        />
-        <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
-        <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
-      </Tab.Navigator>
-    ) : (
-      <Tab.Navigator
-        screenOptions={({route}) => ({
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            height: Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
-          },
-          tabBarIcon: ({focused}) => {
-            return <Ionicons focused={focused} name={route.name} />;
-          },
-        })}>
-        <Tab.Screen
-          name="Home"
-          component={AgentHomeScreen}
-          options={{
-            key: 'HomeScreen',
-          }}
-        />
-        <Tab.Screen name="AllBookingScreen" component={AgentAllBookingScreen} />
-        <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
-        <Tab.Screen
-          name="ChatContactScreen"
-          component={AgentChatContactScreen}
-        />
-        <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
-      </Tab.Navigator>
-    );
-  } else {
-    return (
-      <Tab.Navigator
-        screenOptions={({route}) => ({
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            height: Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
-          },
-          tabBarIcon: ({focused}) => {
-            return <Ionicons focused={focused} name={route.name} />;
-          },
-        })}>
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            key: 'HomeScreen',
-          }}
-        />
-        <Tab.Screen
-          name="AllBookingScreen"
-          component={AllBookingScreen}
-          options={{
-            tabBarLabel: 'All Bookings',
-          }}
-        />
-        <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
-        <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
-      </Tab.Navigator>
-    );
-  }
+  console.log('user', user);
+
+  return (
+    <>
+      {user ? (
+        <>
+          {user?.account_type === 'client' ? (
+            <Tab.Navigator
+              screenOptions={({route}) => ({
+                headerShown: false,
+
+                tabBarShowLabel: false,
+                tabBarStyle: {
+                  height:
+                    Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
+                },
+                tabBarIcon: ({focused}) => {
+                  return <Ionicons focused={focused} name={route.name} />;
+                },
+              })}>
+              <Tab.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                  key: 'HomeScreen',
+                }}
+              />
+              <Tab.Screen
+                name="AllBookingScreen"
+                component={AllBookingScreen}
+                options={{
+                  tabBarLabel: 'All Bookings',
+                }}
+              />
+              <Tab.Screen
+                name="ChatContactScreen"
+                component={ChatContactScreen}
+              />
+              <Tab.Screen
+                name="ProfileInfoScreen"
+                component={ProfileInfoScreen}
+              />
+            </Tab.Navigator>
+          ) : (
+            <Tab.Navigator
+              screenOptions={({route}) => ({
+                headerShown: false,
+                tabBarShowLabel: false,
+                tabBarStyle: {
+                  //   display: user.isVerified ? 'flex' : 'none',
+                  height:
+                    Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
+                },
+                tabBarIcon: ({focused}) => {
+                  return <Ionicons focused={focused} name={route.name} />;
+                },
+              })}>
+              <Tab.Screen
+                name="Home"
+                component={AgentHomeScreen}
+                options={{
+                  key: 'HomeScreen',
+                }}
+              />
+              <Tab.Screen
+                name="AllBookingScreen"
+                component={AgentAllBookingScreen}
+              />
+              <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
+              <Tab.Screen
+                name="ChatContactScreen"
+                component={AgentChatContactScreen}
+              />
+              <Tab.Screen
+                name="ProfileInfoScreen"
+                component={ProfileInfoScreen}
+              />
+            </Tab.Navigator>
+          )}
+        </>
+      ) : (
+        <Tab.Navigator
+          screenOptions={({route}) => ({
+            headerShown: false,
+            tabBarShowLabel: false,
+            tabBarStyle: {
+              height:
+                Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
+            },
+            tabBarIcon: ({focused}) => {
+              return <Ionicons focused={focused} name={route.name} />;
+            },
+          })}>
+          <Tab.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              key: 'HomeScreen',
+            }}
+          />
+          <Tab.Screen
+            name="AllBookingScreen"
+            component={AllBookingScreen}
+            options={{
+              tabBarLabel: 'All Bookings',
+            }}
+          />
+          <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
+          <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
+        </Tab.Navigator>
+      )}
+    </>
+  );
 }
 
 export default function AppNavigation() {
@@ -321,7 +347,6 @@ export default function AppNavigation() {
           component={AuthenticationScreen}
         />
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
-        <Stack.Screen name="NewAddressScreen" component={NewAddressScreen} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
 

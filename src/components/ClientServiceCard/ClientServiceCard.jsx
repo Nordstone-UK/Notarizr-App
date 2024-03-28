@@ -23,11 +23,13 @@ import MainButton from '../MainGradientButton/MainButton';
 import {useNavigation} from '@react-navigation/native';
 import ClientTimeCard from '../ClientTimeCard/ClientTimeCard';
 import {useSelector} from 'react-redux';
+import moment from 'moment';
 
 export default function ClientServiceCard(props) {
   const navigation = useNavigation();
   const address = props?.agentAddress;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
+ 
   const Button = props?.Button || false;
   const clientDetail = useSelector(state => state.booking.booking);
   const client = clientDetail?.booked_by || clientDetail?.client;
@@ -79,7 +81,121 @@ export default function ClientServiceCard(props) {
 
     return images;
   };
+console.log("dateof bootii",props.dateofBooking)
+  return (
+    <TouchableOpacity onPress={props.onPress} style={styles.cardContainer}>
+      <View style={{flexDirection: 'row', margin: widthToDp(2)}}>
+        <View>
+          <Image
+            source={props.source}
+            style={{
+              width: widthToDp(25),
+              height: widthToDp(22),
+              borderRadius: 5,
+            }}
+          />
+          <View
+            style={{
+              width: widthToDp(25),
+              backgroundColor: Colors.OrangeGradientEnd,
+              marginTop: 5,
+              borderRadius: 5,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Text
+              style={{
+                // fontFamily: 'Poppins-Regular',
+                color: 'white',
+                textAlign: 'center',
+                fontSize: 14,
+              }}>
+             {props.task === 'to_be_paid' ? 'To Be Paid' : (props.task === 'pending' ? 'Pending' : (props.task === 'rejected' ? 'Rejected' : props.task))}
 
+            </Text>
+          </View>
+        </View>
+
+        <View
+          style={{
+            width: widthToDp(50),
+            marginLeft: 10,
+          }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              width: widthToDp(55),
+            }}>
+            <View>
+              <Text style={styles.nameHeading}>{props.agentName}</Text>
+            </View>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+             
+            }}>
+            <Image
+              source={props.image}
+              style={{width: widthToDp(4), height: heightToDp(4)}}
+            />
+
+            <View
+              style={{
+                marginLeft: widthToDp(2),
+                paddingHorizontal:5,
+                // flexDirection: 'row',
+                // justifyContent: 'center',
+              }}>
+              <Text style={styles.address}>
+                {capitalizeFirstLetter(firstPart)}
+              </Text>
+              {secondPart && (
+                <Text style={[styles.address]}>{secondPart}</Text>
+              )}
+            </View>
+          </View>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              columnGap: widthToDp(2),
+              marginLeft: widthToDp(1),
+              marginBottom:20,
+            }}>
+              <Image
+              source={props.calendarImage}
+              style={{width: widthToDp(4), height: heightToDp(4)}}
+            />
+            <Text style={[styles.rating, {color: Colors.OrangeGradientEnd}]}>
+              {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking}
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={{
+          width: widthToDp(30),
+
+          backgroundColor: Colors.OrangeGradientEnd,
+          padding: 2,
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          zIndex: 100,
+          borderBottomRightRadius: 10,
+          borderTopLeftRadius: 10,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'No Type')}</Text>
+
+      </View>
+      
+    </TouchableOpacity>
+  );
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={props.onPress}>
       <View style={{flexDirection: 'row', marginVertical: heightToDp(1)}}>
@@ -216,7 +332,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 10,
     marginVertical: widthToDp(2),
-    marginHorizontal: heightToDp(8),
+    marginHorizontal: heightToDp(7),
   },
   calenderStyles: {
     flexDirection: 'row',

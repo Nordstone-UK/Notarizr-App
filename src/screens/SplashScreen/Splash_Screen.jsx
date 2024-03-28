@@ -36,7 +36,10 @@ export default function Splash_Screen({navigation}) {
                 ? getClientChats()
                 : getAgentChats();
 
-              navigation.navigate('HomeScreen');
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'HomeScreen'}],
+              });
             }
           })
           .catch(error => {
@@ -75,7 +78,10 @@ export default function Splash_Screen({navigation}) {
     } else {
       // User has already seen the introduction screens
       // Navigate to the login screen
-      navigation.navigate('HomeScreen');
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeScreen'}],
+      });
     }
   };
 

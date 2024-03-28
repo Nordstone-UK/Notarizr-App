@@ -43,6 +43,8 @@ export default function ActiveServicesScreen({route, navigation}) {
                 <>
                   <AgentCard
                     source={{uri: item.agent.profile_picture}}
+                     calendarImage={require('../../../assets/calenderIcon.png')}
+                        servicetype={item.service_type}
                     bottomRightText="$400"
                     bottomLeftText="Total"
                     image={require('../../../assets/agentLocation.png')}

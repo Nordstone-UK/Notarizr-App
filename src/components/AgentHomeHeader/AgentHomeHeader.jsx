@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import {useSelector} from 'react-redux';
@@ -65,7 +65,7 @@ export default function AgentHomeHeader(props) {
             <Text style={[styles.textHeading, props.HeaderStyle]}>
               {first_name} {last_name}
             </Text>
-            <Text style={[styles.simpleText]}>$250</Text>
+            <Text style={[styles.simpleText]}>Subscribed</Text>
           </View>
           {props?.Switch && (
             <View style={styles.switchView}>
@@ -157,9 +157,10 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   heading: {
-    fontSize: widthToDp(7),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),
+    marginBottom:height*.02
   },
 });

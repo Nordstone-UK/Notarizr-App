@@ -104,7 +104,7 @@ export default function ServiceDetailScreen({route, navigation}) {
     ) {
       Alert.alert(
         'Disclaimer',
-        'We may contact you to modify the time based on local agent availability and time of day.',
+        'We may contact you to modify the time based on local agent availability.',
         [
           {
             text: 'OK',
@@ -186,9 +186,9 @@ export default function ServiceDetailScreen({route, navigation}) {
               onPress={() => changeServiceFor('self')}
             />
             <MainButton
-              Title="Other"
+              Title="Others"
               colors={
-                serviceFor === 'other'
+                serviceFor === 'others'
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                   : [Colors.DisableColor, Colors.DisableColor]
               }
@@ -200,7 +200,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => changeServiceFor('other')}
+              onPress={() => changeServiceFor('others')}
             />
           </View>
 
@@ -217,7 +217,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                   Show={selectAddress === item.location}
                 />
               ))}
-
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between',marginVertical: heightToDp(5) }}>
               <GradientButton
                 Title="Add a new Address"
                 colors={
@@ -226,14 +226,34 @@ export default function ServiceDetailScreen({route, navigation}) {
                     : [Colors.DisableColor, Colors.DisableColor]
                 }
                 GradiStyles={{
-                  paddingVertical: widthToDp(4),
+                  // paddingVertical: widthToDp(4),
+                  width:widthToDp(45),
+                  height:heightToDp(20)
                 }}
                 styles={{
                   padding: widthToDp(0),
-                  fontSize: widthToDp(5),
+                  // fontSize: widthToDp(2),
                 }}
+                buttonFontSize={widthToDp(5)}
                 onPress={() => navigation.navigate('AddNewAddress')}
               />
+              <GradientButton
+              Title="Proceed"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{
+
+                 width:widthToDp(40),
+                 height:heightToDp(20)
+              }}
+              styles={{
+                padding: widthToDp(0),
+                
+              }}
+              buttonFontSize={widthToDp(5)}
+              onPress={() => showConfirmation()}
+              loading={loading}
+            />
+            </View>
             </View>
           ) : (
             <View>
@@ -242,21 +262,21 @@ export default function ServiceDetailScreen({route, navigation}) {
                 for:
               </Text>
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your first name'}
                 Label={true}
                 LabelTextInput={'First Name'}
                 onChangeText={text => setfirstName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your last name'}
                 Label={true}
                 LabelTextInput={'Last Name'}
                 onChangeText={text => setlastName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/emailIcon.png')}
+                leftImageSoucre={require('../../../assets/EmailIcon.png')}
                 placeholder={'Enter your email address'}
                 LabelTextInput={'Email Address'}
                 onChangeText={text => setEmail(text)}
@@ -279,21 +299,9 @@ export default function ServiceDetailScreen({route, navigation}) {
               />
             </View>
           )}
-          <View style={{marginVertical: heightToDp(5)}}>
-            <GradientButton
-              Title="Proceed"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                paddingVertical: widthToDp(4),
-              }}
-              styles={{
-                padding: widthToDp(0),
-                fontSize: widthToDp(5),
-              }}
-              onPress={() => showConfirmation()}
-              loading={loading}
-            />
-          </View>
+          {/* <View style={{marginVertical: heightToDp(5)}}> */}
+            
+          {/* </View> */}
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

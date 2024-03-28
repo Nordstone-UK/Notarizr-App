@@ -47,6 +47,8 @@ export default function LoginScreen({navigation}, props) {
         getPhoneOtp({
           variables: {email},
         }).then(response => {
+
+          console.log("response",response.error);
           if (response?.data?.getPhoneOTP?.status === '403') {
             Toast.show({
               type: 'error',
@@ -77,7 +79,7 @@ export default function LoginScreen({navigation}, props) {
           }
         });
       } catch (error) {
-        console.log(error);
+        console.log("#######",error);
       }
     }
   };

@@ -113,13 +113,13 @@ export default function AllBookingScreen({route, navigation}) {
                     ? {
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                     : {
                         color: Colors.TextColor,
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                 }
                 onPress={() => callBookingsAPI('accepted')}
@@ -136,13 +136,13 @@ export default function AllBookingScreen({route, navigation}) {
                     ? {
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                     : {
                         color: Colors.TextColor,
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                 }
                 onPress={() => callBookingsAPI('pending')}
@@ -159,13 +159,13 @@ export default function AllBookingScreen({route, navigation}) {
                     ? {
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                     : {
                         color: Colors.TextColor,
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                 }
                 onPress={() => callBookingsAPI('completed')}
@@ -182,13 +182,13 @@ export default function AllBookingScreen({route, navigation}) {
                     ? {
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                     : {
                         color: Colors.TextColor,
                         paddingHorizontal: widthToDp(2),
                         paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
+                        fontSize: widthToDp(4),
                       }
                 }
                 onPress={() => callBookingsAPI('rejected')}
@@ -207,6 +207,8 @@ export default function AllBookingScreen({route, navigation}) {
                         <TouchableOpacity onPress={() => handleAgentData(item)}>
                           <AgentCard
                             source={{uri: item?.agent?.profile_picture}}
+                            calendarImage={require('../../../assets/calenderIcon.png')}
+                        servicetype={item.service_type}
                             bottomRightText={item?.document_type}
                             bottomLeftText="Total"
                             image={require('../../../assets/locationIcon.png')}

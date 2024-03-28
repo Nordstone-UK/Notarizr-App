@@ -131,6 +131,35 @@ const uploadImageOnS3 = async ({
   }
 };
 
-export {uploadImageOnS3, uploadDirectOnS3, uploadDocumentsOnS3};
+const uploadSignedDocumentsOnS3 = async base64Data => {
+  const s3bucket = new S3({
+    accessKeyId: accessKeyId,
+    secretAccessKey: secretAccessKey,
+    signatureVersion: signatureVersion,
+  });
+
+  const params = {
+    Bucket: MUNROE_BUCKET_NAME,
+    Key: `signed-documents/${new Date().getTime()}.pdf`,
+    Body: Buffer.from(base64Data, 'base64'),
+    ContentType: 'application/pdf', // Adjust the content type accordingly
+  };
+
+  try {
+    const data = await s3bucket.upload(params).promise();
+    console.log('File uploaded successfully. Location:', data.Location);
+    return data.Location;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+};
+
+export {
+  uploadImageOnS3,
+  uploadDirectOnS3,
+  uploadDocumentsOnS3,
+  uploadSignedDocumentsOnS3,
+};
 
 export default uploadImageOnS3;

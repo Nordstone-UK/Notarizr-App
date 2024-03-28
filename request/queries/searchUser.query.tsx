@@ -8,6 +8,7 @@ export const SEARCH_USER = gql`
         email
         last_name
         first_name
+        profile_picture
       }
     }
   }

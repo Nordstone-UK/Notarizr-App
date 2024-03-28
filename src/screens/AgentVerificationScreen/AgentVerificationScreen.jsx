@@ -20,6 +20,7 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
 import SplashScreen from 'react-native-splash-screen';
 import useRegister from '../../hooks/useRegister';
+import useLogin from '../../hooks/useLogin';
 import {useSelector} from 'react-redux';
 import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
@@ -35,6 +36,8 @@ export default function AgentVerificationScreen({navigation}, props) {
     useRegister();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
+
+  const {resetStack} = useLogin();
 
   const handleUpload = documentType => {
     setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
@@ -132,7 +135,8 @@ export default function AgentVerificationScreen({navigation}, props) {
 
       if (isRegister) {
         setLoading(false);
-        navigation.navigate('AgentDocumentCompletion');
+        resetStack('signup');
+        // navigation.navigate('AgentDocumentCompletion');
       } else {
         Toast.show({
           type: 'error',

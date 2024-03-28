@@ -11,7 +11,7 @@ import {
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
@@ -95,7 +95,7 @@ export default function SignUpDetailScreen({navigation}, props) {
       getPhoneOtp({
         variables: {phoneNumber},
       }).then(response => {
-        console.log('dawdads', response.data);
+        // console.log('dawdads', response.data);
         if (response?.data?.getValidPhoneOtp?.status === '403') {
           Toast.show({
             type: 'error',
@@ -149,7 +149,7 @@ export default function SignUpDetailScreen({navigation}, props) {
           <BottomSheetStyle>
             <View style={{marginVertical: heightToDp(5)}}>
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your first name'}
                 Label={true}
                 defaultValue={firstName}
@@ -157,7 +157,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 onChangeText={text => setfirstName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your last name'}
                 defaultValue={lastName}
                 Label={true}
@@ -252,14 +252,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  
   },
   GenderContainer: {
     alignSelf: 'center',
     marginTop: heightToDp(3),
-    paddingVertical: heightToDp(2),
+   // paddingVertical: heightToDp(2),
     borderWidth: 2,
     borderRadius: 15,
     borderColor: '#D3D5DA',
     width: widthToDp(90),
+   // height:height*.08
   },
 });

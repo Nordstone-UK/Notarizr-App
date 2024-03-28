@@ -28,6 +28,32 @@ export default function ChatContactScreen({navigation}) {
       />
     );
   };
+   const renderEmptyComponent = () => (
+    <View
+            style={{
+              minHeight: heightToDp(100),
+              justifyContent: 'center',
+              alignSelf: 'center',
+            }}>
+            <Image
+              source={require('../../../assets/emptyBox.png')}
+              style={styles.picture}
+            />
+            <Text
+              style={[
+                styles.Heading,
+
+                {
+                  fontSize: widthToDp(4),
+                  fontFamily: 'Manrope-SemiBold',
+                  fontWeight: '600',
+                },
+              ]}>
+             No chats available
+            </Text>
+          </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <HomeScreenHeader Title="Find all your messages with our agents here" />
@@ -37,6 +63,7 @@ export default function ChatContactScreen({navigation}) {
             data={chats}
             keyExtractor={item => item._id}
             renderItem={renderItem}
+            ListEmptyComponent={renderEmptyComponent}
           />
         ) : (
           <View

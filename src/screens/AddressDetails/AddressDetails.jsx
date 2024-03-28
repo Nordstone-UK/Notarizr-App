@@ -27,26 +27,28 @@ export default function AddressDetails({navigation}) {
     });
     return unsubscribe;
   }, [navigation]);
-  const {location} = useSelector(state => state.user.user);
-  console.log(location);
+  const {addresses} = useSelector(state => state.user.user);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Address" />
       <Text style={styles.textheading}>Please find all your addresses</Text>
       <BottomSheetStyle>
-        <AddressCard location={location} />
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-          }}>
-          <GradientButton
-            Title="Add Address"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{borderRadius: 15}}
-            onPress={() => navigation.navigate('NewAddressScreen')}
-          />
-        </View>
+        <ScrollView>
+          {addresses.map((item, index) => (
+            <AddressCard key={index} location={item.location} />
+          ))}
+          <View
+            style={{
+              marginTop: heightToDp(15),
+            }}>
+            <GradientButton
+              Title="Add Address"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              GradiStyles={{borderRadius: 15}}
+              onPress={() => navigation.navigate('AddNewAddress')}
+            />
+          </View>
+        </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
   );

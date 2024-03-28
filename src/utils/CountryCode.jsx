@@ -185,6 +185,11 @@ const CountryDetails = [
     code: 'CM',
   },
   {
+    name: 'United States',
+    dial_code: '+1',
+    code: 'US',
+  },
+  {
     name: 'Canada',
     dial_code: '+1',
     code: 'CA',
@@ -1149,11 +1154,7 @@ const CountryDetails = [
     dial_code: '+44',
     code: 'GB',
   },
-  {
-    name: 'United States',
-    dial_code: '+1',
-    code: 'US',
-  },
+
   {
     name: 'Uruguay',
     dial_code: '+598',

@@ -1,6 +1,6 @@
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import {useSelector} from 'react-redux';
@@ -35,9 +35,9 @@ export default function HomeScreenHeader(props) {
             styles.namebar,
             {justifyContent: 'space-between', alignItems: 'center'},
           ]}>
-          <Text style={[styles.textHeading, props.HeaderStyle]}>Hi there,</Text>
+          <Text style={[styles.textHeading, props.HeaderStyle]}>Hi There,</Text>
           <MainButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            colors={[Colors.OrangeGradientEnd, Colors.OrangeGradientEnd]}
             Title="Log In"
             TextStyle={{color: '#fff'}}
             styles={{
@@ -63,15 +63,16 @@ const styles = StyleSheet.create({
   },
   textHeading: {
     alignSelf: 'center',
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontWeight: '700',
     color: Colors.TextColor,
   },
   heading: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),
+    marginBottom: height * 0.02,
   },
   imagestyles: {
     width: widthToDp(15),

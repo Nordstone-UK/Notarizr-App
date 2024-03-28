@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  BackHandler,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -106,8 +107,9 @@ export default function HomeScreen({route, navigation}) {
             Image={require('../../../assets/service2Pic.png')}
             onPress={() =>
               user != null
-                ? navigation.navigate('OnlineNotaryScreen')
-                : handleOpenModal()
+                ? navigation.navigate('RonDateDocScreen')
+                : //navigation.navigate('OnlineNotaryScreen')
+                  handleOpenModal()
             }
           />
           <View style={styles.CategoryBar}>
@@ -132,6 +134,8 @@ export default function HomeScreen({route, navigation}) {
                             bottomRightText={item?.document_type}
                             bottomLeftText="Total"
                             image={require('../../../assets/agentLocation.png')}
+                            calendarImage={require('../../../assets/calenderIcon.png')}
+                             servicetype={item.service_type}
                             agentName={
                               item?.agent?.first_name +
                               ' ' +
@@ -188,7 +192,7 @@ export default function HomeScreen({route, navigation}) {
                     fontWeight: '600',
                   },
                 ]}>
-                Please Login to see bookings
+                Please Login to see your bookings
               </Text>
             </View>
           )}

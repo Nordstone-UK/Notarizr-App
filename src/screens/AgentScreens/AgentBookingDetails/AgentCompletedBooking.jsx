@@ -72,6 +72,8 @@ export default function AgentCompletedBooking({navigation}) {
                     return (
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
+                        calendarImage={require('../../../../assets/calenderIcon.png')}
+                        servicetype={item.service_type}
                         source={{uri: item.booked_by.profile_picture}}
                         bottomRightText={item.document_type}
                         bottomLeftText="Total"
@@ -87,7 +89,7 @@ export default function AgentCompletedBooking({navigation}) {
                         dateofBooking={item.date_of_booking}
                         timeofBooking={item.time_of_booking}
                         createdAt={item.createdAt}
-                        status={item.status}
+                       
                       />
                     );
                   }}

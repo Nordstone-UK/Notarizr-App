@@ -18,7 +18,7 @@ import {
 } from '../../features/booking/bookingSlice';
 
 export default function NearbyLoadingScreen({route, navigation}) {
-  const serviceType = useSelector(state => state.booking.booking.serviceType);
+  const serviceType = useSelector(state => state.booking?.booking?.serviceType);
   const {FetchMobileNotary} = useGetService();
   const {fetchBookingByID} = useFetchBooking();
   const {handleBookingCreation} = useCreateBooking();
@@ -37,6 +37,9 @@ export default function NearbyLoadingScreen({route, navigation}) {
           const response = await handleBookingCreation(user._id, service._id);
           const {booking} = response;
           const bookingData = await fetchBookingByID(booking._id);
+
+          console.log('booking', booking._id);
+
           const getBookingById = bookingData?.getBookingById;
           // console.log(getBookingById);
           if (response.status === '201') {

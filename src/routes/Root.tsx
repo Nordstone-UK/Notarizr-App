@@ -36,7 +36,7 @@ const Root: FC = (): JSX.Element => {
       'notfication',
       async data => {
         const {type, value} = data?.notification?.additionalData;
-        console.log(type, value);
+
         if (type === 'session_created') {
           const item = await getSessionByID(value);
           dispatch(setBookingInfoState(item));

@@ -122,13 +122,14 @@ const styles = StyleSheet.create({
   image: {
     width: 200,
     aspectRatio: 1.45,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
+    // zIndex: 9999,
   },
   resize: {
     position: 'absolute',
     bottom: -8,
     right: -8,
-    zIndex: 9999,
+    //   zIndex: 9999,
     backgroundColor: 'white',
     borderRadius: 9999,
   },

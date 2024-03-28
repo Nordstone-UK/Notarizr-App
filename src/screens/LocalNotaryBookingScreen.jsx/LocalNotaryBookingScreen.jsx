@@ -48,6 +48,8 @@ export default function LocalNotaryBookingScreen({navigation}) {
           <AgentCard
             image={require('../../../assets/agentLocation.png')}
             source={require('../../../assets/agentReactanelPic.png')}
+             calendarImage={require('../../../assets/calenderIcon.png')}
+                        servicetype={item.service_type}
             bottomRightText="30 minutes"
             bottomLeftText="0.5 Miles"
             agentName={'Advocate Parimal M. Trivedi'}

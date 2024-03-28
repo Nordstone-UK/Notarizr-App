@@ -36,7 +36,7 @@ export default function AgentSignupScreen({navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <CompanyHeader
-        Header={`Select whether you are an Individual or a Business`}
+        Header={`Select the type of agent`}
         HeaderStyle={{marginHorizontal: widthToDp(5)}}
       />
       <BottomSheetStyle>
@@ -57,7 +57,7 @@ export default function AgentSignupScreen({navigation}) {
             picture={require('../../../assets/clientPic.png')}
             onPress={() => setColored('individual-agent')}
           />
-          <SignupButton
+          {/* <SignupButton
             Title="SignUp as Business"
             colors={
               colored === 'company-agent'
@@ -70,7 +70,7 @@ export default function AgentSignupScreen({navigation}) {
             ]}
             picture={require('../../../assets/business.jpg')}
             onPress={() => setColored('company-agent')}
-          />
+          /> */}
           <View style={styles.buttonConatiner}>
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
