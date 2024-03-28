@@ -47,8 +47,7 @@ export default function LoginScreen({navigation}, props) {
         getPhoneOtp({
           variables: {email},
         }).then(response => {
-
-          console.log("response",response.error);
+          console.log('response', response.error);
           if (response?.data?.getPhoneOTP?.status === '403') {
             Toast.show({
               type: 'error',
@@ -79,7 +78,7 @@ export default function LoginScreen({navigation}, props) {
           }
         });
       } catch (error) {
-        console.log("#######",error);
+        console.log('#######', error);
       }
     }
   };
@@ -103,7 +102,7 @@ export default function LoginScreen({navigation}, props) {
         <BottomSheetStyle>
           <View style={{marginTop: heightToDp(5)}}>
             <LabelTextInput
-              leftImageSoucre={require('../../../assets/emailIcon.png')}
+              leftImageSoucre={require('../../../assets/EmailIcon.png')}
               placeholder={'Enter your email address'}
               LabelTextInput={'Email Address'}
               onChangeText={text => setEmail(text)}

@@ -217,43 +217,49 @@ export default function ServiceDetailScreen({route, navigation}) {
                   Show={selectAddress === item.location}
                 />
               ))}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between',marginVertical: heightToDp(5) }}>
-              <GradientButton
-                Title="Add a new Address"
-                colors={
-                  serviceFor === 'self'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  // paddingVertical: widthToDp(4),
-                  width:widthToDp(45),
-                  height:heightToDp(20)
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  // fontSize: widthToDp(2),
-                }}
-                buttonFontSize={widthToDp(5)}
-                onPress={() => navigation.navigate('AddNewAddress')}
-              />
-              <GradientButton
-              Title="Proceed"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-
-                 width:widthToDp(40),
-                 height:heightToDp(20)
-              }}
-              styles={{
-                padding: widthToDp(0),
-                
-              }}
-              buttonFontSize={widthToDp(5)}
-              onPress={() => showConfirmation()}
-              loading={loading}
-            />
-            </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginVertical: heightToDp(5),
+                }}>
+                <GradientButton
+                  Title="Add a new Address"
+                  colors={
+                    serviceFor === 'self'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  GradiStyles={{
+                    // paddingVertical: widthToDp(4),
+                    width: widthToDp(45),
+                    height: heightToDp(20),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    // fontSize: widthToDp(2),
+                  }}
+                  buttonFontSize={widthToDp(5)}
+                  onPress={() => navigation.navigate('AddNewAddress')}
+                />
+                <GradientButton
+                  Title="Proceed"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    height: heightToDp(20),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                  }}
+                  buttonFontSize={widthToDp(5)}
+                  onPress={() => showConfirmation()}
+                  loading={loading}
+                />
+              </View>
             </View>
           ) : (
             <View>
@@ -300,7 +306,7 @@ export default function ServiceDetailScreen({route, navigation}) {
             </View>
           )}
           {/* <View style={{marginVertical: heightToDp(5)}}> */}
-            
+
           {/* </View> */}
         </ScrollView>
       </BottomSheetStyle>

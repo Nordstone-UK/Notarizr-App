@@ -165,7 +165,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 onChangeText={text => setlastName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/emailIcon.png')}
+                leftImageSoucre={require('../../../assets/EmailIcon.png')}
                 placeholder={'Enter your email address'}
                 LabelTextInput={
                   (emailValid && 'Email Taken') || 'Email Address'
@@ -252,16 +252,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
-  
   },
   GenderContainer: {
     alignSelf: 'center',
     marginTop: heightToDp(3),
-   // paddingVertical: heightToDp(2),
+    // paddingVertical: heightToDp(2),
     borderWidth: 2,
     borderRadius: 15,
     borderColor: '#D3D5DA',
     width: widthToDp(90),
-   // height:height*.08
+    // height:height*.08
   },
 });
