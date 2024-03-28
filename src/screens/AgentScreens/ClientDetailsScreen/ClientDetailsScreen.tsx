@@ -267,9 +267,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       leaveRoom();
     };
   }, [enterRoom, leaveRoom]);
-  // console.log('PPP', clientDetail._id);
 
-  console.log(clientDetail.date_time_session);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -599,11 +597,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                       color: 'black',
                       marginLeft: 10,
                     }}>
-                    {/* {clientDetail.payment_type == 'on_notarizr'
-                      ? */}
-                    Invoice the client on Notarizr
-                    {/* :
-                       'Invoice the client on your own'} */}
+                    {clientDetail.payment_type == 'on_notarizr'
+                      ? ' Invoice the client on Notarizr'
+                      : 'Invoice the client on your own'}
                   </Text>
                 </View>
               </View>
@@ -632,28 +628,34 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </View>
             )}
 
-            {clientDetail.agent_document && (
-              <View style={{marginVertical: 10}}>
-                <Text style={[styles.insideHeading]}>
-                  Client uploaded documents
-                </Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    marginLeft: widthToDp(5),
-                    columnGap: widthToDp(3),
-                  }}>
-                  {clientDetail.agent_document?.map((item, index) => (
-                    <TouchableOpacity key={index}>
-                      <Image
-                        source={require('../../../../assets/docPic.png')}
-                        style={{width: widthToDp(10), height: heightToDp(10)}}
-                      />
-                    </TouchableOpacity>
-                  ))}
+            {clientDetail.client_documents &&
+              Object.values(clientDetail.client_documents)?.length > 0 && (
+                <View style={{marginVertical: 10}}>
+                  <Text style={[styles.insideHeading]}>
+                    Client uploaded documents
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      marginLeft: widthToDp(5),
+                      columnGap: widthToDp(3),
+                    }}>
+                    {Object.values(clientDetail.client_documents)?.map(
+                      (item, index) => (
+                        <TouchableOpacity key={index}>
+                          <Image
+                            source={require('../../../../assets/docPic.png')}
+                            style={{
+                              width: widthToDp(10),
+                              height: heightToDp(10),
+                            }}
+                          />
+                        </TouchableOpacity>
+                      ),
+                    )}
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
             {clientDetail.agent_document && (
               <View>
                 <Text style={[styles.insideHeading]}>
@@ -677,7 +679,31 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </View>
             )}
 
-            {clientDetail.agent_document && (
+            {clientDetail.notarized_docs &&
+              clientDetail.notarized_docs.length > 0 && (
+                <View style={{marginTop: 10}}>
+                  <Text style={[styles.insideHeading]}>
+                    Notarized documents
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      marginLeft: widthToDp(5),
+                      columnGap: widthToDp(3),
+                    }}>
+                    {clientDetail.notarized_docs?.map((item, index) => (
+                      <TouchableOpacity key={index}>
+                        <Image
+                          source={require('../../../../assets/docPic.png')}
+                          style={{width: widthToDp(10), height: heightToDp(10)}}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+            {/* {clientDetail.agent_document && (
               <View style={{marginTop: 10}}>
                 <Text style={[styles.insideHeading]}>Notarized documents</Text>
                 <View
@@ -696,7 +722,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   ))}
                 </View>
               </View>
-            )}
+            )} */}
 
             {booked_for?.first_name && (
               <View>
@@ -978,7 +1004,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     padding: widthToDp(0),
                     fontSize: widthToDp(4),
                   }}
-                  onPress={handlePresentModalPress}
+                  onPress={() => {
+                    if (clientDetail.payment_type == 'on_notarizr') {
+                      handlePresentModalPress();
+                    } else {
+                      navigation.navigate('NotaryCallScreen', {
+                        uid: clientDetail?._id,
+                        channel: clientDetail?.agora_channel_name,
+                        token: clientDetail?.agora_channel_token,
+                      });
+                    }
+                  }}
                   fontSize={widthToDp(4)}
                 />
                 <GradientButton

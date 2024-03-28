@@ -100,7 +100,6 @@ export default function RonDateDocScreen({route, navigation}) {
             },
             bookingType: 'self',
             documents: null,
-
             preferenceAnalysis: 'distance',
           }),
         );

@@ -84,6 +84,34 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [uploadShow, setUploadShow] = useState(true);
   const [showIcon, setShowIcon] = useState(true);
 
+  // useEffect(() => {
+  //   (async () => {
+  //     console.log('hhhhhhh', bookingDetail);
+  //     try {
+  //       var reponse;
+  //       if (bookingDetail && bookingDetail.__typename == 'Session') {
+  //         console.log('heeeetre');
+  //         const request = {
+  //           variables: {
+  //             sessionId: bookingDetail?._id,
+  //           },
+  //         };
+
+  //         reponse = await getSession(request);
+  //         console.log('ressss', reponse.data.getSession.session);
+  //         dispatch(setBookingInfoState(reponse.data.getSession.session));
+  //       } else {
+  //         console.log('hooray');
+  //         reponse = await fetchBookingByID(bookingDetail?._id);
+  //         console.log('ressssss', reponse);
+  //         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
+  //       }
+  //     } catch (error) {
+  //       console.log('##########', error);
+  //     }
+  //   })();
+  // }, []);
+
   /////// update client docs /////
 
   const [updateSessionClientDocs] = useMutation(
@@ -120,11 +148,11 @@ export default function MedicalBookingScreen({route, navigation}) {
         },
       };
 
-      console.log('######', request);
-
       const res = await updateSessionClientDocs(request);
 
       var reponse;
+
+      console.log('###############');
 
       if (bookingDetail.__typename == 'Session') {
         console.log('heeeetre');
@@ -139,6 +167,7 @@ export default function MedicalBookingScreen({route, navigation}) {
         dispatch(setBookingInfoState(reponse.data.getSession.session));
       } else {
         reponse = await fetchBookingByID(bookingDetail?._id);
+        console.log('ressssss', response);
         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
       }
 
