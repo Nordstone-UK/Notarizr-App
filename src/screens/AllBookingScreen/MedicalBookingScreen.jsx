@@ -296,6 +296,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       </View>
     );
   }
+  console.log("bookin gde",bookingDetail)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -536,7 +537,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             <Text style={[styles.insideHeading]}>Preferred date and time</Text>
             <View style={{paddingHorizontal: widthToDp(7)}}>
               <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}
+                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}  at {bookingDetail.time_of_booking}
               </Text>
             </View>
           </View>
@@ -670,7 +671,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent:'space-around',
               paddingHorizontal: widthToDp(2),
               paddingBottom: 20,
             }}>
@@ -701,13 +702,13 @@ export default function MedicalBookingScreen({route, navigation}) {
               Title={'Upload documents'}
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                width: widthToDp(32),
+                width: widthToDp(30),
                 paddingVertical: widthToDp(4),
                 marginTop: widthToDp(10),
               }}
               styles={{
                 padding: widthToDp(0),
-                fontSize: widthToDp(6),
+                fontSize: widthToDp(4),
               }}
               onPress={() => {
                 selectDocuments();
@@ -719,13 +720,13 @@ export default function MedicalBookingScreen({route, navigation}) {
                 Title={'Make payment'}
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 GradiStyles={{
-                  width: widthToDp(32),
+                  width: widthToDp(30),
                   paddingVertical: widthToDp(4),
                   marginTop: widthToDp(10),
                 }}
                 styles={{
                   padding: widthToDp(0),
-                  fontSize: widthToDp(6),
+                  fontSize: widthToDp(4),
                 }}
                 onPress={() => {
                   navigation.navigate('ToBePaidScreen', {

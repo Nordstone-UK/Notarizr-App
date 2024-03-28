@@ -20,9 +20,9 @@ export default function OnboardingScreen2({navigation}, props) {
         source={require('../../../assets/screen2.png')}
         style={styles.imagestyle}
       />
-      <Text style={styles.textHeading}>Browse Notary lawyer near by you.</Text>
+      <Text style={styles.textHeading}>Explore our RON services</Text>
       <Text style={styles.textSubheading}>
-        Our app can provide you the Mobile and Online services
+        Our experienced agents can perform RON in minutes at your convenience.
       </Text>
       <GradientButton
         Title="Next"

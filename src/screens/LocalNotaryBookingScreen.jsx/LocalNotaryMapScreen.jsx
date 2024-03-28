@@ -16,7 +16,6 @@ export default function LocalNotaryMapScreen({route, navigation}) {
   const {agents, documents} = route.params;
 
   const renderItem = ({item}) => {
-    console.log('item', item);
     return (
       <AgentReviewCard
         image={item?.image}

@@ -219,9 +219,12 @@ export default function AgentAllBookingScreen({navigation}) {
                   data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
+                    console.log("itemthper",item)
                     return (
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
+                        calendarImage={require('../../../../assets/calenderIcon.png')}
+                        servicetype={item.service_type}
                         source={{
                           uri: item?.booked_by?.profile_picture
                             ? `${item?.booked_by?.profile_picture}`
@@ -251,7 +254,7 @@ export default function AgentAllBookingScreen({navigation}) {
                         dateofBooking={item?.date_of_booking}
                         timeofBooking={item?.time_of_booking}
                         createdAt={item?.createdAt}
-                        status={item?.status}
+                        
                       />
                     );
                   }}

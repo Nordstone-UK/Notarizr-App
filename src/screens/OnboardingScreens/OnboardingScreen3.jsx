@@ -20,9 +20,9 @@ export default function OnboardingScreen3({navigation}, props) {
         source={require('../../../assets/screen3.png')}
         style={styles.imagestyle}
       />
-      <Text style={styles.textHeading}>Browse Notary lawyer near by you.</Text>
+      <Text style={styles.textHeading}>Choose your preferred agent for RON</Text>
       <Text style={styles.textSubheading}>
-        Our app can provide you the Mobile and Online services
+        Invite your preferred agent and get your documents notarized.
       </Text>
       <GradientButton
         Title="Get Started"

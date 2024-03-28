@@ -33,6 +33,8 @@ export default function AgentBookingClientDetail({navigation}) {
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             source={require('../../../../assets/maleAgentPic.png')}
+            calendarImage={require('../../../../assets/calenderIcon.png')}
+            servicetype={item.service_type}
             bottomLeftText="$400"
             agentName={'Bunny Joel'}
             agentAddress={'Shop 28, jigara Kalakand Road'}

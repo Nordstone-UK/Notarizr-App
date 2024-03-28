@@ -160,14 +160,14 @@ export default function ProfileDetailEditScreen({navigation}, props) {
           <BottomSheetStyle>
             <View style={{paddingBottom: widthToDp(5)}}>
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 Label={true}
                 defaultValue={first_name}
                 LabelTextInput={'First Name'}
                 onChangeText={text => setfirstName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/NameIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your last name'}
                 defaultValue={last_name}
                 Label={true}

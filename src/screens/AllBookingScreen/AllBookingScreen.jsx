@@ -207,6 +207,8 @@ export default function AllBookingScreen({route, navigation}) {
                         <TouchableOpacity onPress={() => handleAgentData(item)}>
                           <AgentCard
                             source={{uri: item?.agent?.profile_picture}}
+                            calendarImage={require('../../../assets/calenderIcon.png')}
+                        servicetype={item.service_type}
                             bottomRightText={item?.document_type}
                             bottomLeftText="Total"
                             image={require('../../../assets/locationIcon.png')}

@@ -58,6 +58,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
       }),
     );
     setLoading(false);
+    console.log("helloofdfd")
     navigation.navigate('NearbyLoadingScreen', {
       serviceType: 'mobile_notary',
     });
