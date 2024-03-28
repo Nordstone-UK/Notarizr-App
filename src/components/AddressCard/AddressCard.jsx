@@ -32,6 +32,14 @@ export default function AddressCard(props) {
       {props.Show && (
         <Image source={require('../../../assets/checkIcon.png')} />
       )}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button}>
+          <Image source={require('../../../assets/editIcon.png')} style={[styles.icon, { tintColor: Colors.Orange }]}/>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button}>
+          <Image source={require('../../../assets/deleteIcon.png')} style={[styles.icon, { tintColor: Colors.Orange }]}/>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -69,5 +77,20 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     marginLeft: widthToDp(2),
     marginTop: widthToDp(2),
+  },
+   icon: {
+    marginHorizontal: widthToDp(2),
+    width: widthToDp(5),
+    height: heightToDp(5),
+
+  },
+   buttonContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 5,
+    flexDirection: 'row',
+  },
+  button: {
+    marginLeft: 5,
   },
 });

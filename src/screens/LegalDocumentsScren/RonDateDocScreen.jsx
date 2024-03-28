@@ -511,7 +511,7 @@ const [isLoading, setisLoading] = useState(false);
            <GradientButton
             Title="Invite Agent"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{borderRadius: 15, marginTop: heightToDp(5),width:widthToDp(90)}}
+            GradiStyles={{borderRadius: 15, marginTop: heightToDp(3),width:widthToDp(90)}}
             onPress={() => submitAddressDetails(selectedDocs)}
           />    
           )}
@@ -573,7 +573,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   gradientButtonContainer:{
-    display:'flex',
+     flexDirection: 'column',
+     rowGap:15,
      alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 20,
