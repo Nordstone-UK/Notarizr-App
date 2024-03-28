@@ -279,7 +279,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   }, [enterRoom, leaveRoom]);
   // console.log('PPP', clientDetail._id);
 
-  console.log(clientDetail.date_time_session);
+  console.log("lietder", clientDetail);
   const SearchUser = async query => {
     setisLoading(true);
     const response = await searchUserByEmail(query);
@@ -818,7 +818,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               <View style={{ paddingHorizontal: widthToDp(7) }}>
                 <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
                   {/* {clientDetail.date_time_session} */}
-                  {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')} at {clientDetail.timeofBooking}
+                  {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')} at {clientDetail.time_of_booking}
                 </Text>
               </View>
             </View>
