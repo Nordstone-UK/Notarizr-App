@@ -54,9 +54,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   console.log(bookingData);
 
   const [sourceUrl, setSourceUrl] = useState(
-    bookingData.__typename == 'Session'
-      ? bookingData.client_documents['Document 1']
-      : bookingData?.documents[0].url,
+    bookingData.client_documents['Document 1'],
   );
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [getSignaturePad, setSignaturePad] = useState(false);
@@ -472,16 +470,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={itemValue => handleLinkChange(itemValue)}
-          items={
-            bookingData.__typename == 'Session'
-              ? Object.keys(bookingData.client_documents).map(doc => {
-                  return {label: doc, value: bookingData.client_documents[doc]};
-                })
-              : bookingData.documents.map((doc: {name: any; url: any}) => ({
-                  label: doc.name,
-                  value: doc.url,
-                }))
-          }
+          items={Object.keys(bookingData.client_documents).map(doc => {
+            return {label: doc, value: bookingData.client_documents[doc]};
+          })}
         />
       </View>
       <View style={styles.container}>

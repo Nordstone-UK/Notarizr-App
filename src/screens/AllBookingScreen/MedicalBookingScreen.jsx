@@ -696,8 +696,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               paddingHorizontal: widthToDp(2),
               paddingBottom: 20,
             }}>
-            {bookingDetail.__typename == 'Booking' &&
-              bookingDetail.client_documents &&
+            {bookingDetail.client_documents &&
               Object.values(bookingDetail.client_documents)?.length > 0 && (
                 <GradientButton
                   Title={'Join session'}
