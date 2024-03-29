@@ -72,7 +72,7 @@ export default function AddObserverScreen({route, navigation}) {
             <View
               style={{marginTop: heightToDp(4), marginBottom: heightToDp(2)}}>
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/emailIcon.png')}
+                leftImageSoucre={require('../../../assets/EmailIcon.png')}
                 placeholder={'Enter your observers email'}
                 LabelTextInput={'Email Address'}
                 defaultValue={email}

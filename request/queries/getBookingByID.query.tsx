@@ -106,6 +106,7 @@ export const GET_BOOKING_BY_ID = gql`
           order
           signature_url
         }
+        client_documents
       }
     }
   }

@@ -175,6 +175,7 @@ export default function AgentSessionInviteScreen({navigation}) {
     }
     setLoading(false);
   };
+  console.log('payment', paymentMethod);
 
   return (
     <SafeAreaView style={styles.container}>

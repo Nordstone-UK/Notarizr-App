@@ -165,7 +165,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 onChangeText={text => setlastName(text)}
               />
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/EmailIcon.png')}
+                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 placeholder={'Enter your email address'}
                 LabelTextInput={
                   (emailValid && 'Email Taken') || 'Email Address'

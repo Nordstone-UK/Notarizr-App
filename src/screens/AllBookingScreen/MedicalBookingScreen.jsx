@@ -44,6 +44,7 @@ import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 import {useLazyQuery, useMutation} from '@apollo/client';
 import {
+  UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
   UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
   UPDATE_SESSION_CLIENT_DOCS,
 } from '../../../request/mutations/updateSessionClientDocs';
@@ -84,38 +85,15 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [uploadShow, setUploadShow] = useState(true);
   const [showIcon, setShowIcon] = useState(true);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     console.log('hhhhhhh', bookingDetail);
-  //     try {
-  //       var reponse;
-  //       if (bookingDetail && bookingDetail.__typename == 'Session') {
-  //         console.log('heeeetre');
-  //         const request = {
-  //           variables: {
-  //             sessionId: bookingDetail?._id,
-  //           },
-  //         };
-
-  //         reponse = await getSession(request);
-  //         console.log('ressss', reponse.data.getSession.session);
-  //         dispatch(setBookingInfoState(reponse.data.getSession.session));
-  //       } else {
-  //         console.log('hooray');
-  //         reponse = await fetchBookingByID(bookingDetail?._id);
-  //         console.log('ressssss', reponse);
-  //         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-  //       }
-  //     } catch (error) {
-  //       console.log('##########', error);
-  //     }
-  //   })();
-  // }, []);
+  console.log('####', bookingDetail);
 
   /////// update client docs /////
 
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
+  );
+  const [updateBookingClientDocs] = useMutation(
+    UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
   );
 
   function isEmpty(obj) {
@@ -148,7 +126,16 @@ export default function MedicalBookingScreen({route, navigation}) {
         },
       };
 
-      const res = await updateSessionClientDocs(request);
+      const requestBooking = {
+        variables: {
+          bookingId: bookingDetail?._id,
+          clientDocuments: urlResponse,
+        },
+      };
+      const res =
+        bookingDetail.__typename == 'Session'
+          ? await updateSessionClientDocs(request)
+          : await updateBookingClientDocs(requestBooking);
 
       var reponse;
 
@@ -167,8 +154,12 @@ export default function MedicalBookingScreen({route, navigation}) {
         dispatch(setBookingInfoState(reponse.data.getSession.session));
       } else {
         reponse = await fetchBookingByID(bookingDetail?._id);
-        console.log('ressssss', response);
+
         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
+        console.log(
+          '#########',
+          reponse?.getBookingById?.booking.client_documents,
+        );
       }
 
       setUploadShow(false);
@@ -325,7 +316,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       </View>
     );
   }
-  console.log("bookin gde",bookingDetail)
+  console.log('bookin gde', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -566,7 +557,8 @@ export default function MedicalBookingScreen({route, navigation}) {
             <Text style={[styles.insideHeading]}>Preferred date and time</Text>
             <View style={{paddingHorizontal: widthToDp(7)}}>
               <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}  at {bookingDetail.time_of_booking}
+                {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')} at{' '}
+                {bookingDetail.time_of_booking}
               </Text>
             </View>
           </View>
@@ -700,33 +692,40 @@ export default function MedicalBookingScreen({route, navigation}) {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent:'space-around',
+              justifyContent: 'space-around',
               paddingHorizontal: widthToDp(2),
               paddingBottom: 20,
             }}>
-            <GradientButton
-              Title={'Join session'}
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                width: widthToDp(30),
-                paddingVertical: widthToDp(4),
-                marginTop: widthToDp(10),
-              }}
-              styles={{
-                padding: widthToDp(0),
-                fontSize: widthToDp(4),
-              }}
-              onPress={() => {
-                navigation.navigate('WaitingRoomScreen', {
-                  uid: bookingDetail?._id,
-                  channel: bookingDetail?.agora_channel_name,
-                  token: bookingDetail?.agora_channel_token,
-                  time: bookingDetail?.time_of_booking,
-                  date: bookingDetail?.date_of_booking,
-                });
-              }}
-              fontSize={widthToDp(4)}
-            />
+            {bookingDetail.__typename == 'Booking' &&
+              bookingDetail.client_documents &&
+              Object.values(bookingDetail.client_documents)?.length > 0 && (
+                <GradientButton
+                  Title={'Join session'}
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(30),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                  onPress={() => {
+                    navigation.navigate('WaitingRoomScreen', {
+                      uid: bookingDetail?._id,
+                      channel: bookingDetail?.agora_channel_name,
+                      token: bookingDetail?.agora_channel_token,
+                      time: bookingDetail?.time_of_booking,
+                      date: bookingDetail?.date_of_booking,
+                    });
+                  }}
+                  fontSize={widthToDp(4)}
+                />
+              )}
             <GradientButton
               Title={'Upload documents'}
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
