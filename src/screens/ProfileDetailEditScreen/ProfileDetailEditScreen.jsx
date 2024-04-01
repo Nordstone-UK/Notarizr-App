@@ -176,7 +176,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
               />
 
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/emailIcon.png')}
+                leftImageSoucre={require('../../../assets/EmailIcon.png')}
                 placeholder={'Enter your email address'}
                 LabelTextInput={
                   (emailValid && 'Email Taken') || 'Email Address'
