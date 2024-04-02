@@ -7,6 +7,7 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  KeyboardAvoidingView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -127,8 +128,12 @@ export default function ServiceDetailScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
-      <BottomSheetStyle>
-        <ScrollView scrollEnabled={true} removeClippedSubviews={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1, paddingBottom: heightToDp(10)}}>
+        <ScrollView scrollEnabled={true} removeClippedSubviews={false}  showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" >
+          <BottomSheetStyle>
+            <View style={{paddingBottom: widthToDp(5)}}>
           <View style={{marginVertical: heightToDp(2)}}>
             <Text style={styles.headingContainer}>Date & Time:</Text>
             <View style={styles.buttonFlex}>
@@ -215,6 +220,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                   location={item.location}
                   onPress={() => setSelectedAddress(item.location)}
                   Show={selectAddress === item.location}
+                  booking="true"
                 />
               ))}
               <View
@@ -305,11 +311,25 @@ export default function ServiceDetailScreen({route, navigation}) {
               />
             </View>
           )}
-          {/* <View style={{marginVertical: heightToDp(5)}}> */}
-
-          {/* </View> */}
+         <View
+                style={{
+                  marginTop: heightToDp(5),
+                }}>
+                <GradientButton
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  Title="PROCEED"
+                  // onPress={() => submitRegister()}
+                  // loading={tempLoading}
+                />
+              </View>
+          </View>
+          </BottomSheetStyle>
         </ScrollView>
-      </BottomSheetStyle>
+        </KeyboardAvoidingView>
+     
     </SafeAreaView>
   );
 }
@@ -334,7 +354,7 @@ const styles = StyleSheet.create({
   },
   insideHeading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(3),
     marginHorizontal: widthToDp(5),
