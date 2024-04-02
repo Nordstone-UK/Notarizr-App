@@ -6,11 +6,16 @@ import {GET_CATEGORIES} from '../../request/queries/getCategories.query';
 import {GET_DOCUMENT_TYPES} from '../../request/queries/getPaginatedDocumentTypes.query';
 import {UPDATE_USER_ADDRESS} from '../../request/mutations/updateUserAddress.mutation';
 import {SEARCH_USER} from '../../request/queries/searchUser.query';
+import { EDIT_USER_ADDRESS } from '../../request/mutations/editUserAddress.mutation';
+import { DELETE_USER_ADDRESS } from '../../request/mutations/deleteUserAddress.mutation';
 
 const useFetchUser = () => {
   const [user] = useLazyQuery(FETCH_USER_INFO);
   const [getDocuments] = useLazyQuery(GET_DOCUMENT_TYPES);
   const [updateAddress] = useMutation(UPDATE_USER_ADDRESS);
+  const [editAddress] = useMutation(EDIT_USER_ADDRESS);
+  const [deleteUserAddress] = useMutation(DELETE_USER_ADDRESS);
+
   const [searchUser] = useLazyQuery(SEARCH_USER);
   const dispatch = useDispatch();
   let info;
@@ -54,6 +59,35 @@ const useFetchUser = () => {
       console.log(error);
     }
   };
+const handleEditAddress = async params =>{ 
+const request ={
+  variables:{
+    ...params,
+  },
+};
+try {
+  const response = await editAddress(request);
+  return response.data;
+  } catch (error) {
+      console.log(error);
+    }
+};
+
+
+const handleDeleteAddress = async (addressId) => {
+  console.log("addressid",addressId)
+  try {
+    const  response  = await deleteUserAddress({
+      variables: {
+        addressId: addressId,
+      },
+    });
+   return response.data
+  } catch (error) {
+    console.error('Error deleting address:', error);
+    // Handle error
+  }
+};
 
   const searchUserByEmail = async email => {
     const request = {
@@ -75,6 +109,8 @@ const useFetchUser = () => {
     fetchDocumentTypes,
     hadleUpdateAddress,
     searchUserByEmail,
+    handleEditAddress,
+    handleDeleteAddress
   };
 };
 

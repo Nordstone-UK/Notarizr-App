@@ -60,7 +60,7 @@ export default function RonDateDocScreen({route, navigation}) {
     {name: 'Unclaimed Property Form', price: 150},
   ]);
   const [fileResponse, setFileResponse] = useState([]);
-
+console.log("searchuser",selectedClient)
   const [isYes, setIsYes] = useState(true);
   const {uploadMultipleFiles} = useRegister();
   // console.log(selectedDocs);
@@ -112,6 +112,28 @@ export default function RonDateDocScreen({route, navigation}) {
         );
         navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
       } else {
+         dispatch(
+          setBookingInfoState({
+            serviceType: 'ron',
+            service: null,
+            timeOfBooking: moment(date).format('h:mm A'),
+            dateOfBooking: moment(date).format('MM-DD-YYYY'),
+            agent: selectedClient,
+            documentType: docArray,
+            address: null,
+            bookedFor: {
+              email: null,
+              first_name: null,
+              last_name: null,
+              location: null,
+              phone_number: null,
+            },
+            bookingType: 'self',
+            documents: null,
+            preferenceAnalysis: 'distance',
+          }),
+        );
+        navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
       }
     }
     setLoading(false);
