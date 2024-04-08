@@ -408,7 +408,18 @@ export default function AgentCard(props) {
               style={{width: widthToDp(4), height: heightToDp(4)}}
             />
             <Text style={[styles.rating, {color: Colors.OrangeGradientEnd}]}>
-               {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking}
+              {props.datetimesession && (
+              <>
+              {moment(props.datetimesession).format('Do MMMM YYYY')} at{' '}
+                    {moment(props.datetimesession).format('h:mm a')}
+                    </>
+            )}
+            {props.dateofBooking && (
+              <>
+              {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking} 
+              </>
+            )}
+              
             </Text>
           </View>
         </View>
@@ -428,7 +439,7 @@ export default function AgentCard(props) {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-          <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'No Type')}</Text>
+          <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'RON')}</Text>
       </View>
     </View>
   );

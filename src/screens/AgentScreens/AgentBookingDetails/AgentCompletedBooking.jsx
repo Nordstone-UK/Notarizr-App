@@ -52,7 +52,7 @@ export default function AgentCompletedBooking({navigation}) {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <AgentHomeHeader Title="Booking Details" Switch={true} />
+      <AgentHomeHeader Title="Completed Bookings" Switch={true} />
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}

@@ -74,6 +74,7 @@ export default function AgentHomeScreen({navigation}) {
     return unsubscribe;
   }, [navigation]);
   const handleNavigation = item => {
+    console.log("iteemmmmmmmmmm",item)
     navigation.navigate('ClientDetailsScreen', {
         clientDetail: item,
       });
@@ -198,7 +199,7 @@ setLoadingButton('ron');
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
-                      console.log("items",item.date_of_booking)
+                      // console.log("items",item)
                       return (
                         <ClientServiceCard
                           image={require('../../../../assets/agentLocation.png')}

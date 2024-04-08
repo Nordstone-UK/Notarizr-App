@@ -69,7 +69,7 @@ import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificatio
 import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
-import NotaryCallScreen from '../NotaryCallScreen.jsx/NotaryCallScreen';
+import NotaryCallScreen from '../NotaryCallScreen/NotaryCallScreen'
 import {useDispatch, useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';

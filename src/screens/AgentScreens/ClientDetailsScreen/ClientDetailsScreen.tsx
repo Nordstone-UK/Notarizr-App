@@ -46,8 +46,6 @@ import useFetchUser from '../../../hooks/useFetchUser';
 
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
-  console.log('######', clientDetail);
-  console.log('itemfsfd', route?.params.clientDetail);
   const {
     handlegetBookingStatus,
     handleSessionStatus,
@@ -278,14 +276,14 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     };
   }, [enterRoom, leaveRoom]);
 
-  console.log('lietder', clientDetail);
+  // console.log('lietder', clientDetail);
   const SearchUser = async query => {
     setisLoading(true);
     const response = await searchUserByEmail(query);
     setSearchedUser(response);
     setisLoading(false);
   };
-
+  console.log("clientdetails", clientDetail)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -329,7 +327,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               {' '}
             </Text>
             <View style={[styles.iconContainer]}>
-              {status === 'Pending' && (
+              {status === 'Pending' || (status === 'to_be_paid' && clientDetail.payment_type === 'on_agent') && (
                 <Image
                   source={require('../../../../assets/pending.png')}
                   style={styles.greenIcon}
@@ -337,7 +335,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               )}
               {(status === 'Completed' ||
                 status === 'Accepted' ||
-                status === 'Ongoing') && (
+                status === 'Ongoing') ||
+                (status === 'to_be_paid' && clientDetail.payment_type === 'on_agent') && (
                   <Image
                     source={require('../../../../assets/greenIcon.png')}
                     style={styles.greenIcon}
@@ -349,7 +348,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     source={require('../../../../assets/greenIcon.png')}
                     style={styles.greenIcon}
                   />
-                  <Text style={styles.insideText}>To Be Paid</Text>
+                  {clientDetail.payment_type === 'on_agent' ? (
+                    <Text style={styles.insideText}>Accepted</Text>
+                  ) : (
+                    <Text style={styles.insideText}>To Be Paid</Text>
+                  )}
                 </>
               ) : (
                 <Text style={styles.insideText}>{status}</Text>
@@ -824,17 +827,20 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
             {/* {clientDetail.date_time_session && ( */}
             <View style={{ marginVertical: 10 }}>
-              <Text style={[styles.insideHeading]}>
-                Preferred date and time
-              </Text>
+              <Text style={[styles.insideHeading]}>Preferred date and time</Text>
               <View style={{ paddingHorizontal: widthToDp(7) }}>
-                <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
-                  {/* {clientDetail.date_time_session} */}
-                  {moment(clientDetail?.date_of_booking).format(
-                    'MM/DD/YYYY',
-                  )}{' '}
-                  at {clientDetail.time_of_booking}
-                </Text>
+                {clientDetail.date_time_session && (
+                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
+                    {moment(clientDetail.date_time_session).format('MM/DD/YYYY')} at{' '}
+                    {moment(clientDetail.date_time_session).format('h:mm a')}
+                  </Text>
+                )}
+                {clientDetail?.date_of_booking && (
+                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
+                    {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')} at{' '}
+                    {clientDetail.time_of_booking}
+                  </Text>
+                )}
               </View>
             </View>
             {/* )} */}

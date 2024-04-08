@@ -56,9 +56,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const [searchedUser, setSearchedUser] = useState([]);
   const [isLoading, setisLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [selectedDocs, setSelectedDocs] = useState([
-    {name: 'Unclaimed Property Form', price: 150},
-  ]);
+  const [selectedDocs, setSelectedDocs] = useState([]);
   const [fileResponse, setFileResponse] = useState([]);
 console.log("searchuser",selectedClient)
   const [isYes, setIsYes] = useState(true);
@@ -81,13 +79,6 @@ console.log("searchuser",selectedClient)
   }
   const submitAddressDetails = async docArray => {
     setLoading(true);
-
-    if (selectedDocs.length === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Please fill all the fields',
-      });
-    } else {
       if (!isYes) {
         dispatch(
           setBookingInfoState({
@@ -135,7 +126,7 @@ console.log("searchuser",selectedClient)
         );
         navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
       }
-    }
+    
     setLoading(false);
   };
   const getState = async query => {

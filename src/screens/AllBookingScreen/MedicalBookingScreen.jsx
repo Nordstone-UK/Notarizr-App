@@ -116,6 +116,7 @@ const [isLoading, setIsLoading] = useState(true);
     setShowIcon(false);
     let urlResponse;
     const response = await uploadMultipleFiles();
+    console.log("response",response)
     // setUploadingDocs(response);
     if (response) {
       urlResponse = await uploadAllDocuments(response);
@@ -323,7 +324,7 @@ const [isLoading, setIsLoading] = useState(true);
       </View>
     );
   }
-console.log("bookingdetai",bookingDetail)
+  console.log("bookingdetails",bookingDetail)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -560,21 +561,94 @@ console.log("bookingdetai",bookingDetail)
               </View>
             </View>
           )}
-            <Text style={[styles.insideHeading]}>Address </Text>
-          <AddressCard
-                  // key={index}
-                  location={bookingDetail.address}
-                  onPress={() => setSelectedAddress(bookingDetail.address)}
-                  Show={ bookingDetail.address}
-                  booking="true"
+       {bookingDetail.address || bookingDetail.booked_for?.location || bookingDetail.client?.location ? (
+  <View style={{ paddingHorizontal: widthToDp(3) }}>
+    <Text style={[styles.insideHeading, styles.addressMargin]}>
+      {bookingDetail.address ? 'Address' : 'Booked For Location'}
+    </Text>
+    <AddressCard
+      location={bookingDetail.address || bookingDetail.booked_for?.location||bookingDetail.client?.location}
+      onPress={() => setSelectedAddress(bookingDetail.address || bookingDetail.booked_for.location)}
+      booking="true"
+    />
+  </View>
+) : null}
+
+
+           {bookingDetail.document_type && bookingDetail.document_type.length > 0 &&(
+          <View style={{marginTop:heightToDp(2)}}>
+            <Text style={[styles.insideHeading]}>Selected Documentsss</Text>
+            {bookingDetail.document_type && bookingDetail.document_type.map(item => (
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <CheckCircleSolid
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
                 />
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: 'black',
+                    marginLeft: 10,
+                  }}>
+                  {item.name}
+                </Text>
+              </View>
+            
+          ))}
+            </View>
+            )}
+             {bookingDetail.documents && bookingDetail.documents.length > 0 && (
+          <View style={{marginTop:heightToDp(2),marginVertical: 10}}>
+            <Text style={[styles.insideHeading]}> Print uploaded documents</Text>
+             <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+            {bookingDetail.documents && Array.isArray(bookingDetail.documents) && bookingDetail.documents.map((item, index) => (
+             <TouchableOpacity key={index} onPress={() => {
+                        setPdfUrl(item.url); 
+                        setIsPdfVisible(true);
+                      }}>
+                        
+                        <Image
+                          source={require('../../../assets/docPic.png')}
+                          style={{width: widthToDp(10), height: heightToDp(10)}}
+                        />
+                      </TouchableOpacity>
+            
+                ))}
+                </View>
+            </View>
+            )}
           <View style={{marginVertical: 10}}>
             <Text style={[styles.insideHeading]}>Preferred date and time</Text>
             <View style={{paddingHorizontal: widthToDp(7)}}>
-              <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+ {bookingDetail?.date_time_session && (
+  
+                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
+                    {moment(bookingDetail.date_time_session).format('MM/DD/YYYY')} at{' '}
+                    {moment(bookingDetail.date_time_session).format('h:mm a')}
+                  </Text>
+                )}
+
+                 {bookingDetail?.date_of_booking && (
+                               <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+
                 {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')} at{' '}
+               
+               
                 {bookingDetail.time_of_booking}
               </Text>
+                )}
             </View>
           </View>
 
@@ -643,7 +717,6 @@ console.log("bookingdetai",bookingDetail)
                   }}>
                   {Object.values(bookingDetail.client_documents)?.map(
                     (item, index) => {
-                      console.log("item",item)
                       return (
                       <TouchableOpacity key={index} onPress={() => {
                         setPdfUrl(item); 
@@ -754,7 +827,7 @@ console.log("bookingdetai",bookingDetail)
                     Colors.OrangeGradientEnd,
                   ]}
                   GradiStyles={{
-                    width: widthToDp(40),
+                    width: widthToDp(30),
                     paddingVertical: widthToDp(4),
                     marginTop: widthToDp(10),
                   }}
@@ -778,7 +851,7 @@ console.log("bookingdetai",bookingDetail)
               Title={'Upload documents'}
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                width: widthToDp(40),
+                width: widthToDp(30),
                 paddingVertical: widthToDp(4),
                 marginTop: widthToDp(10),
               }}
@@ -910,6 +983,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: widthToDp(6),
+  },
+  addressMargin:{
+    marginTop:heightToDp(4),
+    marginBottom:heightToDp(-2)
   },
   buttonFlex: {
     flexDirection: 'row',
