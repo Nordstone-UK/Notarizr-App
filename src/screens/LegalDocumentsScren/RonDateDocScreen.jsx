@@ -58,7 +58,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [fileResponse, setFileResponse] = useState([]);
-console.log("searchuser",selectedClient)
+  console.log('searchuser', selectedClient);
   const [isYes, setIsYes] = useState(true);
   const {uploadMultipleFiles} = useRegister();
   // console.log(selectedDocs);
@@ -79,54 +79,54 @@ console.log("searchuser",selectedClient)
   }
   const submitAddressDetails = async docArray => {
     setLoading(true);
-      if (!isYes) {
-        dispatch(
-          setBookingInfoState({
-            serviceType: 'ron',
-            service: null,
-            timeOfBooking: moment(date).format('h:mm A'),
-            dateOfBooking: moment(date).format('MM-DD-YYYY'),
-            agent: null,
-            documentType: docArray,
-            address: null,
-            bookedFor: {
-              email: null,
-              first_name: null,
-              last_name: null,
-              location: null,
-              phone_number: null,
-            },
-            bookingType: 'self',
-            documents: null,
-            preferenceAnalysis: 'distance',
-          }),
-        );
-        navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
-      } else {
-         dispatch(
-          setBookingInfoState({
-            serviceType: 'ron',
-            service: null,
-            timeOfBooking: moment(date).format('h:mm A'),
-            dateOfBooking: moment(date).format('MM-DD-YYYY'),
-            agent: selectedClient,
-            documentType: docArray,
-            address: null,
-            bookedFor: {
-              email: null,
-              first_name: null,
-              last_name: null,
-              location: null,
-              phone_number: null,
-            },
-            bookingType: 'self',
-            documents: null,
-            preferenceAnalysis: 'distance',
-          }),
-        );
-        navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
-      }
-    
+    if (!isYes) {
+      dispatch(
+        setBookingInfoState({
+          serviceType: 'ron',
+          service: null,
+          timeOfBooking: moment(date).format('h:mm A'),
+          dateOfBooking: moment(date).format('MM-DD-YYYY'),
+          agent: null,
+          documentType: docArray,
+          address: null,
+          bookedFor: {
+            email: null,
+            first_name: null,
+            last_name: null,
+            location: null,
+            phone_number: null,
+          },
+          bookingType: 'self',
+          documents: null,
+          preferenceAnalysis: 'distance',
+        }),
+      );
+      navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
+    } else {
+      dispatch(
+        setBookingInfoState({
+          serviceType: 'ron',
+          service: null,
+          timeOfBooking: moment(date).format('h:mm A'),
+          dateOfBooking: moment(date).format('MM-DD-YYYY'),
+          agent: selectedClient,
+          documentType: docArray,
+          address: null,
+          bookedFor: {
+            email: null,
+            first_name: null,
+            last_name: null,
+            location: null,
+            phone_number: null,
+          },
+          bookingType: 'self',
+          documents: null,
+          preferenceAnalysis: 'distance',
+        }),
+      );
+      navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
+    }
+
     setLoading(false);
   };
   const getState = async query => {

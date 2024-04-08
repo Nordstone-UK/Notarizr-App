@@ -69,7 +69,7 @@ export default function ServiceDetailScreen({route, navigation}) {
       setServiceFor(string);
     }
   };
-  console.log("Srvie",serviceFor)
+  console.log('Srvie', serviceFor);
   const submitAddressDetails = () => {
     dispatch(
       setBookingInfoState({
@@ -99,51 +99,44 @@ export default function ServiceDetailScreen({route, navigation}) {
     navigation.navigate('LegalDocScreen');
   };
   const showConfirmation = async () => {
-  setLoading(true);
-  if (
-    selectAddress ||
-    (email && firstName && lastName && phoneNumber && location)
-  ) {
-    Alert.alert(
-      'Disclaimer',
-      'We may contact you to modify the time based on local agent availability.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            submitAddressDetails();
-          },
-          style: 'cancel',
-        },
-      ],
-    );
-  } else {
-    if (serviceFor === 'self') {
-      Toast.show({
-        type: 'error',
-        text1: 'Please Select Date and Address',
-      });
-    } else if (
-      firstName &&
-      lastName &&
-      email &&
-      phoneNumber &&
-      location
+    setLoading(true);
+    if (
+      selectAddress ||
+      (email && firstName && lastName && phoneNumber && location)
     ) {
-      Toast.show({
-        type: 'success',
-        text1: 'All fields are filled successfully.',
-      });
+      Alert.alert(
+        'Disclaimer',
+        'We may contact you to modify the time based on local agent availability.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              submitAddressDetails();
+            },
+            style: 'cancel',
+          },
+        ],
+      );
+    } else {
+      if (serviceFor === 'self') {
+        Toast.show({
+          type: 'error',
+          text1: 'Please Select Date and Address',
+        });
+      } else if (firstName && lastName && email && phoneNumber && location) {
+        Toast.show({
+          type: 'success',
+          text1: 'All fields are filled successfully.',
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Please fill in all fields.',
+        });
+      }
     }
-     else  {
-      Toast.show({
-        type: 'error',
-        text1: 'Please fill in all fields.',
-      });
-    }
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   // const showConfirmation = async () => {
   //   setLoading(true);
@@ -179,145 +172,148 @@ export default function ServiceDetailScreen({route, navigation}) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1, paddingBottom: heightToDp(5)}}>
-        <ScrollView scrollEnabled={true} removeClippedSubviews={false}  showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" >
+        <ScrollView
+          scrollEnabled={true}
+          removeClippedSubviews={false}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
           <BottomSheetStyle>
             <View style={{paddingBottom: widthToDp(5)}}>
-          <View style={{marginVertical: heightToDp(2)}}>
-            <Text style={styles.headingContainer}>Date & Time:</Text>
-            <View style={styles.buttonFlex}>
-              <TouchableOpacity onPress={() => setOpen(true)}>
-                <Text
-                  style={{
-                    color: Colors.Orange,
-                    fontFamily: 'Manrope-Bold',
+              <View style={{marginVertical: heightToDp(2)}}>
+                <Text style={styles.headingContainer}>Date & Time:</Text>
+                <View style={styles.buttonFlex}>
+                  <TouchableOpacity onPress={() => setOpen(true)}>
+                    <Text
+                      style={{
+                        color: Colors.Orange,
+                        fontFamily: 'Manrope-Bold',
+                        fontSize: widthToDp(5),
+                        borderWidth: 1,
+                        borderColor: Colors.Orange,
+                        paddingHorizontal: widthToDp(2),
+                        borderRadius: widthToDp(2),
+                      }}>
+                      {moment(date).format('MM-DD-YYYY hh:mm A')}
+                    </Text>
+                  </TouchableOpacity>
+                  <DatePicker
+                    modal
+                    mode="datetime"
+                    minimumDate={date}
+                    open={open}
+                    androidVariant="iosClone"
+                    date={date}
+                    onConfirm={date => {
+                      setOpen(false);
+                      setDate(date);
+                    }}
+                    onCancel={() => {
+                      setOpen(false);
+                    }}
+                  />
+                </View>
+              </View>
+              <Text style={styles.insideHeading}>
+                To whom are you booking this service for:
+              </Text>
+
+              <View style={styles.buttonFlex}>
+                <MainButton
+                  Title="Self"
+                  colors={
+                    serviceFor === 'self'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    paddingVertical: widthToDp(2),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
                     fontSize: widthToDp(5),
-                    borderWidth: 1,
-                    borderColor: Colors.Orange,
-                    paddingHorizontal: widthToDp(2),
-                    borderRadius: widthToDp(2),
-                  }}>
-                  {moment(date).format('MM-DD-YYYY hh:mm A')}
-                </Text>
-              </TouchableOpacity>
-              <DatePicker
-                modal
-                mode="datetime"
-                minimumDate={date}
-                open={open}
-                androidVariant="iosClone"
-                date={date}
-                onConfirm={date => {
-                  setOpen(false);
-                  setDate(date);
-                }}
-                onCancel={() => {
-                  setOpen(false);
-                }}
-              />
-            </View>
-          </View>
-          <Text style={styles.insideHeading}>
-            To whom are you booking this service for:
-          </Text>
-
-          <View style={styles.buttonFlex}>
-            <MainButton
-              Title="Self"
-              colors={
-                serviceFor === 'self'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              GradiStyles={{
-                width: widthToDp(40),
-                paddingVertical: widthToDp(2),
-              }}
-              styles={{
-                padding: widthToDp(0),
-                fontSize: widthToDp(5),
-              }}
-              onPress={() => changeServiceFor('self')}
-            />
-            <MainButton
-              Title="Others"
-              colors={
-                serviceFor === 'other'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              GradiStyles={{
-                width: widthToDp(40),
-                paddingVertical: widthToDp(2),
-              }}
-              styles={{
-                padding: widthToDp(0),
-                fontSize: widthToDp(5),
-              }}
-              onPress={() => changeServiceFor('other')}
-            />
-          </View>
-
-          {serviceFor === 'self' ? (
-            <View>
-              <Text style={styles.insideHeading}>
-                Current Available addresses:
-              </Text>
-              {addresses.map((item, index) => (
-                <AddressCard
-                  key={index}
-                  location={item.location}
-                  onPress={() => setSelectedAddress(item.location)}
-                  Show={selectAddress === item.location}
-                  booking="true"
+                  }}
+                  onPress={() => changeServiceFor('self')}
                 />
-              ))}
-             
-            </View>
-          ) : (
-            <View>
-              <Text style={styles.insideHeading}>
-                Provide details of user to whom you are booking this service
-                for:
-              </Text>
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                placeholder={'Enter your first name'}
-                Label={true}
-                LabelTextInput={'First Name'}
-                onChangeText={text => setfirstName(text)}
-              />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                placeholder={'Enter your last name'}
-                Label={true}
-                LabelTextInput={'Last Name'}
-                onChangeText={text => setlastName(text)}
-              />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/EmailIcon.png')}
-                placeholder={'Enter your email address'}
-                LabelTextInput={'Email Address'}
-                onChangeText={text => setEmail(text)}
-                Label={true}
-              />
-              <PhoneTextInput
-                onChange={e => {
-                  setNumber(e);
-                }}
-                LabelTextInput="Phone Number"
-                Label={true}
-                placeholder={'XXXXXXXXXXX'}
-              />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/locationIcon.png')}
-                Label={true}
-                placeholder={'Enter your address'}
-                LabelTextInput={'Address'}
-                onChangeText={text => setlocation(text)}
-              />
-            </View>
-          )}
-         {/* <View
+                <MainButton
+                  Title="Others"
+                  colors={
+                    serviceFor === 'other'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    paddingVertical: widthToDp(2),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(5),
+                  }}
+                  onPress={() => changeServiceFor('other')}
+                />
+              </View>
+
+              {serviceFor === 'self' ? (
+                <View>
+                  <Text style={styles.insideHeading}>
+                    Current Available addresses:
+                  </Text>
+                  {addresses.map((item, index) => (
+                    <AddressCard
+                      key={index}
+                      location={item.location}
+                      onPress={() => setSelectedAddress(item.location)}
+                      Show={selectAddress === item.location}
+                      booking="true"
+                    />
+                  ))}
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.insideHeading}>
+                    Provide details of user to whom you are booking this service
+                    for:
+                  </Text>
+                  <LabelTextInput
+                    leftImageSoucre={require('../../../assets/profileTabIcon.png')}
+                    placeholder={'Enter your first name'}
+                    Label={true}
+                    LabelTextInput={'First Name'}
+                    onChangeText={text => setfirstName(text)}
+                  />
+                  <LabelTextInput
+                    leftImageSoucre={require('../../../assets/profileTabIcon.png')}
+                    placeholder={'Enter your last name'}
+                    Label={true}
+                    LabelTextInput={'Last Name'}
+                    onChangeText={text => setlastName(text)}
+                  />
+                  <LabelTextInput
+                    leftImageSoucre={require('../../../assets/EmailIcon.png')}
+                    placeholder={'Enter your email address'}
+                    LabelTextInput={'Email Address'}
+                    onChangeText={text => setEmail(text)}
+                    Label={true}
+                  />
+                  <PhoneTextInput
+                    onChange={e => {
+                      setNumber(e);
+                    }}
+                    LabelTextInput="Phone Number"
+                    Label={true}
+                    placeholder={'XXXXXXXXXXX'}
+                  />
+                  <LabelTextInput
+                    leftImageSoucre={require('../../../assets/locationIcon.png')}
+                    Label={true}
+                    placeholder={'Enter your address'}
+                    LabelTextInput={'Address'}
+                    onChangeText={text => setlocation(text)}
+                  />
+                </View>
+              )}
+              {/* <View
                 style={{
                   marginTop: heightToDp(5),
                 }}>
@@ -331,34 +327,34 @@ export default function ServiceDetailScreen({route, navigation}) {
                   // loading={tempLoading}
                 />
               </View> */}
-               <View
+              <View
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'center',
                   marginVertical: heightToDp(5),
                 }}>
-                  {serviceFor === 'self' && (
-                     <GradientButton
-                  Title="Add a new Address"
-                  colors={
-                    serviceFor === 'self'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  GradiStyles={{
-                    // paddingVertical: widthToDp(4),
-                    width: widthToDp(45),
-                    height: heightToDp(20),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    // fontSize: widthToDp(2),
-                  }}
-                  buttonFontSize={widthToDp(5)}
-                  onPress={() => navigation.navigate('AddNewAddress')}
-                />
-                  )}
-               
+                {serviceFor === 'self' && (
+                  <GradientButton
+                    Title="Add a new Address"
+                    colors={
+                      serviceFor === 'self'
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.DisableColor, Colors.DisableColor]
+                    }
+                    GradiStyles={{
+                      // paddingVertical: widthToDp(4),
+                      width: widthToDp(45),
+                      height: heightToDp(20),
+                    }}
+                    styles={{
+                      padding: widthToDp(0),
+                      // fontSize: widthToDp(2),
+                    }}
+                    buttonFontSize={widthToDp(5)}
+                    onPress={() => navigation.navigate('AddNewAddress')}
+                  />
+                )}
+
                 <GradientButton
                   Title="Proceed"
                   colors={[
@@ -377,11 +373,10 @@ export default function ServiceDetailScreen({route, navigation}) {
                   loading={loading}
                 />
               </View>
-          </View>
+            </View>
           </BottomSheetStyle>
         </ScrollView>
-        </KeyboardAvoidingView>
-     
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
