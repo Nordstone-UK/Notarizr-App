@@ -9,7 +9,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
@@ -20,25 +20,62 @@ import useUpdate from '../../hooks/useUpdate';
 import Toast from 'react-native-toast-message';
 import useFetchUser from '../../hooks/useFetchUser';
 
-export default function AddNewAddress({navigation}, props) {
+export default function AddNewAddress({navigation,route}, props) {
   const {fetchUserInfo} = useFetchUser();
-
+console.log("routere",route.params)
   const {handleProfileUpdate} = useUpdate();
-  const {hadleUpdateAddress} = useFetchUser();
+  const {hadleUpdateAddress,handleEditAddress} = useFetchUser();
   const [building, setBuilding] = useState();
   const [street, setStreet] = useState();
   const [address, setAddress] = useState();
   const [pin, setPin] = useState();
   const [tempLoading, settempLoading] = useState(false);
+ useEffect(() => {
+  if (route.params && route.params?.address) {
+    const { location } = route.params.address;
+    const [building, street, address, pin] = location.split(' ');
+    console.log("buil",route.params?.address._id)
+    setBuilding(building);
+    setStreet(street);
+    setAddress(address);
+    setPin(pin);
+  }
+}, [route.params?.address]);
+
   const submitRegister = async () => {
     if (building && street && address && pin) {
       settempLoading(true);
-      const newLocation = building + '  ' + street + ' ' + address + ' ' + pin;
+      const newLocation = building + ' ' + street + ' ' + address + ' ' + pin;
       const params = {
         location: newLocation,
         tag: 'Home',
+        addressId:route.params?.address._id
       };
-      const isUpdated = await hadleUpdateAddress(params);
+       if (route.params?.address) {
+        console.log("edit")
+        params.addressId = route.params?.address._id;
+        console.log("paramss",params)
+      const isUpdated = await handleEditAddress(params);
+      if (isUpdated) {
+        fetchUserInfo();
+        settempLoading(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Address Updated!',
+          text2: 'Your address has been updated successfully.',
+        });
+        navigation.goBack();
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Problem while editing',
+        });
+        settempLoading(false);
+      }
+      } else {
+        console.log("addd")
+     const isUpdated = await hadleUpdateAddress(params);
       if (isUpdated) {
         fetchUserInfo();
         settempLoading(false);
@@ -56,6 +93,8 @@ export default function AddNewAddress({navigation}, props) {
         });
         settempLoading(false);
       }
+      }
+      
     } else {
       Toast.show({
         type: 'error',
@@ -75,6 +114,7 @@ export default function AddNewAddress({navigation}, props) {
             LabelTextInput={'Building / Flat'}
             Label={true}
             onChangeText={text => setBuilding(text)}
+            value={building}
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/roadIcon.png')}
@@ -82,6 +122,7 @@ export default function AddNewAddress({navigation}, props) {
             LabelTextInput={'Street'}
             onChangeText={text => setStreet(text)}
             Label={true}
+            value={street}
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/homeAddressIcon.png')}
@@ -89,6 +130,7 @@ export default function AddNewAddress({navigation}, props) {
             LabelTextInput={'Address'}
             onChangeText={text => setAddress(text)}
             Label={true}
+            value={address}
           />
           <LabelTextInput
             leftImageSoucre={require('../../../assets/mailbox.png')}
@@ -96,6 +138,7 @@ export default function AddNewAddress({navigation}, props) {
             LabelTextInput={'POST Code'}
             onChangeText={text => setPin(text)}
             Label={true}
+            value={pin}
           />
           <View
             style={{

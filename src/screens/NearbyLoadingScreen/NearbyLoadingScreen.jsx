@@ -19,6 +19,7 @@ import {
 
 export default function NearbyLoadingScreen({route, navigation}) {
   const serviceType = useSelector(state => state.booking?.booking?.serviceType);
+ 
   const {FetchMobileNotary} = useGetService();
   const {fetchBookingByID} = useFetchBooking();
   const {handleBookingCreation} = useCreateBooking();
@@ -33,19 +34,24 @@ export default function NearbyLoadingScreen({route, navigation}) {
       const {service} = user;
       // console.log('Agent Search Response:', response);
       if (response?.status === '200') {
+        
         try {
           const response = await handleBookingCreation(user._id, service._id);
+          console.log("sdsdsdsds",user._id,service._id)
           const {booking} = response;
+          
           const bookingData = await fetchBookingByID(booking._id);
 
           console.log('booking', booking._id);
 
           const getBookingById = bookingData?.getBookingById;
+           
           // console.log(getBookingById);
           if (response.status === '201') {
             if (bookingData?.__typename !== 'Session') {
               await handleUpdateBookingStatus('pending', booking._id);
             } else {
+             
               await updateSession('accepted', booking._id);
             }
             dispatch(setBookingInfoState(getBookingById?.booking));

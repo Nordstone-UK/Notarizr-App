@@ -7,6 +7,7 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  KeyboardAvoidingView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -68,6 +69,7 @@ export default function ServiceDetailScreen({route, navigation}) {
       setServiceFor(string);
     }
   };
+  console.log("Srvie",serviceFor)
   const submitAddressDetails = () => {
     dispatch(
       setBookingInfoState({
@@ -97,38 +99,89 @@ export default function ServiceDetailScreen({route, navigation}) {
     navigation.navigate('LegalDocScreen');
   };
   const showConfirmation = async () => {
-    setLoading(true);
-    if (
-      selectAddress ||
-      (email && firstName && lastName && phoneNumber && location)
-    ) {
-      Alert.alert(
-        'Disclaimer',
-        'We may contact you to modify the time based on local agent availability.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              submitAddressDetails();
-            },
-            style: 'cancel',
+  setLoading(true);
+  if (
+    selectAddress ||
+    (email && firstName && lastName && phoneNumber && location)
+  ) {
+    Alert.alert(
+      'Disclaimer',
+      'We may contact you to modify the time based on local agent availability.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            submitAddressDetails();
           },
-        ],
-      );
-    } else {
+          style: 'cancel',
+        },
+      ],
+    );
+  } else {
+    if (serviceFor === 'self') {
       Toast.show({
         type: 'error',
         text1: 'Please Select Date and Address',
       });
+    } else if (
+      firstName &&
+      lastName &&
+      email &&
+      phoneNumber &&
+      location
+    ) {
+      Toast.show({
+        type: 'success',
+        text1: 'All fields are filled successfully.',
+      });
     }
+     else  {
+      Toast.show({
+        type: 'error',
+        text1: 'Please fill in all fields.',
+      });
+    }
+  }
+  setLoading(false);
+};
 
-    setLoading(false);
-  };
+  // const showConfirmation = async () => {
+  //   setLoading(true);
+  //   if (
+  //     selectAddress ||
+  //     (email && firstName && lastName && phoneNumber && location)
+  //   ) {
+  //     Alert.alert(
+  //       'Disclaimer',
+  //       'We may contact you to modify the time based on local agent availability.',
+  //       [
+  //         {
+  //           text: 'OK',
+  //           onPress: () => {
+  //             submitAddressDetails();
+  //           },
+  //           style: 'cancel',
+  //         },
+  //       ],
+  //     );
+  //   } else {
+  //     Toast.show({
+  //       type: 'error',
+  //       text1: 'Please Select Date and Address',
+  //     });
+  //   }
+
+  //   setLoading(false);
+  // };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
-      <BottomSheetStyle>
-        <ScrollView scrollEnabled={true} removeClippedSubviews={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1, paddingBottom: heightToDp(5)}}>
+        <ScrollView scrollEnabled={true} removeClippedSubviews={false}  showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" >
+          <BottomSheetStyle>
+            <View style={{paddingBottom: widthToDp(5)}}>
           <View style={{marginVertical: heightToDp(2)}}>
             <Text style={styles.headingContainer}>Date & Time:</Text>
             <View style={styles.buttonFlex}>
@@ -188,7 +241,7 @@ export default function ServiceDetailScreen({route, navigation}) {
             <MainButton
               Title="Others"
               colors={
-                serviceFor === 'others'
+                serviceFor === 'other'
                   ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
                   : [Colors.DisableColor, Colors.DisableColor]
               }
@@ -200,7 +253,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                 padding: widthToDp(0),
                 fontSize: widthToDp(5),
               }}
-              onPress={() => changeServiceFor('others')}
+              onPress={() => changeServiceFor('other')}
             />
           </View>
 
@@ -215,51 +268,10 @@ export default function ServiceDetailScreen({route, navigation}) {
                   location={item.location}
                   onPress={() => setSelectedAddress(item.location)}
                   Show={selectAddress === item.location}
+                  booking="true"
                 />
               ))}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginVertical: heightToDp(5),
-                }}>
-                <GradientButton
-                  Title="Add a new Address"
-                  colors={
-                    serviceFor === 'self'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  GradiStyles={{
-                    // paddingVertical: widthToDp(4),
-                    width: widthToDp(45),
-                    height: heightToDp(20),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    // fontSize: widthToDp(2),
-                  }}
-                  buttonFontSize={widthToDp(5)}
-                  onPress={() => navigation.navigate('AddNewAddress')}
-                />
-                <GradientButton
-                  Title="Proceed"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{
-                    width: widthToDp(40),
-                    height: heightToDp(20),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                  }}
-                  buttonFontSize={widthToDp(5)}
-                  onPress={() => showConfirmation()}
-                  loading={loading}
-                />
-              </View>
+             
             </View>
           ) : (
             <View>
@@ -305,11 +317,71 @@ export default function ServiceDetailScreen({route, navigation}) {
               />
             </View>
           )}
-          {/* <View style={{marginVertical: heightToDp(5)}}> */}
-
-          {/* </View> */}
+         {/* <View
+                style={{
+                  marginTop: heightToDp(5),
+                }}>
+                <GradientButton
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  Title="PROCEED"
+                  // onPress={() => submitRegister()}
+                  // loading={tempLoading}
+                />
+              </View> */}
+               <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  marginVertical: heightToDp(5),
+                }}>
+                  {serviceFor === 'self' && (
+                     <GradientButton
+                  Title="Add a new Address"
+                  colors={
+                    serviceFor === 'self'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  GradiStyles={{
+                    // paddingVertical: widthToDp(4),
+                    width: widthToDp(45),
+                    height: heightToDp(20),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    // fontSize: widthToDp(2),
+                  }}
+                  buttonFontSize={widthToDp(5)}
+                  onPress={() => navigation.navigate('AddNewAddress')}
+                />
+                  )}
+               
+                <GradientButton
+                  Title="Proceed"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(40),
+                    height: heightToDp(20),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                  }}
+                  buttonFontSize={widthToDp(5)}
+                  onPress={() => showConfirmation()}
+                  loading={loading}
+                />
+              </View>
+          </View>
+          </BottomSheetStyle>
         </ScrollView>
-      </BottomSheetStyle>
+        </KeyboardAvoidingView>
+     
     </SafeAreaView>
   );
 }
@@ -327,14 +399,14 @@ const styles = StyleSheet.create({
   },
 
   headingContainer: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(6),
   },
   insideHeading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(3),
     marginHorizontal: widthToDp(5),

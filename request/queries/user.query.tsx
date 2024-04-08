@@ -27,6 +27,7 @@ export const FETCH_USER_INFO = gql`
       description
       state
       addresses {
+        _id
         tag
         location
       }

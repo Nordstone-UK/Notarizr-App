@@ -14,9 +14,9 @@ import {
   ActivityIndicator,
   Text as RNText,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Colors from '../../themes/Colors';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
+import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {
   ClientRoleType,
@@ -27,26 +27,26 @@ import {
 } from 'react-native-agora';
 
 import Toast from 'react-native-toast-message';
-import {PDFDocument} from 'pdf-lib';
+import { PDFDocument } from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
-import {Edit, PageEdit, Text} from 'iconoir-react-native';
-import {useLiveblocks} from '../../store/liveblocks';
+import { Edit, PageEdit, Text } from 'iconoir-react-native';
+import { useLiveblocks } from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import Pdf from 'react-native-pdf';
 import Signature from 'react-native-signature-canvas';
-import {decode as atob, encode as btoa} from 'base-64';
+import { decode as atob, encode as btoa } from 'base-64';
 import RNFS from 'react-native-fs';
-import {uploadSignedDocumentsOnS3} from '../../utils/s3Helper';
-import {useMutation} from '@apollo/client';
-import {SIGN_DOCS} from '../../../request/mutations/signDocument';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { uploadSignedDocumentsOnS3 } from '../../utils/s3Helper';
+import { useMutation } from '@apollo/client';
+import { SIGN_DOCS } from '../../../request/mutations/signDocument';
+import { launchImageLibrary } from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 
-export default function NotaryCallScreen({route, navigation}: any) {
+export default function NotaryCallScreen({ route, navigation }: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
@@ -220,15 +220,14 @@ export default function NotaryCallScreen({route, navigation}: any) {
       // Play with these values as every project has different requirements
       const pdfBytes = await pdfDoc.save();
       const pdfBase64 = _uint8ToBase64(pdfBytes);
-      const path = `${
-        RNFS.DocumentDirectoryPath
-      }/react-native_signed_${Date.now()}.pdf`;
+      const path = `${RNFS.DocumentDirectoryPath
+        }/react-native_signed_${Date.now()}.pdf`;
       console.log('path', path);
       RNFS.writeFile(path, pdfBase64, 'base64')
         .then(async success => {
           setNewPdfPath(path);
           setNewPdfSaved(true);
-          setPdfBase64(pdfBase64);
+          setPdfBase64(pdfBasesetSourceUrl64);
           const l = await uploadSignedDocumentsOnS3(pdfBase64);
           updateSignedDocumentToDb(l);
         })
@@ -267,8 +266,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
   ///////////////////////////////
 
-  const {channel, token: CutomToken} = route.params;
-  const uid = 0;
+  const { channel, token: CutomToken, uid } = route.params;
+  // const uid = 0;
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
@@ -326,7 +325,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
             setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
           },
-          onRequestToken(connection) {},
+          onRequestToken(connection) { },
         });
         agoraEngine.initialize({
           appId: appId,
@@ -354,7 +353,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
         ChannelProfileType.ChannelProfileCommunication,
       );
       agoraEngineRef.current?.startPreview();
-      // console.log(token, channelName, uid);
+      console.log(token, channelName, uid);
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
@@ -409,7 +408,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
             contentContainerStyle={styles.scrollContainer}>
             {isJoined ? (
               <React.Fragment key={0}>
-                <RtcSurfaceView canvas={{uid: 0}} style={styles.videoView} />
+                <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
               </React.Fragment>
             ) : (
               <View
@@ -418,7 +417,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                   alignItems: 'center',
                 }}>
                 <Image
-                  source={{uri: User?.profile_picture}}
+                  source={{ uri: User?.profile_picture }}
                   style={{
                     width: widthToDp(25),
                     height: widthToDp(25),
@@ -429,18 +428,18 @@ export default function NotaryCallScreen({route, navigation}: any) {
             )}
             {remoteUids.map((uid, index) => (
               <View key={index}>
-                <RtcSurfaceView canvas={{uid}} style={styles.videoView} />
+                <RtcSurfaceView canvas={{ uid }} style={styles.videoView} />
               </View>
             ))}
           </ScrollView>
-          <View style={{flex: 0.2, justifyContent: 'space-evenly'}}>
+          <View style={{ flex: 0.2, justifyContent: 'space-evenly' }}>
             {isJoined ? (
               <TouchableOpacity
                 style={styles.hourGlass}
                 onPress={() => setIsJoined(!isJoined)}>
                 <Image
                   source={require('../../../assets/videoOff.png')}
-                  style={{width: widthToDp(10), height: widthToDp(10)}}
+                  style={{ width: widthToDp(10), height: widthToDp(10) }}
                 />
               </TouchableOpacity>
             ) : (
@@ -449,7 +448,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 onPress={() => setIsJoined(!isJoined)}>
                 <Image
                   source={require('../../../assets/video.png')}
-                  style={{width: widthToDp(10), height: widthToDp(10)}}
+                  style={{ width: widthToDp(10), height: widthToDp(10) }}
                 />
               </TouchableOpacity>
             )}
@@ -460,18 +459,18 @@ export default function NotaryCallScreen({route, navigation}: any) {
                     ? require('../../../assets/unmute.png')
                     : require('../../../assets/mute.png')
                 }
-                style={{width: widthToDp(10), height: widthToDp(10)}}
+                style={{ width: widthToDp(10), height: widthToDp(10) }}
               />
             </TouchableOpacity>
           </View>
         </View>
       </View>
-      <View style={{backgroundColor: Colors.white}}>
+      <View style={{ backgroundColor: Colors.white }}>
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={itemValue => handleLinkChange(itemValue)}
           items={Object.keys(bookingData.client_documents).map(doc => {
-            return {label: doc, value: bookingData.client_documents[doc]};
+            return { label: doc, value: bookingData.client_documents[doc] };
           })}
         />
       </View>
@@ -510,7 +509,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                   <PdfView
                     // ref={pdfRef}
                     style={styles.pdfView}
-                    source={{uri: filePath}}
+                    source={{ uri: filePath }}
                     trustAllCerts={false}
                     showsVerticalScrollIndicator={false}
                     showsHorizontalScrollIndicator={false}
@@ -525,12 +524,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
                     onLoadComplete={(
                       numberOfPages,
                       filePath,
-                      {width, height},
+                      { width, height },
                     ) => {
                       setPageWidth(width);
                       setPageHeight(height);
                     }}
-                    onPageChanged={(page, numberOfPages) => {}}
+                    onPageChanged={(page, numberOfPages) => { }}
                     onPageSingleTap={(page, x, y) => {
                       handleSingleTap(page, x, y);
                     }}
@@ -553,7 +552,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                     <ActivityIndicator
                       size="large"
                       color={Colors.Orange}
-                      style={{marginTop: -200}}
+                      style={{ marginTop: -200 }}
                     />
                     <RNText
                       style={{

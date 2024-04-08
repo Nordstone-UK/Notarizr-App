@@ -49,6 +49,15 @@ export default function LegalDocScreen({route, navigation}) {
   const [selected, setSelected] = React.useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true); 
+      await getState();
+      setLoading(false); 
+    };
+
+    fetchData();
+  }, []);
 
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
@@ -100,10 +109,7 @@ export default function LegalDocScreen({route, navigation}) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
   };
-  useEffect(() => {
-    getState();
-  }, []);
-
+ 
   const handleSearchInput = query => {
     setSearchResults(query);
     setDocumentArray();
@@ -149,7 +155,48 @@ export default function LegalDocScreen({route, navigation}) {
               marginTop: widthToDp(2),
               paddingHorizontal: widthToDp(2),
             }}>
-            {documentArray ? (
+              
+              {loading ? (
+                <View
+                style={{
+                  justifyContent: 'center',
+                }}>
+                <ActivityIndicator size="large" color={Colors.Orange} />
+               </View>
+               ) : (
+                 <MultipleSelectList
+                setSelected={val => setSelected(val)}
+                data={documentArray && documentArray.map(item => ({
+                  value: `${item.name} - $${item.statePrices[0].price}`,
+                }))}
+                save="value"
+                onSelect={() => createDocumentObject(selected)}
+                label="Documents"
+                placeholder="Search for documents"
+                boxStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                }}
+                dropdownStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                  maxHeight: widthToDp(75),
+                }}
+                inputStyles={{color: Colors.TextColor}}
+                badgeStyles={{backgroundColor: Colors.Orange}}
+                dropdownTextStyles={{color: Colors.TextColor}}
+                checkBoxStyles={{tintColor: Colors.TextColor}}
+                labelStyles={{color: Colors.TextColor, fontSize: widthToDp(4)}}
+                badgeTextStyles={{
+                  fontSize: widthToDp(3.2),
+                  color: Colors.white,
+                  fontFamily: 'Manrope-SemiBold',
+                }}
+              />
+               )}
+            {/* {documentArray ? (
               <MultipleSelectList
                 setSelected={val => setSelected(val)}
                 data={documentArray.map(item => ({
@@ -182,13 +229,13 @@ export default function LegalDocScreen({route, navigation}) {
                 }}
               />
             ) : (
-              <View
+             <View
                 style={{
                   justifyContent: 'center',
                 }}>
                 <ActivityIndicator size="large" color={Colors.Orange} />
-              </View>
-            )}
+               </View>
+            )} */}
           </View>
           <View
             style={{

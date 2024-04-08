@@ -33,19 +33,18 @@ export default function AllBookingScreen({route, navigation}) {
   const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
   const [refreshing, setRefreshing] = useState(false);
   const [mergerData, setMergerData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const init = async status => {
+    setLoading(true);
     const bookingDetail = await fetchBookingInfo(status);
     const sessionDetail = await handleClientSessions(status);
-    // console.log('bookingDetail', bookingDetail);
-    // console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
-
     const sortedDetails = mergedDetails.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
-
     setMergerData(sortedDetails);
+    setLoading(false);
   };
   useEffect(() => {
     if (user != null) {
@@ -171,7 +170,7 @@ export default function AllBookingScreen({route, navigation}) {
                 onPress={() => callBookingsAPI('completed')}
               />
               <MainButton
-                Title="Rejected"
+                Title="Rejected / Cancelled"
                 colors={
                   isFocused === 'rejected'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
@@ -195,7 +194,11 @@ export default function AllBookingScreen({route, navigation}) {
               />
             </View>
           </ScrollView>
-          {user != null ? (
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            </View>
+          ) : user != null ? (
             <View style={styles.bookingContainer}>
               {mergerData ? (
                 mergerData.length !== 0 ? (
@@ -220,6 +223,7 @@ export default function AllBookingScreen({route, navigation}) {
                             agentAddress={item?.agent?.location}
                             task={item?.status || 'Loading'}
                             OrangeText={'At Office'}
+                            datetimesession={item?.date_time_session}
                             dateofBooking={item?.date_of_booking}
                             timeofBooking={item?.time_of_booking}
                             createdAt={item?.createdAt}
@@ -326,4 +330,9 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     marginVertical: widthToDp(3),
   },
+  loadingContainer: {
+  height: heightToDp(100),
+  justifyContent: 'center',
+  alignItems: 'center',
+  }
 });

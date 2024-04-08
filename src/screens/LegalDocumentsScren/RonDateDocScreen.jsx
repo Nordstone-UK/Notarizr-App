@@ -56,11 +56,9 @@ export default function RonDateDocScreen({route, navigation}) {
   const [searchedUser, setSearchedUser] = useState([]);
   const [isLoading, setisLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [selectedDocs, setSelectedDocs] = useState([
-    {name: 'Unclaimed Property Form', price: 150},
-  ]);
+  const [selectedDocs, setSelectedDocs] = useState([]);
   const [fileResponse, setFileResponse] = useState([]);
-
+console.log("searchuser",selectedClient)
   const [isYes, setIsYes] = useState(true);
   const {uploadMultipleFiles} = useRegister();
   // console.log(selectedDocs);
@@ -81,13 +79,6 @@ export default function RonDateDocScreen({route, navigation}) {
   }
   const submitAddressDetails = async docArray => {
     setLoading(true);
-
-    if (selectedDocs.length === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Please fill all the fields',
-      });
-    } else {
       if (!isYes) {
         dispatch(
           setBookingInfoState({
@@ -112,8 +103,30 @@ export default function RonDateDocScreen({route, navigation}) {
         );
         navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
       } else {
+         dispatch(
+          setBookingInfoState({
+            serviceType: 'ron',
+            service: null,
+            timeOfBooking: moment(date).format('h:mm A'),
+            dateOfBooking: moment(date).format('MM-DD-YYYY'),
+            agent: selectedClient,
+            documentType: docArray,
+            address: null,
+            bookedFor: {
+              email: null,
+              first_name: null,
+              last_name: null,
+              location: null,
+              phone_number: null,
+            },
+            bookingType: 'self',
+            documents: null,
+            preferenceAnalysis: 'distance',
+          }),
+        );
+        navigation.navigate('NearbyLoadingScreen', {serviceType: 'ron'});
       }
-    }
+    
     setLoading(false);
   };
   const getState = async query => {

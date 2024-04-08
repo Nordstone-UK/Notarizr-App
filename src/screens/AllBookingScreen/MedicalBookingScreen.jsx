@@ -11,6 +11,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
+import PdfView from 'react-native-pdf';
+import Pdf from 'react-native-pdf';
+
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -49,6 +52,7 @@ import {
   UPDATE_SESSION_CLIENT_DOCS,
 } from '../../../request/mutations/updateSessionClientDocs';
 import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
+import AddressCard from '../../components/AddressCard/AddressCard';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -84,8 +88,11 @@ export default function MedicalBookingScreen({route, navigation}) {
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const [uploadShow, setUploadShow] = useState(true);
   const [showIcon, setShowIcon] = useState(true);
-
-  console.log('####', bookingDetail);
+const [pdfUrl, setPdfUrl] = useState('');
+const [isPdfVisible, setIsPdfVisible] = useState(false);
+const [isLoading, setIsLoading] = useState(true);
+// const pdfRef = React.useRef<Pdf>(null);
+  console.log('####', pdfUrl,isPdfVisible);
 
   /////// update client docs /////
 
@@ -109,6 +116,7 @@ export default function MedicalBookingScreen({route, navigation}) {
     setShowIcon(false);
     let urlResponse;
     const response = await uploadMultipleFiles();
+    console.log("response",response)
     // setUploadingDocs(response);
     if (response) {
       urlResponse = await uploadAllDocuments(response);
@@ -316,7 +324,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       </View>
     );
   }
-  console.log('bookin gde', bookingDetail);
+  console.log("bookingdetails",bookingDetail)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -553,13 +561,94 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             </View>
           )}
+       {bookingDetail.address || bookingDetail.booked_for?.location || bookingDetail.client?.location ? (
+  <View style={{ paddingHorizontal: widthToDp(3) }}>
+    <Text style={[styles.insideHeading, styles.addressMargin]}>
+      {bookingDetail.address ? 'Address' : 'Booked For Location'}
+    </Text>
+    <AddressCard
+      location={bookingDetail.address || bookingDetail.booked_for?.location||bookingDetail.client?.location}
+      onPress={() => setSelectedAddress(bookingDetail.address || bookingDetail.booked_for.location)}
+      booking="true"
+    />
+  </View>
+) : null}
+
+
+           {bookingDetail.document_type && bookingDetail.document_type.length > 0 &&(
+          <View style={{marginTop:heightToDp(2)}}>
+            <Text style={[styles.insideHeading]}>Selected Documentsss</Text>
+            {bookingDetail.document_type && bookingDetail.document_type.map(item => (
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <CheckCircleSolid
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
+                />
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: 'black',
+                    marginLeft: 10,
+                  }}>
+                  {item.name}
+                </Text>
+              </View>
+            
+          ))}
+            </View>
+            )}
+             {bookingDetail.documents && bookingDetail.documents.length > 0 && (
+          <View style={{marginTop:heightToDp(2),marginVertical: 10}}>
+            <Text style={[styles.insideHeading]}> Print uploaded documents</Text>
+             <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+            {bookingDetail.documents && Array.isArray(bookingDetail.documents) && bookingDetail.documents.map((item, index) => (
+             <TouchableOpacity key={index} onPress={() => {
+                        setPdfUrl(item.url); 
+                        setIsPdfVisible(true);
+                      }}>
+                        
+                        <Image
+                          source={require('../../../assets/docPic.png')}
+                          style={{width: widthToDp(10), height: heightToDp(10)}}
+                        />
+                      </TouchableOpacity>
+            
+                ))}
+                </View>
+            </View>
+            )}
           <View style={{marginVertical: 10}}>
             <Text style={[styles.insideHeading]}>Preferred date and time</Text>
             <View style={{paddingHorizontal: widthToDp(7)}}>
-              <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+ {bookingDetail?.date_time_session && (
+  
+                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
+                    {moment(bookingDetail.date_time_session).format('MM/DD/YYYY')} at{' '}
+                    {moment(bookingDetail.date_time_session).format('h:mm a')}
+                  </Text>
+                )}
+
+                 {bookingDetail?.date_of_booking && (
+                               <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+
                 {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')} at{' '}
+               
+               
                 {bookingDetail.time_of_booking}
               </Text>
+                )}
             </View>
           </View>
 
@@ -627,18 +716,55 @@ export default function MedicalBookingScreen({route, navigation}) {
                     columnGap: widthToDp(3),
                   }}>
                   {Object.values(bookingDetail.client_documents)?.map(
-                    (item, index) => (
-                      <TouchableOpacity key={index}>
+                    (item, index) => {
+                      return (
+                      <TouchableOpacity key={index} onPress={() => {
+                        setPdfUrl(item); 
+                        setIsPdfVisible(true);
+                      }}>
+                        
                         <Image
                           source={require('../../../assets/docPic.png')}
                           style={{width: widthToDp(10), height: heightToDp(10)}}
                         />
                       </TouchableOpacity>
-                    ),
+                    )}
                   )}
+                  
                 </View>
               </View>
             )}
+      {isPdfVisible && (
+  <>
+    {isLoading && <ActivityIndicator size="large" color="#0000ff" />}
+    <PdfView
+      // ref={pdfRef}
+      style={styles.pdfView}
+      source={{uri: pdfUrl}}
+      trustAllCerts={false}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+      // horizontal={true}
+      enablePaging={true}
+      minScale={1.0}
+      maxScale={1.0}
+      scale={1.0}
+      spacing={0}
+      fitPolicy={0}
+      onLoadComplete={({numberOfPages, filePath, width, height}) => {
+        setPageWidth(width);
+        setPageHeight(height);
+      }}
+      onPageChanged={(page, numberOfPages) => {}}
+      onPageSingleTap={(page, x, y) => {
+        handleSingleTap(page, x, y);
+      }}
+      onError={error => console.error(error)}
+    /> 
+  </>
+)}
+
+
           {bookingDetail.agent_document && (
             <View>
               <Text style={[styles.insideHeading]}>
@@ -683,10 +809,6 @@ export default function MedicalBookingScreen({route, navigation}) {
                 </View>
               </View>
             )}
-
-          {/* )} */}
-
-          {/*  */}
 
           <View
             style={{
@@ -740,7 +862,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               onPress={() => {
                 selectDocuments();
               }}
-              fontSize={widthToDp(3)}
+              fontSize={widthToDp(4)}
             />
             {bookingDetail.payment_type == 'on_notarizr' && (
               <GradientButton
@@ -861,6 +983,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: widthToDp(6),
+  },
+  addressMargin:{
+    marginTop:heightToDp(4),
+    marginBottom:heightToDp(-2)
   },
   buttonFlex: {
     flexDirection: 'row',

@@ -30,21 +30,20 @@ export default function AgentAllBookingScreen({navigation}) {
   const [Booking, setBooking] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [mergerData, setMergerData] = useState([]);
+const [loading, setLoading] = useState(false);
 
   const account_type = useSelector(state => state.user.user.account_type);
   const dispatch = useDispatch();
   const init = async status => {
+    setLoading(true);
     const bookingDetail = await fetchAgentBookingInfo(status);
     const sessionDetail = await handleAgentSessions(status);
-    // console.log('bookingDetail', bookingDetail);
-    // console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
-
     const sortedDetails = mergedDetails.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
-
     setMergerData(sortedDetails);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -70,14 +69,13 @@ export default function AgentAllBookingScreen({navigation}) {
     }, 1000);
   }, []);
   const checkStatusNavigation = (status, item) => {
-    // console.log('item?.status', item._id, item?.status);
+   
     if (status === 'accepted' && item?.__typename === 'mobile_notary') {
       dispatch(setBookingInfoState(item));
       dispatch(setUser(item?.booked_by));
       dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
       navigation.navigate('MapArrivalScreen');
     } else {
-      console.log('item', item.payment_type);
       dispatch(setBookingInfoState(item));
       navigation.navigate('ClientDetailsScreen', {
         clientDetail: item,
@@ -183,7 +181,7 @@ export default function AgentAllBookingScreen({navigation}) {
                 />
               )}
               <MainButton
-                Title="Rejected"
+                Title="Rejected / Cancelled"
                 colors={
                   isFocused === 'rejected'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
@@ -213,13 +211,16 @@ export default function AgentAllBookingScreen({navigation}) {
               justifyContent: 'center',
               marginVertical: widthToDp(3),
             }}>
-            {mergerData ? (
-              mergerData.length !== 0 ? (
+            {loading ? (
+              <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.Orange} />
+            </View>
+            ) : mergerData.length !== 0 ? (
                 <FlatList
                   data={mergerData}
                   keyExtractor={item => item._id}
                   renderItem={({item}) => {
-                    console.log("itemthper",item)
+                    // console.log("items",item)
                     return (
                       <ClientServiceCard
                         image={require('../../../../assets/agentLocation.png')}
@@ -243,7 +244,7 @@ export default function AgentAllBookingScreen({navigation}) {
                             ? `${item?.booked_by?.location}`
                             : `${item?.client?.location}`
                         }
-                        task={item?.status}
+                        status={item?.status}
                         OrangeText="At Home"
                         onPress={
                           () => checkStatusNavigation(item?.status, item)
@@ -251,6 +252,8 @@ export default function AgentAllBookingScreen({navigation}) {
                           //   clientDetail: item,
                           // })
                         }
+                        paymentType={item?.payment_type}
+                        datetimesession={item?.date_time_session}
                         dateofBooking={item?.date_of_booking}
                         timeofBooking={item?.time_of_booking}
                         createdAt={item?.createdAt}
@@ -272,9 +275,8 @@ export default function AgentAllBookingScreen({navigation}) {
                   />
                   <Text style={styles.subheading}>No Booking Found...</Text>
                 </View>
-              )
-            ) : (
-              <ActivityIndicator size="large" color={Colors.Orange} />
+              
+           
             )}
           </View>
         </ScrollView>
@@ -323,4 +325,9 @@ const styles = StyleSheet.create({
     width: widthToDp(20),
     height: heightToDp(20),
   },
+   loadingContainer: {
+  height: heightToDp(100),
+  justifyContent: 'center',
+  alignItems: 'center',
+  }
 });

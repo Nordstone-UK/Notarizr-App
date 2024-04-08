@@ -31,11 +31,12 @@ export const useSession = () => {
         observers: observerEmail,
         price: totalPrice,
         documentType: documentObjects,
-        payment_type: payment_type,
+        paymentType: payment_type,
       },
     };
+    console.log('requestssss', request);
     const response = await createSession(request);
-    console.log('Session Response', response);
+    console.log('Session Response', response.data.createSessionR.session);
     return response.data.createSessionR.status;
   };
   const handleSessionUpdation = async () => {};
