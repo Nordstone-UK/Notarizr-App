@@ -83,13 +83,12 @@ export default function AgentCompletedBooking({navigation}) {
                           item.booked_by.last_name
                         }
                         agentAddress={item.booked_by.location}
-                        task={item?.status}
+                        status={item?.status}
                         OrangeText="At Home"
                         onPress={() => checkStatusNavigation(item)}
                         dateofBooking={item.date_of_booking}
                         timeofBooking={item.time_of_booking}
                         createdAt={item.createdAt}
-                       
                       />
                     );
                   }}

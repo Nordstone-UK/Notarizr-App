@@ -211,7 +211,7 @@ export default function AllBookingScreen({route, navigation}) {
                           <AgentCard
                             source={{uri: item?.agent?.profile_picture}}
                             calendarImage={require('../../../assets/calenderIcon.png')}
-                        servicetype={item.service_type}
+                            servicetype={item.service_type}
                             bottomRightText={item?.document_type}
                             bottomLeftText="Total"
                             image={require('../../../assets/locationIcon.png')}
@@ -221,7 +221,7 @@ export default function AllBookingScreen({route, navigation}) {
                               item?.agent?.last_name
                             }
                             agentAddress={item?.agent?.location}
-                            task={item?.status || 'Loading'}
+                            status={item?.status || 'Loading'}
                             OrangeText={'At Office'}
                             datetimesession={item?.date_time_session}
                             dateofBooking={item?.date_of_booking}
@@ -331,8 +331,8 @@ const styles = StyleSheet.create({
     marginVertical: widthToDp(3),
   },
   loadingContainer: {
-  height: heightToDp(100),
-  justifyContent: 'center',
-  alignItems: 'center',
-  }
+    height: heightToDp(100),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

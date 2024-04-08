@@ -135,14 +135,14 @@ export default function HomeScreen({route, navigation}) {
                             bottomLeftText="Total"
                             image={require('../../../assets/agentLocation.png')}
                             calendarImage={require('../../../assets/calenderIcon.png')}
-                             servicetype={item.service_type}
+                            servicetype={item.service_type}
                             agentName={
                               item?.agent?.first_name +
                               ' ' +
                               item?.agent?.last_name
                             }
                             agentAddress={item?.agent?.location}
-                            task={item?.status}
+                            status={item?.status}
                             OrangeText={'At Office'}
                             dateofBooking={item?.date_of_booking}
                             timeofBooking={item?.time_of_booking}

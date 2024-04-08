@@ -257,7 +257,7 @@ export default function AuthenticationScreen({route, navigation}) {
           )}
           {isFocused === 'Passport' && (
             <Text style={[styles.detail]}>
-              Please upload a picture of youur Passport
+              Please upload a picture of your Passport
             </Text>
           )}
           <View

@@ -51,7 +51,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
 
-  console.log(bookingData);
+  console.log("bookingdata", bookingData);
 
   const [sourceUrl, setSourceUrl] = useState(
     bookingData.client_documents['Document 1'],
@@ -110,14 +110,20 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   const downloadFile = () => {
-    if (!fileDownloaded) {
+    if (!fileDownloaded && sourceUrl) { // Check if sourceUrl is not empty
       RNFS.downloadFile({
         fromUrl: sourceUrl,
         toFile: newPdfPath ? newPdfPath : filePath,
       }).promise.then(res => {
         setFileDownloaded(true);
         readFile();
+      }).catch(error => {
+        console.error('Error downloading file:', error);
+        // Handle the error (e.g., show an error message to the user)
       });
+    } else {
+      console.warn('Source URL is empty. File download skipped.');
+      // Handle the case where sourceUrl is empty (e.g., show a message to the user)
     }
   };
 
@@ -397,6 +403,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////
+  // console.log('navigegoback', navigation.goBack());
 
   return (
     <SafeAreaView style={styles.Maincontainer}>
@@ -619,7 +626,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                   paddingVertical: widthToDp(2),
                 }}
                 onPress={() => {
-                  //leave();
+                  leave();
                 }}
               />
             </View>
