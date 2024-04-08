@@ -43,6 +43,11 @@ import RequestPayment from '../../../components/RequestPayment/RequestPayment';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
+<<<<<<< HEAD
+=======
+import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
+import { useLazyQuery, useMutation } from '@apollo/client';
+>>>>>>> raj_kumar
 import {
   UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
   UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
@@ -72,11 +77,24 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   let {documents: documentArray} = clientDetail;
   const {booked_for} = clientDetail;
   const {proof_documents} = clientDetail;
+  const { handleupdateBookingInfo, setSessionPrice, setBookingPrice } =
+    useFetchBooking();
+
+  const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
+
+  const { uploadAllDocuments, uploadMultipleFiles } = useRegister();
+  const { handleCallSupport } = useCustomerSuport();
+  const { updateSession } = useSession();
+  const { searchUserByEmail } = useFetchUser();
+  let { documents: documentArray } = clientDetail;
+  const { booked_for } = clientDetail;
+  const { proof_documents } = clientDetail;
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [isVisible, setIsVisible] = useState(false);
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
+  const [selected, setSelected] = useState('client_choose');
   const [notary, setNotary] = useState();
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,7 +108,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [searchedUser, setSearchedUser] = useState([]);
   const [observers, setObservers] = useState([]);
   const [isLoading, setisLoading] = useState(false);
-
+  const [showIcon, setShowIcon] = useState(true);
+  const [uploadShow, setUploadShow] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -99,6 +119,13 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       console.log('Refreshing.....');
     }, 2000);
   }, []);
+  const [updateSessionClientDocs] = useMutation(
+    UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
+  );
+  const [updateBookingClientDocs] = useMutation(
+    UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
+  );
+
   const capitalizeFirstLetter = (string: string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
@@ -308,9 +335,16 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   };
 
   const selectDocuments = async () => {
+<<<<<<< HEAD
     let urlResponse;
     const response = await uploadMultipleFiles();
     console.log('response', response);
+=======
+    setShowIcon(false);
+    let urlResponse;
+    const response = await uploadMultipleFiles();
+    console.log("response", response)
+>>>>>>> raj_kumar
     // setUploadingDocs(response);
     if (response) {
       urlResponse = await uploadAllDocuments(response);
@@ -324,14 +358,22 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       const request = {
         variables: {
           sessionId: clientDetail?._id,
+<<<<<<< HEAD
           clientDocuments: urlResponse,
+=======
+          agentDocument: urlResponse,
+>>>>>>> raj_kumar
         },
       };
 
       const requestBooking = {
         variables: {
           bookingId: clientDetail?._id,
+<<<<<<< HEAD
           clientDocuments: urlResponse,
+=======
+          agentDocument: urlResponse,
+>>>>>>> raj_kumar
         },
       };
       const res =
@@ -363,9 +405,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           reponse?.getBookingById?.booking.client_documents,
         );
       }
+<<<<<<< HEAD
     }
   };
 
+=======
+      setUploadShow(false);
+      setShowIcon(true);
+    }
+    setShowIcon(true);
+  };
+  console.log("clientdetails", clientDetail)
+>>>>>>> raj_kumar
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -963,32 +1014,69 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </View>
             )}
             {!clientDetail.payment_type && (
-              <View>
-                <Text style={[styles.insideHeading]}>Payment Info </Text>
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <CheckCircleSolid
-                    width={24}
-                    height={24}
-                    strokeWidth={2}
-                    color={Colors.Orange}
-                  />
-                  <Text
+              <View style={styles.headingContainer}>
+                <Text style={styles.Heading}>Payment Info</Text>
+                <View>
+                  <View
                     style={{
-                      fontFamily: 'Poppins-Regular',
-                      color: 'black',
-                      marginLeft: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginTop: 10,
                     }}>
-                    {/* {clientDetail.payment_type == 'on_notarizr'
-                      ? */}
-                    Invoice the client on Notarizr
-                    {/* :
-                       'Invoice the client on your own'} */}
-                  </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setPaymentMethod('on_agent');
+                      }}>
+                      {paymentMethod == 'on_agent' ? (
+                        <CheckCircleSolid
+                          width={24}
+                          height={24}
+                          strokeWidth={2}
+                          color={Colors.Orange}
+                        />
+                      ) : (
+                        <CheckCircle
+                          width={24}
+                          height={24}
+                          strokeWidth={2}
+                          color={'gray'}
+                        />
+                      )}
+                    </TouchableOpacity>
+                    <Text style={{ color: 'black', marginLeft: 10 }}>
+                      Invoice the client on your own{' '}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginTop: 10,
+                    }}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setPaymentMethod('on_notarizr');
+                      }}>
+                      {paymentMethod == 'on_notarizr' ? (
+                        <CheckCircleSolid
+                          width={24}
+                          height={24}
+                          strokeWidth={2}
+                          color={Colors.Orange}
+                        />
+                      ) : (
+                        <CheckCircle
+                          width={24}
+                          height={24}
+                          strokeWidth={2}
+                          color={'gray'}
+                        />
+                      )}
+                    </TouchableOpacity>
+                    <Text style={{ color: 'black', marginLeft: 10 }}>
+                      Invoice the on client Notarizr{' '}
+                    </Text>
+                  </View>
                 </View>
               </View>
             )}
@@ -1017,8 +1105,65 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             )}
             {!clientDetail.identity_authentication && (
               <View>
-                <Text style={[styles.insideHeading]}>ID options</Text>
-                <View
+                <View style={styles.headingContainer}>
+                  <Text style={styles.Heading}>
+                    Type of identity Authentication for Session
+                  </Text>
+                  <View style={styles.buttonBottomIdsession}>
+                    <MainButton
+                      Title="Allow user to choose"
+                      colors={
+                        selected === 'client_choose'
+                          ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                          : [Colors.DisableColor, Colors.DisableColor]
+                      }
+                      GradiStyles={{
+                        paddingVertical: heightToDp(1),
+                        paddingHorizontal: widthToDp(5),
+                      }}
+                      styles={{
+                        padding: heightToDp(2),
+                        fontSize: widthToDp(3.5),
+                      }}
+                      onPress={() => setSelected('client_choose')}
+                    />
+                    <MainButton
+                      Title="ID Card"
+                      colors={
+                        selected === 'user_id'
+                          ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                          : [Colors.DisableColor, Colors.DisableColor]
+                      }
+                      GradiStyles={{
+                        paddingVertical: heightToDp(1),
+                        paddingHorizontal: widthToDp(5),
+                      }}
+                      styles={{
+                        padding: heightToDp(2),
+                        fontSize: widthToDp(3.5),
+                      }}
+                      onPress={() => setSelected('user_id')}
+                    />
+                    <MainButton
+                      Title="Passport"
+                      colors={
+                        selected === 'user_passport'
+                          ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                          : [Colors.DisableColor, Colors.DisableColor]
+                      }
+                      GradiStyles={{
+                        paddingVertical: heightToDp(1),
+                        paddingHorizontal: widthToDp(5),
+                      }}
+                      styles={{
+                        padding: heightToDp(2),
+                        fontSize: widthToDp(3.5),
+                      }}
+                      onPress={() => setSelected('user_passport')}
+                    />
+                  </View>
+                </View>
+                {/* <View
                   style={{
                     paddingHorizontal: widthToDp(7),
                     backgroundColor: Colors.OrangeGradientEnd,
@@ -1034,7 +1179,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                       ? 'Passport'
                       : 'Allow user to choose'}
                   </Text>
-                </View>
+                </View> */}
               </View>
             )}
             {!clientDetail.agent_document &&
@@ -1323,7 +1468,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
                   ]}
-                  // onPress={() => handleClientData()}
+                  onPress={() => handleClientData()}
                   GradiStyles={{
                     width: widthToDp(30),
                     paddingHorizontal: widthToDp(0),
@@ -1611,7 +1756,7 @@ const styles = StyleSheet.create({
   },
   Heading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginLeft: widthToDp(2),
   },
@@ -1686,6 +1831,15 @@ const styles = StyleSheet.create({
   },
   buttonBottom: {
     marginTop: heightToDp(3),
+  },
+  buttonBottomIdsession: {
+    flexDirection: 'row',
+    marginTop: heightToDp(3),
+    alignSelf: 'flex-start',
+    flexWrap: 'wrap',
+    rowGap: widthToDp(2),
+    columnGap: heightToDp(1),
+    marginHorizontal: widthToDp(2),
   },
   buttonFlex: {
     flexDirection: 'row',
