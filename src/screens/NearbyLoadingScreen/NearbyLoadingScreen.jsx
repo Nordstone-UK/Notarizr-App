@@ -18,9 +18,10 @@ import {
 } from '../../features/booking/bookingSlice';
 
 export default function NearbyLoadingScreen({route, navigation}) {
-  const {serviceType, dateofBooking} = useSelector(
+  const {serviceType, dateOfBooking} = useSelector(
     state => state.booking?.booking,
   );
+  console.log('daterer', dateOfBooking);
   const {FetchMobileNotary} = useGetService();
   const {fetchBookingByID} = useFetchBooking();
   const {handleBookingCreation} = useCreateBooking();
@@ -76,13 +77,15 @@ export default function NearbyLoadingScreen({route, navigation}) {
             console.warn(error);
           }
         } else {
+          console.log('dfhdfdfdlddd', dateOfBooking);
           try {
             const response = await handleClientSessionCreation(
               user.email,
               'schedule_later',
-              dateofBooking,
+              dateOfBooking,
             );
             const {session} = response;
+            console.log('resdfddfd', response);
             const sessionData = await getSessionByID(session._id);
             if (response.status === '200') {
               if (sessionData?.__typename == 'Session') {

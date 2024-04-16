@@ -83,7 +83,7 @@ export default function RonDateDocScreen({route, navigation}) {
       dispatch(
         setBookingInfoState({
           serviceType: 'ron',
-          dateofBooking: date,
+          dateOfBooking: date,
           // service: null,
           // timeOfBooking: moment(date).format('h:mm A'),
           // dateOfBooking: moment(date).format('MM-DD-YYYY'),
@@ -111,7 +111,7 @@ export default function RonDateDocScreen({route, navigation}) {
           // timeOfBooking: moment(date).format('h:mm A'),
           // dateOfBooking: moment(date).format('MM-DD-YYYY'),
           agent: selectedClient,
-          dateofBooking: date,
+          dateOfBooking: date,
           // documentType: docArray,
           // address: null,
           // bookedFor: {

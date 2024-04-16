@@ -43,14 +43,16 @@ import RequestPayment from '../../../components/RequestPayment/RequestPayment';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { CheckCircle, CheckCircleSolid, Xmark } from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
-import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
-import { useLazyQuery, useMutation } from '@apollo/client';
 import {
   UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
   UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
   UPDATE_SESSION_CLIENT_DOCS,
 } from '../../../../request/mutations/updateSessionClientDocs';
+
 import AddressCard from '../../../components/AddressCard/AddressCard';
+import { useLazyQuery, useMutation } from '@apollo/client';
+import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
+import { UPDATE_SESSION_PRICEDOCS } from '../../../../request/mutations/updateSessionPriceDocs.mutation';
 
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
@@ -59,12 +61,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     handleSessionStatus,
     handleUpdateBookingStatus,
   } = useBookingStatus();
-  const { handleupdateBookingInfo, setSessionPrice, setBookingPrice } =
-    useFetchBooking();
+  const {
+    handleupdateBookingInfo,
+    setSessionPrice,
+    setBookingPrice,
+    fetchBookingByID, updateAgentdocs
 
-  const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
+  } = useFetchBooking();
 
-  const { uploadAllDocuments, uploadMultipleFiles } = useRegister();
+
   const { handleCallSupport } = useCustomerSuport();
   const { updateSession, handleSessionUpdation, getSessionByID } = useSession();
   const { searchUserByEmail } = useFetchUser();
@@ -76,7 +81,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [isVisible, setIsVisible] = useState(false);
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
-  const [selected, setSelected] = useState('client_choose');
   const [notary, setNotary] = useState();
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -98,7 +102,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [uploadShow, setUploadShow] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   const [price, setPrice] = useState(clientDetail.price);
-
+  const [selected, setSelected] = useState('client_choose');
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -107,8 +111,14 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       console.log('Refreshing.....');
     }, 2000);
   }, []);
+
+  const { uploadMultipleFiles, uploadAllDocuments } = useRegister();
+
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
+  );
+  const [updateSessionAgentDocs] = useMutation(
+    UPDATE_SESSION_PRICEDOCS,
   );
   const [updateBookingClientDocs] = useMutation(
     UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
@@ -119,8 +129,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   };
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['25%', '40%'], []);
-
-
+  const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const handleClientData = async () => {
     setLoadingUpdate(true);
 
@@ -356,12 +365,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   };
 
   const selectDocuments = async () => {
-    setShowIcon(false);
     let urlResponse;
     const response = await uploadMultipleFiles();
-    console.log("response", response)
+    console.log('response', response);
     // setUploadingDocs(response);
     if (response) {
+
       urlResponse = await uploadAllDocuments(response);
       urlResponse = urlResponse.map(item => ({
         key: item.name,
@@ -373,19 +382,19 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       const request = {
         variables: {
           sessionId: clientDetail?._id,
-          agentDocument: urlResponse,
+          agentDocuments: urlResponse,
         },
       };
 
       const requestBooking = {
         variables: {
           bookingId: clientDetail?._id,
-          agentDocument: urlResponse,
+          agentDocuments: urlResponse,
         },
       };
       const res =
         clientDetail.__typename == 'Session'
-          ? await updateSessionClientDocs(request)
+          ? await updateAgentdocs(clientDetail?._id, urlResponse)
           : await updateBookingClientDocs(requestBooking);
 
       var reponse;
@@ -412,12 +421,10 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           reponse?.getBookingById?.booking.client_documents,
         );
       }
-      setUploadShow(false);
-      setShowIcon(true);
     }
-    setShowIcon(true);
   };
-  console.log("clientdetails", clientDetail)
+  console.log("cliendetails", clientDetail)
+  console.log("statusd", status, isStorageLoading)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -972,14 +979,16 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               <View style={{ paddingHorizontal: widthToDp(7) }}>
                 {clientDetail.date_time_session && (
                   <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
-                    {moment(clientDetail.date_time_session).format('MM/DD/YYYY')} at{' '}
-                    {moment(clientDetail.date_time_session).format('h:mm a')}
+                    {moment(clientDetail.date_time_session).format(
+                      'MM/DD/YYYY',
+                    )}{' '}
+                    at {moment(clientDetail.date_time_session).format('h:mm a')}
                   </Text>
                 )}
                 {clientDetail?.date_of_booking && (
                   <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
-                    {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')} at{' '}
-                    {clientDetail.time_of_booking}
+                    {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')}{' '}
+                    at {clientDetail.time_of_booking}
                   </Text>
                 )}
               </View>
@@ -1142,7 +1151,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       )}
                     </TouchableOpacity>
                     <Text style={{ color: 'black', marginLeft: 10 }}>
-                      Invoice the client  Notarizr{' '}
+                      Invoice the client on Notarizr{' '}
                     </Text>
                   </View>
                 </View>
@@ -1160,7 +1169,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     paddingVertical: 6,
                     borderRadius: 20,
                   }}>
-                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'white' }}>{price}</Text>
+                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'white' }}>$ {price}</Text>
                 </View>
               </View>
 
@@ -1188,82 +1197,63 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               </View>
             )}
             {!clientDetail.identity_authentication && clientDetail.__typename === "Session" && (
-              <View>
-                <View style={styles.headingContainer}>
-                  <Text style={styles.Heading}>
-                    Type of identity Authentication for Session
-                  </Text>
-                  <View style={styles.buttonBottomIdsession}>
-                    <MainButton
-                      Title="Allow user to choose"
-                      colors={
-                        selected === 'client_choose'
-                          ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                          : [Colors.DisableColor, Colors.DisableColor]
-                      }
-                      GradiStyles={{
-                        paddingVertical: heightToDp(1),
-                        paddingHorizontal: widthToDp(5),
-                      }}
-                      styles={{
-                        padding: heightToDp(2),
-                        fontSize: widthToDp(3.5),
-                      }}
-                      onPress={() => setSelected('client_choose')}
-                    />
-                    <MainButton
-                      Title="ID Card"
-                      colors={
-                        selected === 'user_id'
-                          ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                          : [Colors.DisableColor, Colors.DisableColor]
-                      }
-                      GradiStyles={{
-                        paddingVertical: heightToDp(1),
-                        paddingHorizontal: widthToDp(5),
-                      }}
-                      styles={{
-                        padding: heightToDp(2),
-                        fontSize: widthToDp(3.5),
-                      }}
-                      onPress={() => setSelected('user_id')}
-                    />
-                    <MainButton
-                      Title="Passport"
-                      colors={
-                        selected === 'user_passport'
-                          ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                          : [Colors.DisableColor, Colors.DisableColor]
-                      }
-                      GradiStyles={{
-                        paddingVertical: heightToDp(1),
-                        paddingHorizontal: widthToDp(5),
-                      }}
-                      styles={{
-                        padding: heightToDp(2),
-                        fontSize: widthToDp(3.5),
-                      }}
-                      onPress={() => setSelected('user_passport')}
-                    />
-                  </View>
+              <View style={styles.headingContainer}>
+                <Text style={styles.Heading}>
+                  Type of identity Authentication for Session
+                </Text>
+                <View style={styles.authbuttoncontainer}>
+                  <MainButton
+                    Title="Allow user to choose"
+                    colors={
+                      selected === 'client_choose'
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.DisableColor, Colors.DisableColor]
+                    }
+                    GradiStyles={{
+                      paddingVertical: heightToDp(1),
+                      paddingHorizontal: widthToDp(5),
+                    }}
+                    styles={{
+                      padding: heightToDp(2),
+                      fontSize: widthToDp(3.5),
+                    }}
+                    onPress={() => setSelected('client_choose')}
+                  />
+                  <MainButton
+                    Title="ID Card"
+                    colors={
+                      selected === 'user_id'
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.DisableColor, Colors.DisableColor]
+                    }
+                    GradiStyles={{
+                      paddingVertical: heightToDp(1),
+                      paddingHorizontal: widthToDp(5),
+                    }}
+                    styles={{
+                      padding: heightToDp(2),
+                      fontSize: widthToDp(3.5),
+                    }}
+                    onPress={() => setSelected('user_id')}
+                  />
+                  <MainButton
+                    Title="Passport"
+                    colors={
+                      selected === 'user_passport'
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.DisableColor, Colors.DisableColor]
+                    }
+                    GradiStyles={{
+                      paddingVertical: heightToDp(1),
+                      paddingHorizontal: widthToDp(5),
+                    }}
+                    styles={{
+                      padding: heightToDp(2),
+                      fontSize: widthToDp(3.5),
+                    }}
+                    onPress={() => setSelected('user_passport')}
+                  />
                 </View>
-                {/* <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    backgroundColor: Colors.OrangeGradientEnd,
-                    marginLeft: widthToDp(5),
-                    width: widthToDp(60),
-                    paddingVertical: 6,
-                    borderRadius: 20,
-                  }}>
-                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'white' }}>
-                    {clientDetail.identity_authentication == 'user_id'
-                      ? 'ID Card'
-                      : clientDetail.identity_authentication == 'user_passport'
-                        ? 'Passport'
-                        : 'Allow user to choose'}
-                  </Text>
-                </View> */}
               </View>
             )}
             {!clientDetail.agent_document &&
@@ -1546,7 +1536,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           <View style={[styles.buttonFlex, { marginTop: heightToDp(5) }]}>
             {status === 'Pending' && (
               <>
-                {(clientDetail.observers.length === 0 || clientDetail.payment_type === null && clientDetail.identity_authentication === null) && !clientDetail.__typename === "Booking" && (
+                {(clientDetail.observers.length === 0 || clientDetail.payment_type === null && clientDetail.identity_authentication === null) && clientDetail.__typename !== "Booking" && (
 
 
 
@@ -1754,7 +1744,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     padding: widthToDp(0),
                     fontSize: widthToDp(6),
                   }}
-                  onPress={() => selectDocuments()}
+                  onPress={() => {
+                    selectDocuments();
+                  }}
                   fontSize={widthToDp(4)}
                 />
               </View>
@@ -1766,7 +1758,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 GradiStyles={{ padding: widthToDp(4) }}
                 styles={{ padding: 0, fontSize: widthToDp(5) }}
-                onPress={() => selectDocuments()}
+                onPress={() => setIsVisible(true)}
               />
             )}
             {signaturePage &&
@@ -1951,7 +1943,7 @@ const styles = StyleSheet.create({
   buttonBottom: {
     marginTop: heightToDp(3),
   },
-  buttonBottomIdsession: {
+  authbuttoncontainer: {
     flexDirection: 'row',
     marginTop: heightToDp(3),
     alignSelf: 'flex-start',
@@ -1960,6 +1952,7 @@ const styles = StyleSheet.create({
     columnGap: heightToDp(1),
     marginHorizontal: widthToDp(2),
   },
+
   buttonFlex: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',

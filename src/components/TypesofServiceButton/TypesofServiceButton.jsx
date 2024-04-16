@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     color: Colors.white,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
   },
   Image: {

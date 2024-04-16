@@ -45,11 +45,12 @@ import { useMutation } from '@apollo/client';
 import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { launchImageLibrary } from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
+import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
 
 export default function NotaryCallScreen({ route, navigation }: any) {
-  // const { routeFrom } = route.params;
-  // console.log("routerfforoe", routeFrom)
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
+
+  const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
 
@@ -238,6 +239,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           setPdfBase64(pdfBasesetSourceUrl64);
           const l = await uploadSignedDocumentsOnS3(pdfBase64);
           updateSignedDocumentToDb(l);
+          addSignedDocFunc(l);
         })
         .catch(err => {
           console.log('eeee', err.message);
@@ -267,6 +269,26 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.log('response', response);
     } catch (error) {
       console.log('error', error);
+    }
+  };
+
+  const addSignedDocFunc = async url => {
+    console.log(bookingData._id);
+    try {
+      const request = {
+        variables: {
+          bookingId: bookingData?._id,
+          notarizedDocs: [url],
+          bookingType:
+            bookingData?.__typename == 'Bokking' ? 'booking' : 'session',
+        },
+      };
+
+      const response = await AddSignedDocs(request);
+
+      console.log('###########', response);
+    } catch (error) {
+      console.log(error);
     }
   };
 

@@ -115,6 +115,7 @@ export default function LegalDocScreen({route, navigation}) {
     setLoading(false);
   };
   const getState = async query => {
+    setLoading(true);
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(
       page,
@@ -129,6 +130,7 @@ export default function LegalDocScreen({route, navigation}) {
     if (Limit < data?.totalDocs) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
+    setLoading(false);
   };
 
   const handleSearchInput = query => {

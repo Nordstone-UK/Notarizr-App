@@ -91,6 +91,7 @@ export const useSession = () => {
         dateTimeSession: date,
       },
     };
+    console.log('reques', request);
     const response = await createClientSession(request);
     return response.data.createSessionClientR;
   };
