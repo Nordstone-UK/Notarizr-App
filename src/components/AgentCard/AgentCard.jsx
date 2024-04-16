@@ -86,7 +86,7 @@
 //     <View style={styles.cardContainer}>
 //       <View style={{flexDirection: 'row', margin: heightToDp(1)}}>
 //         <AgentCardPicture
-//           task={props.task}
+//           status={props.status}
 //           source={props.source}
 //           dateofBooking={props.dateofBooking}
 //           timeofBooking={props.timeofBooking}
@@ -351,8 +351,13 @@ export default function AgentCard(props) {
                 textAlign: 'center',
                 fontSize: 14,
               }}>
-              {props.task === 'to_be_paid' ? 'To Be Paid' : (props.task === 'pending' ? 'Pending' : (props.task === 'rejected' ? 'Rejected' : props.task))}
-
+              {props.status === 'to_be_paid'
+                ? 'To Be Paid'
+                : props.status === 'pending'
+                ? 'Pending'
+                : props.status === 'rejected'
+                ? 'Rejected'
+                : props.status}
             </Text>
           </View>
         </View>
@@ -401,14 +406,25 @@ export default function AgentCard(props) {
               flexDirection: 'row',
               alignItems: 'center',
               columnGap: widthToDp(1),
-              marginBottom:20,
+              marginBottom: 20,
             }}>
-              <Image
+            <Image
               source={props.calendarImage}
               style={{width: widthToDp(4), height: heightToDp(4)}}
             />
             <Text style={[styles.rating, {color: Colors.OrangeGradientEnd}]}>
-               {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking}
+              {props.datetimesession && (
+                <>
+                  {moment(props.datetimesession).format('Do MMMM YYYY')} at{' '}
+                  {moment(props.datetimesession).format('h:mm a')}
+                </>
+              )}
+              {props.dateofBooking && (
+                <>
+                  {moment(props.dateofBooking).format('Do MMMM YYYY')} at{' '}
+                  {props.timeofBooking}
+                </>
+              )}
             </Text>
           </View>
         </View>
@@ -428,7 +444,13 @@ export default function AgentCard(props) {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-          <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'No Type')}</Text>
+        <Text>
+          {props?.servicetype === 'ron'
+            ? 'RON'
+            : props?.servicetype === 'mobile_notary'
+            ? 'Mobile Notary'
+            : 'RON'}
+        </Text>
       </View>
     </View>
   );

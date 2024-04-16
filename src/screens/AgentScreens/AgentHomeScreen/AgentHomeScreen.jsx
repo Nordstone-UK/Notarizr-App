@@ -75,8 +75,8 @@ export default function AgentHomeScreen({navigation}) {
   }, [navigation]);
   const handleNavigation = item => {
     navigation.navigate('ClientDetailsScreen', {
-        clientDetail: item,
-      });
+      clientDetail: item,
+    });
     dispatch(setBookingInfoState(item));
     dispatch(setUser(item?.booked_by));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
@@ -156,7 +156,7 @@ export default function AgentHomeScreen({navigation}) {
                 marginVertical: heightToDp(5),
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent:'center'
+                justifyContent: 'center',
               }}>
               <GradientButton
                 viewStyle={{width: widthToDp(35)}}
@@ -164,21 +164,21 @@ export default function AgentHomeScreen({navigation}) {
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 onPress={() => {
                   setLoadingButton('mobile_notary');
-                  handleStripeAccount('mobile_notary')}}
+                  handleStripeAccount('mobile_notary');
+                }}
                 loading={loading && loadingButton === 'mobile_notary'}
                 fontSize={widthToDp(4)}
-                
                 GradiStyles={{height: height * 0.1}}
               />
               <GradientButton
                 viewStyle={{width: widthToDp(35)}}
                 Title="Book RON Services"
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() =>{
-                  
-setLoadingButton('ron');
-                   handleStripeAccount('ron')}}
-               loading={loading && loadingButton === 'ron'}
+                onPress={() => {
+                  setLoadingButton('ron');
+                  handleStripeAccount('ron');
+                }}
+                loading={loading && loadingButton === 'ron'}
                 fontSize={widthToDp(4)}
                 GradiStyles={{height: height * 0.1}}
               />
@@ -198,7 +198,7 @@ setLoadingButton('ron');
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
-                      console.log("items",item.date_of_booking)
+                      // console.log("items",item)
                       return (
                         <ClientServiceCard
                           image={require('../../../../assets/agentLocation.png')}
@@ -212,7 +212,7 @@ setLoadingButton('ron');
                             item.booked_by.last_name
                           }
                           agentAddress={item.booked_by.location}
-                          task={item?.status}
+                          status={item?.status}
                           OrangeText="At Home"
                           Button={true}
                           clientDetail={item}
@@ -221,7 +221,6 @@ setLoadingButton('ron');
                           timeofBooking={item.time_of_booking}
                           createdAt={item.createdAt}
                           servicetype={item.service_type}
-                          
                         />
                       );
                     }}

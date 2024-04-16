@@ -45,13 +45,16 @@ import {useMutation} from '@apollo/client';
 import {SIGN_DOCS} from '../../../request/mutations/signDocument';
 import {launchImageLibrary} from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
+import {ADD_NOTARIZED_DOCS} from '../../../request/mutations/addNotarizedDocs';
 
 export default function NotaryCallScreen({route, navigation}: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
+
+  const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
 
-  console.log(bookingData);
+  console.log("bookingdata", bookingData);
 
   const [sourceUrl, setSourceUrl] = useState(
     bookingData.client_documents['Document 1'],
@@ -110,14 +113,20 @@ export default function NotaryCallScreen({route, navigation}: any) {
   };
 
   const downloadFile = () => {
-    if (!fileDownloaded) {
+    if (!fileDownloaded && sourceUrl) { // Check if sourceUrl is not empty
       RNFS.downloadFile({
         fromUrl: sourceUrl,
         toFile: newPdfPath ? newPdfPath : filePath,
       }).promise.then(res => {
         setFileDownloaded(true);
         readFile();
+      }).catch(error => {
+        console.error('Error downloading file:', error);
+        // Handle the error (e.g., show an error message to the user)
       });
+    } else {
+      console.warn('Source URL is empty. File download skipped.');
+      // Handle the case where sourceUrl is empty (e.g., show a message to the user)
     }
   };
 
@@ -228,9 +237,10 @@ export default function NotaryCallScreen({route, navigation}: any) {
         .then(async success => {
           setNewPdfPath(path);
           setNewPdfSaved(true);
-          setPdfBase64(pdfBase64);
+          setPdfBase64(pdfBasesetSourceUrl64);
           const l = await uploadSignedDocumentsOnS3(pdfBase64);
           updateSignedDocumentToDb(l);
+          addSignedDocFunc(l);
         })
         .catch(err => {
           console.log('eeee', err.message);
@@ -263,12 +273,32 @@ export default function NotaryCallScreen({route, navigation}: any) {
     }
   };
 
+  const addSignedDocFunc = async url => {
+    console.log(bookingData._id);
+    try {
+      const request = {
+        variables: {
+          bookingId: bookingData?._id,
+          notarizedDocs: [url],
+          bookingType:
+            bookingData?.__typename == 'Bokking' ? 'booking' : 'session',
+        },
+      };
+
+      const response = await AddSignedDocs(request);
+
+      console.log('###########', response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   /////////////////////////////////////
 
   ///////////////////////////////
 
-  const {channel, token: CutomToken} = route.params;
-  const uid = 0;
+  const {channel, token: CutomToken, uid} = route.params;
+  // const uid = 0;
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
@@ -354,7 +384,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
         ChannelProfileType.ChannelProfileCommunication,
       );
       agoraEngineRef.current?.startPreview();
-      // console.log(token, channelName, uid);
+      console.log(token, channelName, uid);
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
@@ -398,6 +428,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   };
 
   /////
+  // console.log('navigegoback', navigation.goBack());
 
   return (
     <SafeAreaView style={styles.Maincontainer}>
@@ -620,7 +651,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                   paddingVertical: widthToDp(2),
                 }}
                 onPress={() => {
-                  //leave();
+                  leave();
                 }}
               />
             </View>

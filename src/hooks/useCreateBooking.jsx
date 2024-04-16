@@ -32,7 +32,7 @@ const useCreateBooking = () => {
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [createLocalBooking] = useMutation(CREATE_LOCAL_NOTARY_BOOKING);
   const handleBookingCreation = async (User, Service) => {
-    console.log('FinalBookingData', FinalBookingData);
+    console.log('FinalBookingDatasss', FinalBookingData);
     const request = {
       variables: {
         ...FinalBookingData,
@@ -41,11 +41,11 @@ const useCreateBooking = () => {
       },
     };
     // console.log('====================================');
-    // console.log('response', request?.variables);
+    console.log('response', request?.variables);
     // console.log('====================================');
     try {
       const response = await createBooking(request);
-      // console.log('====================================');
+      console.log('====================================',response);
       // console.log('Booking', response);
       // console.log('====================================');
       return response.data.createBookingR;

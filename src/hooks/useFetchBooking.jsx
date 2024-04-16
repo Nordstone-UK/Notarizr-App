@@ -50,6 +50,7 @@ const useFetchBooking = () => {
       },
     };
     try {
+      console.log('requestdat', request);
       const {data} = await getAgentBooking(request);
       // console.log('Agent Booking iNfo', data);
       return sortBookingByDate(data?.getAgentBookings?.bookings);
