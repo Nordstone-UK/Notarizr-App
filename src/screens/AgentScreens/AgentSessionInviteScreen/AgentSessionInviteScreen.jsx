@@ -639,7 +639,7 @@ backgroundColor: Colors.Orange,
                   )}
                 </TouchableOpacity>
                 <Text style={{color: 'black', marginLeft: 10}}>
-                  Invoice the on client Notarizr{' '}
+                  Invoice the client on Notarizr{' '}
                 </Text>
               </View>
             </View>

@@ -75,6 +75,7 @@ export const GET_BOOKING_BY_ID = gql`
           description
           state
         }
+        totalPrice
         preference_analysis
         observers
         status

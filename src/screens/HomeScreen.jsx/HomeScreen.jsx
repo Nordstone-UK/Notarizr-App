@@ -50,6 +50,8 @@ export default function HomeScreen({route, navigation}) {
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);
+
+    console.log('bookingidfdfdfdfd', bookingDetail);
   };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);

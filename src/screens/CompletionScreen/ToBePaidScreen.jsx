@@ -30,11 +30,10 @@ export default function ToBePaidScreen({route, navigation}) {
   const {updateSession} = useSession();
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
   const dispatch = useDispatch();
-    const {initPaymentSheet, presentPaymentSheet} = useStripe();
-    const {fetchPaymentSheetParams} = useStripeApi();
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
   const DocumentPrice = bookingData?.document_type?.price;
-
 
   const init = async () => {
     if (bookingData?.__typename === 'Session') {
@@ -49,35 +48,28 @@ export default function ToBePaidScreen({route, navigation}) {
     dispatch(setUser(bookingData?.agent));
   };
 
-
   function calculateTotalPrice(documentObjects) {
     return documentObjects.reduce(
       (total, document) => total + document.price,
       0,
     );
   }
-  
+
   const initializePaymentSheet = async () => {
-  
     setLoading(true);
     let TotalPayment;
     if (bookingData?.service_type === 'mobile_notary') {
       TotalPayment = await calculateTotalPrice(bookingData?.document_type);
       TotalPayment = TotalPayment + numberOfDocs * 10;
-    
     } else if (bookingData?.service_type === 'ron') {
       TotalPayment = bookingData?.totalPrice;
     }
     const response = await fetchPaymentSheetParams(
-       100,
+      bookingData.price * 100,
       bookingData._id,
       bookingData.__typename === 'Session' ? true : false,
     );
-
-
-
-
-
+    console.log('bookingrocvdfddf,', bookingData.price);
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
 
@@ -117,7 +109,7 @@ export default function ToBePaidScreen({route, navigation}) {
   useEffect(() => {
     initializePaymentSheet();
   }, [navigation]);
- 
+
   return (
     <SafeAreaView style={styles.container}>
       <View

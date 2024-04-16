@@ -6,8 +6,8 @@ import {GET_CATEGORIES} from '../../request/queries/getCategories.query';
 import {GET_DOCUMENT_TYPES} from '../../request/queries/getPaginatedDocumentTypes.query';
 import {UPDATE_USER_ADDRESS} from '../../request/mutations/updateUserAddress.mutation';
 import {SEARCH_USER} from '../../request/queries/searchUser.query';
-import { EDIT_USER_ADDRESS } from '../../request/mutations/editUserAddress.mutation';
-import { DELETE_USER_ADDRESS } from '../../request/mutations/deleteUserAddress.mutation';
+import {EDIT_USER_ADDRESS} from '../../request/mutations/editUserAddress.mutation';
+import {DELETE_USER_ADDRESS} from '../../request/mutations/deleteUserAddress.mutation';
 
 const useFetchUser = () => {
   const [user] = useLazyQuery(FETCH_USER_INFO);
@@ -26,6 +26,10 @@ const useFetchUser = () => {
         info.profile_picture =
           'https://notarizr-app-data.s3.us-east-2.amazonaws.com/static/unnamed.jpg';
       }
+      console.log(
+        'usssssssssssssssssssssssssssssssssssssssssssssssssssss',
+        info,
+      );
       dispatch(saveUserInfo(info));
     });
     return info;
@@ -59,35 +63,34 @@ const useFetchUser = () => {
       console.log(error);
     }
   };
-const handleEditAddress = async params =>{ 
-const request ={
-  variables:{
-    ...params,
-  },
-};
-try {
-  const response = await editAddress(request);
-  return response.data;
-  } catch (error) {
+  const handleEditAddress = async params => {
+    const request = {
+      variables: {
+        ...params,
+      },
+    };
+    try {
+      const response = await editAddress(request);
+      return response.data;
+    } catch (error) {
       console.log(error);
     }
-};
+  };
 
-
-const handleDeleteAddress = async (addressId) => {
-  console.log("addressid",addressId)
-  try {
-    const  response  = await deleteUserAddress({
-      variables: {
-        addressId: addressId,
-      },
-    });
-   return response.data
-  } catch (error) {
-    console.error('Error deleting address:', error);
-    // Handle error
-  }
-};
+  const handleDeleteAddress = async addressId => {
+    console.log('addressid', addressId);
+    try {
+      const response = await deleteUserAddress({
+        variables: {
+          addressId: addressId,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      // Handle error
+    }
+  };
 
   const searchUserByEmail = async email => {
     const request = {
@@ -110,7 +113,7 @@ const handleDeleteAddress = async (addressId) => {
     hadleUpdateAddress,
     searchUserByEmail,
     handleEditAddress,
-    handleDeleteAddress
+    handleDeleteAddress,
   };
 };
 

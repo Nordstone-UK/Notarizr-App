@@ -91,6 +91,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [pdfUrl, setPdfUrl] = useState('');
   const [isPdfVisible, setIsPdfVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [price, setPrice] = useState(bookingDetail.price);
 
   // const pdfRef = React.useRef<Pdf>(null);
   console.log('####', pdfUrl, isPdfVisible);
@@ -126,7 +127,7 @@ export default function MedicalBookingScreen({route, navigation}) {
         key: item.name,
         value: item.url,
       }));
-      console.log(urlResponse);
+      console.log('rulreseresondfdfdfdfdfdfdf', urlResponse);
 
       const request = {
         variables: {
@@ -145,19 +146,13 @@ export default function MedicalBookingScreen({route, navigation}) {
         bookingDetail.__typename == 'Session'
           ? await updateSessionClientDocs(request)
           : await updateBookingClientDocs(requestBooking);
-
       var reponse;
-
-      console.log('###############');
-
       if (bookingDetail.__typename == 'Session') {
-        console.log('heeeetre');
         const request = {
           variables: {
             sessionId: bookingDetail?._id,
           },
         };
-
         reponse = await getSession(request);
         console.log('ressss', reponse.data.getSession.session);
         dispatch(setBookingInfoState(reponse.data.getSession.session));
@@ -165,46 +160,11 @@ export default function MedicalBookingScreen({route, navigation}) {
         reponse = await fetchBookingByID(bookingDetail?._id);
 
         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-        console.log(
-          '#########',
-          reponse?.getBookingById?.booking.client_documents,
-        );
+        console.log('#########', reponse?.getBookingById?.booking);
       }
 
       setUploadShow(false);
       setShowIcon(true);
-
-      // console.log(res);
-
-      //  const request = {
-      //    variables: {
-      //       sessionId: bookingDetail?._id,
-      //       key: urlResponse[0].id,
-      //      // value:
-
-      //    },
-      //  };
-      //  const response = await createSession(request);
-
-      //  const re
-
-      // if (urlResponse) {
-      //   const response = await setBookingPrice(
-      //     bookingDetail?._id,
-      //     bookingDetail?.totalPrice,
-      //     bookingDetail?.review,
-      //     bookingDetail?.rating,
-      //     bookingDetail?.notes,
-      //     bookingDetail?.proof_documents,
-      //     urlResponse,
-      //   );
-      //   // console.log(response);
-      //   const reponse = await fetchBookingByID(bookingDetail?._id);
-      //   // console.log(reponse);
-      //   // dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-      //   setUploadShow(false);
-      //   setShowIcon(true);
-      // }
     }
     setShowIcon(true);
   };
@@ -325,6 +285,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       </View>
     );
   }
+  console.log('bookingdetails', status);
   console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
@@ -562,18 +523,14 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             </View>
           )}
-          {bookingDetail.address ||
-          bookingDetail.booked_for?.location ||
-          bookingDetail.client?.location ? (
+          {bookingDetail.address || bookingDetail.booked_for?.location ? (
             <View style={{paddingHorizontal: widthToDp(3)}}>
               <Text style={[styles.insideHeading, styles.addressMargin]}>
                 {bookingDetail.address ? 'Address' : 'Booked For Location'}
               </Text>
               <AddressCard
                 location={
-                  bookingDetail.address ||
-                  bookingDetail.booked_for?.location ||
-                  bookingDetail.client?.location
+                  bookingDetail.address || bookingDetail.booked_for?.location
                 }
                 onPress={() =>
                   setSelectedAddress(
@@ -588,7 +545,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           {bookingDetail.document_type &&
             bookingDetail.document_type.length > 0 && (
               <View style={{marginTop: heightToDp(2)}}>
-                <Text style={[styles.insideHeading]}>Selected Documentsss</Text>
+                <Text style={[styles.insideHeading]}>Selected Documents</Text>
                 {bookingDetail.document_type &&
                   bookingDetail.document_type.map(item => (
                     <View
@@ -692,6 +649,63 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             </View>
           )}
+          {bookingDetail.payment_type == 'on_notarizr' && (
+            <View>
+              <Text style={[styles.insideHeading]}>Paying Amount</Text>
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  backgroundColor: Colors.OrangeGradientEnd,
+                  marginLeft: widthToDp(5),
+                  width: widthToDp(60),
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                }}>
+                <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
+                  $ {price}
+                </Text>
+              </View>
+            </View>
+          )}
+          {bookingDetail && typeof bookingDetail.totalPrice === 'number' && (
+            <View>
+              <Text style={[styles.insideHeading]}>Paying Amount</Text>
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  backgroundColor: Colors.OrangeGradientEnd,
+                  marginLeft: widthToDp(5),
+                  width: widthToDp(60),
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                }}>
+                <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
+                  Total Price: ${bookingDetail.totalPrice}
+                </Text>
+              </View>
+            </View>
+          )}
+          {typeof bookingDetail.total_signatures_required === 'number' && (
+            <View>
+              <Text style={[styles.insideHeading]}>
+                Additional Signature Documents
+              </Text>
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  backgroundColor: Colors.OrangeGradientEnd,
+                  marginLeft: widthToDp(5),
+                  width: widthToDp(60),
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                }}>
+                <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
+                  {bookingDetail.total_signatures_required}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {bookingDetail.identity_authentication && (
             <View>
               <Text style={[styles.insideHeading]}>ID options</Text>
@@ -780,28 +794,29 @@ export default function MedicalBookingScreen({route, navigation}) {
             </>
           )}
 
-          {bookingDetail.agent_document && (
-            <View>
-              <Text style={[styles.insideHeading]}>
-                Agent uploaded documents
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  marginLeft: widthToDp(5),
-                  columnGap: widthToDp(3),
-                }}>
-                {bookingDetail.agent_document?.map((item, index) => (
-                  <TouchableOpacity key={index}>
-                    <Image
-                      source={require('../../../assets/docPic.png')}
-                      style={{width: widthToDp(10), height: heightToDp(10)}}
-                    />
-                  </TouchableOpacity>
-                ))}
+          {bookingDetail.agent_document &&
+            bookingDetail.agent_document.length > 0 && (
+              <View>
+                <Text style={[styles.insideHeading]}>
+                  Agent uploaded documents
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginLeft: widthToDp(5),
+                    columnGap: widthToDp(3),
+                  }}>
+                  {bookingDetail.agent_document?.map((item, index) => (
+                    <TouchableOpacity key={index}>
+                      <Image
+                        source={require('../../../assets/docPic.png')}
+                        style={{width: widthToDp(10), height: heightToDp(10)}}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
           {bookingDetail.notarized_docs &&
             bookingDetail.notarized_docs.length > 0 && (
@@ -834,7 +849,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               paddingBottom: 20,
             }}>
             {bookingDetail.client_documents &&
-              Object.values(bookingDetail.client_documents)?.length > 0 && (
+              bookingDetail.status === 'accepted' && (
                 <GradientButton
                   Title={'Join session'}
                   colors={[
@@ -879,27 +894,31 @@ export default function MedicalBookingScreen({route, navigation}) {
               }}
               fontSize={widthToDp(4)}
             />
-            {bookingDetail.payment_type == 'on_notarizr' && (
-              <GradientButton
-                Title={'Make payment'}
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  width: widthToDp(30),
-                  paddingVertical: widthToDp(4),
-                  marginTop: widthToDp(10),
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={() => {
-                  navigation.navigate('ToBePaidScreen', {
-                    bookingData: bookingDetail,
-                  });
-                }}
-                fontSize={widthToDp(3.5)}
-              />
-            )}
+            {bookingDetail.payment_type == 'on_notarizr' &&
+              status !== 'Accepted' && (
+                <GradientButton
+                  Title={'Make payment'}
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(30),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                  onPress={() => {
+                    navigation.navigate('ToBePaidScreen', {
+                      bookingData: bookingDetail,
+                    });
+                  }}
+                  fontSize={widthToDp(3.5)}
+                />
+              )}
           </View>
         </ScrollView>
         {isVisible ? (

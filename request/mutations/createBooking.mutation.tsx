@@ -14,6 +14,8 @@ export const CREATE_BOOKING = gql`
     $bookedFor: BookedForInput
     $preferenceAnalysis: String
     $documents: JSON
+    $totalPrice :Float
+    $totalSignaturesRequired :Int!
   ) {
     createBookingR(
       service_type: $serviceType
@@ -28,6 +30,10 @@ export const CREATE_BOOKING = gql`
       booked_for: $bookedFor
       preference_analysis: $preferenceAnalysis
       documents: $documents
+      totalPrice:$totalPrice
+      total_signatures_required:$totalSignaturesRequired
+
+
     ) {
       status
       message

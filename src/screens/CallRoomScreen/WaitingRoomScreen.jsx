@@ -154,7 +154,7 @@ export default function WaitingRoomScreen({route, navigation}) {
                     Colors.OrangeGradientEnd,
                   ]}
                   styles={{fontSize: widthToDp(5)}}
-                  onPress={() => navigation.goBack()}
+                  // onPress={() => navigation.goBack()}
                 />
               </View>
             </View>

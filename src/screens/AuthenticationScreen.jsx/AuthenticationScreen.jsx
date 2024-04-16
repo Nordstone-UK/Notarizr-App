@@ -40,6 +40,9 @@ import Toast from 'react-native-toast-message';
 export default function AuthenticationScreen({route, navigation}) {
   const {uid, channel, token} = route.params;
   const dispatch = useDispatch();
+
+  const bookingDetail = useSelector(state => state.booking.booking);
+  console.log('bookingdfdfdfd', bookingDetail.identity_authentication);
   const userData = useSelector(state => state.user.user);
   const [isFocused, setIsFocused] = useState('ID Card');
   const [isEnabled, setIsEnabled] = useState(false);
@@ -72,6 +75,7 @@ export default function AuthenticationScreen({route, navigation}) {
       } else {
         const front = await convertURIToBase64(IDFront);
         const back = await convertURIToBase64(IDBack);
+        console.log('fornt', userData);
         await uploadUserID(userData?.userAccessCode, front, back, country)
           .then(async () => {
             try {
@@ -203,52 +207,111 @@ export default function AuthenticationScreen({route, navigation}) {
       <BottomSheetStyle>
         <ScrollView scrollEnabled={true}>
           <View style={styles.flexContainer}>
-            <MainButton
-              Title="ID Card"
-              colors={
-                isFocused === 'ID Card'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'ID Card'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => handleFocusChange('ID Card')}
-            />
-            <MainButton
-              Title="Passport"
-              colors={
-                isFocused === 'Passport'
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.DisableColor, Colors.DisableColor]
-              }
-              styles={
-                isFocused === 'Passport'
-                  ? {
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-                  : {
-                      color: Colors.TextColor,
-                      paddingHorizontal: widthToDp(2),
-                      paddingVertical: widthToDp(1),
-                      fontSize: widthToDp(5),
-                    }
-              }
-              onPress={() => handleFocusChange('Passport')}
-            />
+            {bookingDetail.identity_authentication === 'client_choose' && (
+              <>
+                <MainButton
+                  Title="ID Card"
+                  colors={
+                    isFocused === 'ID Card'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  styles={
+                    isFocused === 'ID Card'
+                      ? {
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                      : {
+                          color: Colors.TextColor,
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                  }
+                  onPress={() => handleFocusChange('ID Card')}
+                />
+
+                <MainButton
+                  Title="Passport"
+                  colors={
+                    isFocused === 'Passport'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  styles={
+                    isFocused === 'Passport'
+                      ? {
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                      : {
+                          color: Colors.TextColor,
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                  }
+                  onPress={() => handleFocusChange('Passport')}
+                />
+              </>
+            )}
+            {bookingDetail.identity_authentication === 'user_id' && (
+              <>
+                <MainButton
+                  Title="ID Card"
+                  colors={
+                    isFocused === 'ID Card'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  styles={
+                    isFocused === 'ID Card'
+                      ? {
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                      : {
+                          color: Colors.TextColor,
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                  }
+                  onPress={() => handleFocusChange('ID Card')}
+                />
+              </>
+            )}
+            {bookingDetail.identity_authentication === 'user_passport' && (
+              <>
+                <MainButton
+                  Title="Passport"
+                  colors={
+                    isFocused === 'Passport'
+                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                      : [Colors.DisableColor, Colors.DisableColor]
+                  }
+                  styles={
+                    isFocused === 'Passport'
+                      ? {
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                      : {
+                          color: Colors.TextColor,
+                          paddingHorizontal: widthToDp(2),
+                          paddingVertical: widthToDp(1),
+                          fontSize: widthToDp(5),
+                        }
+                  }
+                  onPress={() => handleFocusChange('Passport')}
+                />
+              </>
+            )}
           </View>
           {isFocused === 'ID Card' && (
             <Text style={[styles.detail]}>

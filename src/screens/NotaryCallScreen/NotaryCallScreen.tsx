@@ -47,6 +47,8 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 
 export default function NotaryCallScreen({ route, navigation }: any) {
+  // const { routeFrom } = route.params;
+  // console.log("routerfforoe", routeFrom)
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
@@ -272,8 +274,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   ///////////////////////////////
 
-  const { channel, token: CutomToken, uid } = route.params;
+  const { channel, token: CutomToken, uid, routeFrom } = route.params;
   // const uid = 0;
+  console.log("rofdfdfdfform", routeFrom, channel)
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
@@ -293,15 +296,22 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     React.useState<number>(remoteCurrentPage);
 
   const handleBackButton = () => {
-    navigation.navigate('WaitingRoomScreen', {
-      uid: bookingData?._id,
-      channel: bookingData?.agora_channel_name,
-      token: bookingData?.agora_channel_token,
-      time: bookingData?.time_of_booking,
-      date: bookingData?.date_of_booking,
-    });
+    if (routeFrom === 'agent') {
+      // If routeFrom is 'agent', navigate back
+      navigation.goBack();
+    } else {
+      // Otherwise, navigate to WaitingRoomScreen
+      navigation.navigate('WaitingRoomScreen', {
+        uid: bookingData?._id,
+        channel: bookingData?.agora_channel_name,
+        token: bookingData?.agora_channel_token,
+        time: bookingData?.time_of_booking,
+        date: bookingData?.date_of_booking,
+      });
+    }
     return true;
   };
+
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', handleBackButton);
     return () => {

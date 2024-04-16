@@ -4,12 +4,18 @@ import {UPDATE_SESSION} from '../../request/mutations/updateSession.mutation';
 import {ADD_OBSERVERS} from '../../request/mutations/inviteObservers.mutation';
 import {GET_SESSION_BY_ID} from '../../request/queries/getSessionByID.query';
 import {UPDATE_SESSION_STATUS} from '../../request/mutations/updateSessionStatus.mutation';
+import {CREATE_CLIENTSESSION} from '../../request/mutations/createSessiononClient.mutation';
+import {useSelector} from 'react-redux';
 
 export const useSession = () => {
   const [createSession] = useMutation(CREATE_SESSION);
+  const [createClientSession] = useMutation(CREATE_CLIENTSESSION);
   const [inviteObservers] = useMutation(ADD_OBSERVERS);
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const [updateSessionStatus] = useMutation(UPDATE_SESSION_STATUS);
+  const [updateSessionItems] = useMutation(UPDATE_SESSION);
+  const FinalBookingData = useSelector(state => state.booking.booking);
+
   const handleSessionCreation = async (
     urlResponse,
     selectedClient,
@@ -39,7 +45,7 @@ export const useSession = () => {
     console.log('Session Response', response.data.createSessionR.session);
     return response.data.createSessionR.status;
   };
-  const handleSessionUpdation = async () => {};
+
   const handleAddObservers = async (id, email) => {
     const request = {
       variables: {
@@ -77,11 +83,39 @@ export const useSession = () => {
     const response = await updateSessionStatus(request);
     console.log(response?.updateSessionStatus?.status);
   };
+  const handleClientSessionCreation = async (selectedAgent, session, date) => {
+    const request = {
+      variables: {
+        agentEmail: selectedAgent,
+        sessionSchedule: session,
+        dateTimeSession: date,
+      },
+    };
+    const response = await createClientSession(request);
+    return response.data.createSessionClientR;
+  };
+  const handleSessionUpdation = async params => {
+    const {sessionId, identityAuthentication, observers, paymentType} = params;
+
+    const request = {
+      variables: {
+        sessionId,
+        identityAuthentication,
+        observers,
+        paymentType,
+      },
+    };
+    console.log('reqeustrdfdfdfdfdfdf', request);
+    const response = await updateSessionItems(request);
+    console.log('dddddddddddddddddddddddddddddd', response);
+    return response.data.updateSessionR;
+  };
   return {
     handleSessionCreation,
     handleSessionUpdation,
     handleAddObservers,
     getSessionByID,
     updateSession,
+    handleClientSessionCreation,
   };
 };

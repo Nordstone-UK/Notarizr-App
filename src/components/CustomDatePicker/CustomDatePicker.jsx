@@ -8,6 +8,8 @@ import Colors from '../../themes/Colors';
 export default function CustomDatePicker(props) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(props.date);
+
+  console.log('datarere', selectedDate);
   const handleCancel = () => {
     setOpen(false);
   };
