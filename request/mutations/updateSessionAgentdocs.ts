@@ -1,19 +1,13 @@
 import gql from 'graphql-tag';
 
-export const UPDATE_SESSION = gql`
+export const UPDATE_SESSION_AGENTDOCS = gql`
   mutation UpdateSessionR(
     $sessionId: String!
-    $identityAuthentication: String
-    $observers: [String]
-    $paymentType:String!
+    $agentDocuments: [String]
   ) {
     updateSessionR(
       sessionId: $sessionId
-      identity_authentication: $identityAuthentication
-      observers: $observers
-      payment_type:$paymentType
-
-
+      agent_document: $agentDocuments
     ) {
       session {
         _id
@@ -26,6 +20,16 @@ export const UPDATE_SESSION = gql`
         session_schedule
         date_time_session
         agent_document
+        agora_channel_name
+        agora_channel_token
+        signature_request_id
+        signatures {
+          signatureId
+          signerName
+          signerEmailAddress
+          order
+          signature_url
+        }
         createdAt
         updatedAt
       }
@@ -34,3 +38,4 @@ export const UPDATE_SESSION = gql`
     }
   }
 `;
+

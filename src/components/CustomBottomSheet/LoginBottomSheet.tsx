@@ -1,13 +1,13 @@
-import {useCallback, useEffect, useMemo, useRef} from 'react';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { heightToDp, widthToDp } from '../../utils/Responsive';
 import MainButton from '../MainGradientButton/MainButton';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import {StyleSheet, View} from 'react-native';
-import {Text} from 'react-native';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { StyleSheet, View } from 'react-native';
+import { Text } from 'react-native';
 import Colors from '../../themes/Colors';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
-const LoginBottomSheet = ({isVisible, onCloseModal, Title}: any) => {
+const LoginBottomSheet = ({ isVisible, onCloseModal, Title }: any) => {
   const navigation = useNavigation();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['5%', '25%'], []);
@@ -35,20 +35,20 @@ const LoginBottomSheet = ({isVisible, onCloseModal, Title}: any) => {
         <Text
           style={[
             styles.textheading,
-            {marginTop: heightToDp(5), fontSize: widthToDp(5)},
+            { marginTop: heightToDp(5), fontSize: widthToDp(5) },
           ]}>
           {Title}
         </Text>
         <MainButton
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Log In"
-          textStyle={{color: '#fff'}}
+          textStyle={{ color: '#fff' }}
           styles={{
             padding: widthToDp(2),
             fontSize: widthToDp(6),
             minWidth: widthToDp(50),
           }}
-          gradiStyles={{borderRadius: 5}}
+          gradiStyles={{ borderRadius: 5 }}
           onPress={handleCloseModalPress}
         />
       </View>

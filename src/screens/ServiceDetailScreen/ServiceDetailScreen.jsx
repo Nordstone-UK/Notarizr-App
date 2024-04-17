@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
 
   Heading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
   },
 

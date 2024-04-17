@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -49,31 +50,50 @@ export default function LegalDocScreen({route, navigation}) {
   const [selected, setSelected] = React.useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
+  const [additionalSignatures, setAdditionalSignatures] = useState(0);
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); 
+      setLoading(true);
       await getState();
-      setLoading(false); 
+      setLoading(false);
     };
 
     fetchData();
   }, []);
 
-  function calculateTotalPrice(documentObjects) {
-    return documentObjects.reduce(
-      (total, document) => total + document.price,
-      0,
-    );
-  }
   function createDocumentObject(array) {
     const documentObjects = array.map(item => {
       const [name, price] = item.split(' - $');
       return {name, price: parseFloat(price)};
     });
-    const totalPrice = calculateTotalPrice(documentObjects);
-    setTotalPrice(totalPrice);
+
+    const highestPriceDocument = documentObjects.reduce((max, doc) =>
+      doc.price > max.price ? doc : max,
+    );
+    console.log('Highest Price Document:', highestPriceDocument);
+    setTotalPrice(highestPriceDocument.price);
     setSelectedDocs(documentObjects);
   }
+
+  const additionalSignaturePrice = 10;
+
+  const calculateAdditionalSignaturesCost = additionalSignatures => {
+    if (!isNaN(parseInt(additionalSignatures))) {
+      return additionalSignatures * additionalSignaturePrice;
+    } else {
+      return 0;
+    }
+  };
+
+  const totalAdditionalSignaturesCost = calculateAdditionalSignaturesCost(
+    parseInt(additionalSignatures),
+  );
+  const totalPriceWithSignatures = totalPrice + totalAdditionalSignaturesCost;
+  const handleAdditionalSignaturesChange = text => {
+    const newValue = text === '' || isNaN(parseInt(text)) ? 0 : parseInt(text);
+    setAdditionalSignatures(newValue);
+  };
+
   const submitAddressDetails = async docArray => {
     setLoading(true);
     if (selectedDocs.length === 0) {
@@ -85,7 +105,9 @@ export default function LegalDocScreen({route, navigation}) {
       dispatch(
         setBookingInfoState({
           ...bookingData,
+          totalPrice: parseFloat(totalPriceWithSignatures),
           documentType: docArray,
+          totalSignaturesRequired: parseInt(additionalSignatures),
         }),
       );
       navigation.navigate('MobileNotaryDateScreen');
@@ -93,8 +115,8 @@ export default function LegalDocScreen({route, navigation}) {
     setLoading(false);
   };
   const getState = async query => {
+    setLoading(true);
     const reponse = await handleGetLocation();
-    // console.log('Location', reponse);
     const data = await fetchDocumentTypes(
       page,
       Limit,
@@ -108,8 +130,9 @@ export default function LegalDocScreen({route, navigation}) {
     if (Limit < data?.totalDocs) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
+    setLoading(false);
   };
- 
+
   const handleSearchInput = query => {
     setSearchResults(query);
     setDocumentArray();
@@ -146,8 +169,10 @@ export default function LegalDocScreen({route, navigation}) {
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
-          contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.Heading}>
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <Text style={styles.selectorHeading}>
             Please select the documents you want to get notarized.
           </Text>
           <View
@@ -155,53 +180,22 @@ export default function LegalDocScreen({route, navigation}) {
               marginTop: widthToDp(2),
               paddingHorizontal: widthToDp(2),
             }}>
-              
-              {loading ? (
-                <View
+            {loading ? (
+              <View
                 style={{
                   justifyContent: 'center',
                 }}>
                 <ActivityIndicator size="large" color={Colors.Orange} />
-               </View>
-               ) : (
-                 <MultipleSelectList
-                setSelected={val => setSelected(val)}
-                data={documentArray && documentArray.map(item => ({
-                  value: `${item.name} - $${item.statePrices[0].price}`,
-                }))}
-                save="value"
-                onSelect={() => createDocumentObject(selected)}
-                label="Documents"
-                placeholder="Search for documents"
-                boxStyles={{
-                  borderColor: Colors.Orange,
-                  borderWidth: 2,
-                  borderRadius: widthToDp(5),
-                }}
-                dropdownStyles={{
-                  borderColor: Colors.Orange,
-                  borderWidth: 2,
-                  borderRadius: widthToDp(5),
-                  maxHeight: widthToDp(75),
-                }}
-                inputStyles={{color: Colors.TextColor}}
-                badgeStyles={{backgroundColor: Colors.Orange}}
-                dropdownTextStyles={{color: Colors.TextColor}}
-                checkBoxStyles={{tintColor: Colors.TextColor}}
-                labelStyles={{color: Colors.TextColor, fontSize: widthToDp(4)}}
-                badgeTextStyles={{
-                  fontSize: widthToDp(3.2),
-                  color: Colors.white,
-                  fontFamily: 'Manrope-SemiBold',
-                }}
-              />
-               )}
-            {/* {documentArray ? (
+              </View>
+            ) : (
               <MultipleSelectList
                 setSelected={val => setSelected(val)}
-                data={documentArray.map(item => ({
-                  value: `${item.name} - $${item.statePrices[0].price}`,
-                }))}
+                data={
+                  documentArray &&
+                  documentArray.map(item => ({
+                    value: `${item.name} - $${item.statePrices[0].price}`,
+                  }))
+                }
                 save="value"
                 onSelect={() => createDocumentObject(selected)}
                 label="Documents"
@@ -228,19 +222,53 @@ export default function LegalDocScreen({route, navigation}) {
                   fontFamily: 'Manrope-SemiBold',
                 }}
               />
-            ) : (
-             <View
-                style={{
-                  justifyContent: 'center',
-                }}>
-                <ActivityIndicator size="large" color={Colors.Orange} />
-               </View>
-            )} */}
+            )}
           </View>
           <View
             style={{
               marginVertical: widthToDp(15),
             }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: widthToDp(2),
+                marginHorizontal: widthToDp(5),
+                marginVertical: widthToDp(2),
+              }}>
+              <Text style={styles.smalltext}>
+                How many additional signatures do you need to get your other
+                documents notarized?
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={additionalSignatures}
+                onChangeText={handleAdditionalSignaturesChange}
+                placeholder="signs"
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.dashedContainer}>
+              <Text
+                style={{
+                  color: Colors.TextColor,
+                  fontFamily: 'Manrope-Bold',
+                  fontSize: widthToDp(4),
+                }}>
+                Note:
+              </Text>
+              <Text
+                style={{
+                  color: Colors.TextColor,
+                  fontFamily: 'Manrope-Regular',
+                  fontSize: widthToDp(3.5),
+                }}>
+                Any additional signatures would cost
+                <Text style={{fontFamily: 'Manrope-Bold'}}> +$10 </Text>per each
+                .
+              </Text>
+            </View>
             <View
               style={{
                 borderWidth: 1,
@@ -253,8 +281,30 @@ export default function LegalDocScreen({route, navigation}) {
                 justifyContent: 'space-between',
                 marginBottom: widthToDp(2),
               }}>
-              <Text style={styles.Heading}>Total Price:</Text>
-              <Text style={styles.Heading}>${totalPrice}</Text>
+              <Text style={styles.Heading1}>Notary charges : </Text>
+              <Text style={styles.Heading1}>${totalPrice}</Text>
+            </View>
+            {additionalSignatures ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: widthToDp(2),
+                }}>
+                <Text style={styles.Heading1}>Additional signatures cost:</Text>
+                <Text style={styles.Heading1}>
+                  ${totalAdditionalSignaturesCost}
+                </Text>
+              </View>
+            ) : null}
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: widthToDp(2),
+              }}>
+              <Text style={styles.Heading}>Total:</Text>
+              <Text style={styles.Heading}>${totalPriceWithSignatures}</Text>
             </View>
             <GradientButton
               Title="Proceed"
@@ -275,11 +325,27 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   contentContainer: {
-    flex: 1,
+    // flex: 1,
     marginVertical: heightToDp(3),
   },
+  selectorHeading: {
+    fontSize: widthToDp(5),
+    // fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(2),
+  },
   Heading: {
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
+    fontWeight: '700',
+    // fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(2),
+  },
+  Heading1: {
+    fontSize: widthToDp(4),
     fontWeight: '700',
     color: Colors.TextColor,
     marginHorizontal: widthToDp(5),
@@ -294,6 +360,28 @@ const styles = StyleSheet.create({
   picture: {
     width: widthToDp(20),
     height: heightToDp(20),
+  },
+  smalltext: {
+    color: Colors.TextColor,
+    width: widthToDp(70),
+  },
+  input: {
+    padding: 10,
+    width: widthToDp(15),
+    height: heightToDp(9),
+    borderColor: Colors.Orange,
+    borderWidth: 2,
+    borderRadius: widthToDp(3),
+  },
+  dashedContainer: {
+    marginHorizontal: widthToDp(5),
+    borderWidth: 3,
+    borderColor: Colors.DullTextColor,
+    borderStyle: 'dashed',
+    backgroundColor: Colors.PinkBackground,
+    borderRadius: 10,
+    padding: widthToDp(2),
+    marginTop: 10,
   },
 });
 

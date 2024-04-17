@@ -64,6 +64,8 @@ const styles = StyleSheet.create({
   },
   TextInput: {
     fontSize: widthToDp(6),
+    // backgroundColor: 'red',
+    // width: widthToDp(20),
   },
   transparentStar: {
     fontSize: 30,

@@ -90,9 +90,10 @@ export default function AgentSessionInviteScreen({navigation}) {
     const response = await uploadMultipleFiles();
     if (response) {
       setFileResponse(response);
+      console.log('responsf,', response);
     }
   };
-  console.log('date', date.toString());
+
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
@@ -111,7 +112,6 @@ export default function AgentSessionInviteScreen({navigation}) {
   };
 
   const printEverything = async () => {
-    console.log('helloofd');
     setLoading(true);
     if (
       fileResponse.length !== 0 &&
@@ -128,7 +128,8 @@ export default function AgentSessionInviteScreen({navigation}) {
         const [name, price] = item.split(' - $');
         return {name, price: parseFloat(price)};
       });
-      console.log('response', paymentMethod);
+      console.log('urlrespn', urlResponse);
+      console.log('responsssssssssssssssssssssssssse', paymentMethod);
       const response = await handleSessionCreation(
         urlResponse,
         selectedClient,
@@ -639,7 +640,7 @@ backgroundColor: Colors.Orange,
                   )}
                 </TouchableOpacity>
                 <Text style={{color: 'black', marginLeft: 10}}>
-                  Invoice the on client Notarizr{' '}
+                  Invoice the client on Notarizr{' '}
                 </Text>
               </View>
             </View>
@@ -741,7 +742,7 @@ const styles = StyleSheet.create({
   },
   Heading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginHorizontal: widthToDp(3),
   },
@@ -756,7 +757,7 @@ const styles = StyleSheet.create({
   },
   insideHeading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
   },

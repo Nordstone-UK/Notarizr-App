@@ -41,7 +41,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   // const [startTime, setStartTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
   // const [date, setDate] = useState(new Date());
-
+  console.log('isenaglere', bookingData.totalPrice);
   let urlResponse;
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
@@ -49,16 +49,37 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   const submitAddressDetails = async () => {
     setLoading(true);
     if (documents) {
-      urlResponse = await uploadAllDocuments(documents);
+      // urlResponse = await uploadAllDocuments(documents);
+      if (documents.length > 0) {
+        urlResponse = await uploadAllDocuments(documents);
+
+        const totalPriceWithDocuments =
+          bookingData.totalPrice + 10 * documents.length;
+        dispatch(
+          setBookingInfoState({
+            ...bookingData,
+            documents: urlResponse,
+            totalPrice: totalPriceWithDocuments,
+          }),
+        );
+      } else {
+        dispatch(
+          setBookingInfoState({
+            ...bookingData,
+            documents: [],
+          }),
+        );
+      }
+    } else {
+      dispatch(
+        setBookingInfoState({
+          ...bookingData,
+          documents: [],
+        }),
+      );
     }
-    dispatch(
-      setBookingInfoState({
-        ...bookingData,
-        documents: urlResponse,
-      }),
-    );
+
     setLoading(false);
-    console.log("helloofdfd")
     navigation.navigate('NearbyLoadingScreen', {
       serviceType: 'mobile_notary',
     });
