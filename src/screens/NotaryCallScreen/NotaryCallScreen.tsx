@@ -296,9 +296,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   ///////////////////////////////
 
-  const { channel, token: CutomToken, uid, routeFrom } = route.params;
-  // const uid = 0;
-  console.log("rofdfdfdfform", routeFrom, channel)
+  const { channel, token: CutomToken, routeFrom } = route.params;
+  const uid = 0;
+  console.log("rofdfdfdfform", routeFrom, channel, CutomToken, uid)
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
@@ -402,7 +402,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const leave = () => {
     try {
       agoraEngineRef.current?.leaveChannel();
-      setRemoteUids([]);
+      setRemoteUids([0]);
 
       setIsJoined(false);
       showMessage('You left the session');

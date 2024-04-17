@@ -75,7 +75,7 @@ export default function AuthenticationScreen({route, navigation}) {
       } else {
         const front = await convertURIToBase64(IDFront);
         const back = await convertURIToBase64(IDBack);
-        console.log('fornt', userData);
+
         await uploadUserID(userData?.userAccessCode, front, back, country)
           .then(async () => {
             try {

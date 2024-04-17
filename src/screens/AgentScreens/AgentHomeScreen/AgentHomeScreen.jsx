@@ -288,13 +288,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PinkBackground,
   },
   mainHeading: {
-    fontSize: widthToDp(6.5),
+    fontSize: widthToDp(5.5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginHorizontal: widthToDp(3),
   },
   Heading: {
-    fontSize: widthToDp(6.5),
+    fontSize: widthToDp(5.5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
   },

@@ -102,6 +102,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [uploadShow, setUploadShow] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   const [price, setPrice] = useState(clientDetail.price);
+  const [totalPrice, setTotalPrice] = useState(clientDetail.totalPrice);
   const [selected, setSelected] = useState('client_choose');
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -112,7 +113,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     }, 2000);
   }, []);
 
-  const { uploadMultipleFiles, uploadAllDocuments } = useRegister();
+  const { uploadMultipleFiles, uploadAllDocuments, uploadDocArray, } = useRegister();
 
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
@@ -315,11 +316,16 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           clientDetail?.notes,
           clientDetail?.documents,
         );
-        console.log(response);
+        console.log("respsdofndfdfupdated", response);
       }
       handleCloseModalPress();
       if (response == 200) {
-        setPrice(AmountEntered);
+        if (clientDetail.__typename !== "Booking") {
+          setPrice(AmountEntered);
+        }
+        else {
+          setTotalPrice(AmountEntered);
+        }
 
         Toast.show({
           type: 'success',
@@ -337,11 +343,13 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     if (clientDetail.payment_type == 'on_notarizr') {
       bottomSheetModalRef.current?.present();
     } else {
-      navigation.navigate('NotaryCallScreen', {
-        uid: clientDetail?._id,
-        channel: clientDetail?.agora_channel_name,
-        token: clientDetail?.agora_channel_token,
-      });
+      bottomSheetModalRef.current?.present();
+      // navigation.navigate('NotaryCallScreen', {
+      //   routeFrom: 'agent',
+      //   uid: clientDetail?._id,
+      //   channel: clientDetail?.agora_channel_name,
+      //   token: clientDetail?.agora_channel_token,
+      // });
     }
   };
 
@@ -371,11 +379,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     // setUploadingDocs(response);
     if (response) {
 
-      urlResponse = await uploadAllDocuments(response);
-      urlResponse = urlResponse.map(item => ({
-        key: item.name,
-        value: item.url,
-      }));
+      urlResponse = await uploadDocArray(response);
+      // urlResponse = urlResponse.map(item => ({
+      //   key: item.name,
+      //   value: item.url,
+      // }));
       console.log("dfdfdfdfdfddddddddddddddddddd", urlResponse);
 
 
@@ -423,6 +431,13 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       }
     }
   };
+  const lowestPriceDocument = clientDetail.document_type.reduce(
+    (minDoc, doc) => (doc.price < minDoc.price ? doc : minDoc),
+    clientDetail.document_type[0],
+  );
+  const additionalSignatureCharges =
+    clientDetail.total_signatures_required * 10;
+
   console.log("cliendetails", clientDetail)
   console.log("statusd", status, isStorageLoading)
   return (
@@ -1007,7 +1022,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     borderRadius: 20,
                   }}>
                   <Text style={{ fontFamily: 'Poppins-Regular', color: 'white' }}>
-                    Total Price: ${clientDetail.totalPrice}
+                    Total Price: ${totalPrice}
                   </Text>
                 </View>
               </View>
@@ -1376,7 +1391,104 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 </View>
               </View>
             )} */}
+            {clientDetail.__typename === 'Booking' && (
+              <View>
+                <Text style={[styles.insideHeading]}>Payment details</Text>
 
+                <View
+                  style={{
+                    paddingHorizontal: widthToDp(7),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                  <CheckCircleSolid
+                    width={24}
+                    height={24}
+                    strokeWidth={2}
+                    color={Colors.Orange}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: 'Poppins-Regular',
+                      color: 'black',
+                      marginLeft: 10,
+                    }}>
+                    Notary charges: ${lowestPriceDocument.price}
+                  </Text>
+                </View>
+                {typeof clientDetail.total_signatures_required === 'number' && (
+                  <View
+                    style={{
+                      paddingHorizontal: widthToDp(7),
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                    <CheckCircleSolid
+                      width={24}
+                      height={24}
+                      strokeWidth={2}
+                      color={Colors.Orange}
+                    />
+
+                    <Text
+                      style={{
+                        fontFamily: 'Poppins-Regular',
+                        color: 'black',
+                        marginLeft: 10,
+                      }}>
+                      Additional signatures :
+                      {clientDetail.total_signatures_required} x $ 10 ={' '}
+                      {additionalSignatureCharges}
+                    </Text>
+                  </View>
+                )}
+                <View
+                  style={{
+                    paddingHorizontal: widthToDp(7),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                  <CheckCircleSolid
+                    width={24}
+                    height={24}
+                    strokeWidth={2}
+                    color={Colors.Orange}
+                  />
+
+                  <Text
+                    style={{
+                      fontFamily: 'Poppins-Regular',
+                      color: 'black',
+                      marginLeft: 10,
+                    }}>
+                    Printing charges : ${' '}
+                    {clientDetail.documents.length > 0 ? 10 : 0}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    paddingHorizontal: widthToDp(7),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                  <CheckCircleSolid
+                    width={24}
+                    height={24}
+                    strokeWidth={2}
+                    color={Colors.Orange}
+                  />
+
+                  <Text
+                    style={{
+                      fontFamily: 'Poppins-Regular',
+                      color: 'black',
+                      marginLeft: 10,
+                    }}>
+                    Total : $ {clientDetail.totalPrice}
+                  </Text>
+                </View>
+              </View>
+            )}
             {booked_for?.first_name && (
               <View>
                 <View style={styles.addressView}>
@@ -1683,6 +1795,30 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
               </>
             ) : null}
+            {clientDetail?.service_type === 'mobile_notary' &&
+              (
+                <GradientButton
+                  Title="Request Payment"
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(30),
+                    paddingHorizontal: widthToDp(0),
+                    paddingVertical: heightToDp(3),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                  onPress={() => {
+                    handlePresentModalPress();
+                  }}
+                  fontSize={widthToDp(4)}
+                />
+              )}
+
           </View>
           {clientDetail?.service_type !== 'mobile_notary' &&
             status === 'To_be_paid' && (

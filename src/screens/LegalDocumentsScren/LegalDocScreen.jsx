@@ -75,7 +75,7 @@ export default function LegalDocScreen({route, navigation}) {
     setSelectedDocs(documentObjects);
   }
 
-  const additionalSignaturePrice = 25;
+  const additionalSignaturePrice = 10;
 
   const calculateAdditionalSignaturesCost = additionalSignatures => {
     if (!isNaN(parseInt(additionalSignatures))) {
@@ -172,7 +172,7 @@ export default function LegalDocScreen({route, navigation}) {
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <Text style={styles.Heading}>
+          <Text style={styles.selectorHeading}>
             Please select the documents you want to get notarized.
           </Text>
           <View
@@ -265,7 +265,7 @@ export default function LegalDocScreen({route, navigation}) {
                   fontSize: widthToDp(3.5),
                 }}>
                 Any additional signatures would cost
-                <Text style={{fontFamily: 'Manrope-Bold'}}> +$25 </Text>per each
+                <Text style={{fontFamily: 'Manrope-Bold'}}> +$10 </Text>per each
                 .
               </Text>
             </View>
@@ -328,9 +328,18 @@ const styles = StyleSheet.create({
     // flex: 1,
     marginVertical: heightToDp(3),
   },
+  selectorHeading: {
+    fontSize: widthToDp(5),
+    // fontWeight: '700',
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    marginHorizontal: widthToDp(5),
+    marginVertical: widthToDp(2),
+  },
   Heading: {
     fontSize: widthToDp(5),
     fontWeight: '700',
+    // fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginHorizontal: widthToDp(5),
     marginVertical: widthToDp(2),

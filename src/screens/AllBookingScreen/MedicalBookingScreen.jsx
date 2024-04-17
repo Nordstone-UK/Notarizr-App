@@ -285,8 +285,16 @@ export default function MedicalBookingScreen({route, navigation}) {
       </View>
     );
   }
-  console.log('bookingdetails', status);
+
+  const lowestPriceDocument = bookingDetail.document_type.reduce(
+    (minDoc, doc) => (doc.price < minDoc.price ? doc : minDoc),
+    bookingDetail.document_type[0],
+  );
+  const additionalSignatureCharges =
+    bookingDetail.total_signatures_required * 10;
+
   console.log('bookingdetails', bookingDetail);
+  console.log('dstatusfd', status);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -688,7 +696,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           {typeof bookingDetail.total_signatures_required === 'number' && (
             <View>
               <Text style={[styles.insideHeading]}>
-                Additional Signature Documents
+                Additional Signature Required
               </Text>
               <View
                 style={{
@@ -705,7 +713,104 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             </View>
           )}
+          {bookingDetail.__typename === 'Booking' && (
+            <View>
+              <Text style={[styles.insideHeading]}>Payment details</Text>
 
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <CheckCircleSolid
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
+                />
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: 'black',
+                    marginLeft: 10,
+                  }}>
+                  Notary charges: ${lowestPriceDocument.price}
+                </Text>
+              </View>
+              {typeof bookingDetail.total_signatures_required === 'number' && (
+                <View
+                  style={{
+                    paddingHorizontal: widthToDp(7),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                  <CheckCircleSolid
+                    width={24}
+                    height={24}
+                    strokeWidth={2}
+                    color={Colors.Orange}
+                  />
+
+                  <Text
+                    style={{
+                      fontFamily: 'Poppins-Regular',
+                      color: 'black',
+                      marginLeft: 10,
+                    }}>
+                    Additional signatures :
+                    {bookingDetail.total_signatures_required} x $ 10 ={' '}
+                    {additionalSignatureCharges}
+                  </Text>
+                </View>
+              )}
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <CheckCircleSolid
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
+                />
+
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: 'black',
+                    marginLeft: 10,
+                  }}>
+                  Printing charges : ${' '}
+                  {bookingDetail.documents.length > 0 ? 10 : 0}
+                </Text>
+              </View>
+              <View
+                style={{
+                  paddingHorizontal: widthToDp(7),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <CheckCircleSolid
+                  width={24}
+                  height={24}
+                  strokeWidth={2}
+                  color={Colors.Orange}
+                />
+
+                <Text
+                  style={{
+                    fontFamily: 'Poppins-Regular',
+                    color: 'black',
+                    marginLeft: 10,
+                  }}>
+                  Total : $ {bookingDetail.totalPrice}
+                </Text>
+              </View>
+            </View>
+          )}
           {bookingDetail.identity_authentication && (
             <View>
               <Text style={[styles.insideHeading]}>ID options</Text>
@@ -896,6 +1001,31 @@ export default function MedicalBookingScreen({route, navigation}) {
             />
             {bookingDetail.payment_type == 'on_notarizr' &&
               status !== 'Accepted' && (
+                <GradientButton
+                  Title={'Make payment'}
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(30),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                  onPress={() => {
+                    navigation.navigate('ToBePaidScreen', {
+                      bookingData: bookingDetail,
+                    });
+                  }}
+                  fontSize={widthToDp(3.5)}
+                />
+              )}
+            {bookingDetail.__typename === 'Booking' &&
+              status == 'To_be_paid' && (
                 <GradientButton
                   Title={'Make payment'}
                   colors={[

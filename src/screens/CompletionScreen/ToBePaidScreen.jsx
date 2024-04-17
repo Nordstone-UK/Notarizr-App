@@ -59,13 +59,12 @@ export default function ToBePaidScreen({route, navigation}) {
     setLoading(true);
     let TotalPayment;
     if (bookingData?.service_type === 'mobile_notary') {
-      TotalPayment = await calculateTotalPrice(bookingData?.document_type);
-      TotalPayment = TotalPayment + numberOfDocs * 10;
+      TotalPayment = bookingData.totalPrice;
     } else if (bookingData?.service_type === 'ron') {
-      TotalPayment = bookingData?.totalPrice;
+      TotalPayment = bookingData.price;
     }
     const response = await fetchPaymentSheetParams(
-      bookingData.price * 100,
+      TotalPayment * 100,
       bookingData._id,
       bookingData.__typename === 'Session' ? true : false,
     );
