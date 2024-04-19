@@ -69,7 +69,7 @@ import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificatio
 import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
-import NotaryCallScreen from '../NotaryCallScreen/NotaryCallScreen'
+import NotaryCallScreen from '../NotaryCallScreen/NotaryCallScreen';
 import {useDispatch, useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
@@ -104,6 +104,7 @@ import BottomSheet, {
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import AgentCallFinishing from '../CompletionScreen/AgentCompletecall';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -275,6 +276,11 @@ export default function AppNavigation() {
         <Stack.Screen name="MainBookingScreen" component={MainBookingScreen} />
         <Stack.Screen name="SessionCreation" component={SessionCreation} />
         <Stack.Screen
+          name="AgentCallFinishing"
+          component={AgentCallFinishing}
+        />
+
+        <Stack.Screen
           name="RegisterCompletionScreen"
           component={RegisterCompletionScreen}
         />
@@ -348,7 +354,6 @@ export default function AppNavigation() {
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
-
         <Stack.Screen
           name="NearbyLoadingScreen"
           component={NearbyLoadingScreen}

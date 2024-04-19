@@ -35,6 +35,7 @@ export default function AgentAllBookingScreen({navigation}) {
   const account_type = useSelector(state => state.user.user.account_type);
   const dispatch = useDispatch();
   const init = async status => {
+    console.log('astssdfdfff', status);
     setLoading(true);
     const bookingDetail = await fetchAgentBookingInfo(status);
     const sessionDetail = await handleAgentSessions(status);

@@ -46,15 +46,15 @@ import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { launchImageLibrary } from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
+import { useSession } from '../../hooks/useSession';
 
 export default function NotaryCallScreen({ route, navigation }: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
-
+  const { updateSession } = useSession();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
 
-  console.log("bookingdata", bookingData);
 
   const [sourceUrl, setSourceUrl] = useState(
     bookingData.client_documents['Document 1'],
@@ -76,7 +76,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   const [isSignatureImage, setIsSignatureImage] = useState(false);
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
-
+  // console.log("book", setSignatureBase64)
   useEffect(() => {
     downloadFile();
     if (signatureBase64) {
@@ -212,8 +212,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         firstPage.drawImage(signatureImage, {
           x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
           y: pageHeight - (pageHeight * (y + 12)) / 540,
-          width: 50,
-          height: 50,
+          width: 200,
+          height: 200,
         });
       } else {
         firstPage.drawImage(signatureImage, {
@@ -222,8 +222,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             firstPage.getHeight() -
             (firstPage.getHeight() * y) / pageHeight -
             25,
-          width: 50,
-          height: 50,
+          width: 200,
+          height: 200,
         });
       }
       // Play with these values as every project has different requirements
@@ -231,13 +231,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       const pdfBase64 = _uint8ToBase64(pdfBytes);
       const path = `${RNFS.DocumentDirectoryPath
         }/react-native_signed_${Date.now()}.pdf`;
-      console.log('path', path);
+      console.log('pathddddddddddddddddddd', path);
       RNFS.writeFile(path, pdfBase64, 'base64')
         .then(async success => {
           setNewPdfPath(path);
           setNewPdfSaved(true);
-          setPdfBase64(pdfBasesetSourceUrl64);
+          setPdfBase64(pdfBase64);
           const l = await uploadSignedDocumentsOnS3(pdfBase64);
+          console.log("doooooooooooooooooooooooo", l)
           updateSignedDocumentToDb(l);
           addSignedDocFunc(l);
         })
@@ -253,7 +254,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   const updateSignedDocumentToDb = async url => {
+
     try {
+      console.log("docuuuuuuuuuuuuuuuuuuu", url)
       const request = {
         variables: {
           bookingId: bookingData?._id,
@@ -265,22 +268,23 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           }),
         },
       };
+      console.log('responseffffffffffffffff', request);
       const response = await UpdateDocumentsByDocId(request);
-      console.log('response', response);
+      console.log('responseffffffffffffffff', response);
     } catch (error) {
       console.log('error', error);
     }
   };
 
   const addSignedDocFunc = async url => {
-    console.log(bookingData._id);
+    console.log("urrrrrrrrrrrrrrrrrrrrrrrrrrrr", url);
     try {
       const request = {
         variables: {
           bookingId: bookingData?._id,
           notarizedDocs: [url],
           bookingType:
-            bookingData?.__typename == 'Bokking' ? 'booking' : 'session',
+            bookingData?.__typename == 'Booking' ? 'booking' : 'session',
         },
       };
 
@@ -298,7 +302,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   const { channel, token: CutomToken, routeFrom } = route.params;
   const uid = 0;
-  console.log("rofdfdfdfform", routeFrom, channel, CutomToken, uid)
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
@@ -399,13 +402,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.log(e);
     }
   };
-  const leave = () => {
+  const leave = async () => {
     try {
       agoraEngineRef.current?.leaveChannel();
       setRemoteUids([0]);
 
       setIsJoined(false);
       showMessage('You left the session');
+      await updateSession("completed", bookingData?._id);
+      navigation.navigate('AgentCallFinishing');
     } catch (e) {
       console.log(e);
     }
@@ -435,8 +440,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////
-  // console.log('navigegoback', navigation.goBack());
-
+  console.log("bookingdate", bookingData)
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -505,13 +509,36 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         </View>
       </View>
       <View style={{ backgroundColor: Colors.white }}>
-        <RNPickerSelect
+        {/* <Text>Agent document</Text> */}
+        {/* <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={itemValue => handleLinkChange(itemValue)}
           items={Object.keys(bookingData.client_documents).map(doc => {
             return { label: doc, value: bookingData.client_documents[doc] };
           })}
         />
+        <RNPickerSelect
+          style={pickerSelectStyles}
+          onValueChange={itemValue => handleLinkChange(itemValue)}
+          items={bookingData.agent_document.map(doc => {
+            return { label: 'Agent Document', value: doc };
+          })}
+        /> */}
+        <RNPickerSelect
+          style={pickerSelectStyles}
+          onValueChange={itemValue => handleLinkChange(itemValue)}
+          items={[
+            ...Object.keys(bookingData.client_documents).map(doc => ({
+              label: `Client Document `,
+              value: bookingData.client_documents[doc]
+            })),
+            ...bookingData.agent_document.map(doc => ({
+              label: 'Agent Document',
+              value: doc
+            }))
+          ]}
+        />
+
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
@@ -556,7 +583,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
                     enablePaging={true}
                     minScale={1.0}
-                    maxScale={1.0}
+                    maxScale={20.0}
                     scale={1.0}
                     spacing={0}
                     fitPolicy={0}
@@ -607,6 +634,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               </>
             )
           )}
+
         </View>
         <View style={styles.actions}>
           <View style={styles.editActions}>
