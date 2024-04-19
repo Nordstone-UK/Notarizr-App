@@ -33,15 +33,14 @@ export default function ToBePaidScreen({route, navigation}) {
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
+  const [isDataInitialized, setIsDataInitialized] = useState(false);
   const DocumentPrice = bookingData?.document_type?.price;
 
   const init = async () => {
     if (bookingData?.__typename === 'Session') {
       await updateSession('accepted', bookingData._id);
-    } else if (bookingData?.service_type === 'ron') {
-      await handleUpdateBookingStatus('accepted', bookingData._id);
     } else {
-      await handleUpdateBookingStatus('pending', bookingData._id);
+      await handleUpdateBookingStatus('accepted', bookingData._id);
     }
     dispatch(setBookingInfoState(bookingData));
     dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
@@ -58,9 +57,9 @@ export default function ToBePaidScreen({route, navigation}) {
   const initializePaymentSheet = async () => {
     setLoading(true);
     let TotalPayment;
-    if (bookingData?.service_type === 'mobile_notary') {
+    if (bookingData?.__typename === 'Booking') {
       TotalPayment = bookingData.totalPrice;
-    } else if (bookingData?.service_type === 'ron') {
+    } else if (bookingData?.__typename === 'Session') {
       TotalPayment = bookingData.price;
     }
     const response = await fetchPaymentSheetParams(
@@ -106,7 +105,9 @@ export default function ToBePaidScreen({route, navigation}) {
     setLoading(false);
   };
   useEffect(() => {
-    initializePaymentSheet();
+    initializePaymentSheet().then(() => {
+      setIsDataInitialized(true);
+    });
   }, [navigation]);
 
   return (

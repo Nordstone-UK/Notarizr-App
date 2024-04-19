@@ -671,6 +671,9 @@ export default function MedicalBookingScreen({route, navigation}) {
                 }}>
                 <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
                   $ {price}
+                  {status === 'Accepted' || status === 'Paid'
+                    ? '  - > Paid'
+                    : ''}
                 </Text>
               </View>
             </View>
@@ -688,7 +691,10 @@ export default function MedicalBookingScreen({route, navigation}) {
                   borderRadius: 20,
                 }}>
                 <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                  Total Price: ${bookingDetail.totalPrice}
+                  Total Price: ${bookingDetail.totalPrice}{' '}
+                  {status === 'Accepted' || status === 'Paid'
+                    ? ' - > Paid'
+                    : ''}
                 </Text>
               </View>
             </View>
@@ -953,8 +959,12 @@ export default function MedicalBookingScreen({route, navigation}) {
               paddingHorizontal: widthToDp(2),
               paddingBottom: 20,
             }}>
-            {bookingDetail.client_documents &&
-              bookingDetail.status === 'accepted' && (
+            {(bookingDetail.client_documents ||
+              bookingDetail.agent_documents) &&
+              (status === 'Accepted' ||
+                (bookingDetail.status === 'to_be_paid' &&
+                  bookingDetail.payment_type === 'on_agent')) &&
+              bookingDetail.__typename !== 'Booking' && (
                 <GradientButton
                   Title={'Join session'}
                   colors={[
@@ -986,7 +996,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               Title={'Upload documents'}
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{
-                width: widthToDp(30),
+                width: widthToDp(37),
                 paddingVertical: widthToDp(4),
                 marginTop: widthToDp(10),
               }}
@@ -997,7 +1007,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               onPress={() => {
                 selectDocuments();
               }}
-              fontSize={widthToDp(4)}
+              fontSize={widthToDp(3.5)}
             />
             {bookingDetail.payment_type == 'on_notarizr' &&
               status !== 'Accepted' && (
@@ -1027,7 +1037,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             {bookingDetail.__typename === 'Booking' &&
               status == 'To_be_paid' && (
                 <GradientButton
-                  Title={'Make payment'}
+                  Title={'Make payments'}
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,

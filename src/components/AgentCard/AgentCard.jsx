@@ -351,8 +351,18 @@ export default function AgentCard(props) {
                 textAlign: 'center',
                 fontSize: 14,
               }}>
-              {props.status === 'to_be_paid'
+              {props.status === 'to_be_paid' && props.paymentType === 'on_agent'
+                ? 'Accepted'
+                : props.status === 'to_be_paid'
                 ? 'To Be Paid'
+                : props.status === 'accepted'
+                ? 'Accepted'
+                : props.status === 'expired'
+                ? 'Expired'
+                : props.status === 'ongoing'
+                ? 'Ongoing'
+                : props.status === 'completed'
+                ? 'Completed'
                 : props.status === 'pending'
                 ? 'Pending'
                 : props.status === 'rejected'
