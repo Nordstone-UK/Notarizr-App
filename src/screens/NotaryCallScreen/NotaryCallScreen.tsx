@@ -46,10 +46,11 @@ import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { launchImageLibrary } from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
+import { useSession } from '../../hooks/useSession';
 
 export default function NotaryCallScreen({ route, navigation }: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
-
+  const { updateSession } = useSession();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
@@ -401,13 +402,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.log(e);
     }
   };
-  const leave = () => {
+  const leave = async () => {
     try {
       agoraEngineRef.current?.leaveChannel();
       setRemoteUids([0]);
 
       setIsJoined(false);
       showMessage('You left the session');
+      await updateSession("completed", bookingData?._id);
       navigation.navigate('AgentCallFinishing');
     } catch (e) {
       console.log(e);
