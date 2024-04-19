@@ -14,9 +14,9 @@ import {
   ActivityIndicator,
   Text as RNText,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Colors from '../../themes/Colors';
-import { height, heightToDp, widthToDp } from '../../utils/Responsive';
+import {height, heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {
   ClientRoleType,
@@ -27,33 +27,32 @@ import {
 } from 'react-native-agora';
 
 import Toast from 'react-native-toast-message';
-import { PDFDocument } from 'pdf-lib';
+import {PDFDocument} from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
-import { Edit, PageEdit, Text } from 'iconoir-react-native';
-import { useLiveblocks } from '../../store/liveblocks';
+import {Edit, PageEdit, Text} from 'iconoir-react-native';
+import {useLiveblocks} from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import Pdf from 'react-native-pdf';
 import Signature from 'react-native-signature-canvas';
-import { decode as atob, encode as btoa } from 'base-64';
+import {decode as atob, encode as btoa} from 'base-64';
 import RNFS from 'react-native-fs';
-import { uploadSignedDocumentsOnS3 } from '../../utils/s3Helper';
-import { useMutation } from '@apollo/client';
-import { SIGN_DOCS } from '../../../request/mutations/signDocument';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {uploadSignedDocumentsOnS3} from '../../utils/s3Helper';
+import {useMutation} from '@apollo/client';
+import {SIGN_DOCS} from '../../../request/mutations/signDocument';
+import {launchImageLibrary} from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
-import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
+import {ADD_NOTARIZED_DOCS} from '../../../request/mutations/addNotarizedDocs';
 
-export default function NotaryCallScreen({ route, navigation }: any) {
+export default function NotaryCallScreen({route, navigation}: any) {
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
 
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
-
 
   const [sourceUrl, setSourceUrl] = useState(
     bookingData.client_documents['Document 1'],
@@ -112,17 +111,20 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   const downloadFile = () => {
-    if (!fileDownloaded && sourceUrl) { // Check if sourceUrl is not empty
+    if (!fileDownloaded && sourceUrl) {
+      // Check if sourceUrl is not empty
       RNFS.downloadFile({
         fromUrl: sourceUrl,
         toFile: newPdfPath ? newPdfPath : filePath,
-      }).promise.then(res => {
-        setFileDownloaded(true);
-        readFile();
-      }).catch(error => {
-        console.error('Error downloading file:', error);
-        // Handle the error (e.g., show an error message to the user)
-      });
+      })
+        .promise.then(res => {
+          setFileDownloaded(true);
+          readFile();
+        })
+        .catch(error => {
+          console.error('Error downloading file:', error);
+          // Handle the error (e.g., show an error message to the user)
+        });
     } else {
       console.warn('Source URL is empty. File download skipped.');
       // Handle the case where sourceUrl is empty (e.g., show a message to the user)
@@ -173,6 +175,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   ////////////// live bolcks ////////////////
+
   const insertObject = useLiveblocks(state => state.insertObject);
   const objects = useLiveblocks(state => state.objects);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
@@ -191,8 +194,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   //////////////////////////////////////////
 
   const handleSingleTap = async (page, x, y) => {
-    console.log('page', page, x, y);
-    // return;
     if (pdfEditMode) {
       setNewPdfSaved(false);
       setFilePath(null);
@@ -211,8 +212,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         firstPage.drawImage(signatureImage, {
           x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
           y: pageHeight - (pageHeight * (y + 12)) / 540,
-          width: 200,
-          height: 200,
+          width: 220,
+          height: 220,
         });
       } else {
         firstPage.drawImage(signatureImage, {
@@ -221,15 +222,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             firstPage.getHeight() -
             (firstPage.getHeight() * y) / pageHeight -
             25,
-          width: 200,
-          height: 200,
+          width: 220,
+          height: 220,
         });
       }
       // Play with these values as every project has different requirements
       const pdfBytes = await pdfDoc.save();
       const pdfBase64 = _uint8ToBase64(pdfBytes);
-      const path = `${RNFS.DocumentDirectoryPath
-        }/react-native_signed_${Date.now()}.pdf`;
+      const path = `${
+        RNFS.DocumentDirectoryPath
+      }/react-native_signed_${Date.now()}.pdf`;
       console.log('pathddddddddddddddddddd', path);
       RNFS.writeFile(path, pdfBase64, 'base64')
         .then(async success => {
@@ -237,7 +239,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           setNewPdfSaved(true);
           setPdfBase64(pdfBase64);
           const l = await uploadSignedDocumentsOnS3(pdfBase64);
-          console.log("doooooooooooooooooooooooo", l)
+          console.log('doooooooooooooooooooooooo', l);
           updateSignedDocumentToDb(l);
           addSignedDocFunc(l);
         })
@@ -253,9 +255,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   const updateSignedDocumentToDb = async url => {
-
     try {
-      console.log("docuuuuuuuuuuuuuuuuuuu", url)
+      console.log('docuuuuuuuuuuuuuuuuuuu', url);
       const request = {
         variables: {
           bookingId: bookingData?._id,
@@ -276,7 +277,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   const addSignedDocFunc = async url => {
-    console.log("urrrrrrrrrrrrrrrrrrrrrrrrrrrr", url);
+    console.log('urrrrrrrrrrrrrrrrrrrrrrrrrrrr', url);
     try {
       const request = {
         variables: {
@@ -299,7 +300,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   ///////////////////////////////
 
-  const { channel, token: CutomToken, routeFrom } = route.params;
+  const {channel, token: CutomToken, routeFrom} = route.params;
   const uid = 0;
   const channelName = channel;
   const token = CutomToken;
@@ -365,7 +366,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
             setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
           },
-          onRequestToken(connection) { },
+          onRequestToken(connection) {},
         });
         agoraEngine.initialize({
           appId: appId,
@@ -438,7 +439,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////
-  console.log("bookingdate", bookingData)
+  console.log('bookingdate', bookingData);
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -449,7 +450,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             contentContainerStyle={styles.scrollContainer}>
             {isJoined ? (
               <React.Fragment key={0}>
-                <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
+                <RtcSurfaceView canvas={{uid: 0}} style={styles.videoView} />
               </React.Fragment>
             ) : (
               <View
@@ -458,7 +459,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                   alignItems: 'center',
                 }}>
                 <Image
-                  source={{ uri: User?.profile_picture }}
+                  source={{uri: User?.profile_picture}}
                   style={{
                     width: widthToDp(25),
                     height: widthToDp(25),
@@ -469,18 +470,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             )}
             {remoteUids.map((uid, index) => (
               <View key={index}>
-                <RtcSurfaceView canvas={{ uid }} style={styles.videoView} />
+                <RtcSurfaceView canvas={{uid}} style={styles.videoView} />
               </View>
             ))}
           </ScrollView>
-          <View style={{ flex: 0.2, justifyContent: 'space-evenly' }}>
+          <View style={{flex: 0.2, justifyContent: 'space-evenly'}}>
             {isJoined ? (
               <TouchableOpacity
                 style={styles.hourGlass}
                 onPress={() => setIsJoined(!isJoined)}>
                 <Image
                   source={require('../../../assets/videoOff.png')}
-                  style={{ width: widthToDp(10), height: widthToDp(10) }}
+                  style={{width: widthToDp(10), height: widthToDp(10)}}
                 />
               </TouchableOpacity>
             ) : (
@@ -489,7 +490,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 onPress={() => setIsJoined(!isJoined)}>
                 <Image
                   source={require('../../../assets/video.png')}
-                  style={{ width: widthToDp(10), height: widthToDp(10) }}
+                  style={{width: widthToDp(10), height: widthToDp(10)}}
                 />
               </TouchableOpacity>
             )}
@@ -500,13 +501,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                     ? require('../../../assets/unmute.png')
                     : require('../../../assets/mute.png')
                 }
-                style={{ width: widthToDp(10), height: widthToDp(10) }}
+                style={{width: widthToDp(10), height: widthToDp(10)}}
               />
             </TouchableOpacity>
           </View>
         </View>
       </View>
-      <View style={{ backgroundColor: Colors.white }}>
+      <View style={{backgroundColor: Colors.white}}>
         {/* <Text>Agent document</Text> */}
         {/* <RNPickerSelect
           style={pickerSelectStyles}
@@ -528,15 +529,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           items={[
             ...Object.keys(bookingData.client_documents).map(doc => ({
               label: `Client Document `,
-              value: bookingData.client_documents[doc]
+              value: bookingData.client_documents[doc],
             })),
             ...bookingData.agent_document.map(doc => ({
               label: 'Agent Document',
-              value: doc
-            }))
+              value: doc,
+            })),
           ]}
         />
-
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
@@ -573,7 +573,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                   <PdfView
                     // ref={pdfRef}
                     style={styles.pdfView}
-                    source={{ uri: filePath }}
+                    source={{uri: filePath}}
                     trustAllCerts={false}
                     showsVerticalScrollIndicator={false}
                     showsHorizontalScrollIndicator={false}
@@ -588,12 +588,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                     onLoadComplete={(
                       numberOfPages,
                       filePath,
-                      { width, height },
+                      {width, height},
                     ) => {
                       setPageWidth(width);
                       setPageHeight(height);
                     }}
-                    onPageChanged={(page, numberOfPages) => { }}
+                    onPageChanged={(page, numberOfPages) => {}}
                     onPageSingleTap={(page, x, y) => {
                       handleSingleTap(page, x, y);
                     }}
@@ -616,7 +616,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                     <ActivityIndicator
                       size="large"
                       color={Colors.Orange}
-                      style={{ marginTop: -200 }}
+                      style={{marginTop: -200}}
                     />
                     <RNText
                       style={{
@@ -632,7 +632,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               </>
             )
           )}
-
         </View>
         <View style={styles.actions}>
           <View style={styles.editActions}>
