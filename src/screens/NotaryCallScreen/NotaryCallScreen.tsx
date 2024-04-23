@@ -15,6 +15,7 @@ import {
   Text as RNText,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Colors from '../../themes/Colors';
 import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
@@ -35,34 +36,46 @@ import { Edit, PageEdit, Text } from 'iconoir-react-native';
 import { useLiveblocks } from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 
-import { useSelector } from 'react-redux';
 import Pdf from 'react-native-pdf';
 import Signature from 'react-native-signature-canvas';
 import { decode as atob, encode as btoa } from 'base-64';
 import RNFS from 'react-native-fs';
 import { uploadSignedDocumentsOnS3 } from '../../utils/s3Helper';
-import { useMutation } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { launchImageLibrary } from 'react-native-image-picker';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
 import { useSession } from '../../hooks/useSession';
+import { GET_SESSION_BY_ID } from '../../../request/queries/getSessionByID.query';
+import {
+  setBookingInfoState,
 
+} from '../../features/booking/bookingSlice';
 export default function NotaryCallScreen({ route, navigation }: any) {
+  const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const { updateSession } = useSession();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
+  const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
 
 
   const [sourceUrl, setSourceUrl] = useState(
-    bookingData.client_documents['Document 1'],
+    Object.keys(bookingData.client_documents).length > 0
+      ? Object.values(bookingData.client_documents)[0]
+      : bookingData.agent_document.length > 0
+        ? bookingData.agent_document[0]
+        : null
   );
+
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [getSignaturePad, setSignaturePad] = useState(false);
   const [pdfEditMode, setPdfEditMode] = useState(false);
   const [signatureBase64, setSignatureBase64] = useState(null);
+  const [stampBase64, setStampBase64] = useState(null);
+
   const [signatureArrayBuffer, setSignatureArrayBuffer] = useState(null);
   const [pdfBase64, setPdfBase64] = useState(null);
   const [pdfArrayBuffer, setPdfArrayBuffer] = useState(null);
@@ -82,11 +95,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     if (signatureBase64) {
       setSignatureArrayBuffer(_base64ToArrayBuffer(signatureBase64));
     }
+    if (stampBase64) {
+      setSignatureArrayBuffer(_base64ToArrayBuffer(stampBase64));
+    }
     if (newPdfSaved) {
       setFilePath(newPdfPath);
       setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
     }
-  }, [signatureBase64, filePath, newPdfSaved, sourceUrl]);
+  }, [signatureBase64, filePath, newPdfSaved, sourceUrl, stampBase64]);
 
   const _base64ToArrayBuffer = base64 => {
     const binary_string = atob(base64);
@@ -152,21 +168,31 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setPdfEditMode(true);
   };
 
-  const onAddSignatureImage = async () => {
+  const onAddSignatureImage = async (isStamp = false) => {
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         includeBase64: true,
       });
       if (result && result.assets && result.assets.length > 0) {
-        setSignatureBase64(result.assets[0].base64);
+        if (isStamp) {
+          console.log("hsfldfinside")
+          setStampBase64(result.assets[0].base64);
+          setSignatureImageMimeType(result.assets[0].type);
+          setIsSignatureImage(true);
 
-        setSignatureImageMimeType(result.assets[0].type);
-        setIsSignatureImage(true);
+          setSignaturePad(false);
+          setPdfEditMode(true);
+        } else {
+          setSignatureBase64(result.assets[0].base64);
 
-        setSignaturePad(false);
-        setPdfEditMode(true);
-        console.log('result', result);
+          setSignatureImageMimeType(result.assets[0].type);
+          setIsSignatureImage(true);
+
+          setSignaturePad(false);
+          setPdfEditMode(true);
+        }
+
       }
     } catch (error) {
       console.log('error', error);
@@ -193,7 +219,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   const handleSingleTap = async (page, x, y) => {
     console.log('page', page, x, y);
-    // return;
+
     if (pdfEditMode) {
       setNewPdfSaved(false);
       setFilePath(null);
@@ -231,16 +257,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       const pdfBase64 = _uint8ToBase64(pdfBytes);
       const path = `${RNFS.DocumentDirectoryPath
         }/react-native_signed_${Date.now()}.pdf`;
-      console.log('pathddddddddddddddddddd', path);
+      // console.log('pathddddddddddddddddddd', path);
       RNFS.writeFile(path, pdfBase64, 'base64')
         .then(async success => {
           setNewPdfPath(path);
           setNewPdfSaved(true);
           setPdfBase64(pdfBase64);
-          const l = await uploadSignedDocumentsOnS3(pdfBase64);
-          console.log("doooooooooooooooooooooooo", l)
-          updateSignedDocumentToDb(l);
-          addSignedDocFunc(l);
+          if (signatureBase64 && stampBase64) {
+            const l = await uploadSignedDocumentsOnS3(pdfBase64);
+
+            updateSignedDocumentToDb(l);
+            addSignedDocFunc(l);
+          }
         })
         .catch(err => {
           console.log('eeee', err.message);
@@ -262,9 +290,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           bookingId: bookingData?._id,
           documentId: '1',
           documents: JSON.stringify({
-            name: bookingData?.documents[0].name,
+            // name: bookingData?.documents[0].name,
             url: url,
-            id: bookingData?.documents[0].id,
+            // id: bookingData?.documents[0].id,
           }),
         },
       };
@@ -289,9 +317,22 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       };
 
       const response = await AddSignedDocs(request);
+      console.log("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", response.data.bookingAddNotarizedDocs.status)
+      if (response.data.bookingAddNotarizedDocs.status === "200") {
+        console.log('heeeetre');
+        const request = {
+          variables: {
+            sessionId: bookingData?._id
+          },
+        };
 
-      console.log('###########', response);
-    } catch (error) {
+        let sessiondata = await getSession(request);
+        console.log('resssssssssss', sessiondata);
+        dispatch(setBookingInfoState(sessiondata.data.getSession.session));
+        console.log('###########', response);
+      }
+    }
+    catch (error) {
       console.log(error);
     }
   };
@@ -440,7 +481,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////
-  console.log("bookingdate", bookingData)
+  // console.log("bookingdate", bookingData)
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -658,7 +699,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 paddingVertical: widthToDp(2),
               }}
               onPress={() => {
-                onAddSignatureImage();
+                onAddSignatureImage(false);
               }}
             />
 
@@ -671,7 +712,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                   paddingVertical: widthToDp(2),
                 }}
                 onPress={() => {
-                  onAddSignatureImage();
+                  onAddSignatureImage(true);
                 }}
               />
             )}

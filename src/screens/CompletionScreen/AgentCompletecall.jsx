@@ -56,9 +56,7 @@ export default function AgentCallFinishing({navigation}) {
           style={styles.icon}
         />
 
-        <Text style={styles.text}>
-          Congratulations,{'\n'} you had finished the call!
-        </Text>
+        <Text style={styles.text}>Notary completed successfully!</Text>
       </View>
       <Image
         source={require('../../../assets/complete.png')}

@@ -62,6 +62,7 @@ export const GET_AGENT_SESSION = gql`
         }
         price
         client_documents
+        notarized_docs
         status
         document_type {
           name

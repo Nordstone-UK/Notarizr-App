@@ -220,6 +220,7 @@ export default function AllBookingScreen({route, navigation}) {
                               ' ' +
                               item?.agent?.last_name
                             }
+                            paymentType={item?.payment_type}
                             agentAddress={item?.agent?.location}
                             status={item?.status || 'Loading'}
                             OrangeText={'At Office'}
