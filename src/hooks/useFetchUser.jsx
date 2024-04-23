@@ -43,11 +43,18 @@ const useFetchUser = () => {
         searchString: Search,
       },
     };
+    try {
+      const response = await getDocuments(request);
 
-    await getDocuments(request).then(response => {
-      info = response.data.getPaginatedDocumentTypes;
-    });
-    return info;
+      return response.data.getPaginatedDocumentTypes;
+    } catch (err) {
+      console.log(err);
+    }
+
+    // await getDocuments(request).then(response => {
+    //   info = response.data.getPaginatedDocumentTypes;
+    // });
+    // return info;
   };
 
   const hadleUpdateAddress = async params => {

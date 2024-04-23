@@ -399,15 +399,14 @@ export default function AgentCard(props) {
             <View
               style={{
                 marginLeft: widthToDp(1),
-                flexDirection: 'row',
-                alignItems: 'center',
+                paddingHorizontal: 5,
+                // flexDirection: 'row',
+                // alignItems: 'center',
               }}>
               <Text style={styles.address}>
                 {capitalizeFirstLetter(firstPart)}
               </Text>
-              {secondPart && (
-                <Text style={[styles.address]}> | {secondPart}</Text>
-              )}
+              {secondPart && <Text style={[styles.address]}>{secondPart}</Text>}
             </View>
           </View>
 

@@ -20,15 +20,25 @@ import {useDispatch} from 'react-redux';
 import {setBookingInfoState} from '../../../features/booking/bookingSlice';
 
 export default function AgentCompletedBooking({navigation}) {
-  const {fetchAgentBookingInfo} = useFetchBooking();
+  const {fetchAgentBookingInfo, handleAgentSessions} = useFetchBooking();
   const [Booking, setBooking] = useState();
+  const [mergerData, setMergerData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
 
   const init = async status => {
+    setLoading(true);
     const bookingDetail = await fetchAgentBookingInfo(status);
-    setBooking(bookingDetail);
+    const sessionDetail = await handleAgentSessions(status);
+    const mergedDetails = [...bookingDetail, ...sessionDetail];
+    const sortedDetails = mergedDetails.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+    setMergerData(sortedDetails);
+    setLoading(false);
   };
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       console.log('Completed sending...');
@@ -63,53 +73,63 @@ export default function AgentCompletedBooking({navigation}) {
           contentContainerStyle={styles.contentContainer}>
           <Text style={styles.Heading}>Completed Booking</Text>
           <View style={{flex: 1}}>
-            {Booking ? (
-              Booking.length !== 0 ? (
-                <FlatList
-                  data={Booking}
-                  keyExtractor={item => item._id}
-                  renderItem={({item}) => {
-                    return (
-                      <ClientServiceCard
-                        image={require('../../../../assets/agentLocation.png')}
-                        calendarImage={require('../../../../assets/calenderIcon.png')}
-                        servicetype={item.service_type}
-                        source={{uri: item.booked_by.profile_picture}}
-                        bottomRightText={item.document_type}
-                        bottomLeftText="Total"
-                        agentName={
-                          item.booked_by.first_name +
-                          ' ' +
-                          item.booked_by.last_name
-                        }
-                        agentAddress={item.booked_by.location}
-                        status={item?.status}
-                        OrangeText="At Home"
-                        onPress={() => checkStatusNavigation(item)}
-                        dateofBooking={item.date_of_booking}
-                        timeofBooking={item.time_of_booking}
-                        createdAt={item.createdAt}
-                      />
-                    );
-                  }}
-                />
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: widthToDp(10),
-                  }}>
-                  <Image
-                    source={require('../../../../assets/emptyBox.png')}
-                    style={styles.picture}
-                  />
-                  <Text style={styles.subheading}>No Booking Found...</Text>
-                </View>
-              )
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.Orange} />
+              </View>
+            ) : mergerData.length !== 0 ? (
+              <FlatList
+                data={mergerData}
+                keyExtractor={item => item._id}
+                renderItem={({item}) => {
+                  return (
+                    <ClientServiceCard
+                      image={require('../../../../assets/agentLocation.png')}
+                      calendarImage={require('../../../../assets/calenderIcon.png')}
+                      servicetype={item.service_type}
+                      source={{
+                        uri: item?.booked_by?.profile_picture
+                          ? `${item?.booked_by?.profile_picture}`
+                          : `${item?.client?.profile_picture}`,
+                      }}
+                      bottomRightText={item.document_type}
+                      bottomLeftText="Total"
+                      agentName={
+                        item?.booked_by?.first_name &&
+                        item?.booked_by?.last_name
+                          ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
+                          : `${item.client.first_name} ${item.client.last_name}`
+                      }
+                      agentAddress={
+                        item?.booked_by?.location
+                          ? `${item?.booked_by?.location}`
+                          : `${item?.client?.location}`
+                      }
+                      status={item?.status}
+                      OrangeText="At Home"
+                      onPress={() => checkStatusNavigation(item)}
+                      datetimesession={item?.date_time_session}
+                      dateofBooking={item.date_of_booking}
+                      timeofBooking={item.time_of_booking}
+                      createdAt={item.createdAt}
+                    />
+                  );
+                }}
+              />
             ) : (
-              <ActivityIndicator size="large" color={Colors.Orange} />
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: widthToDp(10),
+                }}>
+                <Image
+                  source={require('../../../../assets/emptyBox.png')}
+                  style={styles.picture}
+                />
+                <Text style={styles.subheading}>No Booking Found...</Text>
+              </View>
             )}
           </View>
         </ScrollView>
@@ -154,5 +174,10 @@ const styles = StyleSheet.create({
   picture: {
     width: widthToDp(20),
     height: heightToDp(20),
+  },
+  loadingContainer: {
+    height: heightToDp(100),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

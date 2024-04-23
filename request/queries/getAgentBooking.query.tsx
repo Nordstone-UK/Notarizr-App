@@ -39,6 +39,7 @@ export const GET_AGENT_BOOKING = gql`
         }
         client_documents
         agent_document
+        notarized_docs
         service_type
         service {
           _id

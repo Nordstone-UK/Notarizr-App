@@ -91,7 +91,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [pdfUrl, setPdfUrl] = useState('');
   const [isPdfVisible, setIsPdfVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [price, setPrice] = useState(bookingDetail.price);
+  const [price, setPrice] = useState(bookingDetail?.price);
 
   // const pdfRef = React.useRef<Pdf>(null);
   console.log('####', pdfUrl, isPdfVisible);
@@ -127,8 +127,6 @@ export default function MedicalBookingScreen({route, navigation}) {
         key: item.name,
         value: item.url,
       }));
-      console.log('rulreseresondfdfdfdfdfdfdf', urlResponse);
-
       const request = {
         variables: {
           sessionId: bookingDetail?._id,
@@ -170,12 +168,29 @@ export default function MedicalBookingScreen({route, navigation}) {
   };
   console.log(documentCheck);
   React.useEffect(() => {
-    enterRoom('test-room');
+    const fetchData = async () => {
+      try {
+        enterRoom('test-room');
+        const request = {
+          variables: {
+            sessionId: bookingDetail?._id,
+          },
+        };
+        // const response = await getSession(request);
+        // console.log('response', response.data.getSession.session);
+        // dispatch(setBookingInfoState(response.data.getSession.session));
+      } catch (error) {
+        console.error('Error fetching session:', error);
+      }
+    };
+
+    fetchData();
 
     return () => {
       leaveRoom();
     };
-  }, [enterRoom, leaveRoom]);
+  }, [enterRoom, leaveRoom, dispatch]);
+
   const handleStarPress = selectedRating => {
     setRating(selectedRating);
   };
