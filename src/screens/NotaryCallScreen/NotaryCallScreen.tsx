@@ -26,6 +26,7 @@ import {
   RtcSurfaceView,
   ChannelProfileType,
 } from 'react-native-agora';
+import DragabbleSignature from './DragabbleSignature';
 
 import Toast from 'react-native-toast-message';
 import { PDFDocument } from 'pdf-lib';
@@ -52,6 +53,7 @@ import {
   setBookingInfoState,
 
 } from '../../features/booking/bookingSlice';
+import SignatureContainer from './SignatureContainer';
 export default function NotaryCallScreen({ route, navigation }: any) {
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
@@ -86,6 +88,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [filePath, setFilePath] = useState(
     `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
   );
+  const [signatureData, setSignatureData] = useState(null);
 
   const [isSignatureImage, setIsSignatureImage] = useState(false);
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
@@ -94,13 +97,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     downloadFile();
     if (signatureBase64) {
       setSignatureArrayBuffer(_base64ToArrayBuffer(signatureBase64));
+      // console.log("signatue", _base64ToArrayBuffer(signatureBase64))
     }
     if (stampBase64) {
       setSignatureArrayBuffer(_base64ToArrayBuffer(stampBase64));
     }
     if (newPdfSaved) {
       setFilePath(newPdfPath);
-      setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
+      // setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
     }
   }, [signatureBase64, filePath, newPdfSaved, sourceUrl, stampBase64]);
 
@@ -166,6 +170,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setSignatureBase64(signature.replace('data:image/png;base64,', ''));
     setSignaturePad(false);
     setPdfEditMode(true);
+    setSignatureData(signature);
+  };
+  const handleDragabbleSignatureData = (signatureData) => {
+    // Handle the signature data received from DragabbleSignature component
+    console.log("Received signature data:", signatureData);
+    // You can save or process the signature data as needed
   };
 
   const onAddSignatureImage = async (isStamp = false) => {
@@ -176,16 +186,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       });
       if (result && result.assets && result.assets.length > 0) {
         if (isStamp) {
-          console.log("hsfldfinside")
           setStampBase64(result.assets[0].base64);
           setSignatureImageMimeType(result.assets[0].type);
+          setSignatureData(result.assets[0].uri)
           setIsSignatureImage(true);
 
           setSignaturePad(false);
           setPdfEditMode(true);
         } else {
           setSignatureBase64(result.assets[0].base64);
-
+          setSignatureData(result.assets[0].uri)
           setSignatureImageMimeType(result.assets[0].type);
           setIsSignatureImage(true);
 
@@ -229,12 +239,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       });
       const pages = pdfDoc.getPages();
       const firstPage = pages[page - 1];
+      console.log("firespage", firstPage)
       // The meat
       const signatureImage =
         signatureImageMimeType == 'image/png' || !signatureImageMimeType
           ? await pdfDoc.embedPng(signatureArrayBuffer)
           : await pdfDoc.embedJpg(signatureArrayBuffer);
+
       if (Platform.OS == 'ios') {
+
         firstPage.drawImage(signatureImage, {
           x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
           y: pageHeight - (pageHeight * (y + 12)) / 540,
@@ -242,6 +255,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           height: 200,
         });
       } else {
+        console.log("firstpagessss")
         firstPage.drawImage(signatureImage, {
           x: (firstPage.getWidth() * x) / pageWidth,
           y:
@@ -257,18 +271,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       const pdfBase64 = _uint8ToBase64(pdfBytes);
       const path = `${RNFS.DocumentDirectoryPath
         }/react-native_signed_${Date.now()}.pdf`;
-      // console.log('pathddddddddddddddddddd', path);
+      console.log('pathddddddddddddddddddd', path);
       RNFS.writeFile(path, pdfBase64, 'base64')
         .then(async success => {
           setNewPdfPath(path);
           setNewPdfSaved(true);
           setPdfBase64(pdfBase64);
-          if (signatureBase64 && stampBase64) {
-            const l = await uploadSignedDocumentsOnS3(pdfBase64);
+          // if (signatureBase64 && stampBase64) {
+          //   const l = await uploadSignedDocumentsOnS3(pdfBase64);
 
-            updateSignedDocumentToDb(l);
-            addSignedDocFunc(l);
-          }
+          //   updateSignedDocumentToDb(l);
+          //   addSignedDocFunc(l);
+          // }
         })
         .catch(err => {
           console.log('eeee', err.message);
@@ -612,6 +626,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           ) : (
             fileDownloaded && (
               <>
+                <SignatureContainer
+                  // onSignatureData={handleDragabbleSignatureData}
+                  signatureData={signatureData}
+                />
                 {filePath ? (
                   <PdfView
                     // ref={pdfRef}
