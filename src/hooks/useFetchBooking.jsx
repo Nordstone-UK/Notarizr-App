@@ -11,6 +11,7 @@ import {GET_CLIENT_SESSION} from '../../request/queries/getClientSession.query';
 import {GET_AGENT_SESSION} from '../../request/queries/getAgentSessions.query';
 import {UPDATE_BOOKING_PRICE} from '../../request/mutations/updateBookingPrice.mutation';
 import {UPDATE_SESSION_PRICEDOCS} from '../../request/mutations/updateSessionPriceDocs.mutation';
+import {UPDATE_SESSION_AGENTDOCS} from '../../request/mutations/updateSessionAgentdocs';
 
 const useFetchBooking = () => {
   const [getClientBooking] = useLazyQuery(GET_CLIENT_BOOKING);
@@ -20,6 +21,7 @@ const useFetchBooking = () => {
   const [getClientSession] = useLazyQuery(GET_CLIENT_SESSION);
   const [getAgentSession] = useLazyQuery(GET_AGENT_SESSION);
   const [updateBookingPrice] = useMutation(UPDATE_BOOKING_PRICE);
+  const [updateAgentDocuments] = useMutation(UPDATE_SESSION_AGENTDOCS);
   const [updateSessionPricsDoc] = useMutation(UPDATE_SESSION_PRICEDOCS);
   const dispatch = useDispatch();
   const [clientBooking, setClientBooking] = useState({
@@ -50,8 +52,25 @@ const useFetchBooking = () => {
       },
     };
     try {
+      console.log('requestdat', request);
       const {data} = await getAgentBooking(request);
       // console.log('Agent Booking iNfo', data);
+      return sortBookingByDate(data?.getAgentBookings?.bookings);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const updateAgentdocs = async (id, docs) => {
+    const request = {
+      variables: {
+        sessionId: id,
+        agentDocuments: docs,
+      },
+    };
+    try {
+      console.log('requestdat', request);
+      const response = await updateAgentDocuments(request);
+      console.log('Agent Booking iNfodddddddddddddddddddddddd', response);
       return sortBookingByDate(data?.getAgentBookings?.bookings);
     } catch (error) {
       console.log(error);
@@ -213,6 +232,7 @@ const useFetchBooking = () => {
     handleAgentSessions,
     setBookingPrice,
     setSessionPrice,
+    updateAgentdocs,
   };
 };
 

@@ -37,6 +37,9 @@ export const GET_AGENT_BOOKING = gql`
           }
           userAccessCode
         }
+        client_documents
+        agent_document
+        notarized_docs
         service_type
         service {
           _id
@@ -102,6 +105,7 @@ export const GET_AGENT_BOOKING = gql`
         createdAt
         updatedAt
         totalPrice
+        total_signatures_required
         agora_channel_name
         agora_channel_token
         signature_request_id

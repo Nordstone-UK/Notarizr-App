@@ -42,7 +42,7 @@ export default function SignUpScreen({navigation}, props) {
       <BottomSheetStyle>
         <View style={{marginTop: heightToDp(5)}}>
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/emailIcon.png')}
+            leftImageSoucre={require('../../../assets/EmailIcon.png')}
             placeholder={'Enter your email address'}
             LabelTextInput={'Email Address'}
             onChangeText={text => setEmail(text)}

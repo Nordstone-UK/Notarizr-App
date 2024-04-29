@@ -1,4 +1,4 @@
-import {View, Text, Platform} from 'react-native';
+import {View, Text, Platform, PermissionsAndroid} from 'react-native';
 import React, {useEffect, useRef, useCallback} from 'react';
 import OnboardingScreen2 from '../OnboardingScreens/OnboardingScreen2';
 import OnboardingScreen3 from '../OnboardingScreens/OnboardingScreen3';
@@ -69,7 +69,7 @@ import AgentVerificationScreen from '../AgentVerificationScreen/AgentVerificatio
 import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen/AgentLocalNotaryEndScreen';
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
-import NotaryCallScreen from '../NotaryCallScreen.jsx/NotaryCallScreen';
+import NotaryCallScreen from '../NotaryCallScreen/NotaryCallScreen';
 import {useDispatch, useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
@@ -104,13 +104,87 @@ import BottomSheet, {
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import AgentCallFinishing from '../CompletionScreen/AgentCompletecall';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user);
-  console.log('user', user);
+  useEffect(() => {
+    requestPermissions();
+  }, []);
+  const requestPermissions = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        // Request location permission
+        //  const locationPermission = await PermissionsAndroid.request(
+        //    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        //  );
 
+        // Request camera permission
+        const cameraPermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+        );
+
+        // Request storage permission
+        const storagePermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        const Android13StoragePermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+        );
+        //  const NotificationPermission = await PermissionsAndroid.request(
+        //    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        //  );
+        //  const PhonePermission = await PermissionsAndroid.request(
+        //    PermissionsAndroid.PERMISSIONS.CALL_PHONE,
+        //  );
+        // Check if permissions are granted
+        if (
+          //  locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          //  NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          //  PhonePermission === PermissionsAndroid.RESULTS.GRANTED
+          (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
+            Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
+        ) {
+          console.log('All permissions granted');
+        } else {
+          console.log('Some permissions denied');
+        }
+      } else if (Platform.OS === 'ios') {
+        // Request location permission
+        //  const locationPermissionStatus = await request(
+        //    PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        //  );
+        //  const PushNotificationPermission = await request(
+        //    PERMISSIONS.IOS.NOTIFICATIONS,
+        //  );
+
+        // Request camera permission
+        const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
+
+        // Request photo library permission
+        const photoLibraryPermissionStatus = await request(
+          PERMISSIONS.IOS.PHOTO_LIBRARY,
+        );
+
+        // Check if permissions are granted
+        if (
+          //  locationPermissionStatus === 'granted' &&
+          cameraPermissionStatus === 'granted' &&
+          //  PushNotificationPermission === 'granted'
+          photoLibraryPermissionStatus === 'granted'
+        ) {
+          console.log('All permissions granted');
+        } else {
+          console.log('Some permissions denied');
+        }
+      }
+    } catch (error) {
+      console.log('Error requesting permissions:', error);
+    }
+  };
   return (
     <>
       {user ? (
@@ -276,6 +350,11 @@ export default function AppNavigation() {
         <Stack.Screen name="MainBookingScreen" component={MainBookingScreen} />
         <Stack.Screen name="SessionCreation" component={SessionCreation} />
         <Stack.Screen
+          name="AgentCallFinishing"
+          component={AgentCallFinishing}
+        />
+
+        <Stack.Screen
           name="RegisterCompletionScreen"
           component={RegisterCompletionScreen}
         />
@@ -349,7 +428,6 @@ export default function AppNavigation() {
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
-
         <Stack.Screen
           name="NearbyLoadingScreen"
           component={NearbyLoadingScreen}

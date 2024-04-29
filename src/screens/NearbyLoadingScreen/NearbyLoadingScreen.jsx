@@ -18,12 +18,16 @@ import {
 } from '../../features/booking/bookingSlice';
 
 export default function NearbyLoadingScreen({route, navigation}) {
-  const serviceType = useSelector(state => state.booking?.booking?.serviceType);
+  const {serviceType, dateOfBooking, agent} = useSelector(
+    state => state.booking?.booking,
+  );
+  console.log('daterer', dateOfBooking, agent);
   const {FetchMobileNotary} = useGetService();
   const {fetchBookingByID} = useFetchBooking();
   const {handleBookingCreation} = useCreateBooking();
   const {handleUpdateBookingStatus} = useBookingStatus();
-  const {updateSession} = useSession();
+  const {updateSession, handleClientSessionCreation, getSessionByID} =
+    useSession();
   const dispatch = useDispatch();
 
   const handleAgentSearch = async () => {
@@ -31,44 +35,75 @@ export default function NearbyLoadingScreen({route, navigation}) {
       const response = await FetchMobileNotary(serviceType);
       const {user} = response;
       const {service} = user;
-      // console.log('Agent Search Response:', response);
+      console.log('usere', user._id);
       if (response?.status === '200') {
-        try {
-          const response = await handleBookingCreation(user._id, service._id);
-          const {booking} = response;
-          const bookingData = await fetchBookingByID(booking._id);
+        if (serviceType === 'mobile_notary') {
+          try {
+            const response = await handleBookingCreation(user._id, service._id);
+            const {booking} = response;
 
-          console.log('booking', booking._id);
+            const bookingData = await fetchBookingByID(booking._id);
+            const getBookingById = bookingData?.getBookingById;
+            if (response.status === '201') {
+              if (bookingData?.__typename !== 'Session') {
+                await handleUpdateBookingStatus('pending', booking._id);
+              } else {
+                await updateSession('accepted', booking._id);
+              }
+              console.log(
+                'bookingdetailsssssssssssssssssssssss',
+                getBookingById?.booking,
+              );
+              dispatch(setBookingInfoState(getBookingById?.booking));
+              dispatch(
+                setCoordinates(
+                  getBookingById?.agent?.current_location?.coordinates,
+                ),
+              );
 
-          const getBookingById = bookingData?.getBookingById;
-          // console.log(getBookingById);
-          if (response.status === '201') {
-            if (bookingData?.__typename !== 'Session') {
-              await handleUpdateBookingStatus('pending', booking._id);
+              dispatch(setUser(getBookingById?.agent));
+              navigation.navigate('AgentBookCompletion');
+              // navigation.navigate('ToBePaidScreen', {
+              //   bookingData: bookingData?.getBookingById?.booking,
+              // });
             } else {
-              await updateSession('accepted', booking._id);
+              Toast.show({
+                type: 'error',
+                text1: 'Please try again',
+              });
+              navigation.navigate('HomeScreen');
             }
-            dispatch(setBookingInfoState(getBookingById?.booking));
-            dispatch(
-              setCoordinates(
-                getBookingById?.agent?.current_location?.coordinates,
-              ),
-            );
-
-            dispatch(setUser(getBookingById?.agent));
-            navigation.navigate('AgentBookCompletion');
-            // navigation.navigate('ToBePaidScreen', {
-            //   bookingData: bookingData?.getBookingById?.booking,
-            // });
-          } else {
-            Toast.show({
-              type: 'error',
-              text1: 'Please try again',
-            });
-            navigation.navigate('HomeScreen');
+          } catch (error) {
+            console.warn(error);
           }
-        } catch (error) {
-          console.warn(error);
+        } else {
+          console.log('dfhdfdfdlddd', dateOfBooking);
+          try {
+            const response = await handleClientSessionCreation(
+              agent ? agent : user.email,
+              'schedule_later',
+              dateOfBooking,
+            );
+            const {session} = response;
+            console.log('resdfddfd', response);
+            const sessionData = await getSessionByID(session._id);
+            if (response.status === '200') {
+              if (sessionData?.__typename == 'Session') {
+                await updateSession('pending', session._id);
+              }
+
+              dispatch(setBookingInfoState(sessionData));
+              navigation.navigate('AgentBookCompletion');
+            } else {
+              Toast.show({
+                type: 'error',
+                text1: 'Please try again',
+              });
+              navigation.navigate('HomeScreen');
+            }
+          } catch (error) {
+            console.warn(error);
+          }
         }
       } else {
         Toast.show({

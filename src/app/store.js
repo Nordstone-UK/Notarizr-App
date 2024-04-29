@@ -7,6 +7,8 @@ import agentServiceReducer from '../features/agentService/agentServiceSlice';
 import bookingInfoReducer from '../features/bookingInfo/bookingInfoSlice';
 import bookingReducer from '../features/booking/bookingSlice';
 import chatsReduces from '../features/chats/chatsSlice';
+import signatureReducer from '../features/signatures/signatureSlice';
+
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -17,5 +19,6 @@ export const store = configureStore({
     bookingInfo: bookingInfoReducer,
     booking: bookingReducer,
     chats: chatsReduces,
+    signature: signatureReducer,
   },
 });

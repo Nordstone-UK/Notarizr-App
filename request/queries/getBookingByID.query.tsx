@@ -75,6 +75,8 @@ export const GET_BOOKING_BY_ID = gql`
           description
           state
         }
+        totalPrice
+        total_signatures_required
         preference_analysis
         observers
         status
@@ -95,7 +97,6 @@ export const GET_BOOKING_BY_ID = gql`
         review
         createdAt
         updatedAt
-        payment_type
 
         agora_channel_name
         agora_channel_token
@@ -107,6 +108,7 @@ export const GET_BOOKING_BY_ID = gql`
           order
           signature_url
         }
+        client_documents
       }
     }
   }

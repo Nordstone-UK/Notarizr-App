@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   SafeAreaView,
+  PermissionsAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -47,8 +48,7 @@ export default function LoginScreen({navigation}, props) {
         getPhoneOtp({
           variables: {email},
         }).then(response => {
-
-          console.log("response",response.error);
+          console.log('response', response.error);
           if (response?.data?.getPhoneOTP?.status === '403') {
             Toast.show({
               type: 'error',
@@ -79,11 +79,85 @@ export default function LoginScreen({navigation}, props) {
           }
         });
       } catch (error) {
-        console.log("#######",error);
+        console.log('#######', error);
       }
     }
   };
+  useEffect(() => {
+    requestPermissions();
+  }, []);
+  const requestPermissions = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        // Request location permission
+        const locationPermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
 
+        // Request camera permission
+        // const cameraPermission = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.CAMERA,
+        // );
+
+        // Request storage permission
+        // const storagePermission = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        // );
+        // const Android13StoragePermission = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+        // );
+        // const NotificationPermission = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        // );
+        const PhonePermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CALL_PHONE,
+        );
+        // Check if permissions are granted
+        if (
+          locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          // cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          // NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          PhonePermission === PermissionsAndroid.RESULTS.GRANTED
+          //   (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
+          //     Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
+        ) {
+          console.log('All permissions granted');
+        } else {
+          console.log('Some permissions denied');
+        }
+      } else if (Platform.OS === 'ios') {
+        // Request location permission
+        const locationPermissionStatus = await request(
+          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        );
+        // const PushNotificationPermission = await request(
+        //   PERMISSIONS.IOS.NOTIFICATIONS,
+        // );
+
+        // Request camera permission
+        // const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
+
+        // Request photo library permission
+        // const photoLibraryPermissionStatus = await request(
+        //   PERMISSIONS.IOS.PHOTO_LIBRARY,
+        // );
+
+        // Check if permissions are granted
+        if (
+          locationPermissionStatus === 'granted'
+          // cameraPermissionStatus === 'granted' &&
+          // PushNotificationPermission === 'granted'
+          // photoLibraryPermissionStatus === 'granted'
+        ) {
+          console.log('All permissions granted');
+        } else {
+          console.log('Some permissions denied');
+        }
+      }
+    } catch (error) {
+      console.log('Error requesting permissions:', error);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -103,7 +177,7 @@ export default function LoginScreen({navigation}, props) {
         <BottomSheetStyle>
           <View style={{marginTop: heightToDp(5)}}>
             <LabelTextInput
-              leftImageSoucre={require('../../../assets/emailIcon.png')}
+              leftImageSoucre={require('../../../assets/EmailIcon.png')}
               placeholder={'Enter your email address'}
               LabelTextInput={'Email Address'}
               onChangeText={text => setEmail(text)}

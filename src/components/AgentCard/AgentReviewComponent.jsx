@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   dateStyle: {
     color: Colors.white,
     fontFamily: 'Poppins-Bold',
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     marginVertical: heightToDp(-1),
   },
   rating: {

@@ -29,7 +29,7 @@ export default function ClientServiceCard(props) {
   const navigation = useNavigation();
   const address = props?.agentAddress;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
- 
+
   const Button = props?.Button || false;
   const clientDetail = useSelector(state => state.booking.booking);
   const client = clientDetail?.booked_by || clientDetail?.client;
@@ -81,7 +81,7 @@ export default function ClientServiceCard(props) {
 
     return images;
   };
-console.log("dateof bootii",props.dateofBooking)
+
   return (
     <TouchableOpacity onPress={props.onPress} style={styles.cardContainer}>
       <View style={{flexDirection: 'row', margin: widthToDp(2)}}>
@@ -110,12 +110,26 @@ console.log("dateof bootii",props.dateofBooking)
                 textAlign: 'center',
                 fontSize: 14,
               }}>
-             {props.task === 'to_be_paid' ? 'To Be Paid' : (props.task === 'pending' ? 'Pending' : (props.task === 'rejected' ? 'Rejected' : props.task))}
-
+              {props.status === 'to_be_paid' && props.paymentType === 'on_agent'
+                ? 'Accepted'
+                : props.status === 'accepted'
+                ? 'Accepted'
+                : props.status === 'expired'
+                ? 'Expired'
+                : props.status === 'ongoing'
+                ? 'Ongoing'
+                : props.status === 'completed'
+                ? 'Completed'
+                : props.status === 'to_be_paid'
+                ? 'To Be Paid'
+                : props.status === 'pending'
+                ? 'Pending'
+                : props.status === 'rejected'
+                ? 'Rejected'
+                : props.status}
             </Text>
           </View>
         </View>
-
         <View
           style={{
             width: widthToDp(50),
@@ -134,7 +148,6 @@ console.log("dateof bootii",props.dateofBooking)
           <View
             style={{
               flexDirection: 'row',
-             
             }}>
             <Image
               source={props.image}
@@ -144,16 +157,14 @@ console.log("dateof bootii",props.dateofBooking)
             <View
               style={{
                 marginLeft: widthToDp(2),
-                paddingHorizontal:5,
+                paddingHorizontal: 5,
                 // flexDirection: 'row',
                 // justifyContent: 'center',
               }}>
               <Text style={styles.address}>
                 {capitalizeFirstLetter(firstPart)}
               </Text>
-              {secondPart && (
-                <Text style={[styles.address]}>{secondPart}</Text>
-              )}
+              {secondPart && <Text style={[styles.address]}>{secondPart}</Text>}
             </View>
           </View>
 
@@ -163,14 +174,25 @@ console.log("dateof bootii",props.dateofBooking)
               alignItems: 'center',
               columnGap: widthToDp(2),
               marginLeft: widthToDp(1),
-              marginBottom:20,
+              marginBottom: 20,
             }}>
-              <Image
+            <Image
               source={props.calendarImage}
               style={{width: widthToDp(4), height: heightToDp(4)}}
             />
             <Text style={[styles.rating, {color: Colors.OrangeGradientEnd}]}>
-              {moment(props.dateofBooking).format('Do MMMM YYYY')} at {props.timeofBooking}
+              {props.datetimesession && (
+                <>
+                  {moment(props.datetimesession).format('Do MMMM YYYY')} at{' '}
+                  {moment(props.datetimesession).format('h:mm a')}
+                </>
+              )}
+              {props.dateofBooking && (
+                <>
+                  {moment(props.dateofBooking).format('Do MMMM YYYY')} at{' '}
+                  {props.timeofBooking}
+                </>
+              )}
             </Text>
           </View>
         </View>
@@ -190,10 +212,14 @@ console.log("dateof bootii",props.dateofBooking)
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        <Text>{props?.servicetype === 'ron' ? 'RON' : (props?.servicetype === 'mobile_notary' ? 'Mobile Notary' : 'No Type')}</Text>
-
+        <Text>
+          {props?.servicetype === 'ron'
+            ? 'RON'
+            : props?.servicetype === 'mobile_notary'
+            ? 'Mobile Notary'
+            : 'RON'}
+        </Text>
       </View>
-      
     </TouchableOpacity>
   );
   return (
@@ -207,7 +233,7 @@ console.log("dateof bootii",props.dateofBooking)
             }}>
             <Image source={props.source} style={styles.cardImage} />
             <ClientTimeCard
-              task={props.task}
+              task={props.status}
               dateofBooking={props.dateofBooking}
               timeofBooking={props.timeofBooking}
               createdAt={props.createdAt}

@@ -21,6 +21,7 @@ export default function WaitingRoomScreen({route, navigation}) {
   const {uid, channel, token, time, date} = route.params;
   const [refreshing, setRefreshing] = useState(false);
   const bookingDetail = useSelector(state => state.booking.booking);
+  console.log('boookingdeta', bookingDetail);
   const user = useSelector(state => state.user.user);
   const [selected, setSelected] = useState('waiting room');
   const [screen, setscreen] = useState(true);
@@ -49,6 +50,7 @@ export default function WaitingRoomScreen({route, navigation}) {
       setRefreshing(false);
     }, 2000);
   }, []);
+  // console.log('navigegoback', navigation.goBack());
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.NavbarContainer}>
@@ -152,6 +154,7 @@ export default function WaitingRoomScreen({route, navigation}) {
                     Colors.OrangeGradientEnd,
                   ]}
                   styles={{fontSize: widthToDp(5)}}
+                  // onPress={() => navigation.goBack()}
                 />
               </View>
             </View>

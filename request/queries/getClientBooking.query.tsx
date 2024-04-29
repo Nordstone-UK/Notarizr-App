@@ -92,6 +92,7 @@ export const GET_CLIENT_BOOKING = gql`
           phone_number
           location
         }
+        client_documents
         document_type {
           name
           price
@@ -112,6 +113,7 @@ export const GET_CLIENT_BOOKING = gql`
           order
           signature_url
         }
+        total_signatures_required
       }
       totalDocs
       limit

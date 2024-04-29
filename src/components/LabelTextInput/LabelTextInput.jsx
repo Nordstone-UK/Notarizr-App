@@ -47,6 +47,7 @@ export default function LabelTextInput(props) {
           secureTextEntry={secureText || false}
           placeholder={props.placeholder}
           defaultValue={props.defaultValue}
+          value={props.value}
           placeholderTextColor={
             Colors.DisableColor || props.placeholderTextColor
           }

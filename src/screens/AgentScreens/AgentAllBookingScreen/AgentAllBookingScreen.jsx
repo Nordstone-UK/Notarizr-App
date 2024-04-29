@@ -30,21 +30,21 @@ export default function AgentAllBookingScreen({navigation}) {
   const [Booking, setBooking] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [mergerData, setMergerData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const account_type = useSelector(state => state.user.user.account_type);
   const dispatch = useDispatch();
   const init = async status => {
+    console.log('astssdfdfff', status);
+    setLoading(true);
     const bookingDetail = await fetchAgentBookingInfo(status);
     const sessionDetail = await handleAgentSessions(status);
-    // console.log('bookingDetail', bookingDetail);
-    // console.log('sessionDetail', sessionDetail);
     const mergedDetails = [...bookingDetail, ...sessionDetail];
-
     const sortedDetails = mergedDetails.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
-
     setMergerData(sortedDetails);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -70,14 +70,12 @@ export default function AgentAllBookingScreen({navigation}) {
     }, 1000);
   }, []);
   const checkStatusNavigation = (status, item) => {
-    // console.log('item?.status', item._id, item?.status);
     if (status === 'accepted' && item?.__typename === 'mobile_notary') {
       dispatch(setBookingInfoState(item));
       dispatch(setUser(item?.booked_by));
       dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
       navigation.navigate('MapArrivalScreen');
     } else {
-      console.log('item', item.payment_type);
       dispatch(setBookingInfoState(item));
       navigation.navigate('ClientDetailsScreen', {
         clientDetail: item,
@@ -183,7 +181,7 @@ export default function AgentAllBookingScreen({navigation}) {
                 />
               )}
               <MainButton
-                Title="Rejected"
+                Title="Rejected / Cancelled"
                 colors={
                   isFocused === 'rejected'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
@@ -213,68 +211,69 @@ export default function AgentAllBookingScreen({navigation}) {
               justifyContent: 'center',
               marginVertical: widthToDp(3),
             }}>
-            {mergerData ? (
-              mergerData.length !== 0 ? (
-                <FlatList
-                  data={mergerData}
-                  keyExtractor={item => item._id}
-                  renderItem={({item}) => {
-                    console.log("itemthper",item)
-                    return (
-                      <ClientServiceCard
-                        image={require('../../../../assets/agentLocation.png')}
-                        calendarImage={require('../../../../assets/calenderIcon.png')}
-                        servicetype={item.service_type}
-                        source={{
-                          uri: item?.booked_by?.profile_picture
-                            ? `${item?.booked_by?.profile_picture}`
-                            : `${item?.client?.profile_picture}`,
-                        }}
-                        bottomRightText={item?.document_type}
-                        bottomLeftText="Total"
-                        agentName={
-                          item?.booked_by?.first_name &&
-                          item?.booked_by?.last_name
-                            ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
-                            : `${item.client.first_name} ${item.client.last_name}`
-                        }
-                        agentAddress={
-                          item?.booked_by?.location
-                            ? `${item?.booked_by?.location}`
-                            : `${item?.client?.location}`
-                        }
-                        task={item?.status}
-                        OrangeText="At Home"
-                        onPress={
-                          () => checkStatusNavigation(item?.status, item)
-                          // navigation.navigate('ClientDetailsScreen', {
-                          //   clientDetail: item,
-                          // })
-                        }
-                        dateofBooking={item?.date_of_booking}
-                        timeofBooking={item?.time_of_booking}
-                        createdAt={item?.createdAt}
-                        
-                      />
-                    );
-                  }}
-                />
-              ) : (
-                <View
-                  style={{
-                    height: heightToDp(100),
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                  <Image
-                    source={require('../../../../assets/emptyBox.png')}
-                    style={[styles.picture]}
-                  />
-                  <Text style={styles.subheading}>No Booking Found...</Text>
-                </View>
-              )
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.Orange} />
+              </View>
+            ) : mergerData.length !== 0 ? (
+              <FlatList
+                data={mergerData}
+                keyExtractor={item => item._id}
+                renderItem={({item}) => {
+                  // console.log("items",item)
+                  return (
+                    <ClientServiceCard
+                      image={require('../../../../assets/agentLocation.png')}
+                      calendarImage={require('../../../../assets/calenderIcon.png')}
+                      servicetype={item.service_type}
+                      source={{
+                        uri: item?.booked_by?.profile_picture
+                          ? `${item?.booked_by?.profile_picture}`
+                          : `${item?.client?.profile_picture}`,
+                      }}
+                      bottomRightText={item?.document_type}
+                      bottomLeftText="Total"
+                      agentName={
+                        item?.booked_by?.first_name &&
+                        item?.booked_by?.last_name
+                          ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
+                          : `${item.client.first_name} ${item.client.last_name}`
+                      }
+                      agentAddress={
+                        item?.booked_by?.location
+                          ? `${item?.booked_by?.location}`
+                          : `${item?.client?.location}`
+                      }
+                      status={item?.status}
+                      OrangeText="At Home"
+                      onPress={
+                        () => checkStatusNavigation(item?.status, item)
+                        // navigation.navigate('ClientDetailsScreen', {
+                        //   clientDetail: item,
+                        // })
+                      }
+                      paymentType={item?.payment_type}
+                      datetimesession={item?.date_time_session}
+                      dateofBooking={item?.date_of_booking}
+                      timeofBooking={item?.time_of_booking}
+                      createdAt={item?.createdAt}
+                    />
+                  );
+                }}
+              />
             ) : (
-              <ActivityIndicator size="large" color={Colors.Orange} />
+              <View
+                style={{
+                  height: heightToDp(100),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  source={require('../../../../assets/emptyBox.png')}
+                  style={[styles.picture]}
+                />
+                <Text style={styles.subheading}>No Booking Found...</Text>
+              </View>
             )}
           </View>
         </ScrollView>
@@ -322,5 +321,10 @@ const styles = StyleSheet.create({
   picture: {
     width: widthToDp(20),
     height: heightToDp(20),
+  },
+  loadingContainer: {
+    height: heightToDp(100),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

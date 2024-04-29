@@ -73,6 +73,7 @@ export const GET_CLIENT_SESSION = gql`
         session_schedule
         date_time_session
         agent_document
+        notarized_docs
         agora_channel_name
         agora_channel_token
         signature_request_id

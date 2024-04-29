@@ -72,7 +72,7 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [searchFor, setSearchFor] = useState('');
   const [showObserverSearchView, setShowObserverSearchView] = useState(false);
 
-  const [paymentMethod, setPaymentMethod] = useState('on_noarizr');
+  const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   let urlResponse;
   useEffect(() => {
     SplashScreen.hide();
@@ -90,6 +90,7 @@ export default function AgentSessionInviteScreen({navigation}) {
     const response = await uploadMultipleFiles();
     if (response) {
       setFileResponse(response);
+      console.log('responsf,', response);
     }
   };
 
@@ -112,22 +113,6 @@ export default function AgentSessionInviteScreen({navigation}) {
 
   const printEverything = async () => {
     setLoading(true);
-    // console.log(
-    //   'workingggg',
-    //   urlResponse,
-    //   selectedClient,
-    //   'schedule_later',
-    //   date.toString(),
-    //   selected,
-    //   observerEmail,
-    //   totalPrice,
-    //   fileResponse,
-    //   documentSelect,
-    //   paymentMethod,
-    //   observers,
-    //   //  documentObjects,
-    // );
-
     if (
       fileResponse.length !== 0 &&
       selectedClient &&
@@ -139,25 +124,24 @@ export default function AgentSessionInviteScreen({navigation}) {
         urlResponse = await uploadDocArray(fileResponse);
       }
 
-      console.log('urlResponse', urlResponse);
       const documentObjects = documentSelect.map(item => {
         const [name, price] = item.split(' - $');
         return {name, price: parseFloat(price)};
       });
-
+      console.log('urlrespn', urlResponse);
+      console.log('responsssssssssssssssssssssssssse', paymentMethod);
       const response = await handleSessionCreation(
         urlResponse,
         selectedClient,
         'schedule_later',
-        date.toString(),
+        date,
         selected,
         observers.map(item => item.email),
         totalPrice,
         documentObjects,
         paymentMethod,
       );
-
-      console.log('response', response);
+      console.log('respsoos', response);
       if (response === '200') {
         navigation.navigate('SessionCreation');
       } else {
@@ -175,7 +159,8 @@ export default function AgentSessionInviteScreen({navigation}) {
     }
     setLoading(false);
   };
-
+  console.log('payment', paymentMethod);
+  console.log('paymentinfo', paymentMethod);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Invite Signer" />
@@ -459,49 +444,49 @@ export default function AgentSessionInviteScreen({navigation}) {
               )
             ) : null}
             {/* <View
-              style={{
-                marginTop: heightToDp(3),
-                marginHorizontal: widthToDp(2),
-                alignSelf: 'flex-start',
-              }}>
-              <MainButton
-                Title="Add Observer"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => setVisible(true)}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                marginTop: widthToDp(4),
-                columnGap: widthToDp(2),
-                rowGap: heightToDp(2),
-                marginHorizontal: widthToDp(3),
-              }}>
-              {observerEmail.map((entry, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => props.removeItem(index)}
-                  style={{
-                    padding: widthToDp(1.5),
-                    borderRadius: 5,
-                    backgroundColor: Colors.Orange,
-                  }}>
-                  <Text style={{color: Colors.white, fontSize: widthToDp(4)}}>
-                    {entry}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View> */}
+style={{
+marginTop: heightToDp(3),
+marginHorizontal: widthToDp(2),
+alignSelf: 'flex-start',
+}}>
+<MainButton
+Title="Add Observer"
+colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+GradiStyles={{
+paddingVertical: heightToDp(1),
+paddingHorizontal: widthToDp(5),
+}}
+styles={{
+padding: heightToDp(2),
+fontSize: widthToDp(3.5),
+}}
+onPress={() => setVisible(true)}
+/>
+</View>
+<View
+style={{
+flexDirection: 'row',
+flexWrap: 'wrap',
+marginTop: widthToDp(4),
+columnGap: widthToDp(2),
+rowGap: heightToDp(2),
+marginHorizontal: widthToDp(3),
+}}>
+{observerEmail.map((entry, index) => (
+<TouchableOpacity
+key={index}
+onPress={() => props.removeItem(index)}
+style={{
+padding: widthToDp(1.5),
+borderRadius: 5,
+backgroundColor: Colors.Orange,
+}}>
+<Text style={{color: Colors.white, fontSize: widthToDp(4)}}>
+{entry}
+</Text>
+</TouchableOpacity>
+))}
+</View> */}
           </View>
           <View style={styles.headingContainer}>
             <Text style={styles.Heading}>
@@ -636,9 +621,9 @@ export default function AgentSessionInviteScreen({navigation}) {
                 }}>
                 <TouchableOpacity
                   onPress={() => {
-                    setPaymentMethod('on_noarizr');
+                    setPaymentMethod('on_notarizr');
                   }}>
-                  {paymentMethod == 'on_noarizr' ? (
+                  {paymentMethod == 'on_notarizr' ? (
                     <CheckCircleSolid
                       width={24}
                       height={24}
@@ -655,7 +640,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   )}
                 </TouchableOpacity>
                 <Text style={{color: 'black', marginLeft: 10}}>
-                  Invoice the on client Notarizr{' '}
+                  Invoice the client on Notarizr{' '}
                 </Text>
               </View>
             </View>
@@ -757,7 +742,7 @@ const styles = StyleSheet.create({
   },
   Heading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginHorizontal: widthToDp(3),
   },
@@ -772,7 +757,7 @@ const styles = StyleSheet.create({
   },
   insideHeading: {
     color: Colors.TextColor,
-    fontSize: widthToDp(6),
+    fontSize: widthToDp(5),
     fontFamily: 'Manrope-Bold',
     marginVertical: widthToDp(2),
   },
@@ -847,96 +832,96 @@ const styles = StyleSheet.create({
 });
 {
   /* <SingleSelectDropDown
-              setSelected={val => setDocumentSelected(val)}
-              data={searchedUser.map(item => ({
-                value: item.email,
-              }))}
-              save="value"
-              label="Documents"
-              placeholder="Search for Documents"
-            /> */
+setSelected={val => setDocumentSelected(val)}
+data={searchedUser.map(item => ({
+value: item.email,
+}))}
+save="value"
+label="Documents"
+placeholder="Search for Documents"
+/> */
 }
 {
   /* <DocumentDropDown
-              placeholder={'Search Client by Email'}
-              multiple={false}
-              documentData={searchedUser}
-              SearchUser={SearchUser}
-            /> */
+placeholder={'Search Client by Email'}
+multiple={false}
+documentData={searchedUser}
+SearchUser={SearchUser}
+/> */
 }
-//  <View style={{flex: 1, justifyContent: 'center'}}>
-//    <Picker
-//      selectedValue={selectedCategory}
-//      onValueChange={itemValue => {
-//        setSelectedCategory(itemValue);
-//        setSelectedDocument(null);
-//      }}
-//      style={{
-//        borderWidth: 5,
-//        borderColor: 'orange',
-//        marginBottom: 20,
-//      }}>
-//      <Picker.Item label="Select Category" value={null} />
-//      {categoriesData.map(category => (
-//        <Picker.Item
-//          key={category._id}
-//          label={category.name}
-//          value={category.name}
-//        />
-//      ))}
-//    </Picker>
+// <View style={{flex: 1, justifyContent: 'center'}}>
+// <Picker
+// selectedValue={selectedCategory}
+// onValueChange={itemValue => {
+// setSelectedCategory(itemValue);
+// setSelectedDocument(null);
+// }}
+// style={{
+// borderWidth: 5,
+// borderColor: 'orange',
+// marginBottom: 20,
+// }}>
+// <Picker.Item label="Select Category" value={null} />
+// {categoriesData.map(category => (
+// <Picker.Item
+// key={category._id}
+// label={category.name}
+// value={category.name}
+// />
+// ))}
+// </Picker>
 
-//    {selectedCategoryData && (
-//      <Picker
-//        selectedValue={selectedDocument}
-//        style={{borderWidth: 2, borderColor: 'orange'}}
-//        onValueChange={itemValue => setSelectedDocument(itemValue)}>
-//        <Picker.Item label="Select Document" value={null} />
-//        {selectedCategoryData.document.map(document => (
-//          <Picker.Item
-//            key={document._id}
-//            label={document.name}
-//            value={document.name}
-//          />
-//        ))}
-//      </Picker>
-//    )}
-//  </View>;
+// {selectedCategoryData && (
+// <Picker
+// selectedValue={selectedDocument}
+// style={{borderWidth: 2, borderColor: 'orange'}}
+// onValueChange={itemValue => setSelectedDocument(itemValue)}>
+// <Picker.Item label="Select Document" value={null} />
+// {selectedCategoryData.document.map(document => (
+// <Picker.Item
+// key={document._id}
+// label={document.name}
+// value={document.name}
+// />
+// ))}
+// </Picker>
+// )}
+// </View>;
 {
   /* <View style={styles.buttonBottom}>
-              <MainButton
-                Title="Notarize Now"
-                colors={
-                  session === 'Notarize Now'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => handleNotarizeNow()}
-              />
-              <MainButton
-                Title="Schedule for Later"
-                colors={
-                  session === 'Schedule for Later'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => handleSchedule()}
-              />
-            </View> */
+<MainButton
+Title="Notarize Now"
+colors={
+session === 'Notarize Now'
+? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+: [Colors.DisableColor, Colors.DisableColor]
+}
+GradiStyles={{
+paddingVertical: heightToDp(1),
+paddingHorizontal: widthToDp(5),
+}}
+styles={{
+padding: heightToDp(2),
+fontSize: widthToDp(3.5),
+}}
+onPress={() => handleNotarizeNow()}
+/>
+<MainButton
+Title="Schedule for Later"
+colors={
+session === 'Schedule for Later'
+? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+: [Colors.DisableColor, Colors.DisableColor]
+}
+GradiStyles={{
+paddingVertical: heightToDp(1),
+paddingHorizontal: widthToDp(5),
+}}
+styles={{
+padding: heightToDp(2),
+fontSize: widthToDp(3.5),
+}}
+onPress={() => handleSchedule()}
+/>
+</View> */
 }
