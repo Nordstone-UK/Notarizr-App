@@ -52,16 +52,18 @@ export default function LegalDocScreen({route, navigation}) {
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [additionalSignatures, setAdditionalSignatures] = useState(0);
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      await getState();
-      setLoading(false);
-    };
+    // const fetchData = async () => {
+    //   setLoading(true);
+    //   await
+    getState();
+    //   setLoading(false);
+    // };
 
-    fetchData();
+    // fetchData();
   }, []);
 
   function createDocumentObject(array) {
+    console.log('arrya', array);
     const documentObjects = array.map(item => {
       const [name, price] = item.split(' - $');
       return {name, price: parseFloat(price)};
@@ -116,8 +118,10 @@ export default function LegalDocScreen({route, navigation}) {
   };
   const getState = async query => {
     setLoading(true);
+
     const reponse = await handleGetLocation();
-    console.log('locationsdf', reponse);
+    // console.log('locationsdf', reponse);
+    console.log(' uere', query);
     const data = await fetchDocumentTypes(
       page,
       Limit,
@@ -134,6 +138,7 @@ export default function LegalDocScreen({route, navigation}) {
   };
 
   const handleSearchInput = query => {
+    console.log('qure', query);
     setSearchResults(query);
     setDocumentArray();
     getState(query);
@@ -188,40 +193,45 @@ export default function LegalDocScreen({route, navigation}) {
                 <ActivityIndicator size="large" color={Colors.Orange} />
               </View>
             ) : (
-              <MultipleSelectList
-                setSelected={val => setSelected(val)}
-                data={
-                  documentArray &&
-                  documentArray.map(item => ({
-                    value: `${item.name} - $${item.statePrices[0].price}`,
-                  }))
-                }
-                save="value"
-                onSelect={() => createDocumentObject(selected)}
-                label="Documents"
-                placeholder="Search for documents"
-                boxStyles={{
-                  borderColor: Colors.Orange,
-                  borderWidth: 2,
-                  borderRadius: widthToDp(5),
-                }}
-                dropdownStyles={{
-                  borderColor: Colors.Orange,
-                  borderWidth: 2,
-                  borderRadius: widthToDp(5),
-                  maxHeight: widthToDp(75),
-                }}
-                inputStyles={{color: Colors.TextColor}}
-                badgeStyles={{backgroundColor: Colors.Orange}}
-                dropdownTextStyles={{color: Colors.TextColor}}
-                checkBoxStyles={{tintColor: Colors.TextColor}}
-                labelStyles={{color: Colors.TextColor, fontSize: widthToDp(4)}}
-                badgeTextStyles={{
-                  fontSize: widthToDp(3.2),
-                  color: Colors.white,
-                  fontFamily: 'Manrope-SemiBold',
-                }}
-              />
+              documentArray && (
+                <MultipleSelectList
+                  setSelected={val => setSelected(val)}
+                  data={
+                    documentArray &&
+                    documentArray.map(item => ({
+                      value: `${item.name} - $${item.statePrices[0].price}`,
+                    }))
+                  }
+                  save="value"
+                  onSelect={() => createDocumentObject(selected)}
+                  label="Documents"
+                  placeholder="Search for documents"
+                  boxStyles={{
+                    borderColor: Colors.Orange,
+                    borderWidth: 2,
+                    borderRadius: widthToDp(5),
+                  }}
+                  dropdownStyles={{
+                    borderColor: Colors.Orange,
+                    borderWidth: 2,
+                    borderRadius: widthToDp(5),
+                    maxHeight: widthToDp(75),
+                  }}
+                  inputStyles={{color: Colors.TextColor}}
+                  badgeStyles={{backgroundColor: Colors.Orange}}
+                  dropdownTextStyles={{color: Colors.TextColor}}
+                  checkBoxStyles={{tintColor: Colors.TextColor}}
+                  labelStyles={{
+                    color: Colors.TextColor,
+                    fontSize: widthToDp(4),
+                  }}
+                  badgeTextStyles={{
+                    fontSize: widthToDp(3.2),
+                    color: Colors.white,
+                    fontFamily: 'Manrope-SemiBold',
+                  }}
+                />
+              )
             )}
           </View>
           <View

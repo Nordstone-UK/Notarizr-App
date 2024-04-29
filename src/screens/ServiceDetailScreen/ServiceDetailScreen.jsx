@@ -106,7 +106,7 @@ export default function ServiceDetailScreen({route, navigation}) {
     ) {
       Alert.alert(
         'Disclaimer',
-        'We may contact you to modify the time based on local agent availability.',
+        'We may contact you to modify the time based on local agent availability and time of day..',
         [
           {
             text: 'OK',

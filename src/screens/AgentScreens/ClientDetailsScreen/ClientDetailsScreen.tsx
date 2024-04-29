@@ -373,10 +373,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   };
 
   const selectDocuments = async () => {
+    setLoading(true);
     let urlResponse;
     const response = await uploadMultipleFiles();
     console.log('response', response);
-    // setUploadingDocs(response);
+
     if (response) {
 
       urlResponse = await uploadDocArray(response);
@@ -384,16 +385,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       //   key: item.name,
       //   value: item.url,
       // }));
-      console.log("dfdfdfdfdfddddddddddddddddddd", urlResponse);
-
-
       const request = {
         variables: {
           sessionId: clientDetail?._id,
           agentDocuments: urlResponse,
         },
       };
-
       const requestBooking = {
         variables: {
           bookingId: clientDetail?._id,
@@ -406,28 +403,19 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           : await updateBookingClientDocs(requestBooking);
 
       var reponse;
-
-      console.log('###############', res);
-
       if (clientDetail.__typename == 'Session') {
-        console.log('heeeetre');
         const request = {
           variables: {
             sessionId: clientDetail?._id,
           },
         };
-
         reponse = await getSession(request);
-        console.log('ressss', reponse.data.getSession.session);
         dispatch(setBookingInfoState(reponse.data.getSession.session));
+        setLoading(false);
       } else {
         reponse = await fetchBookingByID(clientDetail?._id);
-
         dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-        console.log(
-          '#########',
-          reponse?.getBookingById?.booking.client_documents,
-        );
+        setLoading(false);
       }
     }
   };
@@ -1638,6 +1626,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     fontSize: widthToDp(4),
                   }}
                   fontSize={widthToDp(4)}
+                  loading={loading}
                 />
                 <GradientButton
                   Title="Join Session"
@@ -1800,6 +1789,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     selectDocuments();
                   }}
                   fontSize={widthToDp(4)}
+                  loading={loading}
                 />
               </View>
             )}

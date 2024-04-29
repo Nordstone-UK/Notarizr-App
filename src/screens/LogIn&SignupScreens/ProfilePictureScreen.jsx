@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   SafeAreaView,
+  PermissionsAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';

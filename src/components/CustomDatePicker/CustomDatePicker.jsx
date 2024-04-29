@@ -64,8 +64,8 @@ export default function CustomDatePicker(props) {
         }}
         onCancel={handleCancel}
         mode="date"
-        maximumDate={new Date(2020, 11, 31)}
-        minimumDate={new Date(1950, 11, 31)}
+        // maximumDate={new Date(2020, 11, 31)}
+        // minimumDate={new Date(1950, 11, 31)}
         date={selectedDate}
       />
       {props.Text && (

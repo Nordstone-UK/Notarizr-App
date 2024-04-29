@@ -106,9 +106,9 @@ export default function LoginScreen({navigation}, props) {
         // const Android13StoragePermission = await PermissionsAndroid.request(
         //   PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
         // );
-        const NotificationPermission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-        );
+        // const NotificationPermission = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        // );
         const PhonePermission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.CALL_PHONE,
         );
@@ -116,7 +116,7 @@ export default function LoginScreen({navigation}, props) {
         if (
           locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           // cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          // NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           PhonePermission === PermissionsAndroid.RESULTS.GRANTED
           //   (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
           //     Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
@@ -130,9 +130,9 @@ export default function LoginScreen({navigation}, props) {
         const locationPermissionStatus = await request(
           PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
         );
-        const PushNotificationPermission = await request(
-          PERMISSIONS.IOS.NOTIFICATIONS,
-        );
+        // const PushNotificationPermission = await request(
+        //   PERMISSIONS.IOS.NOTIFICATIONS,
+        // );
 
         // Request camera permission
         // const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
@@ -144,9 +144,9 @@ export default function LoginScreen({navigation}, props) {
 
         // Check if permissions are granted
         if (
-          locationPermissionStatus === 'granted' &&
+          locationPermissionStatus === 'granted'
           // cameraPermissionStatus === 'granted' &&
-          PushNotificationPermission === 'granted'
+          // PushNotificationPermission === 'granted'
           // photoLibraryPermissionStatus === 'granted'
         ) {
           console.log('All permissions granted');

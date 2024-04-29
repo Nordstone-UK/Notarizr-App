@@ -115,58 +115,65 @@ export default function MedicalBookingScreen({route, navigation}) {
   const documentCheck = isEmpty(bookingDetail?.documents);
 
   const selectDocuments = async () => {
+    setLoading(true);
     setShowIcon(false);
-    let urlResponse;
-    const response = await uploadMultipleFiles();
-    console.log('response', response);
-    // setUploadingDocs(response);
-    if (response) {
-      urlResponse = await uploadAllDocuments(response);
+    try {
+      let urlResponse;
+      const response = await uploadMultipleFiles();
+      console.log('response', response);
+      // setUploadingDocs(response);
+      if (response) {
+        urlResponse = await uploadAllDocuments(response);
 
-      urlResponse = urlResponse.map(item => ({
-        key: item.name,
-        value: item.url,
-      }));
-      const request = {
-        variables: {
-          sessionId: bookingDetail?._id,
-          clientDocuments: urlResponse,
-        },
-      };
-
-      const requestBooking = {
-        variables: {
-          bookingId: bookingDetail?._id,
-          clientDocuments: urlResponse,
-        },
-      };
-      const res =
-        bookingDetail.__typename == 'Session'
-          ? await updateSessionClientDocs(request)
-          : await updateBookingClientDocs(requestBooking);
-      var reponse;
-      if (bookingDetail.__typename == 'Session') {
+        urlResponse = urlResponse.map(item => ({
+          key: item.name,
+          value: item.url,
+        }));
         const request = {
           variables: {
             sessionId: bookingDetail?._id,
+            clientDocuments: urlResponse,
           },
         };
-        reponse = await getSession(request);
-        console.log('ressss', reponse.data.getSession.session);
-        dispatch(setBookingInfoState(reponse.data.getSession.session));
-      } else {
-        reponse = await fetchBookingByID(bookingDetail?._id);
 
-        dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-        console.log('#########', reponse?.getBookingById?.booking);
+        const requestBooking = {
+          variables: {
+            bookingId: bookingDetail?._id,
+            clientDocuments: urlResponse,
+          },
+        };
+        const res =
+          bookingDetail.__typename == 'Session'
+            ? await updateSessionClientDocs(request)
+            : await updateBookingClientDocs(requestBooking);
+        var reponse;
+        if (bookingDetail.__typename == 'Session') {
+          const request = {
+            variables: {
+              sessionId: bookingDetail?._id,
+            },
+          };
+          reponse = await getSession(request);
+          console.log('ressss', reponse.data.getSession.session);
+          dispatch(setBookingInfoState(reponse.data.getSession.session));
+        } else {
+          reponse = await fetchBookingByID(bookingDetail?._id);
+
+          dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
+          console.log('#########', reponse?.getBookingById?.booking);
+        }
+
+        setUploadShow(false);
+        setShowIcon(true);
       }
-
-      setUploadShow(false);
-      setShowIcon(true);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      setLoading(false); // Stop loading
     }
     setShowIcon(true);
   };
-  console.log(documentCheck);
+  // console.log(documentCheck);
   React.useEffect(() => {
     const fetchData = async () => {
       try {
@@ -1023,6 +1030,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 selectDocuments();
               }}
               fontSize={widthToDp(3.5)}
+              loading={loading}
             />
             {bookingDetail.payment_type == 'on_notarizr' &&
               status !== 'Accepted' && (
