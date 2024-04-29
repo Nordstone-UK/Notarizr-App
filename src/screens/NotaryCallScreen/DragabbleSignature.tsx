@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
 import { PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -7,32 +7,28 @@ import Animated, {
   withSpring,
   clamp,
 } from 'react-native-reanimated';
+import { deleteSignature } from '../../features/signatures/signatureSlice';
+import { useDispatch } from 'react-redux';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function DraggableSignature({ signatureData }) {
-  // console.log("signatredate", signatureData)
+const FIXED_IMAGE_SIZE = 120;
+
+export default function DraggableSignature({ signatureData, onSignatureChange }) {
+  const dispatch = useDispatch();
   const scale = useSharedValue(1);
   const translationX = useSharedValue(0);
   const translationY = useSharedValue(0);
-  const baseScale = useSharedValue(1);
   const prevTranslationX = useRef(0);
   const prevTranslationY = useRef(0);
 
   const onPinchGestureEvent = ({ nativeEvent }) => {
-    baseScale.value = nativeEvent.scale;
-  };
-
-  const onPinchHandlerStateChange = ({ nativeEvent }) => {
-    if (nativeEvent.oldState === State.ACTIVE) {
-      scale.value *= baseScale.value;
-      baseScale.value = 1;
-    }
+    scale.value = nativeEvent.scale;
   };
 
   const onPanGestureEvent = ({ nativeEvent }) => {
-    translationX.value = clamp(prevTranslationX.current + nativeEvent.translationX, 0, screenWidth - 120);
-    translationY.value = clamp(prevTranslationY.current + nativeEvent.translationY, 0, screenHeight - 120);
+    translationX.value = clamp(prevTranslationX.current + nativeEvent.translationX, 0, screenWidth - FIXED_IMAGE_SIZE);
+    translationY.value = clamp(prevTranslationY.current + nativeEvent.translationY, 0, screenHeight - FIXED_IMAGE_SIZE);
   };
 
   const onPanGestureStateChange = ({ nativeEvent }) => {
@@ -48,6 +44,15 @@ export default function DraggableSignature({ signatureData }) {
         damping: 10,
         stiffness: 100,
       });
+
+      // Call the onSignatureChange callback with the final signature information
+      onSignatureChange({
+        width: FIXED_IMAGE_SIZE * scale.value,
+        height: FIXED_IMAGE_SIZE * scale.value,
+        x: translationX.value,
+        y: translationY.value,
+        signatureData: signatureData
+      });
     }
   };
 
@@ -59,6 +64,13 @@ export default function DraggableSignature({ signatureData }) {
     ],
   }));
 
+  const handleDelete = () => {
+    dispatch(deleteSignature(signatureData));
+    onSignatureChange({
+      delete: true
+    })
+  };
+
   return (
     <View style={styles.container}>
       <PanGestureHandler
@@ -67,13 +79,15 @@ export default function DraggableSignature({ signatureData }) {
       >
         <PinchGestureHandler
           onGestureEvent={onPinchGestureEvent}
-          onHandlerStateChange={onPinchHandlerStateChange}
         >
           <Animated.View style={[styles.box, animatedStyle]}>
             <Image
               source={{ uri: signatureData }} // Assuming signatureData is a URI
               style={styles.image}
             />
+            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+              <View style={styles.deleteIcon} />
+            </TouchableOpacity>
           </Animated.View>
         </PinchGestureHandler>
       </PanGestureHandler>
@@ -84,24 +98,33 @@ export default function DraggableSignature({ signatureData }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    borderWidth: 1,
-    borderColor: 'black',
     zIndex: 999,
-    backgroundColor: '#fff',
   },
   box: {
-    height: 120,
-    width: 120,
-    borderWidth: 1,
-    borderColor: 'black',
-    // backgroundColor: '#b58df1',
-    borderRadius: 20,
+    height: FIXED_IMAGE_SIZE,
+    width: FIXED_IMAGE_SIZE,
     position: 'absolute',
-    overflow: 'hidden',
   },
   image: {
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    width: 30,
+    height: 30,
+    backgroundColor: 'red',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteIcon: {
+    width: 15,
+    height: 15,
+    backgroundColor: 'white',
+    transform: [{ rotate: '45deg' }],
   },
 });

@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { addSignature } from '../../features/signatures/signatureSlice';
+import { addSignature, deleteSignature } from '../../features/signatures/signatureSlice';
 import DraggableSignature from './DragabbleSignature';
 
-export default function SignatureContainer({ signatureData }) {
+export default function SignatureContainer({ signatureData, onSignatureChange }) {
+  // console.log("sigiddddddddd", signatureData)
   const dispatch = useDispatch();
   const signatures = useSelector(state => state.signature.signatures);
 
@@ -12,16 +13,20 @@ export default function SignatureContainer({ signatureData }) {
     if (signatureData !== null) {
       dispatch(addSignature(signatureData));
     }
-  }, [dispatch, signatureData]);
+  }, [signatureData]);
 
-  console.log('Signatures:', signatures);
-
+  console.log('Signatures:', signatures.length);
+  const handleSignatureChange = (signatureInfo) => {
+    onSignatureChange(signatureInfo);
+  };
   return (
     <View style={styles.container}>
       {signatures.map((signature, index) => (
         <DraggableSignature
           key={index}
           signatureData={signature.data}
+          onSignatureChange={handleSignatureChange}
+        // onDelete={handleDeleteSignature}
         />
       ))}
     </View>
