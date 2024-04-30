@@ -105,6 +105,7 @@ import BottomSheet, {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import AgentCallFinishing from '../CompletionScreen/AgentCompletecall';
+import NotaryDocumentDownloadScreen from '../AgentScreens/NotaryDocumentDownloadScreen/NotaryDocumentDownloadScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -490,6 +491,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentMobileNotaryStartScreen"
           component={AgentMobileNotaryStartScreen}
+        />
+        <Stack.Screen
+          name="NotaryDocumentDownloadScreen"
+          component={NotaryDocumentDownloadScreen}
         />
         <Stack.Screen
           name="AgentMobileNotaryDocScreen"

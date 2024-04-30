@@ -93,7 +93,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [isSignatureImage, setIsSignatureImage] = useState(false);
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
-
+  console.log("newfilepath", filePath)
   // console.log("book", setSignatureBase64)
   const handleDragabbleSignatureData = (signatureData) => {
     console.log("Received signature data:xxxxxxxxxxxxx", signatureData);
@@ -122,12 +122,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       setSignatureArrayBuffer(_base64ToArrayBuffer(stampBase64));
     }
     if (newPdfSaved) {
+      console.log("newfilepath", newPdfPath)
       setFilePath(newPdfPath);
       setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
     }
   }, [signatureBase64, filePath, newPdfSaved, sourceUrl, stampBase64]);
   // }, []);
-  // console.log("signaturbases=64", signatureArrayBuffer)
+  console.log("signaturbases=64", filePath)
   const toggleDeleteMode = () => {
     setIsDeleteMode(!isDeleteMode);
   };
@@ -173,7 +174,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       // Handle the case where sourceUrl is empty (e.g., show a message to the user)
     }
   };
-
+  // console.log("Sourcu", sourceUrl)
   const readFile = () => {
     RNFS.readFile(
       `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
@@ -329,6 +330,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
   const handleLinkChange = (linkId: string) => {
+    console.log("lingkidsssssssssssssssssssss", linkId)
     setSourceUrl(linkId);
     setNewPdfPath(linkId);
     setNewPdfSaved(true);
@@ -534,7 +536,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////
-  // console.log("bookingdate", bookingData)
+  // console.log("bookingdate", filepath)
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>

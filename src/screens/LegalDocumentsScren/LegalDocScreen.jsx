@@ -69,11 +69,13 @@ export default function LegalDocScreen({route, navigation}) {
       return {name, price: parseFloat(price)};
     });
 
-    const highestPriceDocument = documentObjects.reduce((max, doc) =>
-      doc.price > max.price ? doc : max,
+    const highestPriceDocument = documentObjects.reduce(
+      (max, doc) => (doc.price > max.price ? doc : max),
+      documentObjects[0], // Initialize with the first document if the array is not empty
     );
+
     console.log('Highest Price Document:', highestPriceDocument);
-    setTotalPrice(highestPriceDocument.price);
+    setTotalPrice(highestPriceDocument?.price);
     setSelectedDocs(documentObjects);
   }
 
@@ -121,20 +123,26 @@ export default function LegalDocScreen({route, navigation}) {
 
     const reponse = await handleGetLocation();
     // console.log('locationsdf', reponse);
-    console.log(' uere', query);
+    console.log(' uere', reponse);
     const data = await fetchDocumentTypes(
       page,
       Limit,
       reponse?.results[0]?.address_components[4]?.long_name,
       query,
     );
-    setTotalDocs(data?.totalDocs);
-    setDocumentArray(data?.documentTypes);
-
+    const modifiedDocuments = data.documentTypes.map(doc => ({
+      ...doc,
+      key: doc._id,
+      value: `${doc.name} - $${doc.statePrices[0].price}`, // Use _id as the unique key for each document
+    }));
+    setDocumentArray(modifiedDocuments);
+    console.log('doumntsfdffdfd', data);
+    setTotalDocs(data.totalDocs);
+    setDocumentArray(modifiedDocuments);
+    setLoading(false);
     if (Limit < data?.totalDocs) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
-    setLoading(false);
   };
 
   const handleSearchInput = query => {
@@ -193,45 +201,38 @@ export default function LegalDocScreen({route, navigation}) {
                 <ActivityIndicator size="large" color={Colors.Orange} />
               </View>
             ) : (
-              documentArray && (
-                <MultipleSelectList
-                  setSelected={val => setSelected(val)}
-                  data={
-                    documentArray &&
-                    documentArray.map(item => ({
-                      value: `${item.name} - $${item.statePrices[0].price}`,
-                    }))
-                  }
-                  save="value"
-                  onSelect={() => createDocumentObject(selected)}
-                  label="Documents"
-                  placeholder="Search for documents"
-                  boxStyles={{
-                    borderColor: Colors.Orange,
-                    borderWidth: 2,
-                    borderRadius: widthToDp(5),
-                  }}
-                  dropdownStyles={{
-                    borderColor: Colors.Orange,
-                    borderWidth: 2,
-                    borderRadius: widthToDp(5),
-                    maxHeight: widthToDp(75),
-                  }}
-                  inputStyles={{color: Colors.TextColor}}
-                  badgeStyles={{backgroundColor: Colors.Orange}}
-                  dropdownTextStyles={{color: Colors.TextColor}}
-                  checkBoxStyles={{tintColor: Colors.TextColor}}
-                  labelStyles={{
-                    color: Colors.TextColor,
-                    fontSize: widthToDp(4),
-                  }}
-                  badgeTextStyles={{
-                    fontSize: widthToDp(3.2),
-                    color: Colors.white,
-                    fontFamily: 'Manrope-SemiBold',
-                  }}
-                />
-              )
+              <MultipleSelectList
+                setSelected={val => setSelected(val)}
+                data={documentArray}
+                save="value"
+                onSelect={() => createDocumentObject(selected)}
+                label="Documents"
+                placeholder="Search for documents"
+                boxStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                }}
+                dropdownStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                  maxHeight: widthToDp(75),
+                }}
+                inputStyles={{color: Colors.TextColor}}
+                badgeStyles={{backgroundColor: Colors.Orange}}
+                dropdownTextStyles={{color: Colors.TextColor}}
+                checkBoxStyles={{tintColor: Colors.TextColor}}
+                labelStyles={{
+                  color: Colors.TextColor,
+                  fontSize: widthToDp(4),
+                }}
+                badgeTextStyles={{
+                  fontSize: widthToDp(3.2),
+                  color: Colors.white,
+                  fontFamily: 'Manrope-SemiBold',
+                }}
+              />
             )}
           </View>
           <View
