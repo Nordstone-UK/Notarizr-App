@@ -193,45 +193,43 @@ export default function LegalDocScreen({route, navigation}) {
                 <ActivityIndicator size="large" color={Colors.Orange} />
               </View>
             ) : (
-              documentArray && (
-                <MultipleSelectList
-                  setSelected={val => setSelected(val)}
-                  data={
-                    documentArray &&
-                    documentArray.map(item => ({
-                      value: `${item.name} - $${item.statePrices[0].price}`,
-                    }))
-                  }
-                  save="value"
-                  onSelect={() => createDocumentObject(selected)}
-                  label="Documents"
-                  placeholder="Search for documents"
-                  boxStyles={{
-                    borderColor: Colors.Orange,
-                    borderWidth: 2,
-                    borderRadius: widthToDp(5),
-                  }}
-                  dropdownStyles={{
-                    borderColor: Colors.Orange,
-                    borderWidth: 2,
-                    borderRadius: widthToDp(5),
-                    maxHeight: widthToDp(75),
-                  }}
-                  inputStyles={{color: Colors.TextColor}}
-                  badgeStyles={{backgroundColor: Colors.Orange}}
-                  dropdownTextStyles={{color: Colors.TextColor}}
-                  checkBoxStyles={{tintColor: Colors.TextColor}}
-                  labelStyles={{
-                    color: Colors.TextColor,
-                    fontSize: widthToDp(4),
-                  }}
-                  badgeTextStyles={{
-                    fontSize: widthToDp(3.2),
-                    color: Colors.white,
-                    fontFamily: 'Manrope-SemiBold',
-                  }}
-                />
-              )
+              <MultipleSelectList
+                setSelected={val => setSelected(val)}
+                data={
+                  documentArray &&
+                  documentArray.map(item => ({
+                    value: `${item.name} - $${item.statePrices[0].price}`,
+                  }))
+                }
+                save="value"
+                onSelect={() => createDocumentObject(selected)}
+                label="Documents"
+                placeholder="Search for documents"
+                boxStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                }}
+                dropdownStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                  maxHeight: widthToDp(75),
+                }}
+                inputStyles={{color: Colors.TextColor}}
+                badgeStyles={{backgroundColor: Colors.Orange}}
+                dropdownTextStyles={{color: Colors.TextColor}}
+                checkBoxStyles={{tintColor: Colors.TextColor}}
+                labelStyles={{
+                  color: Colors.TextColor,
+                  fontSize: widthToDp(4),
+                }}
+                badgeTextStyles={{
+                  fontSize: widthToDp(3.2),
+                  color: Colors.white,
+                  fontFamily: 'Manrope-SemiBold',
+                }}
+              />
             )}
           </View>
           <View
