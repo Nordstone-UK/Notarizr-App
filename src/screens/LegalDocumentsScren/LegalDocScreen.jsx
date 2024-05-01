@@ -121,15 +121,29 @@ export default function LegalDocScreen({route, navigation}) {
   const getState = async query => {
     setLoading(true);
 
-    const reponse = await handleGetLocation();
-    // console.log('locationsdf', reponse);
-    console.log(' uere', reponse);
-    const data = await fetchDocumentTypes(
-      page,
-      Limit,
-      reponse?.results[0]?.address_components[4]?.long_name,
-      query,
-    );
+    let stateName = 'USA';
+
+    const locationResponse = await handleGetLocation();
+    if (
+      locationResponse &&
+      locationResponse.results &&
+      locationResponse.results.length > 0
+    ) {
+      const addressComponents = locationResponse.results[0]?.address_components;
+
+      if (addressComponents && addressComponents.length >= 5) {
+        stateName = addressComponents[4]?.long_name || 'USA'; // Use state name if available, otherwise fallback to 'USA'
+      } else {
+        console.warn(
+          'Address components not found or incomplete:',
+          addressComponents,
+        );
+      }
+    } else {
+      console.warn('Location response invalid or empty:', locationResponse);
+    }
+
+    const data = await fetchDocumentTypes(page, Limit, stateName, query);
     const modifiedDocuments = data.documentTypes.map(doc => ({
       ...doc,
       key: doc._id,
