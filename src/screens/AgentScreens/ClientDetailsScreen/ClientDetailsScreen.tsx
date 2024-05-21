@@ -394,15 +394,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     setLoading(true);
     let urlResponse;
     const response = await uploadMultipleFiles();
-    console.log('response', response);
-
+    console.log('responsessssssssss', response);
     if (response) {
-
       urlResponse = await uploadDocArray(response);
+      console.log('sssssssssssssssssssssssss', urlResponse);
       // urlResponse = urlResponse.map(item => ({
       //   key: item.name,
       //   value: item.url,
       // }));
+
       const request = {
         variables: {
           sessionId: clientDetail?._id,
@@ -415,9 +415,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           agentDocuments: urlResponse,
         },
       };
+      console.log('ttttttttttttttttt', request);
       const res =
         clientDetail.__typename == 'Session'
-          ? await updateAgentdocs(clientDetail?._id, urlResponse)
+          ?
+          // await updateAgentdocs(request)
+          await updateAgentdocs(clientDetail?._id, urlResponse)
           : await updateBookingClientDocs(requestBooking);
 
       var reponse;
@@ -437,8 +440,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       }
     }
   };
-  const lowestPriceDocument = clientDetail.document_type.reduce(
-    (minDoc, doc) => (doc.price < minDoc.price ? doc : minDoc),
+  const highestPriceDocument = clientDetail.document_type.reduce(
+    (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
     clientDetail.document_type[0],
   );
   const additionalSignatureCharges =
@@ -548,8 +551,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     };
   }, [showModal]); // Ensure useEffect runs when showModal changes
 
-  // console.log("cliendetails", clientDetail)
-  console.log("statusd", selectedDocument)
+  console.log("cliendetails", clientDetail)
+  // console.log("statusd", selectedDocument)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -560,6 +563,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
             sender: clientDetail?.agent,
             receiver: clientDetail?.booked_by || clientDetail?.client,
             chat: clientDetail?._id,
+            channel: clientDetail?.agora_channel_name,
+            voiceToken: clientDetail?.agora_channel_token,
           })
         }
         midImg={require('../../../../assets/supportIcon.png')}
@@ -1091,7 +1096,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                             color: 'black',
                             marginLeft: 10,
                           }}>
-                          {item.name}
+                          {item.name}- $ {item.price}
                         </Text>
                       </View>
                     ))}
@@ -1424,7 +1429,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     }}>
                     {Object.values(clientDetail.client_documents)?.map(
                       (item, index) => (
-                        <TouchableOpacity key={index}>
+                        <TouchableOpacity key={index} onPress={() => handleDocumentPress(item)}>
                           <Image
                             source={require('../../../../assets/docPic.png')}
                             style={{
@@ -1450,7 +1455,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     columnGap: widthToDp(3),
                   }}>
                   {clientDetail.agent_document?.map((item, index) => (
-                    <TouchableOpacity key={index}>
+                    <TouchableOpacity key={index} onPress={() => handleDocumentPress(item)}>
                       <Image
                         source={require('../../../../assets/docPic.png')}
                         style={{ width: widthToDp(10), height: heightToDp(10) }}
@@ -1561,7 +1566,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       color: 'black',
                       marginLeft: 10,
                     }}>
-                    Notary charges:{" "} ${lowestPriceDocument.price}
+                    Notary charges:{" "} ${highestPriceDocument.price}
                   </Text>
                 </View>
                 {typeof clientDetail.total_signatures_required === 'number' && (
@@ -1809,7 +1814,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   }}
                   fontSize={widthToDp(4)}
                 />
-                {clientDetail.payment_type == 'on_notarizr' && clientDetail.status !== 'accepted' && (
+                {clientDetail.payment_type == 'on_notarizr' && status !== 'Accepted' && (
                   <GradientButton
                     Title=
                     'Request Payment'

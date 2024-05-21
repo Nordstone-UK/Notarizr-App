@@ -33,7 +33,7 @@ import { PDFDocument } from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
-import { Edit, PageEdit, Text } from 'iconoir-react-native';
+import { Edit, NavArrowLeft, NavArrowRight, PageEdit, Text } from 'iconoir-react-native';
 import { useLiveblocks } from '../../store/liveblocks';
 const appId = 'abd7df71ee024625b2cc979e12aec405';
 
@@ -54,7 +54,10 @@ import {
 
 } from '../../features/booking/bookingSlice';
 import SignatureContainer from './SignatureContainer';
+import HeaderRight from '../../components/LiveBlocksComponents/header-right';
+import useRegister from '../../hooks/useRegister';
 export default function NotaryCallScreen({ route, navigation }: any) {
+  const { uploadimageToS3 } = useRegister();
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const { updateSession } = useSession();
@@ -71,6 +74,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         ? bookingData.agent_document[0]
         : null
   );
+  // const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
 
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [getSignaturePad, setSignaturePad] = useState(false);
@@ -93,7 +97,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [isSignatureImage, setIsSignatureImage] = useState(false);
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
-  console.log("newfilepath", filePath)
+  const [isHost, setIsHost] = useState(false); // Indicates if the local user is the host
+
   // console.log("book", setSignatureBase64)
   const handleDragabbleSignatureData = (signatureData) => {
     console.log("Received signature data:xxxxxxxxxxxxx", signatureData);
@@ -106,6 +111,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     });
     if (signatureData.delete == true) {
       setPdfEditMode(false)
+    }
+    console.log("signaturedate", signatureData.signatureData)
+    if (signatureData.signatureData) {
+      setPdfEditMode(true)
+
+      setSignatureArrayBuffer(signatureData.signatureData);
+    } else {
+      console.error("signatureData.signatureData is undefined");
     }
     // setSignatureBase64(signatureData.signatureData.replace('data:image/png;base64,', ''))
     // setSignatureArrayBuffer(signatureData.signatureData.replace('data:image/png;base64,', ''));
@@ -122,13 +135,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       setSignatureArrayBuffer(_base64ToArrayBuffer(stampBase64));
     }
     if (newPdfSaved) {
-      console.log("newfilepath", newPdfPath)
       setFilePath(newPdfPath);
       setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
     }
   }, [signatureBase64, filePath, newPdfSaved, sourceUrl, stampBase64]);
   // }, []);
-  console.log("signaturbases=64", filePath)
+  // console.log("signaturbases=64", signatureArrayBuffer)
   const toggleDeleteMode = () => {
     setIsDeleteMode(!isDeleteMode);
   };
@@ -174,7 +186,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       // Handle the case where sourceUrl is empty (e.g., show a message to the user)
     }
   };
-  // console.log("Sourcu", sourceUrl)
+
   const readFile = () => {
     RNFS.readFile(
       `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
@@ -190,18 +202,22 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setIsSignatureImage(false);
     setSignatureImageMimeType(null);
   };
-
-  const handleSignature = signature => {
+  const handleSignature = React.useCallback((signature) => {
+    console.log("signatrere", signature)
     setSignatureBase64(signature.replace('data:image/png;base64,', ''));
     setSignaturePad(false);
     setPdfEditMode(true);
     setSignatureData(signature);
-  };
-  // const handleDragabbleSignatureData = (signatureData) => {
-  //   // Handle the signature data received from DragabbleSignature component
-  //   console.log("Received signature data:", signatureData);
-  //   // You can save or process the signature data as needed
-  // };
+    insertObject(new Date().toISOString(), {
+      type: 'image',
+      sourceUrl: signature,
+      page: currentPage,
+      position: {
+        x: 100,
+        y: 100,
+      },
+    });
+  }, [currentPage, insertObject]);
 
   const onAddSignatureImage = async (isStamp = false) => {
     try {
@@ -209,23 +225,44 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         mediaType: 'photo',
         includeBase64: true,
       });
+      const s3Url = await uploadimageToS3(result.assets[0].uri);
+      console.log("Sdfdfdfd", s3Url)
+      console.log("sigidndfndfnd", result.assets[0].uri)
       if (result && result.assets && result.assets.length > 0) {
         if (isStamp) {
           setStampBase64(result.assets[0].base64);
           setSignatureImageMimeType(result.assets[0].type);
-          setSignatureData(result.assets[0].uri)
+          setSignatureData(s3Url)
           setIsSignatureImage(true);
 
           setSignaturePad(false);
           setPdfEditMode(true);
+          insertObject(new Date().toISOString(), {
+            type: 'image',
+            sourceUrl: s3Url,
+            page: currentPage,
+            position: {
+              x: 100,
+              y: 100,
+            },
+          });
+
         } else {
           setSignatureBase64(result.assets[0].base64);
-          setSignatureData(result.assets[0].uri)
+          setSignatureData(s3Url)
           setSignatureImageMimeType(result.assets[0].type);
           setIsSignatureImage(true);
-
           setSignaturePad(false);
           setPdfEditMode(true);
+          insertObject(new Date().toISOString(), {
+            type: 'image',
+            sourceUrl: s3Url,
+            page: currentPage,
+            position: {
+              x: 100,
+              y: 100,
+            },
+          });
         }
 
       }
@@ -237,7 +274,21 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   ////////////// live bolcks ////////////////
   const insertObject = useLiveblocks(state => state.insertObject);
   const objects = useLiveblocks(state => state.objects);
+  // console.log("obbbbbbbbbbbssssssssss", objects)
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
+  const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
+
+  const onLabelAdd = React.useCallback(() => {
+    insertObject(new Date().toISOString(), {
+      type: 'label',
+      text: 'John Doe',
+      page: currentPage,
+      position: {
+        x: 100,
+        y: 100,
+      },
+    });
+  }, [currentPage, insertObject]);
 
   const onSignatureAdd = React.useCallback(() => {
     insertObject(new Date().toISOString(), {
@@ -249,42 +300,40 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         y: 100,
       },
     });
-  }, []);
+  }, [currentPage, insertObject]);
+
+  const onStampAdd = React.useCallback(() => {
+    insertObject(new Date().toISOString(), {
+      type: 'image',
+      sourceUrl: 'https://i.ibb.co/989TrsJ/free-stamp-png-24402.png',
+      page: currentPage,
+      position: {
+        x: 200,
+        y: 200,
+      },
+    });
+  }, [currentPage, insertObject]);
+
   //////////////////////////////////////////
 
   const handleSingleTap = async (page, x, y) => {
-    // console.log('pagessssssssssssssssssssss', x, y);
-
     if (pdfEditMode) {
-      // if (signatureDimensions.delete == true) {
-      //   console.log("Signature deleted at coordinates:", x, y);
-      // }
-      // else {
+      console.log('pagessssssssssssssssssssss', x, y);
       setNewPdfSaved(false);
       setFilePath(null);
-      setPdfEditMode(false);
       const pdfDoc = await PDFDocument.load(pdfArrayBuffer, {
         ignoreEncryption: true,
       });
       const pages = pdfDoc.getPages();
-      console.log("pagsessssssssssssssrrr", pages[0])
       const firstPage = pages[page - 1];
       console.log("firespage", firstPage)
-      // The meat
       const yOffsetPercentage = 0.1; // 10% offset (adjust as needed)
-
-      // Calculate the offset amount based on the page height
       const yOffset = pageHeight * yOffsetPercentage;
-
-      // Calculate adjusted Y-coordinate with the percentage offset
-      const adjustedY = y + yOffset;
-
-      const adjustedX = x;
-
       const signatureImage =
         signatureImageMimeType == 'image/png' || !signatureImageMimeType
           ? await pdfDoc.embedPng(signatureArrayBuffer)
           : await pdfDoc.embedJpg(signatureArrayBuffer);
+
       const { width: width, height: height } = signatureDimensions;
       if (Platform.OS == 'ios') {
         firstPage.drawImage(signatureImage, {
@@ -328,12 +377,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
       // }
     }
+    setPdfEditMode(false);
   };
   const handleLinkChange = (linkId: string) => {
-    console.log("lingkidsssssssssssssssssssss", linkId)
     setSourceUrl(linkId);
     setNewPdfPath(linkId);
     setNewPdfSaved(true);
+    deleteAllObjects()
   };
 
   const updateSignedDocumentToDb = async url => {
@@ -397,15 +447,17 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   ///////////////////////////////
 
   const { channel, token: CutomToken, routeFrom } = route.params;
+  console.log("routeformddddddddddd", routeFrom)
   const uid = 0;
   const channelName = channel;
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
-  const [remoteUids, setRemoteUids] = useState<number[]>([]);
+  const [remoteUids, setRemoteUids] = useState<any[]>([]);
   const agoraEngineRef = useRef<IRtcEngine>();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
-
+  console.log("isjoined", isJoined)
+  console.log("remoteuiddddd", remoteUids)
   const [value, setValue] = useState(50);
 
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
@@ -447,6 +499,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         }
         agoraEngineRef.current = createAgoraRtcEngine();
         const agoraEngine = agoraEngineRef.current;
+        const currentUserIsHost = true;
+        setIsHost(currentUserIsHost);
         agoraEngine.registerEventHandler({
           onJoinChannelSuccess: () => {
             showMessage('Successfully joined ' + channelName);
@@ -458,9 +512,17 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             setRemoteUids(prevUids => [...prevUids, uid]);
           },
           onUserOffline: (_connection, uid) => {
-            showMessage('Remote user left the channel. uid: ' + uid);
 
-            setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
+            showMessage('Remote user left the channel. uid: ' + uid);
+            if (remoteUids[0] === 'Leave') {
+              console.log("ljfdjfdfj")
+              navigation.navigate('MedicalBookingScreen');
+            }
+            setRemoteUids(prevUids => prevUids.filter(prevUid => prevUid !== uid));
+            // if (remoteUids === [0]) {
+            // Host left the call, navigate to AgentCallFinishing
+            navigation.navigate('MedicalBookingScreen');
+            // }
           },
           onRequestToken(connection) { },
         });
@@ -486,9 +548,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       return;
     }
     try {
-      agoraEngineRef.current?.setChannelProfile(
+      let b = agoraEngineRef.current?.setChannelProfile(
         ChannelProfileType.ChannelProfileCommunication,
       );
+      console.log("assssssssdddddddddddssss", b)
       agoraEngineRef.current?.startPreview();
       console.log(token, channelName, uid);
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
@@ -499,14 +562,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
   const leave = async () => {
-    try {
-      agoraEngineRef.current?.leaveChannel();
-      setRemoteUids([0]);
 
+    try {
+      let a = agoraEngineRef.current?.leaveChannel();
+      setRemoteUids(["Leave"]);
       setIsJoined(false);
       showMessage('You left the session');
       await updateSession("completed", bookingData?._id);
       navigation.navigate('AgentCallFinishing');
+
     } catch (e) {
       console.log(e);
     }
@@ -536,7 +600,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////
-  // console.log("bookingdate", filepath)
+  // console.log("bookingdate", bookingData)
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -658,35 +722,92 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                   onSignatureChange={handleDragabbleSignatureData}
                 />
                 {filePath ? (
-                  <PdfView
-                    // ref={pdfRef}
-                    style={styles.pdfView}
-                    source={{ uri: filePath }}
-                    trustAllCerts={false}
-                    showsVerticalScrollIndicator={false}
-                    showsHorizontalScrollIndicator={false}
-                    // horizontal={true}
+                  <>
+                    <PdfView
+                      ref={pdfRef}
+                      style={styles.pdfView}
+                      source={{ uri: filePath }}
+                      trustAllCerts={false}
+                      showsVerticalScrollIndicator={false}
+                      showsHorizontalScrollIndicator={false}
+                      // horizontal={true}
 
-                    enablePaging={true}
-                    minScale={1.0}
-                    maxScale={20.0}
-                    scale={1.0}
-                    spacing={0}
-                    fitPolicy={0}
-                    onLoadComplete={(
-                      numberOfPages,
-                      filePath,
-                      { width, height },
-                    ) => {
-                      setPageWidth(width);
-                      setPageHeight(height);
-                    }}
-                    onPageChanged={(page, numberOfPages) => { }}
-                    onPageSingleTap={(page, x, y) => {
-                      handleSingleTap(page, x, y);
-                    }}
-                    onError={error => console.error(error)}
-                  />
+                      enablePaging={true}
+                      minScale={1.0}
+                      maxScale={20.0}
+                      scale={1.0}
+                      spacing={0}
+                      fitPolicy={0}
+                      onLoadComplete={(
+                        numberOfPages,
+                        filePath,
+                        { width, height },
+                      ) => {
+                        setPageWidth(width);
+                        setPageHeight(height);
+                      }}
+                      onPageChanged={(page, numberOfPages) => { }}
+                      onPageSingleTap={(page, x, y) => {
+                        handleSingleTap(page, x, y);
+                      }}
+                      onError={error => console.error(error)}
+                    />
+                    {/* <View style={styles.objectsWrapper}>
+                      {Object.entries(objects).map(([objectId, object]) => {
+                        // console.log("objerect", object)
+                        if (object.page !== currentPage) {
+                          return null;
+                        }
+
+                        return (
+                          <PdfObject
+                            id={objectId}
+                            key={objectId}
+                            object={object}
+                            selected={selectedObjectId === objectId}
+                          />
+                        );
+                      })}
+                    </View> */}
+                    {/* <View style={styles.actions}>
+                      <View style={styles.editActions}>
+                        <Pressable onPress={() => onSignatureAdd()}>
+                          <Edit width={30} height={30} color="#000000" />
+                        </Pressable>
+                        <Pressable onPress={() => onLabelAdd()}>
+                          <Text width={32} height={32} color="#000000" />
+                        </Pressable>
+                        <Pressable onPress={() => onStampAdd()}>
+                          <PageEdit width={26} height={26} color="#000000" />
+                        </Pressable>
+                        <HeaderRight />
+                      </View>
+                      <View style={styles.navigation}>
+                        <Pressable
+                          onPress={() => {
+                            if (currentPage !== 1) {
+                              pdfRef.current?.setPage(currentPage - 1);
+                            }
+                          }}>
+                          <NavArrowLeft
+                            width={36}
+                            height={36}
+                            color={currentPage === 1 ? '#dddddd' : '#000000'}
+                          />
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            pdfRef.current?.setPage(currentPage + 1);
+                          }}>
+                          <NavArrowRight
+                            width={36}
+                            height={36}
+                            color={currentPage === totalPages ? '#dddddd' : '#000000'}
+                          />
+                        </Pressable>
+                      </View>
+                    </View> */}
+                  </>
                 ) : (
                   <View
                     style={{
@@ -732,7 +853,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 paddingVertical: widthToDp(2),
               }}
               onPress={() => {
-                //  onSignatureAdd();
+                // onSignatureAdd();
                 getSignature();
               }}
             />
@@ -1134,3 +1255,614 @@ const styles = StyleSheet.create({
 //     ]);
 //   }
 // };
+// import {
+//   TouchableOpacity,
+//   Image,
+//   StyleSheet,
+//   Pressable,
+//   View,
+//   ScrollView,
+//   SafeAreaView,
+//   PermissionsAndroid,
+//   Platform,
+//   Alert,
+// } from 'react-native';
+// import React, { useCallback, useEffect, useRef, useState } from 'react';
+// import Colors from '../../themes/Colors';
+// import { heightToDp, widthToDp } from '../../utils/Responsive';
+// import MainButton from '../../components/MainGradientButton/MainButton';
+// import {
+//   ClientRoleType,
+//   createAgoraRtcEngine,
+//   IRtcEngine,
+//   RtcSurfaceView,
+//   ChannelProfileType,
+//   VideoContentHint,
+// } from 'react-native-agora';
+// import SplashScreen from 'react-native-splash-screen';
+// import Toast from 'react-native-toast-message';
+// import { PDFDocument } from 'pdf-lib';
+// import PdfView, { Source } from 'react-native-pdf';
+// import ReactNativeBlobUtil from 'react-native-blob-util';
+// import RNPickerSelect from 'react-native-picker-select';
+// import {
+//   Edit,
+//   NavArrowLeft,
+//   NavArrowRight,
+//   PageEdit,
+//   Text,
+// } from 'iconoir-react-native';
+// import { useLiveblocks } from '../../store/liveblocks';
+// const appId = 'abd7df71ee024625b2cc979e12aec405';
+// import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
+// import HeaderRight from '../../components/LiveBlocksComponents/header-right';
+// import { Picker } from '@react-native-picker/picker';
+// import useChatService from '../../hooks/useChatService';
+// import { useSelector } from 'react-redux';
+// import {
+//   MultipleSelectList,
+//   SelectList,
+// } from 'react-native-dropdown-select-list';
+// export default function NotaryCallScreen({ route, navigation }: any) {
+//   const User = useSelector(state => state?.user?.user);
+//   const agent = useSelector(state => state?.booking?.booking?.agent);
+//   const booked_by = useSelector(state => state?.booking?.booking?.booked_by);
+//   const arrayOfDocs = [
+//     {
+//       id: 1,
+//       name: 'Document 1',
+//       url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
+//     },
+//     {
+//       id: 2,
+//       name: 'Document 2',
+//       url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
+//     },
+//   ];
+//   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
+//   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
+//   const { channel, token: CutomToken } = route.params;
+//   const uid = 0;
+//   const channelName = channel;
+//   const token = CutomToken;
+//   const [isMuted, setIsMuted] = useState(false);
+//   const [remoteUids, setRemoteUids] = useState<number[]>([]);
+//   const agoraEngineRef = useRef<IRtcEngine>();
+//   const [isJoined, setIsJoined] = useState(false);
+//   const [remoteUid, setRemoteUid] = useState(0);
+//   const [selected, setSelected] = useState('notary room');
+//   const [value, setValue] = useState(50);
+//   const pdfRef = React.useRef<PdfView>(null);
+//   const objects = useLiveblocks(state => state.objects);
+//   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
+//   const setRemoteCurrentPage = useLiveblocks(state => state.setCurrentPage);
+//   const insertObject = useLiveblocks(state => state.insertObject);
+//   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
+//   const [totalPages, setTotalPages] = React.useState<number>(0);
+
+//   const [currentPage, setCurrentPage] =
+//     React.useState<number>(remoteCurrentPage);
+
+//   const [pdfSource, setPdfSource] = React.useState<Source | null>(null);
+
+//   const onUpdatePdf = useCallback(async (link: string) => {
+//     const pdfFile = await ReactNativeBlobUtil.fetch('GET', link);
+//     const pdfDoc = await PDFDocument.load(pdfFile.base64());
+//     const base64Pdf = await pdfDoc.saveAsBase64({ dataUri: true });
+
+//     setPdfSource({
+//       uri: base64Pdf,
+//     });
+//   }, []);
+//   const handleLinkChange = (linkId: number) => {
+//     const selectedDoc = arrayOfDocs.find(doc => doc.id === linkId);
+//     setSelectedLink(linkId);
+//     deleteAllObjects();
+//     onUpdatePdf(selectedDoc?.url);
+//   };
+//   const onLabelAdd = React.useCallback(() => {
+//     insertObject(new Date().toISOString(), {
+//       type: 'label',
+//       text: 'John Doe',
+//       page: currentPage,
+//       position: {
+//         x: 100,
+//         y: 100,
+//       },
+//     });
+//   }, [currentPage, insertObject]);
+
+//   const onSignatureAdd = React.useCallback(() => {
+//     insertObject(new Date().toISOString(), {
+//       type: 'image',
+//       sourceUrl: 'https://i.ibb.co/0XxrCH9/signature-40121.png',
+//       page: currentPage,
+//       position: {
+//         x: 100,
+//         y: 100,
+//       },
+//     });
+//   }, [currentPage, insertObject]);
+
+//   const onStampAdd = React.useCallback(() => {
+//     insertObject(new Date().toISOString(), {
+//       type: 'image',
+//       sourceUrl: 'https://i.ibb.co/989TrsJ/free-stamp-png-24402.png',
+//       page: currentPage,
+//       position: {
+//         x: 200,
+//         y: 200,
+//       },
+//     });
+//   }, [currentPage, insertObject]);
+
+//   React.useEffect(() => {
+//     onUpdatePdf(arrayOfDocs[0].url);
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+//   React.useEffect(() => {
+//     if (remoteCurrentPage !== currentPage) {
+//       pdfRef.current?.setPage(remoteCurrentPage);
+//     }
+//   }, [remoteCurrentPage, currentPage]);
+//   useEffect(() => {
+//     const setupVideoSDKEngine = async () => {
+//       try {
+//         if (Platform.OS === 'android') {
+//           await getPermission();
+//         }
+//         agoraEngineRef.current = createAgoraRtcEngine();
+//         const agoraEngine = agoraEngineRef.current;
+//         agoraEngine.registerEventHandler({
+//           onJoinChannelSuccess: () => {
+//             showMessage('Successfully joined ' + channelName);
+//             setIsJoined(true);
+//           },
+//           onUserJoined: (_connection, uid) => {
+//             showMessage('Remote user joined with uid ' + uid);
+
+//             setRemoteUids(prevUids => [...prevUids, uid]);
+//           },
+//           onUserOffline: (_connection, uid) => {
+//             showMessage('Remote user left the channel. uid: ' + uid);
+
+//             setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
+//           },
+//         });
+//         agoraEngine.initialize({
+//           appId: appId,
+//           channelProfile: ChannelProfileType.ChannelProfileLiveBroadcasting,
+//         });
+//         agoraEngine.enableVideo();
+//       } catch (e) {
+//         console.log(e);
+//       }
+//     };
+//     console.log('useEffect');
+//     setupVideoSDKEngine().then(() => {
+//       join();
+//     });
+//     return () => {
+//       agoraEngineRef.current?.leaveChannel();
+//     };
+//   }, []);
+
+//   const join = async () => {
+//     console.log('====================================');
+//     if (isJoined) {
+//       return;
+//     }
+//     try {
+//       agoraEngineRef.current?.setChannelProfile(
+//         ChannelProfileType.ChannelProfileCommunication,
+//       );
+//       agoraEngineRef.current?.startPreview();
+//       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
+//         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+//       });
+//     } catch (e) {
+//       console.log(e);
+//     }
+//   };
+//   const leave = () => {
+//     try {
+//       agoraEngineRef.current?.leaveChannel();
+//       setRemoteUids([]);
+
+//       setIsJoined(false);
+//       showMessage('You left the session');
+//     } catch (e) {
+//       console.log(e);
+//     }
+//   };
+//   function showMessage(msg: string) {
+//     console.log(msg);
+//     Toast.show({
+//       type: 'success',
+//       text1: msg,
+//     });
+//   }
+//   const mute = () => {
+//     setIsMuted(!isMuted);
+//     console.log('====================================');
+//     console.log(remoteUids, isMuted);
+//     console.log('====================================');
+//     agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
+//   };
+
+//   const displayValue = () => {
+//     return (
+//       <Text style={[styles.sessionDesc, { color: Colors.Orange }]}>
+//         {Math.floor(value)}%
+//       </Text>
+//     );
+//   };
+//   const getPermission = async () => {
+//     if (Platform.OS === 'android') {
+//       await PermissionsAndroid.requestMultiple([
+//         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+//         PermissionsAndroid.PERMISSIONS.CAMERA,
+//       ]);
+//     }
+//   };
+//   return (
+//     <SafeAreaView style={styles.Maincontainer}>
+
+//       <View style={styles.SecondContainer}>
+//         <View style={styles.flexContainer}>
+//           <ScrollView
+//             style={styles.scroll}
+//             horizontal={true}
+//             contentContainerStyle={styles.scrollContainer}>
+//             {isJoined ? (
+//               <React.Fragment key={0}>
+//                 <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
+//               </React.Fragment>
+//             ) : (
+//               <View
+//                 style={{
+//                   // borderWidth: 2,
+//                   // borderRadius: 5,
+//                   // borderColor: Colors.DullTextColor,
+//                   justifyContent: 'center',
+//                   alignItems: 'center',
+//                 }}>
+//                 <Image
+//                   source={{ uri: User?.profile_picture }}
+//                   style={{
+//                     width: widthToDp(25),
+//                     height: widthToDp(25),
+//                     borderRadius: 100,
+//                   }}
+//                 />
+//               </View>
+//             )}
+//             {remoteUids.map((uid, index) => (
+//               <View key={index}>
+//                 <RtcSurfaceView canvas={{ uid }} style={styles.videoView} />
+//               </View>
+//             ))}
+//           </ScrollView>
+//           <View style={{ flex: 0.2, justifyContent: 'space-evenly' }}>
+//             {isJoined ? (
+//               <TouchableOpacity
+//                 style={styles.hourGlass}
+//                 onPress={() => setIsJoined(!isJoined)}>
+//                 <Image
+//                   source={require('../../../assets/videoOff.png')}
+//                   style={{ width: widthToDp(10), height: widthToDp(10) }}
+//                 />
+//               </TouchableOpacity>
+//             ) : (
+//               <TouchableOpacity
+//                 style={styles.hourGlass}
+//                 onPress={() => setIsJoined(!isJoined)}>
+//                 <Image
+//                   source={require('../../../assets/video.png')}
+//                   style={{ width: widthToDp(10), height: widthToDp(10) }}
+//                 />
+//               </TouchableOpacity>
+//             )}
+//             <TouchableOpacity style={styles.hourGlass} onPress={() => mute()}>
+//               <Image
+//                 source={
+//                   isMuted
+//                     ? require('../../../assets/unmute.png')
+//                     : require('../../../assets/mute.png')
+//                 }
+//                 style={{ width: widthToDp(10), height: widthToDp(10) }}
+//               />
+//             </TouchableOpacity>
+//             {/* <TouchableOpacity style={styles.hourGlass} onPress={() => leave()}>
+//               <Image
+//                 source={require('../../../assets/callDrop.png')}
+//                 style={{width: widthToDp(10), height: widthToDp(10)}}
+//               />
+//             </TouchableOpacity> */}
+//           </View>
+//         </View>
+//       </View>
+//       <View style={{ backgroundColor: Colors.white }}>
+//         <RNPickerSelect
+//           style={pickerSelectStyles}
+//           onValueChange={itemValue => handleLinkChange(itemValue)}
+//           items={arrayOfDocs.map(doc => ({ label: doc.name, value: doc.url }))}
+//         />
+//         {/* <Picker
+//           selectedValue={selectedLink}
+//           onValueChange={itemValue => handleLinkChange(itemValue)}
+//           style={styles.picker}>
+//           {arrayOfDocs.map(doc => (
+//             <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
+//           ))}
+//         </Picker> */}
+//       </View>
+//       <View style={styles.container}>
+//         <View style={styles.pdfWrapper}>
+//           {pdfSource && (
+//             <PdfView
+//               ref={pdfRef}
+//               style={styles.pdfView}
+//               source={pdfSource}
+//               showsVerticalScrollIndicator={false}
+//               showsHorizontalScrollIndicator={false}
+//               horizontal={true}
+//               singlePage={true}
+//               onLoadComplete={numberOfPages => {
+//                 console.log('Func', numberOfPages);
+//                 setCurrentPage(1);
+//                 setTotalPages(numberOfPages);
+//               }}
+//               onPageChanged={page => {
+//                 setCurrentPage(page);
+//                 setRemoteCurrentPage(page);
+//               }}
+//             />
+//           )}
+//           <View style={styles.objectsWrapper}>
+//             {Object.entries(objects).map(([objectId, object]) => {
+//               if (object.page !== currentPage) {
+//                 return null;
+//               }
+
+//               return (
+//                 <PdfObject
+//                   id={objectId}
+//                   key={objectId}
+//                   object={object}
+//                   selected={selectedObjectId === objectId}
+//                 />
+//               );
+//             })}
+//           </View>
+//         </View>
+//         <View style={styles.actions}>
+//           <View style={styles.editActions}>
+//             <Pressable onPress={() => onSignatureAdd()}>
+//               <Edit width={30} height={30} color="#000000" />
+//             </Pressable>
+//             <Pressable onPress={() => onLabelAdd()}>
+//               <Text width={32} height={32} color="#000000" />
+//             </Pressable>
+//             <Pressable onPress={() => onStampAdd()}>
+//               <PageEdit width={26} height={26} color="#000000" />
+//             </Pressable>
+//             <HeaderRight />
+//           </View>
+//           <View style={styles.navigation}>
+//             <Pressable
+//               onPress={() => {
+//                 if (currentPage !== 1) {
+//                   pdfRef.current?.setPage(currentPage - 1);
+//                 }
+//               }}>
+//               <NavArrowLeft
+//                 width={36}
+//                 height={36}
+//                 color={currentPage === 1 ? '#dddddd' : '#000000'}
+//               />
+//             </Pressable>
+//             <Pressable
+//               onPress={() => {
+//                 pdfRef.current?.setPage(currentPage + 1);
+//               }}>
+//               <NavArrowRight
+//                 width={36}
+//                 height={36}
+//                 color={currentPage === totalPages ? '#dddddd' : '#000000'}
+//               />
+//             </Pressable>
+//           </View>
+//         </View>
+//       </View>
+//     </SafeAreaView>
+//   );
+// }
+// const pickerSelectStyles = StyleSheet.create({
+//   inputIOS: {
+//     fontSize: 16,
+//     paddingVertical: 12,
+//     paddingHorizontal: 10,
+//     borderWidth: 1,
+//     borderColor: 'gray',
+//     borderRadius: 4,
+//     color: 'black',
+//     paddingRight: 30, // to ensure the text is never behind the icon
+//   },
+//   inputAndroid: {
+//     fontSize: 16,
+//     paddingHorizontal: 10,
+//     paddingVertical: 8,
+//     borderWidth: 1.5,
+//     borderColor: 'purple',
+//     borderRadius: 8,
+//     color: 'black',
+//     paddingRight: 30, // to ensure the text is never behind the icon
+//   },
+// });
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//   },
+//   pdfWrapper: {
+//     flex: 1,
+//   },
+//   pdfView: {
+//     flex: 1,
+//   },
+//   objectsWrapper: {
+//     position: 'absolute',
+//     width: '100%',
+//     height: '100%',
+//   },
+//   actions: {
+//     borderTopWidth: 1,
+//     borderTopColor: '#e2e2e2',
+//     backgroundColor: '#ffffff',
+//     paddingBottom: 40,
+//     paddingHorizontal: 20,
+//     paddingTop: 12,
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'space-between',
+//   },
+//   navigation: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     columnGap: 16,
+//   },
+//   editActions: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     columnGap: 16,
+//   },
+//   Maincontainer: {
+//     flex: 1,
+//     backgroundColor: Colors.PinkBackground,
+//   },
+//   NavbarContainer: {
+//     flexDirection: 'row',
+//     marginHorizontal: widthToDp(5),
+//     marginVertical: widthToDp(2),
+//     justifyContent: 'space-between',
+//   },
+//   NavContainer: {
+//     flexDirection: 'row',
+//     marginHorizontal: widthToDp(2),
+//     marginVertical: widthToDp(2),
+//     // borderWidth: 1,
+//   },
+//   waitingNav: {
+//     width: widthToDp(6),
+//     height: heightToDp(6),
+//     marginVertical: widthToDp(2),
+//   },
+//   profilePic: {
+//     marginVertical: widthToDp(2),
+//   },
+//   flexContainer: {
+//     flexDirection: 'row',
+//     height: heightToDp(40),
+//   },
+//   scrollBar: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'space-between',
+//     marginHorizontal: widthToDp(5),
+//   },
+//   picker: {
+//     borderWidth: 2,
+//     backgroundColor: Colors.white,
+//     borderColor: Colors.DisableColor,
+//   },
+//   NavTextContainer: {
+//     // borderWidth: 1,
+//     marginLeft: widthToDp(5),
+//   },
+//   textHead: {
+//     color: Colors.TextColor,
+//     fontSize: widthToDp(5),
+//     fontWeight: '700',
+//     fontFamily: 'Manrope-Regular',
+//   },
+//   textSubHead: {
+//     color: Colors.TextColor,
+//     fontSize: widthToDp(3.5),
+//     fontWeight: '700',
+//     marginLeft: widthToDp(2),
+//     fontFamily: 'Manrope-Regular',
+//   },
+//   buttonContainer: {
+//     flexDirection: 'row',
+//     // borderWidth: 1,
+//     justifyContent: 'center',
+//   },
+//   SecondContainer: {
+//     backgroundColor: Colors.white,
+//   },
+//   hourGlass: {
+//     alignSelf: 'center',
+//   },
+//   textSession: {
+//     color: Colors.TextColor,
+//     marginHorizontal: widthToDp(5),
+//     marginTop: heightToDp(10),
+//     fontSize: widthToDp(6),
+//     fontFamily: 'Manrope-Bold',
+//   },
+//   sessionDesc: {
+//     color: Colors.TextColor,
+//     fontFamily: 'Manrope-Bold',
+//   },
+//   btn: {
+//     marginVertical: heightToDp(2),
+//   },
+//   btncontain: {
+//     flex: 1,
+//     justifyContent: 'flex-end',
+//     marginVertical: heightToDp(5),
+//   },
+//   slideContainer: {
+//     flex: 1,
+//     marginHorizontal: widthToDp(5),
+//     alignItems: 'stretch',
+//     justifyContent: 'center',
+//   },
+//   button: {
+//     paddingHorizontal: 25,
+//     paddingVertical: 4,
+//     fontWeight: 'bold',
+//     color: '#ffffff',
+//     backgroundColor: '#0055cc',
+//     margin: 5,
+//   },
+//   main: {
+//     flex: 1,
+//     alignItems: 'center',
+//   },
+//   scroll: {
+//     flex: 1,
+//     width: '100%',
+//   },
+//   scrollContainer: {
+//     margin: widthToDp(3),
+//     columnGap: widthToDp(4),
+//   },
+//   videoView: {
+//     width: widthToDp(25),
+//     height: heightToDp(30),
+//     resizeMode: 'contain',
+//     borderRadius: 15,
+//   },
+//   btnContainer: {
+//     flexDirection: 'row',
+//     justifyContent: 'center',
+//   },
+//   head: {
+//     fontSize: 20,
+//   },
+//   info: {
+//     backgroundColor: '#ffffe0',
+//     color: '#0000ff',
+//   },
+// });

@@ -92,7 +92,8 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [isPdfVisible, setIsPdfVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [price, setPrice] = useState(bookingDetail?.price);
-
+  const [newPdfPath, setNewPdfPath] = useState(null);
+  const [newPdfSaved, setNewPdfSaved] = useState(false);
   // const pdfRef = React.useRef<Pdf>(null);
   console.log('####', pdfUrl, isPdfVisible);
 
@@ -124,11 +125,16 @@ export default function MedicalBookingScreen({route, navigation}) {
       // setUploadingDocs(response);
       if (response) {
         urlResponse = await uploadAllDocuments(response);
+        const documentKeys = Object.keys(bookingDetail.client_documents);
 
+        // Get the length of the keys array, which corresponds to the number of documents
+        const numberOfDocuments = documentKeys.length;
+        console.log('urlrespdddddddddddddddddddddddddons', urlResponse);
         urlResponse = urlResponse.map(item => ({
-          key: item.name,
+          key: item.name + numberOfDocuments,
           value: item.url,
         }));
+        console.log('urlrespons', urlResponse);
         const request = {
           variables: {
             sessionId: bookingDetail?._id,
@@ -160,7 +166,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           reponse = await fetchBookingByID(bookingDetail?._id);
 
           dispatch(setBookingInfoState(reponse?.getBookingById?.booking));
-          console.log('#########', reponse?.getBookingById?.booking);
+          // console.log('#########', reponse?.getBookingById?.booking);
         }
 
         setUploadShow(false);
@@ -308,13 +314,54 @@ export default function MedicalBookingScreen({route, navigation}) {
     );
   }
 
-  const lowestPriceDocument = bookingDetail.document_type.reduce(
-    (minDoc, doc) => (doc.price < minDoc.price ? doc : minDoc),
+  const highestPriceDocument = bookingDetail.document_type.reduce(
+    (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
     bookingDetail.document_type[0],
   );
+
+  // console.log(highestPriceDocument);
+
   const additionalSignatureCharges =
     bookingDetail.total_signatures_required * 10;
 
+  const handleMakePayment = () => {
+    if (bookingDetail.payment_type === 'on_notarizr' && status !== 'Accepted') {
+      if (bookingDetail.price === 0) {
+        // Display a message if the price is 0
+        alert('Payment amount is zero. No payment required.');
+      } else {
+        // Check if the agent has requested for payment
+        // if (bookingDetail.agent_requested_payment) {
+        // Check if the price is greater than 0
+        if (bookingDetail.price > 0) {
+          // Navigate to ToBePaidScreen with bookingData
+          navigation.navigate('ToBePaidScreen', {
+            bookingData: bookingDetail,
+          });
+        } else {
+          // Display a message if the price is not greater than 0
+          alert(
+            'Payment amount is zero. Please request payment from the agent.',
+          );
+        }
+        // }
+        // else {
+        //   // Display a message if the agent has not requested payment
+        //   alert('Agent has not requested for payment.');
+        // }
+      }
+    }
+  };
+  const handleDocumentPress = (documentUri: string) => {
+    console.log('documentur', documentUri);
+    navigation.navigate('NotaryDocumentDownloadScreen', {
+      document: documentUri,
+    });
+    // setSelectedDocument(documentUri);
+    // setShowModal(true);
+    setNewPdfPath(documentUri);
+    setNewPdfSaved(true);
+  };
   console.log('bookingdetails', bookingDetail);
   console.log('dstatusfd', status);
   return (
@@ -326,9 +373,11 @@ export default function MedicalBookingScreen({route, navigation}) {
         lastImg={require('../../../assets/chatIcon.png')}
         lastImgPress={() =>
           navigation.navigate('ChatScreen', {
-            sender: bookingDetail?.booked_by,
+            sender: bookingDetail?.booked_by || bookingDetail?.client,
             receiver: bookingDetail?.agent,
             chat: bookingDetail?._id,
+            channel: bookingDetail?.agora_channel_name,
+            voiceToken: bookingDetail?.agora_channel_token,
           })
         }
         midImg={require('../../../assets/supportIcon.png')}
@@ -562,11 +611,11 @@ export default function MedicalBookingScreen({route, navigation}) {
                 location={
                   bookingDetail.address || bookingDetail.booked_for?.location
                 }
-                onPress={() =>
-                  setSelectedAddress(
-                    bookingDetail.address || bookingDetail.booked_for.location,
-                  )
-                }
+                // onPress={() =>
+                //   setSelectedAddress(
+                //     bookingDetail.address || bookingDetail.booked_for.location,
+                //   )
+                // }
                 booking="true"
               />
             </View>
@@ -596,7 +645,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                           color: 'black',
                           marginLeft: 10,
                         }}>
-                        {item.name}
+                        {item.name} - $ {item.price}
                       </Text>
                     </View>
                   ))}
@@ -763,7 +812,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                     color: 'black',
                     marginLeft: 10,
                   }}>
-                  Notary charges: ${lowestPriceDocument.price}
+                  Notary charges: ${highestPriceDocument.price}
                 </Text>
               </View>
               {typeof bookingDetail.total_signatures_required === 'number' && (
@@ -868,21 +917,13 @@ export default function MedicalBookingScreen({route, navigation}) {
                 <Text style={[styles.insideHeading]}>
                   Client uploaded documents
                 </Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    marginLeft: widthToDp(5),
-                    columnGap: widthToDp(3),
-                  }}>
+                <View style={styles.documentContainer}>
                   {Object.values(bookingDetail.client_documents)?.map(
                     (item, index) => {
                       return (
                         <TouchableOpacity
                           key={index}
-                          onPress={() => {
-                            setPdfUrl(item);
-                            setIsPdfVisible(true);
-                          }}>
+                          onPress={() => handleDocumentPress(item)}>
                           <Image
                             source={require('../../../assets/docPic.png')}
                             style={{
@@ -940,7 +981,9 @@ export default function MedicalBookingScreen({route, navigation}) {
                     columnGap: widthToDp(3),
                   }}>
                   {bookingDetail.agent_document?.map((item, index) => (
-                    <TouchableOpacity key={index}>
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handleDocumentPress(item)}>
                       <Image
                         source={require('../../../assets/docPic.png')}
                         style={{width: widthToDp(10), height: heightToDp(10)}}
@@ -962,7 +1005,9 @@ export default function MedicalBookingScreen({route, navigation}) {
                     columnGap: widthToDp(3),
                   }}>
                   {bookingDetail.notarized_docs?.map((item, index) => (
-                    <TouchableOpacity key={index}>
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handleDocumentPress(item)}>
                       <Image
                         source={require('../../../assets/docPic.png')}
                         style={{width: widthToDp(10), height: heightToDp(10)}}
@@ -1014,26 +1059,30 @@ export default function MedicalBookingScreen({route, navigation}) {
                   fontSize={widthToDp(4)}
                 />
               )}
-            <GradientButton
-              Title={'Upload documents'}
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                width: widthToDp(37),
-                paddingVertical: widthToDp(4),
-                marginTop: widthToDp(10),
-              }}
-              styles={{
-                padding: widthToDp(0),
-                fontSize: widthToDp(4),
-              }}
-              onPress={() => {
-                selectDocuments();
-              }}
-              fontSize={widthToDp(3.5)}
-              loading={loading}
-            />
+            {status !== 'Completed' && (
+              <GradientButton
+                Title={'Upload documents'}
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  width: widthToDp(37),
+                  paddingVertical: widthToDp(4),
+                  marginTop: widthToDp(10),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => {
+                  selectDocuments();
+                }}
+                fontSize={widthToDp(3.5)}
+                loading={loading}
+              />
+            )}
             {bookingDetail.payment_type == 'on_notarizr' &&
-              status !== 'Accepted' && (
+              status == 'To_be_paid' &&
+              status !== 'Accepted' &&
+              status !== 'Completed' && (
                 <GradientButton
                   Title={'Make payment'}
                   colors={[
@@ -1049,11 +1098,12 @@ export default function MedicalBookingScreen({route, navigation}) {
                     padding: widthToDp(0),
                     fontSize: widthToDp(4),
                   }}
-                  onPress={() => {
-                    navigation.navigate('ToBePaidScreen', {
-                      bookingData: bookingDetail,
-                    });
-                  }}
+                  onPress={handleMakePayment}
+                  // onPress={() => {
+                  //   navigation.navigate('ToBePaidScreen', {
+                  //     bookingData: bookingDetail,
+                  //   });
+                  // }}
                   fontSize={widthToDp(3.5)}
                 />
               )}
@@ -1201,6 +1251,16 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(5),
     paddingVertical: heightToDp(2),
     width: widthToDp(80),
+  },
+  documentContainer: {
+    flexDirection: 'row',
+    marginLeft: widthToDp(5),
+    columnGap: widthToDp(3),
+    rowGap: heightToDp(4),
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    marginHorizontal: 10,
   },
 });
 {

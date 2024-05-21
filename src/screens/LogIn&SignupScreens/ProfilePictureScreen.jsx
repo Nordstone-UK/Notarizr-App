@@ -36,6 +36,7 @@ export default function ProfilePictureScreen({navigation}) {
   const [profilePicture, setProfilePicure] = useState('');
   const [answer, setAnswer] = useState('');
   const variables = useSelector(state => state.register);
+  console.log('valrigle', variables);
   const [visible, setVisible] = useState(false);
   const [skip, setSkip] = useState(false);
   const dispatch = useDispatch();

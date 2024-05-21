@@ -22,6 +22,8 @@ export default function RequestPayment(props) {
           keyboardType="numeric"
           style={styles.TextInput}
           onChangeText={props.onChangeText}
+          // placeholder="Enter amount"
+          // placeholderTextColor={Colors.InputTextColor}
         />
       </View>
 
@@ -63,9 +65,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
   },
   TextInput: {
-    fontSize: widthToDp(6),
-    // backgroundColor: 'red',
-    // width: widthToDp(20),
+    fontSize: widthToDp(5.5),
+
+    color: Colors.TextColor,
+    fontFamily: 'Manrope-Regular',
+    paddingHorizontal: widthToDp(1),
   },
   transparentStar: {
     fontSize: 30,
@@ -73,13 +77,15 @@ const styles = StyleSheet.create({
     color: 'transparent',
   },
   input: {
+    // flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    alignContent: 'center',
+    // alignContent: 'center',
     borderWidth: 2,
     borderColor: Colors.Orange,
     width: widthToDp(60),
     borderRadius: 15,
+    paddingHorizontal: widthToDp(3),
   },
 });

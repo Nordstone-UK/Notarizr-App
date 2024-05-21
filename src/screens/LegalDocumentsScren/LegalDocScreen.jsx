@@ -391,12 +391,14 @@ const styles = StyleSheet.create({
     width: widthToDp(70),
   },
   input: {
-    padding: 10,
+    paddingHorizontal: widthToDp(2),
+    paddingVertical: heightToDp(2),
     width: widthToDp(15),
-    height: heightToDp(9),
+    height: heightToDp(10),
     borderColor: Colors.Orange,
     borderWidth: 2,
     borderRadius: widthToDp(3),
+    color: 'black',
   },
   dashedContainer: {
     marginHorizontal: widthToDp(5),

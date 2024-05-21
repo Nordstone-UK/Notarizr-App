@@ -30,6 +30,7 @@ export const registerSlice = createSlice({
       state.gender = action.payload.gender;
       state.location = action.payload.location;
       state.dateOfBirth = action.payload.date;
+      state.description = action.payload.description;
       // console.log('Redux ', state);
     },
     profilePictureSet: (state, action) => {

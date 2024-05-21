@@ -20,7 +20,10 @@ const useFetchUser = () => {
   const dispatch = useDispatch();
   let info;
   const fetchUserInfo = async () => {
+    // const re = await user();
+    // console.log('sssssssssssddddddddddddddd', re);
     await user().then(response => {
+      console.log('response', response);
       info = response.data.user;
       if (info.profile_picture === null || !info.profile_picture) {
         info.profile_picture =

@@ -13,6 +13,7 @@ type State = {
 type Action = {
   insertObject: (id: string, object: PdfObject) => void;
   updateObject: (id: string, object: PdfObject) => void;
+  deleteObject: (id: string) => void; 
   setSelectedObjectId: (id: string | null) => void;
   setCurrentPage: (page: number) => void;
   deleteAllObjects: () => void;
@@ -39,6 +40,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         });
       },
       updateObject: (id, object) => {
+         console.log("ndfdfdfd", object.position,id)
         set({
           selectedObjectId: id,
           objects: {
@@ -46,6 +48,10 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
             [id]: object,
           },
         });
+      },
+      deleteObject: (id) => { // Implement this function
+        const { [id]: _, ...remainingObjects } = get().objects;
+        set({ objects: remainingObjects, selectedObjectId: null });
       },
       setSelectedObjectId: id => {
         set({

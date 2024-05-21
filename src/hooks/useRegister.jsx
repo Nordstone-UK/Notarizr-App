@@ -54,6 +54,17 @@ const useRegister = () => {
     });
     return url;
   };
+  const uploadimageToS3 = async fileUri => {
+    const title = 'signs';
+    const type = 'stamping';
+
+    const url = await uploadDocumentsOnS3({
+      file: fileUri,
+      title: title,
+      type: type,
+    });
+    return url;
+  };
   const handleRegister = async variables => {
     try {
       const request = {
@@ -171,6 +182,7 @@ const useRegister = () => {
     uploadDocmmentToS3,
     uploadAllDocuments,
     uploadDocArray,
+    uploadimageToS3,
   };
 };
 

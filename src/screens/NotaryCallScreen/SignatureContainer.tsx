@@ -3,9 +3,13 @@ import { StyleSheet, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { addSignature, deleteSignature } from '../../features/signatures/signatureSlice';
 import DraggableSignature from './DragabbleSignature';
+import { useLiveblocks } from '../../store/liveblocks';
+import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
+
 
 export default function SignatureContainer({ signatureData, onSignatureChange }) {
-  // console.log("sigiddddddddd", signatureData)
+  const objects = useLiveblocks(state => state.objects);
+  const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const dispatch = useDispatch();
   const signatures = useSelector(state => state.signature.signatures);
 
@@ -21,14 +25,42 @@ export default function SignatureContainer({ signatureData, onSignatureChange })
   };
   return (
     <View style={styles.container}>
-      {signatures.map((signature, index) => (
-        <DraggableSignature
-          key={index}
-          signatureData={signature.data}
-          onSignatureChange={handleSignatureChange}
-        // onDelete={handleDeleteSignature}
-        />
-      ))}
+      {Object.entries(objects).map(([objectId, object]) => {
+        // console.log("objerectddddddddddddd", object)
+        // if (object.page !== currentPage) {
+        // return null;
+        // }
+        // console.log("ddddddddddddddddddddddddddddddddd", object)
+        return (
+          // <></>
+          // <View style={styles.objectsWrapper}>
+          //   {Object.entries(objects).map(([objectId, object]) => {
+          //     // console.log("objerect", object)
+          //     // if (object.page !== currentPage) {
+          //     //   return null;
+          //     // }
+
+          //     return (
+          //       <PdfObject
+          //         id={objectId}
+          //         key={objectId}
+          //         object={object}
+          //         selected={selectedObjectId === objectId}
+          //       />
+          //     );
+          //   })}
+          // </View>
+          <DraggableSignature
+            id={objectId}
+            key={objectId}
+            object={object}
+            selected={selectedObjectId === objectId}
+            onSignatureChange={handleSignatureChange}
+
+          // onDelete={handleDeleteSignature}
+          />
+        );
+      })}
     </View>
   );
 }

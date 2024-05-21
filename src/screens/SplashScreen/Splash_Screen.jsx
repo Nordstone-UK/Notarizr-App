@@ -30,6 +30,7 @@ export default function Splash_Screen({navigation}) {
               response.isVerified == false &&
               response.account_type == 'agent'
             ) {
+              // console.log('tokemd', token);
               navigation.navigate('AgentVerfiedScreen');
             } else {
               response?.account_type === 'client'

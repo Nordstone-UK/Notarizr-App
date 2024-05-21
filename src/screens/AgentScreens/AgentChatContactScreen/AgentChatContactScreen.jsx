@@ -12,10 +12,12 @@ import ChatContacts from '../../../components/ChatContacts/ChatContacts';
 import Colors from '../../../themes/Colors';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {useSelector} from 'react-redux';
+import {heightToDp} from '../../../utils/Responsive';
+import {Image} from 'react-native';
 
 export default function AgentChatContactScreen({navigation}) {
   const chats = useSelector(state => state.chats.allChats);
-  console.log("remdereote,",chats)
+  console.log('remdereote,', chats);
   const renderItem = ({item}) => {
     const user = item.booked_by; // Assuming either "agent" or "client" property exists in each item
 
@@ -33,30 +35,30 @@ export default function AgentChatContactScreen({navigation}) {
       />
     );
   };
-   const renderEmptyComponent = () => (
+  const renderEmptyComponent = () => (
     <View
-            style={{
-              minHeight: heightToDp(100),
-              justifyContent: 'center',
-              alignSelf: 'center',
-            }}>
-            <Image
-              source={require('../../../../assets/emptyBox.png')}
-              style={styles.picture}
-            />
-            <Text
-              style={[
-                styles.Heading,
+      style={{
+        minHeight: heightToDp(100),
+        justifyContent: 'center',
+        alignSelf: 'center',
+      }}>
+      <Image
+        source={require('../../../../assets/emptyBox.png')}
+        style={styles.picture}
+      />
+      <Text
+        style={[
+          styles.Heading,
 
-                {
-                  fontSize: widthToDp(4),
-                  fontFamily: 'Manrope-SemiBold',
-                  fontWeight: '600',
-                },
-              ]}>
-             No chats available
-            </Text>
-          </View>
+          {
+            fontSize: widthToDp(4),
+            fontFamily: 'Manrope-SemiBold',
+            fontWeight: '600',
+          },
+        ]}>
+        No chats available
+      </Text>
+    </View>
   );
 
   return (

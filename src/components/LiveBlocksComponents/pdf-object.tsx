@@ -1,14 +1,14 @@
-import React, {useCallback} from 'react';
-import {Image, StyleSheet, Text} from 'react-native';
+import React, { useCallback } from 'react';
+import { Image, StyleSheet, Text } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-import type {PdfObject} from '../../types/liveblocks';
-import {ArrowDownRightCircleSolid} from 'iconoir-react-native';
-import {useLiveblocks} from '../../store/liveblocks';
+import type { PdfObject } from '../../types/liveblocks';
+import { ArrowDownRightCircleSolid } from 'iconoir-react-native';
+import { useLiveblocks } from '../../store/liveblocks';
 
 type PdfObjectProps = {
   id: string;
@@ -16,20 +16,21 @@ type PdfObjectProps = {
   selected: boolean;
 };
 
-export default function PdfObject({id, object, selected}: PdfObjectProps) {
+export default function PdfObject({ id, object, selected }: PdfObjectProps) {
   const updateObject = useLiveblocks(state => state.updateObject);
   const setSelectedObjectId = useLiveblocks(state => state.setSelectedObjectId);
 
-  const start = useSharedValue({x: 0, y: 0});
-  const offset = useSharedValue({x: object.position.x, y: object.position.y});
+  const start = useSharedValue({ x: 0, y: 0 });
+  const offset = useSharedValue({ x: object.position.x, y: object.position.y });
 
   React.useEffect(() => {
-    offset.value = {x: object.position.x, y: object.position.y};
+    offset.value = { x: object.position.x, y: object.position.y };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [object.position]);
 
   const tapGesture = Gesture.Tap()
     .onStart(() => {
+      // console.log("itdfdfdfd", id)
       setSelectedObjectId(id);
     })
     .runOnJS(true);
@@ -46,7 +47,7 @@ export default function PdfObject({id, object, selected}: PdfObjectProps) {
         x: e.translationX + start.value.x,
         y: e.translationY + start.value.y,
       };
-
+      console.log("ndfdfdfd", newOffset)
       offset.value = newOffset;
       updateObject(id, {
         ...object,
@@ -59,14 +60,14 @@ export default function PdfObject({id, object, selected}: PdfObjectProps) {
         y: offset.value.y,
       };
     })
-    .onFinalize(() => {})
+    .onFinalize(() => { })
     .runOnJS(true);
 
   const composedGesture = Gesture.Race(panGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{translateX: offset.value.x}, {translateY: offset.value.y}],
+      transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }],
     };
   });
 
@@ -76,7 +77,7 @@ export default function PdfObject({id, object, selected}: PdfObjectProps) {
     }
 
     if (object.type === 'image') {
-      return <Image style={styles.image} source={{uri: object.sourceUrl}} />;
+      return <Image style={styles.image} source={{ uri: object.sourceUrl }} />;
     }
 
     return null;
@@ -103,7 +104,7 @@ export default function PdfObject({id, object, selected}: PdfObjectProps) {
           animatedStyle,
         ]}>
         {renderContent()}
-        {renderResize()}
+        {/* {renderResize()} */}
       </Animated.View>
     </GestureDetector>
   );
