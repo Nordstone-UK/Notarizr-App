@@ -217,7 +217,12 @@ export default function LegalDocScreen({route, navigation}) {
             ) : (
               <MultipleSelectList
                 setSelected={val => setSelected(val)}
-                data={documentArray}
+                data={
+                  documentArray &&
+                  documentArray.map(item => ({
+                    value: `${item.name} - $${item.statePrices[0].price}`,
+                  }))
+                }
                 save="value"
                 onSelect={() => createDocumentObject(selected)}
                 label="Documents"
