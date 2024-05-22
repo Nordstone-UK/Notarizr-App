@@ -69,11 +69,13 @@ export default function LegalDocScreen({route, navigation}) {
       return {name, price: parseFloat(price)};
     });
 
-    const highestPriceDocument = documentObjects.reduce((max, doc) =>
-      doc.price > max.price ? doc : max,
+    const highestPriceDocument = documentObjects.reduce(
+      (max, doc) => (doc.price > max.price ? doc : max),
+      documentObjects[0], // Initialize with the first document if the array is not empty
     );
+
     console.log('Highest Price Document:', highestPriceDocument);
-    setTotalPrice(highestPriceDocument.price);
+    setTotalPrice(highestPriceDocument?.price);
     setSelectedDocs(documentObjects);
   }
 
@@ -119,22 +121,42 @@ export default function LegalDocScreen({route, navigation}) {
   const getState = async query => {
     setLoading(true);
 
-    const reponse = await handleGetLocation();
-    // console.log('locationsdf', reponse);
-    console.log(' uere', query);
-    const data = await fetchDocumentTypes(
-      page,
-      Limit,
-      reponse?.results[0]?.address_components[4]?.long_name,
-      query,
-    );
-    setTotalDocs(data?.totalDocs);
-    setDocumentArray(data?.documentTypes);
+    let stateName = 'USA';
 
+    const locationResponse = await handleGetLocation();
+    if (
+      locationResponse &&
+      locationResponse.results &&
+      locationResponse.results.length > 0
+    ) {
+      const addressComponents = locationResponse.results[0]?.address_components;
+
+      if (addressComponents && addressComponents.length >= 5) {
+        stateName = addressComponents[4]?.long_name || 'USA'; // Use state name if available, otherwise fallback to 'USA'
+      } else {
+        console.warn(
+          'Address components not found or incomplete:',
+          addressComponents,
+        );
+      }
+    } else {
+      console.warn('Location response invalid or empty:', locationResponse);
+    }
+
+    const data = await fetchDocumentTypes(page, Limit, stateName, query);
+    const modifiedDocuments = data.documentTypes.map(doc => ({
+      ...doc,
+      key: doc._id,
+      value: `${doc.name} - $${doc.statePrices[0].price}`, // Use _id as the unique key for each document
+    }));
+    setDocumentArray(modifiedDocuments);
+    console.log('doumntsfdffdfd', data);
+    setTotalDocs(data.totalDocs);
+    setDocumentArray(modifiedDocuments);
+    setLoading(false);
     if (Limit < data?.totalDocs) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
-    setLoading(false);
   };
 
   const handleSearchInput = query => {
@@ -374,12 +396,14 @@ const styles = StyleSheet.create({
     width: widthToDp(70),
   },
   input: {
-    padding: 10,
+    paddingHorizontal: widthToDp(2),
+    paddingVertical: heightToDp(2),
     width: widthToDp(15),
-    height: heightToDp(9),
+    height: heightToDp(10),
     borderColor: Colors.Orange,
     borderWidth: 2,
     borderRadius: widthToDp(3),
+    color: 'black',
   },
   dashedContainer: {
     marginHorizontal: widthToDp(5),

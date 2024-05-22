@@ -8,9 +8,11 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import Toast from 'react-native-toast-message';
+import React, { useEffect, useRef, useState } from 'react';
+
 import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import { heightToDp, widthToDp } from '../../utils/Responsive';
 import {
   ClientRoleType,
   createAgoraRtcEngine,
@@ -18,9 +20,9 @@ import {
   ChannelProfileType,
 } from 'react-native-agora';
 import useChatService from '../../hooks/useChatService';
-export default function VoiceCallScreen({route, navigation}: any) {
-  const {sender, receiver, ChannelName, CallToken} = route.params;
-  const {getAgoraCallToken} = useChatService();
+export default function VoiceCallScreen({ route, navigation }: any) {
+  const { sender, receiver, channelName, token } = route.params;
+  const { getAgoraCallToken } = useChatService();
   const appId = 'abd7df71ee024625b2cc979e12aec405';
   const agoraEngineRef = useRef<IRtcEngine>();
   const [isJoined, setIsJoined] = useState(false);
@@ -29,9 +31,13 @@ export default function VoiceCallScreen({route, navigation}: any) {
   const [CName, setChannelName] = useState<string>('');
   const [CToken, setCallToken] = useState<string>('');
   const uid = 0;
+
+  console.log('Channel Name:', channelName);
+  console.log('Token:', token);
+  console.log('joined:', isJoined);
   const getVoiceToken = async () => {
     try {
-      const {channelName, token} = await getAgoraCallToken(receiver._id);
+      const { channelName, token } = await getAgoraCallToken(receiver._id);
       setChannelName(channelName);
       setCallToken(token);
 
@@ -41,45 +47,44 @@ export default function VoiceCallScreen({route, navigation}: any) {
       console.log('API Error:', error);
     }
   };
-  const setupVoiceSDKEngine = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        await getPermission();
-      }
-      agoraEngineRef.current = createAgoraRtcEngine();
-      const agoraEngine = agoraEngineRef.current;
-      agoraEngine.registerEventHandler({
-        onJoinChannelSuccess: () => {
-          showMessage('Successfully joined the channel ' + ChannelName);
-          setIsJoined(true);
-        },
-        onUserJoined: (_connection: any, Uid: number) => {
-          showMessage('Remote user joined with uid ' + Uid);
-          setRemoteUid(Uid);
-        },
-        onUserOffline: (_connection: any, Uid: number) => {
-          showMessage('Remote user left the channel. uid: ' + Uid);
-          setRemoteUid(0);
-        },
-      });
-      agoraEngine.initialize({
-        appId: appId,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  const CallSetup = async () => {
-    await setupVoiceSDKEngine();
-    await join();
-  };
+
+  // const CallSetup = async () => {
+  //   await setupVoiceSDKEngine();
+  //   // await join();
+  // };
 
   useEffect(() => {
-    const init = async () => {
-      // await getVoiceToken();
-      CallSetup();
+    const setupVoiceSDKEngine = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          await getPermission();
+        }
+        agoraEngineRef.current = createAgoraRtcEngine();
+        const agoraEngine = agoraEngineRef.current;
+        agoraEngine.registerEventHandler({
+          onJoinChannelSuccess: () => {
+            showMessage('Successfully joined the channel ' + channelName);
+            setIsJoined(true);
+          },
+          onUserJoined: (_connection: any, Uid: number) => {
+            showMessage('Remote user joined with uid ' + Uid);
+            setRemoteUid(Uid);
+          },
+          onUserOffline: (_connection: any, Uid: number) => {
+            showMessage('Remote user left the channel. uid: ' + Uid);
+            setRemoteUid(0);
+          },
+        });
+        agoraEngine.initialize({
+          appId: appId,
+        });
+      } catch (e) {
+        console.log(e);
+      }
     };
-    init();
+    setupVoiceSDKEngine().then(() => {
+      join();
+    });
   }, []);
   const getPermission = async () => {
     if (Platform.OS === 'android') {
@@ -88,9 +93,16 @@ export default function VoiceCallScreen({route, navigation}: any) {
       ]);
     }
   };
+  // function showMessage(msg: string) {
+  //   console.log(msg);
+  //   setMessage(msg);
+  // }
   function showMessage(msg: string) {
     console.log(msg);
-    setMessage(msg);
+    Toast.show({
+      type: 'success',
+      text1: msg,
+    });
   }
   const join = async () => {
     if (isJoined) {
@@ -100,7 +112,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
       agoraEngineRef.current?.setChannelProfile(
         ChannelProfileType.ChannelProfileCommunication,
       );
-      agoraEngineRef.current?.joinChannel(CallToken, ChannelName, uid, {
+      agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
     } catch (e) {
@@ -123,7 +135,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
       <View style={styles.pictureContainer}>
         <View>
           <Image
-            source={{uri: receiver?.profile_picture}}
+            source={{ uri: receiver?.profile_picture }}
             style={{
               width: widthToDp(30),
               height: heightToDp(30),
@@ -143,7 +155,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
           }}>
           <Image
             source={require('../../../assets/callDrop.png')}
-            style={{width: widthToDp(15), height: heightToDp(15)}}
+            style={{ width: widthToDp(15), height: heightToDp(15) }}
           />
         </TouchableOpacity>
       </View>

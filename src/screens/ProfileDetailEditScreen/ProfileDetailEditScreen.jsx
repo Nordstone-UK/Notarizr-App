@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
 } from 'react-native';
+import moment from 'moment';
 import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -43,9 +44,12 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     email: oldEmail,
     phone_number,
     description: oldDescription,
+    date_of_birth,
   } = useSelector(state => state.user.user);
   // const data = useSelector(state => state.user.user);
-  // console.log(new Date());
+  // console.log('dattttt', data);
+  const dateOfBirth = moment(date_of_birth, 'DD-MM-YYYY').toDate();
+
   const [firstName, setfirstName] = useState(first_name);
   const [lastName, setlastName] = useState(last_name);
   const [phoneNumber, setNumber] = useState(phone_number);
@@ -57,7 +61,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const [description, setDescription] = useState(oldDescription);
   const [tempLoading, settempLoading] = useState(false);
   const [profilePicture, setProfilePicure] = useState(profile_picture);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(dateOfBirth);
 
   const {account_type} = useSelector(state => state.user.user);
   const {fetchUserInfo} = useFetchUser();

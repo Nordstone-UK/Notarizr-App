@@ -13,13 +13,15 @@ export default function HomeScreenHeader(props) {
     <View>
       {userInfo !== null ? (
         <View style={styles.namebar}>
-          <Image
-            source={{
-              uri: userInfo?.profile_picture,
-            }}
-            style={styles.imagestyles}
-            onError={error => console.error('Image load error:', error)}
-          />
+          <TouchableOpacity>
+            <Image
+              source={{
+                uri: userInfo?.profile_picture,
+              }}
+              style={styles.imagestyles}
+              onError={error => console.error('Image load error:', error)}
+            />
+          </TouchableOpacity>
           <Text
             style={[
               styles.textHeading,

@@ -64,7 +64,7 @@ const useFetchBooking = () => {
     const request = {
       variables: {
         sessionId: id,
-        agentDocuments: docs,
+        agentDocuments: docs.map(doc => String(doc)),
       },
     };
     try {

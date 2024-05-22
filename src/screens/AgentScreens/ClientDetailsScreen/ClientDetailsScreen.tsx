@@ -8,9 +8,13 @@ import {
   RefreshControl,
   TouchableOpacity,
   KeyboardAvoidingView,
-  ActivityIndicator,
+  ActivityIndicator, Modal, DeviceEventEmitter, Button, Dimensions
 } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import Pdf from 'react-native-pdf';
+import PdfView from 'react-native-pdf';
+
+import RNFS from 'react-native-fs';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
 import { formatDateTime, heightToDp, widthToDp } from '../../../utils/Responsive';
@@ -55,6 +59,8 @@ import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.qu
 import { UPDATE_SESSION_PRICEDOCS } from '../../../../request/mutations/updateSessionPriceDocs.mutation';
 
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
+  const downloadPdf = useRef(null);
+
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
   const {
     handlegetBookingStatus,
@@ -103,6 +109,18 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   const [price, setPrice] = useState(clientDetail.price);
   const [totalPrice, setTotalPrice] = useState(clientDetail.totalPrice);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [pageWidth, setPageWidth] = useState(0);
+  const [pageHeight, setPageHeight] = useState(0);
+  const [filePath, setFilePath] = useState(
+    `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
+  );
+  const [newPdfSaved, setNewPdfSaved] = useState(false);
+  const [newPdfPath, setNewPdfPath] = useState(null);
+  const [fileDownloaded, setFileDownloaded] = useState(false);
+  const [lastRNBFTask, setLastRNBFTask] = useState({ cancel: () => { } });
+
   const [selected, setSelected] = useState('client_choose');
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -376,15 +394,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     setLoading(true);
     let urlResponse;
     const response = await uploadMultipleFiles();
-    console.log('response', response);
-
+    console.log('responsessssssssss', response);
     if (response) {
-
       urlResponse = await uploadDocArray(response);
+      console.log('sssssssssssssssssssssssss', urlResponse);
       // urlResponse = urlResponse.map(item => ({
       //   key: item.name,
       //   value: item.url,
       // }));
+
       const request = {
         variables: {
           sessionId: clientDetail?._id,
@@ -397,9 +415,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           agentDocuments: urlResponse,
         },
       };
+      console.log('ttttttttttttttttt', request);
       const res =
         clientDetail.__typename == 'Session'
-          ? await updateAgentdocs(clientDetail?._id, urlResponse)
+          ?
+          // await updateAgentdocs(request)
+          await updateAgentdocs(clientDetail?._id, urlResponse)
           : await updateBookingClientDocs(requestBooking);
 
       var reponse;
@@ -419,15 +440,119 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       }
     }
   };
-  const lowestPriceDocument = clientDetail.document_type.reduce(
-    (minDoc, doc) => (doc.price < minDoc.price ? doc : minDoc),
+  const highestPriceDocument = clientDetail.document_type.reduce(
+    (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
     clientDetail.document_type[0],
   );
   const additionalSignatureCharges =
     clientDetail.total_signatures_required * 10;
+  const handleDocumentPress = (documentUri: string) => {
+    console.log("documentur", documentUri)
+    navigation.navigate('NotaryDocumentDownloadScreen', { document: documentUri })
+    // setSelectedDocument(documentUri);
+    // setShowModal(true);
+    setNewPdfPath(documentUri);
+    setNewPdfSaved(true);
+  };
+  console.log("slddddddddddddddddddddddo", selectedDocument)
+  const handleDownload = () => {
+    // Implement download functionality here
+    // Example: open a link to download the document
+    if (selectedDocument && selectedDocument) {
+      // downloadFile(selectedDocument);
+      // Open a download link or perform download action
+      // This is a placeholder, replace with actual download logic
+      console.log(`Downloading document: ${selectedDocument}`);
+    }
+  };
+  useEffect(() => {
+    downloadFile();
+
+    if (newPdfSaved) {
+      console.log("newfilepath", newPdfPath)
+      setFilePath(newPdfPath);
+      setNewPdfSaved(false);
+      // setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
+    }
+  }, [filePath, newPdfSaved, selectedDocument, newPdfPath]);
+
+  const cancelTaskAndCloseModal = () => {
+    // if (lastRNBFTask && typeof lastRNBFTask.cancel === 'function') {
+    //   lastRNBFTask.cancel(); // Cancel the task if cancel method is available
+    // }
+    setShowModal(false); // Close the modal
+  };
+
+  const downloadFile = () => {
+    if (!fileDownloaded && selectedDocument) { // Check if sourceUrl is not empty
+      RNFS.downloadFile({
+        fromUrl: selectedDocument,
+        toFile: newPdfPath ? newPdfPath : selectedDocument,
+      }).promise.then(res => {
+        setFileDownloaded(true);
+        console.log("respnsere", res)
+        readFile();
+      }).catch(error => {
+        console.error('Error downloading file:', error);
+        // Handle the error (e.g., show an error message to the user)
+      });
+    } else {
+      console.warn('Source URL is empty. File download skipped.');
+      // Handle the case where sourceUrl is empty (e.g., show a message to the user)
+    }
+  };
+  const readFile = () => {
+    RNFS.readFile(
+      `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
+      'base64',
+    ).then(contents => {
+      // setPdfBase64(contents);
+      // setPdfArrayBuffer(_base64ToArrayBuffer(contents));
+    });
+  };
+  const openLocalFile = () => {
+    if (filePath) {
+      RNFS.readFile(filePath, 'base64')
+        .then(contents => {
+          // Handle file contents, e.g., display PDF using a library
+          console.log('File contents:', contents);
+        })
+        .catch(error => {
+          console.error('Error reading file:', error);
+        });
+    } else {
+      console.warn('File path is empty.');
+    }
+  };
+  useEffect(() => {
+    let isMounted = true;
+
+    const handleDimensionsUpdate = () => {
+      // Handle dimension update logic here
+    };
+
+    if (isMounted) {
+      // Subscribe to the event using useRef
+      downloadPdf.current = DeviceEventEmitter.addListener(
+        'didUpdateDimensions',
+        handleDimensionsUpdate
+      );
+
+      // Check if the modal should be visible and show it
+      if (showModal) {
+        // Logic to show the modal
+      }
+    }
+
+    return () => {
+      // Unsubscribe from the event when component unmounts
+      downloadPdf.current?.remove();
+      isMounted = false;
+    };
+  }, [showModal]); // Ensure useEffect runs when showModal changes
 
   console.log("cliendetails", clientDetail)
-  console.log("statusd", status)
+  // console.log("statusd", selectedDocument)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -438,6 +563,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
             sender: clientDetail?.agent,
             receiver: clientDetail?.booked_by || clientDetail?.client,
             chat: clientDetail?._id,
+            channel: clientDetail?.agora_channel_name,
+            voiceToken: clientDetail?.agora_channel_token,
           })
         }
         midImg={require('../../../../assets/supportIcon.png')}
@@ -969,7 +1096,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                             color: 'black',
                             marginLeft: 10,
                           }}>
-                          {item.name}
+                          {item.name}- $ {item.price}
                         </Text>
                       </View>
                     ))}
@@ -1302,7 +1429,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     }}>
                     {Object.values(clientDetail.client_documents)?.map(
                       (item, index) => (
-                        <TouchableOpacity key={index}>
+                        <TouchableOpacity key={index} onPress={() => handleDocumentPress(item)}>
                           <Image
                             source={require('../../../../assets/docPic.png')}
                             style={{
@@ -1328,7 +1455,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     columnGap: widthToDp(3),
                   }}>
                   {clientDetail.agent_document?.map((item, index) => (
-                    <TouchableOpacity key={index}>
+                    <TouchableOpacity key={index} onPress={() => handleDocumentPress(item)}>
                       <Image
                         source={require('../../../../assets/docPic.png')}
                         style={{ width: widthToDp(10), height: heightToDp(10) }}
@@ -1352,7 +1479,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       columnGap: widthToDp(3),
                     }}>
                     {clientDetail.notarized_docs?.map((item, index) => (
-                      <TouchableOpacity key={index}>
+                      <TouchableOpacity key={index} onPress={() => handleDocumentPress(item)}>
                         <Image
                           source={require('../../../../assets/docPic.png')}
                           style={{ width: widthToDp(10), height: heightToDp(10) }}
@@ -1362,6 +1489,40 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   </View>
                 </View>
               )}
+            <Modal visible={showModal} animationType="slide">
+              {/* <View style={styles.modalContainer}>
+                <Text style={styles.modalHeading}>Document Preview</Text> */}
+              {/* {/* Display the document PDF */}
+              <PdfView
+                // ref={pdfRef}
+                style={styles.pdfView}
+                source={{ uri: filePath }}
+                trustAllCerts={false}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                // horizontal={true}
+
+                enablePaging={true}
+                minScale={1.0}
+                maxScale={20.0}
+                scale={1.0}
+                spacing={0}
+                fitPolicy={0}
+                onLoadComplete={(numberOfPages, filePath) => {
+                  console.log('completed')
+                }}
+                onPageChanged={(page, numberOfPages) => { }}
+                // onPageSingleTap={(page, x, y) => {
+                //   handleSingleTap(page, x, y);
+                // }}
+                onError={error => console.error(error)}
+              />
+              <View style={styles.modalButtons}>
+                <Button title="Download" onPress={openLocalFile} />
+                <Button title="Close" onPress={cancelTaskAndCloseModal} />
+              </View>
+              {/* </View> */}
+            </Modal>
 
             {/* {clientDetail.agent_document && (
               <View style={{marginTop: 10}}>
@@ -1405,7 +1566,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       color: 'black',
                       marginLeft: 10,
                     }}>
-                    Notary charges:{" "} ${lowestPriceDocument.price}
+                    Notary charges:{" "} ${highestPriceDocument.price}
                   </Text>
                 </View>
                 {typeof clientDetail.total_signatures_required === 'number' && (
@@ -1653,7 +1814,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   }}
                   fontSize={widthToDp(4)}
                 />
-                {clientDetail.payment_type == 'on_notarizr' && clientDetail.status !== 'accepted' && (
+                {clientDetail.payment_type == 'on_notarizr' && status !== 'Accepted' && (
                   <GradientButton
                     Title=
                     'Request Payment'
@@ -2004,4 +2165,13 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(4),
     marginBottom: heightToDp(-2),
   },
+  pdfView: {
+    flex: 1,
+    // height: height * 0.6,
+  },
+  pdf: {
+    flex: 1,
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  }
 });

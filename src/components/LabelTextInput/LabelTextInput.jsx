@@ -51,6 +51,7 @@ export default function LabelTextInput(props) {
           placeholderTextColor={
             Colors.DisableColor || props.placeholderTextColor
           }
+          multiline
           onChangeText={props.onChangeText}
         />
         {props.rightImageSoucre && (

@@ -51,7 +51,7 @@ export default function CustomDatePicker(props) {
             },
             props.textStyle,
           ]}>
-          {moment(selectedDate).format('MM/DD/YYYY')}
+          {moment(selectedDate).format('DD/MM/YYYY')}
         </Text>
       </TouchableOpacity>
       <DatePicker

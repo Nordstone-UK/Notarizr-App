@@ -82,6 +82,18 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    flavorDimensions "device"
+
+    productFlavors {
+        device1 {
+            dimension "device"
+            resValue "string", "device_id", "ASCALTH026M51400081"
+        }
+        device2 {
+            dimension "device"
+            resValue "string", "device_id", "10BE3F1Y0E0017T"
+        }
+    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -115,7 +127,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation project(':react-native-immediate-phone-call')
-
+implementation 'com.github.netless-io:whiteboard-android:2.16.84'
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.fresco:stetho:2.6.0")
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")

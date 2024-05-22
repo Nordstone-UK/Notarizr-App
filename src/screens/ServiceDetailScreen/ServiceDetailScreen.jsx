@@ -47,9 +47,9 @@ export default function ServiceDetailScreen({route, navigation}) {
   // const [isEnabled, setIsEnabled] = useState(false);
   // const [documents, setDocuments] = useState();
   // const [startTime, setStartTime] = useState(new Date());
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(null);
   const [open, setOpen] = useState(false);
-
+  console.log('date', date);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
@@ -101,8 +101,8 @@ export default function ServiceDetailScreen({route, navigation}) {
   const showConfirmation = async () => {
     setLoading(true);
     if (
-      selectAddress ||
-      (email && firstName && lastName && phoneNumber && location)
+      (selectAddress && date) ||
+      (date && email && firstName && lastName && phoneNumber && location)
     ) {
       Alert.alert(
         'Disclaimer',
@@ -119,14 +119,52 @@ export default function ServiceDetailScreen({route, navigation}) {
       );
     } else {
       if (serviceFor === 'self') {
-        Toast.show({
-          type: 'error',
-          text1: 'Please Select Date and Address',
-        });
-      } else if (firstName && lastName && email && phoneNumber && location) {
+        if (!date && !selectAddress) {
+          // Neither date nor address is selected
+          Toast.show({
+            type: 'error',
+            text1: 'Please select Date & Time and Address.',
+          });
+        } else if (!date && selectAddress) {
+          // Address is selected but date is not
+          Toast.show({
+            type: 'error',
+            text1: 'Please select Date & Time.',
+          });
+        } else if (date && !selectAddress) {
+          // Date is selected but address is not
+          Toast.show({
+            type: 'error',
+            text1: 'Please select Address.',
+          });
+        }
+        // Toast.show({
+        //   type: 'error',
+        //   text1: 'Please Select Date and Address',
+        // });
+      } else if (
+        date &&
+        firstName &&
+        lastName &&
+        email &&
+        phoneNumber &&
+        location
+      ) {
         Toast.show({
           type: 'success',
           text1: 'All fields are filled successfully.',
+        });
+      } else if (
+        !date &&
+        firstName &&
+        lastName &&
+        email &&
+        phoneNumber &&
+        location
+      ) {
+        Toast.show({
+          type: 'success',
+          text1: 'Please select Date & Time.',
         });
       } else {
         Toast.show({
@@ -193,7 +231,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                         paddingHorizontal: widthToDp(2),
                         borderRadius: widthToDp(2),
                       }}>
-                      {moment(date).format('MM-DD-YYYY hh:mm A')}
+                      {moment(new Date()).format('MM-DD-YYYY hh:mm A')}
                     </Text>
                   </TouchableOpacity>
                   <DatePicker
@@ -202,7 +240,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                     minimumDate={date}
                     open={open}
                     androidVariant="iosClone"
-                    date={date}
+                    date={date || new Date()}
                     onConfirm={date => {
                       setOpen(false);
                       setDate(date);
