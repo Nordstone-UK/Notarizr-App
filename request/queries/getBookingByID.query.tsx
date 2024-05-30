@@ -30,8 +30,10 @@ export const GET_BOOKING_BY_ID = gql`
           description
           state
           addresses {
+             _id
             tag
             location
+            location_coordinates
           }
         }
         service_type

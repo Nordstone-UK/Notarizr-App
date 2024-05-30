@@ -1,11 +1,11 @@
 import S3 from 'aws-sdk/clients/s3';
 // import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
-import {decode} from 'base64-arraybuffer';
+import { decode } from 'base64-arraybuffer';
 // import RNFS from 'react-native-fs';
 // import {decode} from 'base64-arraybuffer';
-import {uriToBlob} from './ImagePicker';
-const {Buffer} = require('buffer');
+import { uriToBlob } from './ImagePicker';
+const { Buffer } = require('buffer');
 
 const signatureVersion = 'v4';
 const accessKeyId = 'AKIAYMBF2K7JBUCNVT76';
@@ -37,7 +37,7 @@ const uploadDirectOnS3 = async ({
   };
 
   try {
-    const {Location} = await s3bucket.upload(params).promise();
+    const { Location } = await s3bucket.upload(params).promise();
     return Location;
   } catch (err) {
     throw err;
@@ -66,7 +66,7 @@ const uploadDocumentsOnS3 = async ({
   };
 
   try {
-    const {Location} = await s3bucket.upload(params).promise();
+    const { Location } = await s3bucket.upload(params).promise();
     return Location;
   } catch (err) {
     throw err;
@@ -91,7 +91,7 @@ const uploadImageOnS3 = async ({
 
   try {
     // Step 1: Create a multipart upload
-    const {UploadId} = await s3bucket.createMultipartUpload(params).promise();
+    const { UploadId } = await s3bucket.createMultipartUpload(params).promise();
     const parts = []; // Step 2: Upload parts of the file
 
     const fileSize = file.size;
@@ -109,8 +109,8 @@ const uploadImageOnS3 = async ({
         Body: file.slice(start, end),
       };
 
-      const {ETag} = await s3bucket.uploadPart(partParams).promise();
-      parts.push({PartNumber: partNumber, ETag: ETag});
+      const { ETag } = await s3bucket.uploadPart(partParams).promise();
+      parts.push({ PartNumber: partNumber, ETag: ETag });
 
       start = end;
       partNumber++;
@@ -119,10 +119,10 @@ const uploadImageOnS3 = async ({
     const completeParams = {
       ...params,
       UploadId: UploadId!,
-      MultipartUpload: {Parts: parts},
+      MultipartUpload: { Parts: parts },
     };
 
-    const {Location} = await s3bucket
+    const { Location } = await s3bucket
       .completeMultipartUpload(completeParams)
       .promise();
     return Location;
@@ -147,7 +147,7 @@ const uploadSignedDocumentsOnS3 = async base64Data => {
 
   try {
     const data = await s3bucket.upload(params).promise();
-    console.log('File uploaded successfully. Location:', data.Location);
+    // console.log('File uploaded successfully. Location:', data.Location);
     return data.Location;
   } catch (error) {
     console.error('Error uploading file:', error);

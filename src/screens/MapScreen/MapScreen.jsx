@@ -32,8 +32,8 @@ export default function MapScreen({route, navigation}) {
     handleGetLocation();
     console.log('location', location);
   }, []);
-  const {agents, documents} = route.params;
-  console.log('client location', agents.current_location);
+  // const {documents} = route.params;
+  // console.log('client location', agents.current_location);
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
@@ -60,7 +60,7 @@ export default function MapScreen({route, navigation}) {
         onPress={() =>
           navigation.navigate('AgentReviewScreen', {
             description: item,
-            documentType: documents,
+            // documentType: documents,
           })
         }
       />
@@ -104,13 +104,13 @@ export default function MapScreen({route, navigation}) {
           justifyContent: 'flex-end',
         }}>
         <View style={{flexDirection: 'row'}}>
-          <FlatList
+          {/* <FlatList
             horizontal
             data={agents}
             renderItem={renderItem}
             showsHorizontalScrollIndicator={false}
             keyExtractor={item => item._id}
-          />
+          /> */}
         </View>
       </View>
     </SafeAreaView>

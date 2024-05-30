@@ -43,7 +43,10 @@ import {useSession} from '../../hooks/useSession';
 import {useLiveblocks} from '../../store/liveblocks';
 import Loading from '../../components/LiveBlocksComponents/loading';
 import useRegister from '../../hooks/useRegister';
-import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import {
+  setBookingInfoState,
+  setCoordinates,
+} from '../../features/booking/bookingSlice';
 import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 import {useLazyQuery, useMutation} from '@apollo/client';
 import {
@@ -94,10 +97,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [price, setPrice] = useState(bookingDetail?.price);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [newPdfSaved, setNewPdfSaved] = useState(false);
-  // const pdfRef = React.useRef<Pdf>(null);
-  console.log('####', pdfUrl, isPdfVisible);
+  const [bookedByAddress, setBookedByAddress] = useState(null);
 
-  /////// update client docs /////
+  // const pdfRef = React.useRef<Pdf>(null);
 
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
@@ -363,7 +365,23 @@ export default function MedicalBookingScreen({route, navigation}) {
     setNewPdfSaved(true);
   };
   console.log('bookingdetails', bookingDetail);
-  console.log('dstatusfd', status);
+  useEffect(() => {
+    if (bookingDetail) {
+      const addressId = bookingDetail?.address;
+      console.log('book', bookingDetail.booked_by?.addresses);
+
+      const address = bookingDetail?.booked_by?.addresses.find(
+        address => address._id === addressId,
+      );
+
+      console.log('bookedeaddress', address);
+      setBookedByAddress(address);
+    }
+  }, [bookingDetail]);
+  const handleAddressPress = coordinates => {
+    navigation.navigate('MapArrivalScreen');
+    dispatch(setCoordinates(coordinates));
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -602,20 +620,19 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             </View>
           )}
-          {bookingDetail.address || bookingDetail.booked_for?.location ? (
+          {bookedByAddress?.location ? (
             <View style={{paddingHorizontal: widthToDp(3)}}>
               <Text style={[styles.insideHeading, styles.addressMargin]}>
                 {bookingDetail.address ? 'Address' : 'Booked For Location'}
               </Text>
               <AddressCard
                 location={
-                  bookingDetail.address || bookingDetail.booked_for?.location
+                  bookedByAddress?.location ||
+                  bookingDetail.booked_for?.location
                 }
-                // onPress={() =>
-                //   setSelectedAddress(
-                //     bookingDetail.address || bookingDetail.booked_for.location,
-                //   )
-                // }
+                onPress={() =>
+                  handleAddressPress(bookedByAddress.location_coordinates)
+                }
                 booking="true"
               />
             </View>
@@ -812,7 +829,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                     color: 'black',
                     marginLeft: 10,
                   }}>
-                  Notary charges: ${highestPriceDocument.price}
+                  Notary charges: ${highestPriceDocument?.price}
                 </Text>
               </View>
               {typeof bookingDetail.total_signatures_required === 'number' && (

@@ -32,8 +32,10 @@ export const GET_AGENT_BOOKING = gql`
           description
           state
           addresses {
+            _id
             tag
             location
+            location_coordinates
           }
           userAccessCode
         }

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Dimensions, Image, TouchableOpacity, Text } from 'react-native';
 import { PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -10,8 +10,10 @@ import Animated, {
 import { deleteSignature } from '../../features/signatures/signatureSlice';
 import { useDispatch } from 'react-redux';
 import { useLiveblocks } from '../../store/liveblocks';
-import { Text } from 'react-native-svg';
 import type { PdfObject } from '../../types/liveblocks';
+import Colors from '../../themes/Colors';
+import { widthToDp } from '../../utils/Responsive';
+import moment from 'moment';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -25,7 +27,6 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   const updateObject = useLiveblocks(state => state.updateObject);
   const setSelectedObjectId = useLiveblocks(state => state.setSelectedObjectId);
   const deleteObject = useLiveblocks(state => state.deleteObject);
-  // console.log("bonedfdd", object)
   const dispatch = useDispatch();
   const scale = useSharedValue(1);
   const translationX = useSharedValue(0);
@@ -71,12 +72,15 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         ...object,
         position: newOffset,
       });
+      const signatureData = object.type === 'image' ? object.sourceUrl : object.text;
+
       onSignatureChange({
         width: FIXED_IMAGE_SIZE * scale.value,
         height: FIXED_IMAGE_SIZE * scale.value,
         x: translationX.value,
         y: translationY.value,
-        signatureData: object.sourceUrl
+        type: object.type,
+        signatureData: signatureData
       });
     }
   };
@@ -101,10 +105,24 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   // });
 
   const renderContent = useCallback(() => {
-    if (object.type === 'label') {
-      return <Text>{object.text}</Text>;
+    if (object.type === 'date') {
+      return (
+        <View style={styles.dateContainer}>
+          <Text
+            style={styles.date}>
+            {moment(object.text.date).format('DD-MM-YYYY ')}
+          </Text>
+        </View>
+      )
     }
+    if (object.type === 'text') {
 
+      return (
+        <View style={styles.dateContainer}>
+          <Text style={styles.text} >{object.text}</Text>
+        </View>
+      )
+    }
     if (object.type === 'image') {
       return <Image style={styles.image} source={{ uri: object.sourceUrl }} />;
     }
@@ -123,6 +141,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         >
           <Animated.View style={[styles.box, animatedStyle, selected && styles.containerSelected,]}>
             {renderContent()}
+            {/* <Text style={styles.text}>{object.text}</Text> */}
             {/* <Image
               source={{ uri: object.sourceUrl }} // Assuming signatureData is a URI
               style={styles.image}
@@ -156,6 +175,31 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  text: {
+    // backgroundColor: "yellow",
+    fontSize: 16,
+    color: 'black',
+    padding: 8,
+    textAlign: 'center',
+  },
+  dateContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.Orange,
+  },
+  date: {
+    color: Colors.Orange,
+    fontFamily: 'Manrope-Bold',
+    fontSize: widthToDp(4),
+
+    paddingHorizontal: widthToDp(2),
+    borderRadius: widthToDp(2),
+
   },
   deleteButton: {
     position: 'absolute',

@@ -1,7 +1,7 @@
 export type PdfObject = {
-  type: 'image' | 'label' | 'text';
+  type: 'image' | 'label' | 'text' | 'date';
   sourceUrl?: string;
-  text?: string;
+  text?:string;
   page: number;
   position: {
     x: number;
