@@ -7,49 +7,24 @@ import { useLiveblocks } from '../../store/liveblocks';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 
 
-export default function SignatureContainer({ signatureData, onSignatureChange }) {
+export default function SignatureContainer({ onSignatureChange }) {
   const objects = useLiveblocks(state => state.objects);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const dispatch = useDispatch();
   const signatures = useSelector(state => state.signature.signatures);
-
-  useEffect(() => {
-    if (signatureData !== null) {
-      dispatch(addSignature(signatureData));
-    }
-  }, [signatureData]);
-
-  console.log('Signatures:', signatures.length);
+  const pdfFilePath = useLiveblocks(state => state.pdfFilePath);
+  // console.log("pdflivepathfile", pdfFilePath)
+  // console.log('Signatures:', signatures.length);
   const handleSignatureChange = (signatureInfo) => {
     onSignatureChange(signatureInfo);
   };
   return (
+
     <View style={styles.container}>
       {Object.entries(objects).map(([objectId, object]) => {
-        // console.log("objerectddddddddddddd", object)
-        // if (object.page !== currentPage) {
-        // return null;
-        // }
-        // console.log("ddddddddddddddddddddddddddddddddd", object)
-        return (
-          // <></>
-          // <View style={styles.objectsWrapper}>
-          //   {Object.entries(objects).map(([objectId, object]) => {
-          //     // console.log("objerect", object)
-          //     // if (object.page !== currentPage) {
-          //     //   return null;
-          //     // }
 
-          //     return (
-          //       <PdfObject
-          //         id={objectId}
-          //         key={objectId}
-          //         object={object}
-          //         selected={selectedObjectId === objectId}
-          //       />
-          //     );
-          //   })}
-          // </View>
+        return (
+
           <DraggableSignature
             id={objectId}
             key={objectId}

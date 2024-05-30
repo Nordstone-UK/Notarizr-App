@@ -47,6 +47,7 @@ export default function ServiceDetailScreen({route, navigation}) {
   // const [isEnabled, setIsEnabled] = useState(false);
   // const [documents, setDocuments] = useState();
   // const [startTime, setStartTime] = useState(new Date());
+  console.log('adsddress', selectAddress);
   const [date, setDate] = useState(null);
   const [open, setOpen] = useState(false);
   console.log('date', date);
@@ -204,6 +205,7 @@ export default function ServiceDetailScreen({route, navigation}) {
 
   //   setLoading(false);
   // };
+  console.log('addressslist', addresses);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -301,8 +303,8 @@ export default function ServiceDetailScreen({route, navigation}) {
                     <AddressCard
                       key={index}
                       location={item.location}
-                      onPress={() => setSelectedAddress(item.location)}
-                      Show={selectAddress === item.location}
+                      onPress={() => setSelectedAddress(item._id)}
+                      Show={selectAddress === item._id}
                       booking="true"
                     />
                   ))}
@@ -389,7 +391,11 @@ export default function ServiceDetailScreen({route, navigation}) {
                       // fontSize: widthToDp(2),
                     }}
                     buttonFontSize={widthToDp(5)}
-                    onPress={() => navigation.navigate('AddNewAddress')}
+                    onPress={() =>
+                      navigation.navigate('CurrentLocationScreen', {
+                        previousScreen: 'ServiceDetailScreen',
+                      })
+                    }
                   />
                 )}
 

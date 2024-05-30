@@ -23,16 +23,13 @@ const useFetchUser = () => {
     // const re = await user();
     // console.log('sssssssssssddddddddddddddd', re);
     await user().then(response => {
-      console.log('response', response);
       info = response.data.user;
+      console.log('ingo', info.addresses);
       if (info.profile_picture === null || !info.profile_picture) {
         info.profile_picture =
           'https://notarizr-app-data.s3.us-east-2.amazonaws.com/static/unnamed.jpg';
       }
-      console.log(
-        'usssssssssssssssssssssssssssssssssssssssssssssssssssss',
-        info,
-      );
+
       dispatch(saveUserInfo(info));
     });
     return info;
@@ -66,8 +63,11 @@ const useFetchUser = () => {
         ...params,
       },
     };
+    console.log('parsd', request);
     try {
       const response = await updateAddress(request);
+      console.log('updated address', response);
+
       return response.data;
     } catch (error) {
       console.log(error);

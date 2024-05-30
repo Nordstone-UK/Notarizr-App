@@ -106,6 +106,9 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import AgentCallFinishing from '../CompletionScreen/AgentCompletecall';
 import NotaryDocumentDownloadScreen from '../AgentScreens/NotaryDocumentDownloadScreen/NotaryDocumentDownloadScreen';
+import CurrentLocationScreen from '../NewAddressScreen/CurrentLocation';
+import AgentMapArrivalScreen from '../MapArrivalScreen/AgentMapArraivalScreen';
+import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -325,7 +328,12 @@ export default function AppNavigation() {
           component={SignPhoneVerification}
         />
         <Stack.Screen name="PhoneVerification" component={PhoneVerification} />
+
         <Stack.Screen name="AddNewAddress" component={AddNewAddress} />
+        <Stack.Screen
+          name="CurrentLocationScreen"
+          component={CurrentLocationScreen}
+        />
         <Stack.Screen
           name="ProfilePictureScreen"
           component={ProfilePictureScreen}
@@ -354,7 +362,6 @@ export default function AppNavigation() {
           name="AgentCallFinishing"
           component={AgentCallFinishing}
         />
-
         <Stack.Screen
           name="RegisterCompletionScreen"
           component={RegisterCompletionScreen}
@@ -400,6 +407,11 @@ export default function AppNavigation() {
           component={RejectedByAgentScreen}
         />
         <Stack.Screen name="MapArrivalScreen" component={MapArrivalScreen} />
+        <Stack.Screen
+          name="AgentMapArrivalScreen"
+          component={AgentMapArrivalScreen}
+        />
+        <Stack.Screen name="chooseLocation" component={ChooseLocation} />
         <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
         <Stack.Screen
           name="FinalBookingScreen"

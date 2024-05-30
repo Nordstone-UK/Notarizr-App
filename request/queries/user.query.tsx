@@ -30,6 +30,7 @@ export const FETCH_USER_INFO = gql`
         _id
         tag
         location
+       location_coordinates
       }
       userAccessCode
     }

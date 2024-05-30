@@ -54,6 +54,7 @@ export default function LabelTextInput(props) {
           multiline
           onChangeText={props.onChangeText}
         />
+
         {props.rightImageSoucre && (
           <TouchableOpacity onPress={props.rightImagePress} style={{}}>
             <Image source={props.rightImageSoucre} style={styles.iconLeft} />

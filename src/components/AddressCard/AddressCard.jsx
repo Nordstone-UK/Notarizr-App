@@ -9,7 +9,7 @@ import {
 } from '../../utils/Responsive';
 
 export default function AddressCard(props) {
-  console.log("props.shoe",props.Show)
+  console.log('props.shoe', props.Show);
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -28,19 +28,29 @@ export default function AddressCard(props) {
         <Text style={styles.text}>
           {splitStringBefore2ndWord(props.location)}
         </Text>
+        <Image
+          style={[styles.icon, {tintColor: Colors.Red, marginTop: 20}]}
+          source={require('../../../assets/locationIcon.png')}
+        />
       </View>
       {props.Show && (
         <Image source={require('../../../assets/checkIcon.png')} />
       )}
-      {!props.booking &&  (
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={props.onEdit}>
-          <Image source={require('../../../assets/editIcon.png')} style={[styles.icon, { tintColor: Colors.Orange }]}/>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={props.onDelete}>
-          <Image source={require('../../../assets/deleteIcon.png')} style={[styles.icon, { tintColor: Colors.Orange }]}/>
-        </TouchableOpacity>
-      </View>
+      {!props.booking && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={props.onEdit}>
+            <Image
+              source={require('../../../assets/editIcon.png')}
+              style={[styles.icon, {tintColor: Colors.Orange}]}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={props.onDelete}>
+            <Image
+              source={require('../../../assets/deleteIcon.png')}
+              style={[styles.icon, {tintColor: Colors.Orange}]}
+            />
+          </TouchableOpacity>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -71,7 +81,9 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     marginHorizontal: widthToDp(3),
-    marginVertical:heightToDp(1)
+    marginVertical: heightToDp(1),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     width: widthToDp(55),
@@ -81,13 +93,12 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(2),
     marginTop: widthToDp(2),
   },
-   icon: {
+  icon: {
     marginHorizontal: widthToDp(2),
     width: widthToDp(5),
     height: heightToDp(5),
-
   },
-   buttonContainer: {
+  buttonContainer: {
     position: 'absolute',
     top: 7,
     right: 5,

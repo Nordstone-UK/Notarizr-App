@@ -120,8 +120,10 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [lastRNBFTask, setLastRNBFTask] = useState({ cancel: () => { } });
-
+  const [navigationStatus, setNavigationStatus] = useState('');
   const [selected, setSelected] = useState('client_choose');
+  const [bookedByAddress, setBookedByAddress] = useState(null);
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -334,7 +336,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           clientDetail?.notes,
           clientDetail?.documents,
         );
-        console.log("respsdofndfdfupdated", response);
       }
       handleCloseModalPress();
       if (response == 200) {
@@ -454,7 +455,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     setNewPdfPath(documentUri);
     setNewPdfSaved(true);
   };
-  console.log("slddddddddddddddddddddddo", selectedDocument)
   const handleDownload = () => {
     // Implement download functionality here
     // Example: open a link to download the document
@@ -551,8 +551,51 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     };
   }, [showModal]); // Ensure useEffect runs when showModal changes
 
-  console.log("cliendetails", clientDetail)
-  // console.log("statusd", selectedDocument)
+  console.log("cliendetails", clientDetail.booked_by)
+  useEffect(() => {
+    const fetchAddress = async () => {
+      if (clientDetail && clientDetail.booked_by && Array.isArray(clientDetail.booked_by.addresses)) {
+        const addressId = clientDetail.address;
+        console.log('Addresses:', clientDetail.booked_by.addresses);
+        console.log("adfdfdidddddddddddddddddd", addressId)
+        const addressdetail = clientDetail.booked_by.addresses.find(
+          address => address._id == addressId
+        );
+
+        console.log('Found address:', addressdetail);
+        setBookedByAddress(addressdetail);
+      } else {
+        console.log('Client detail or addresses are not properly loaded.');
+      }
+    };
+
+    fetchAddress();
+  }, [clientDetail]);
+
+  const handleStartNavigation = () => {
+    if (
+      clientDetail?.service_type === 'mobile_notary'
+    ) {
+      dispatch(
+        setCoordinates(
+          bookedByAddress?.location_coordinates
+        ),
+      );
+
+      navigation.navigate('AgentMapArrivalScreen');
+    }
+    setNavigationStatus('ongoing');
+    // navigation.navigate('MapArrivalScreen');
+  };
+  const handleAddressPress = (coordinates) => {
+    navigation.navigate('MapArrivalScreen');
+    dispatch(
+      setCoordinates(
+        coordinates
+      ),
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -1064,9 +1107,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 </Text>
                 <AddressCard
                   location={
-                    clientDetail.address
+                    bookedByAddress?.location
                   }
-
+                  onPress={() => handleAddressPress(bookedByAddress.location_coordinates)}
                   booking="true"
                 />
               </View>
@@ -1566,7 +1609,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       color: 'black',
                       marginLeft: 10,
                     }}>
-                    Notary charges:{" "} ${highestPriceDocument.price}
+                    Notary charges:{" "} ${highestPriceDocument?.price}
                   </Text>
                 </View>
                 {typeof clientDetail.total_signatures_required === 'number' && (
@@ -1845,6 +1888,82 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
             {clientDetail?.service_type === 'mobile_notary' &&
               (status === 'Accepted' || status === 'Ongoing') && (
                 <>
+                  {navigationStatus !== 'ongoing' && (
+                    <GradientButton
+                      Title='Start Navigation'
+                      colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                      GradiStyles={{
+                        width: widthToDp(30),
+                        paddingHorizontal: widthToDp(0),
+                        paddingVertical: heightToDp(3),
+                      }}
+                      styles={{
+                        padding: widthToDp(0),
+                        fontSize: widthToDp(4),
+                      }}
+                      onPress={handleStartNavigation}
+                      fontSize={widthToDp(4)}
+                    />
+                  )}
+                  {navigationStatus === 'ongoing' && (
+                    <GradientButton
+                      Title='End Navigation'
+                      colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                      GradiStyles={{
+                        width: widthToDp(30),
+                        paddingHorizontal: widthToDp(0),
+                        paddingVertical: heightToDp(3),
+                      }}
+                      styles={{
+                        padding: widthToDp(0),
+                        fontSize: widthToDp(4),
+                      }}
+                      onPress={() => setNavigationStatus('completed')}
+                      fontSize={widthToDp(4)}
+                    />
+                  )}
+
+                  {navigationStatus === 'completed' && (
+                    <>
+                      {status !== 'Ongoing' && (
+                        <GradientButton
+                          Title='Start Notary'
+                          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                          GradiStyles={{
+                            width: widthToDp(30),
+                            paddingHorizontal: widthToDp(0),
+                            paddingVertical: heightToDp(3),
+                          }}
+                          styles={{
+                            padding: widthToDp(0),
+                            fontSize: widthToDp(4),
+                          }}
+                          onPress={() => handleStatusChange('ongoing')}
+                          fontSize={widthToDp(4)}
+                        />
+                      )}
+                      <GradientButton
+                        Title='End Notary'
+                        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                        GradiStyles={{
+                          width: widthToDp(30),
+                          paddingHorizontal: widthToDp(0),
+                          paddingVertical: heightToDp(3),
+                        }}
+                        styles={{
+                          padding: widthToDp(0),
+                          fontSize: widthToDp(4)
+                        }}
+                        onPress={() => handleStatusChange('completed')}
+                        fontSize={widthToDp(4)}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            {/* {clientDetail?.service_type === 'mobile_notary' &&
+              (status === 'Accepted' || status === 'Ongoing') && (
+                <>
                   {
                     status !== 'Ongoing' && (
                       <GradientButton
@@ -1882,7 +2001,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
                 </>
               )
-            }
+            } */}
 
 
           </View>

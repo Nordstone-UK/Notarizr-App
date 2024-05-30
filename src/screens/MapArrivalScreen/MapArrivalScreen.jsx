@@ -25,12 +25,13 @@ export default function MapArrivalScreen({navigation}, props) {
   const [loading, setLoading] = useState(false);
   const clientData = useSelector(state => state.booking.user);
   const coordinates = useSelector(state => state.booking.coordinates);
+  console.log('coordinates', coordinates);
   const user = useSelector(state => state.user.user.account_type);
   const {handleCallSupport} = useCustomerSuport();
   const handleGetLocation = async () => {
     try {
       const coordinates = await getLocation();
-      console.log('coordinates', coordinates);
+      console.log('currentLocation', coordinates);
       setLocation(coordinates);
     } catch (error) {
       console.log(error);
@@ -89,8 +90,8 @@ export default function MapArrivalScreen({navigation}, props) {
               <Marker
                 key={clientData?._id}
                 coordinate={{
-                  latitude: coordinates[1],
-                  longitude: coordinates[0],
+                  latitude: coordinates[0],
+                  longitude: coordinates[1],
                 }}
                 title={clientData?.first_name + ' ' + clientData?.last_name}
                 description={clientData?.location}
@@ -102,8 +103,8 @@ export default function MapArrivalScreen({navigation}, props) {
                     longitude: location.longitude,
                   },
                   {
-                    latitude: coordinates[1],
-                    longitude: coordinates[0],
+                    latitude: coordinates[0],
+                    longitude: coordinates[1],
                   },
                 ]}
                 strokeWidth={3}

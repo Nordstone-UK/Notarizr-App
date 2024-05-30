@@ -16,6 +16,7 @@ import {
   setCoordinates,
   setUser,
 } from '../../features/booking/bookingSlice';
+import {Response} from 'aws-sdk';
 
 export default function NearbyLoadingScreen({route, navigation}) {
   const {serviceType, dateOfBooking, agent} = useSelector(
@@ -33,6 +34,7 @@ export default function NearbyLoadingScreen({route, navigation}) {
   const handleAgentSearch = async () => {
     try {
       const response = await FetchMobileNotary(serviceType);
+      console.log('responsdfdfdfd', response);
       const {user} = response;
       const {service} = user;
       console.log('usere', user._id);

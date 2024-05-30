@@ -14,7 +14,11 @@ import {
   ActivityIndicator,
   Text as RNText,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import moment from 'moment-timezone';
+import DatePicker from 'react-native-date-picker';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Colors from '../../themes/Colors';
 import { height, heightToDp, widthToDp } from '../../utils/Responsive';
@@ -56,7 +60,11 @@ import {
 import SignatureContainer from './SignatureContainer';
 import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import useRegister from '../../hooks/useRegister';
+import PDFViewer from './PDFViewer';
+import AddText from '../../components/LiveBlocksComponents/addText';
 export default function NotaryCallScreen({ route, navigation }: any) {
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['20%', '30%'], []);
   const { uploadimageToS3 } = useRegister();
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
@@ -65,8 +73,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const User = useSelector(state => state?.user?.user);
   const bookingData = useSelector(state => state?.booking?.booking);
-
-
   const [sourceUrl, setSourceUrl] = useState(
     Object.keys(bookingData.client_documents).length > 0
       ? Object.values(bookingData.client_documents)[0]
@@ -74,14 +80,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         ? bookingData.agent_document[0]
         : null
   );
-  // const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
-
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(new Date());
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [getSignaturePad, setSignaturePad] = useState(false);
   const [pdfEditMode, setPdfEditMode] = useState(false);
   const [signatureBase64, setSignatureBase64] = useState(null);
   const [stampBase64, setStampBase64] = useState(null);
-
   const [signatureArrayBuffer, setSignatureArrayBuffer] = useState(null);
   const [pdfBase64, setPdfBase64] = useState(null);
   const [pdfArrayBuffer, setPdfArrayBuffer] = useState(null);
@@ -93,58 +98,102 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
   );
   const [signatureData, setSignatureData] = useState(null);
+  const [documentText, setDocumentText] = useState(null);
   const [signatureDimensions, setSignatureDimensions] = useState({});
   const [isSignatureImage, setIsSignatureImage] = useState(false);
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
-  const [isHost, setIsHost] = useState(false); // Indicates if the local user is the host
-
-  // console.log("book", setSignatureBase64)
-  const handleDragabbleSignatureData = (signatureData) => {
-    console.log("Received signature data:xxxxxxxxxxxxx", signatureData);
-    setSignatureDimensions({
-      width: signatureData.width,
-      height: signatureData.height,
-      x: signatureData.x, // Optionally set x and y if needed
-      y: signatureData.y,
-      Deletestatus: signatureData.delete
-    });
-    if (signatureData.delete == true) {
-      setPdfEditMode(false)
+  const [isHost, setIsHost] = useState(false);
+  const [notarisedDocument, setNotarisedDocument] = useState()
+  const getBase64FromUrl = async (url) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch image from URL");
+      }
+      const blob = await response.blob();
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error fetching and converting image to Base64:", error);
     }
-    console.log("signaturedate", signatureData.signatureData)
-    if (signatureData.signatureData) {
-      setPdfEditMode(true)
-
-      setSignatureArrayBuffer(signatureData.signatureData);
-    } else {
-      console.error("signatureData.signatureData is undefined");
-    }
-    // setSignatureBase64(signatureData.signatureData.replace('data:image/png;base64,', ''))
-    // setSignatureArrayBuffer(signatureData.signatureData.replace('data:image/png;base64,', ''));
   };
-  // console.log("sssssssssssssssssssssssssss", signatureBase64)
+
+  const handleDragabbleSignatureData = async (signatureData) => {
+    if (!signatureData) {
+      console.error("signatureData is undefined");
+      return;
+    }
+    const { width, height, x, y, delete: deleteStatus, signatureData: imageData, type } = signatureData;
+    setSignatureDimensions({
+      width,
+      height,
+      x,
+      y,
+      Deletestatus: deleteStatus
+    });
+    if (deleteStatus === true) {
+      setPdfEditMode(false);
+    }
+    setSignatureImageMimeType(type)
+    console.log("textdata", type)
+    if (type === 'image') {
+      if (imageData) {
+        if (imageData.startsWith && imageData.startsWith('data:image')) {
+          console.log("format");
+          setPdfEditMode(true);
+          setSignatureArrayBuffer(imageData);
+        } else if (imageData?.startsWith && imageData.startsWith('https')) {
+          try {
+            const base64ImageData = await getBase64FromUrl(imageData);
+            setPdfEditMode(true);
+            setSignatureArrayBuffer(base64ImageData);
+          } catch (error) {
+            console.error("Error fetching image data from URL:", error);
+          }
+        } else {
+          console.error("Unknown format for signature data:", signatureData);
+        }
+      } else {
+        console.error("signatureData.signatureData is undefined");
+      }
+    }
+    else if (type === 'text') {
+      setPdfEditMode(true);
+      setSignatureArrayBuffer(imageData)
+    }
+    else {
+      let data = imageData.toLocaleDateString()
+      console.log("datadfd", data)
+      setPdfEditMode(true);
+      setSignatureArrayBuffer(data)
+    }
+  };
   useEffect(() => {
     downloadFile();
     if (signatureBase64) {
       setPdfEditMode(true);
       setSignatureArrayBuffer(_base64ToArrayBuffer(signatureBase64));
-      // console.log("signatue", _base64ToArrayBuffer(signatureBase64))
     }
     if (stampBase64) {
       setSignatureArrayBuffer(_base64ToArrayBuffer(stampBase64));
     }
     if (newPdfSaved) {
+      console.log("newpdffile", newPdfPath)
+
       setFilePath(newPdfPath);
       setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
     }
+
   }, [signatureBase64, filePath, newPdfSaved, sourceUrl, stampBase64]);
   // }, []);
-  // console.log("signaturbases=64", signatureArrayBuffer)
   const toggleDeleteMode = () => {
     setIsDeleteMode(!isDeleteMode);
   };
-
   const _base64ToArrayBuffer = base64 => {
     const binary_string = atob(base64);
     const len = binary_string.length;
@@ -154,9 +203,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     return bytes.buffer;
   };
-
   const _uint8ToBase64 = u8Arr => {
-    const CHUNK_SIZE = 0x8000; //arbitrary number
+    const CHUNK_SIZE = 0x8000;
     let index = 0;
     const length = u8Arr.length;
     let result = '';
@@ -168,25 +216,22 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     return btoa(result);
   };
-
   const downloadFile = () => {
-    if (!fileDownloaded && sourceUrl) { // Check if sourceUrl is not empty
+    if (!fileDownloaded && sourceUrl) {
       RNFS.downloadFile({
         fromUrl: sourceUrl,
         toFile: newPdfPath ? newPdfPath : filePath,
       }).promise.then(res => {
+        console.log("resoposnfd", res)
         setFileDownloaded(true);
         readFile();
       }).catch(error => {
         console.error('Error downloading file:', error);
-        // Handle the error (e.g., show an error message to the user)
       });
     } else {
       console.warn('Source URL is empty. File download skipped.');
-      // Handle the case where sourceUrl is empty (e.g., show a message to the user)
     }
   };
-
   const readFile = () => {
     RNFS.readFile(
       `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
@@ -196,14 +241,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       setPdfArrayBuffer(_base64ToArrayBuffer(contents));
     });
   };
-
   const getSignature = () => {
     setSignaturePad(!getSignaturePad);
     setIsSignatureImage(false);
     setSignatureImageMimeType(null);
   };
   const handleSignature = React.useCallback((signature) => {
-    console.log("signatrere", signature)
     setSignatureBase64(signature.replace('data:image/png;base64,', ''));
     setSignaturePad(false);
     setPdfEditMode(true);
@@ -218,7 +261,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       },
     });
   }, [currentPage, insertObject]);
-
   const onAddSignatureImage = async (isStamp = false) => {
     try {
       const result = await launchImageLibrary({
@@ -270,13 +312,31 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.log('error', error);
     }
   };
+  const handlePresentModalPress = () => {
+    bottomSheetModalRef.current?.present();
 
+  };
+  const handleCloseModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.close();
+  }, []);
   ////////////// live bolcks ////////////////
   const insertObject = useLiveblocks(state => state.insertObject);
-  const objects = useLiveblocks(state => state.objects);
-  // console.log("obbbbbbbbbbbssssssssss", objects)
+  const setPdfFilePath = useLiveblocks(state => state.setPdfFilePath);
+  const pdfFilePath = useLiveblocks(state => state.pdfFilePath);
+  // handleLinkChange(pdfFilePath)
+  // console.log("pdflilepath", pdfFilePath)
+  // useEffect(() => {
+  //   if (pdfFilePath) {
+  //     console.log("indide usefffecPathxxx:", pdfFilePath);
+  //     handleLinkChange(pdfFilePath);
+  //   }
+  // }, [pdfFilePath]);onSignatureAdd
+
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
+  // useEffect(() => {
+  //   uploadPdf();
+  // }, []);
 
   const onLabelAdd = React.useCallback(() => {
     insertObject(new Date().toISOString(), {
@@ -314,11 +374,52 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     });
   }, [currentPage, insertObject]);
 
+  const handleTextonLiveblock = () => {
+    // console.log("hellodftesxt", documentText)
+    insertObject(new Date().toISOString(), {
+      type: 'text',
+      text: documentText,
+      page: currentPage,
+      position: {
+        x: 200,
+        y: 200,
+      },
+    });
+  }
+  const handleDateonLiveblock = () => {
+    // console.log("hellodftesxt", documentText)
+    insertObject(new Date().toISOString(), {
+      type: 'date',
+      text: date,
+      page: currentPage,
+      position: {
+        x: 200,
+        y: 200,
+      },
+    });
+  }
   //////////////////////////////////////////
+  // const uploadPdf = useCallback(async () => {
+  //   if (!pdfBase64) return;
+
+  //   try {
+  //     const filePath = await uploadSignedDocumentsOnS3(pdfBase64);
+  //     console.log("filepatssssssssssssssssssssssssssssssssse", filePath)
+  //     // handleLinkChange(filePath)
+  //     setPdfFilePath(filePath);
+  //   } catch (error) {
+  //     console.error('Failed to upload PDF:', error);
+  //   }
+  // }, [pdfBase64, setPdfFilePath]);
+
+  // useEffect(() => {
+  //   if (pdfBase64) {
+  //     uploadPdf();
+  //   }
+  // }, [pdfBase64, uploadPdf]);
 
   const handleSingleTap = async (page, x, y) => {
     if (pdfEditMode) {
-      console.log('pagessssssssssssssssssssss', x, y);
       setNewPdfSaved(false);
       setFilePath(null);
       const pdfDoc = await PDFDocument.load(pdfArrayBuffer, {
@@ -326,70 +427,113 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       });
       const pages = pdfDoc.getPages();
       const firstPage = pages[page - 1];
-      console.log("firespage", firstPage)
       const yOffsetPercentage = 0.1; // 10% offset (adjust as needed)
       const yOffset = pageHeight * yOffsetPercentage;
-      const signatureImage =
-        signatureImageMimeType == 'image/png' || !signatureImageMimeType
-          ? await pdfDoc.embedPng(signatureArrayBuffer)
-          : await pdfDoc.embedJpg(signatureArrayBuffer);
+      console.log("imagdorpng", signatureImageMimeType, signatureArrayBuffer)
+      if (signatureImageMimeType == 'image') {
+        const signatureImage =
+          signatureImageMimeType == 'image' || !signatureImageMimeType
+            ? await pdfDoc.embedPng(signatureArrayBuffer)
+            : await pdfDoc.embedJpg(signatureArrayBuffer);
 
-      const { width: width, height: height } = signatureDimensions;
-      if (Platform.OS == 'ios') {
-        firstPage.drawImage(signatureImage, {
-          x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
-          y: pageHeight - (pageHeight * (y + 12)) / 540,
-          width: 200,
-          height: 200,
-        });
-      } else {
-        firstPage.drawImage(signatureImage, {
-          x: (firstPage.getWidth() * x) / pageWidth - 85,
-          y:
-            firstPage.getHeight() -
-            (firstPage.getHeight() * y) / pageHeight -
-            85,
-          width: width * 1.45,
-          height: height * 1.45,
-        });
-      }
+        const { width: width, height: height } = signatureDimensions;
+        if (Platform.OS == 'ios') {
+          firstPage.drawImage(signatureImage, {
+            x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
+            y: pageHeight - (pageHeight * (y + 12)) / 540,
+            width: 200,
+            height: 200,
+          });
+        } else {
+          firstPage.drawImage(signatureImage, {
+            x: (firstPage.getWidth() * x) / pageWidth - 85,
+            y:
+              firstPage.getHeight() -
+              (firstPage.getHeight() * y) / pageHeight -
+              85,
+            width: width * 1.45,
+            height: height * 1.45,
+          });
+        }
 
-      const pdfBytes = await pdfDoc.save();
-      const pdfBase64 = _uint8ToBase64(pdfBytes);
-      const path = `${RNFS.DocumentDirectoryPath
-        }/react-native_signed_${Date.now()}.pdf`;
-      console.log('pathddddddddddddddddddd', path);
-      RNFS.writeFile(path, pdfBase64, 'base64')
-        .then(async success => {
-          setNewPdfPath(path);
-          setNewPdfSaved(true);
-          setPdfBase64(pdfBase64);
-          if (signatureBase64 && stampBase64) {
+        const pdfBytes = await pdfDoc.save();
+        const pdfBase64 = _uint8ToBase64(pdfBytes);
+        const path = `${RNFS.DocumentDirectoryPath
+          }/react-native_signed_${Date.now()}.pdf`;
+        RNFS.writeFile(path, pdfBase64, 'base64')
+          .then(async success => {
+
+            setNewPdfPath(path);
+            setNewPdfSaved(true);
+            setPdfBase64(pdfBase64);
             const l = await uploadSignedDocumentsOnS3(pdfBase64);
+            setNotarisedDocument(l)
+          })
+          .catch(err => {
+            console.log('eeee', err.message);
+          });
 
-            updateSignedDocumentToDb(l);
-            addSignedDocFunc(l);
-          }
-        })
-        .catch(err => {
-          console.log('eeee', err.message);
-        });
+      }
+      else {
+        const { width: width, height: height } = signatureDimensions;
+        if (Platform.OS == 'ios') {
+          firstPage.drawText(signatureArrayBuffer, {
+            x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
+            y: pageHeight - (pageHeight * (y + 12)) / 540,
+            width: 200,
+            height: 200,
+          });
+        } else {
+          firstPage.drawText(signatureArrayBuffer, {
+            x: (firstPage.getWidth() * x) / pageWidth - 85,
+            y:
+              firstPage.getHeight() -
+              (firstPage.getHeight() * y) / pageHeight -
+              85,
+            width: width * 1.45,
+            height: height * 1.45,
+          });
+        }
 
-      // }
+        const pdfBytes = await pdfDoc.save();
+        const pdfBase64 = _uint8ToBase64(pdfBytes);
+        const path = `${RNFS.DocumentDirectoryPath
+          }/react-native_signed_${Date.now()}.pdf`;
+        RNFS.writeFile(path, pdfBase64, 'base64')
+          .then(async success => {
+
+            setNewPdfPath(path);
+            setNewPdfSaved(true);
+            setPdfBase64(pdfBase64);
+            // if (signatureBase64 && stampBase64) {
+            const l = await uploadSignedDocumentsOnS3(pdfBase64);
+            setNotarisedDocument(l)
+            // setPdfFilePath(l);
+            // updateSignedDocumentToDb(l);
+            // addSignedDocFunc(l);
+            // }
+          })
+          .catch(err => {
+            console.log('eeee', err.message);
+          });
+
+      }
+      setPdfEditMode(false);
+
     }
-    setPdfEditMode(false);
+
   };
   const handleLinkChange = (linkId: string) => {
+    setPdfFilePath(linkId);
     setSourceUrl(linkId);
     setNewPdfPath(linkId);
     setNewPdfSaved(true);
-    deleteAllObjects()
+    // deleteAllObjects()
   };
 
   const updateSignedDocumentToDb = async url => {
 
     try {
-      console.log("docuuuuuuuuuuuuuuuuuuu", url)
       const request = {
         variables: {
           bookingId: bookingData?._id,
@@ -401,16 +545,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           }),
         },
       };
-      console.log('responseffffffffffffffff', request);
       const response = await UpdateDocumentsByDocId(request);
-      console.log('responseffffffffffffffff', response);
     } catch (error) {
       console.log('error', error);
     }
   };
 
   const addSignedDocFunc = async url => {
-    console.log("urrrrrrrrrrrrrrrrrrrrrrrrrrrr", url);
     try {
       const request = {
         variables: {
@@ -422,9 +563,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       };
 
       const response = await AddSignedDocs(request);
-      console.log("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", response.data.bookingAddNotarizedDocs.status)
       if (response.data.bookingAddNotarizedDocs.status === "200") {
-        console.log('heeeetre');
         const request = {
           variables: {
             sessionId: bookingData?._id
@@ -432,9 +571,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         };
 
         let sessiondata = await getSession(request);
-        console.log('resssssssssss', sessiondata);
         dispatch(setBookingInfoState(sessiondata.data.getSession.session));
-        console.log('###########', response);
       }
     }
     catch (error) {
@@ -447,7 +584,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   ///////////////////////////////
 
   const { channel, token: CutomToken, routeFrom } = route.params;
-  console.log("routeformddddddddddd", routeFrom)
   const uid = 0;
   const channelName = channel;
   const token = CutomToken;
@@ -456,8 +592,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const agoraEngineRef = useRef<IRtcEngine>();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
-  console.log("isjoined", isJoined)
-  console.log("remoteuiddddd", remoteUids)
   const [value, setValue] = useState(50);
 
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
@@ -515,7 +649,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
             showMessage('Remote user left the channel. uid: ' + uid);
             if (remoteUids[0] === 'Leave') {
-              console.log("ljfdjfdfj")
               navigation.navigate('MedicalBookingScreen');
             }
             setRemoteUids(prevUids => prevUids.filter(prevUid => prevUid !== uid));
@@ -543,7 +676,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     };
   }, []);
   const join = async () => {
-    console.log('====================================');
     if (isJoined) {
       return;
     }
@@ -551,9 +683,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       let b = agoraEngineRef.current?.setChannelProfile(
         ChannelProfileType.ChannelProfileCommunication,
       );
-      console.log("assssssssdddddddddddssss", b)
       agoraEngineRef.current?.startPreview();
-      console.log(token, channelName, uid);
       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
@@ -564,9 +694,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const leave = async () => {
 
     try {
+      console.log("notarizedoc", notarisedDocument)
+
+
+      let b = await updateSignedDocumentToDb(notarisedDocument)
+      let c = addSignedDocFunc(notarisedDocument);
+      console.log("bbbdddd", a, "dfdfdfd", b)
       let a = agoraEngineRef.current?.leaveChannel();
       setRemoteUids(["Leave"]);
       setIsJoined(false);
+
       showMessage('You left the session');
       await updateSession("completed", bookingData?._id);
       navigation.navigate('AgentCallFinishing');
@@ -584,9 +721,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   }
   const mute = () => {
     setIsMuted(!isMuted);
-    console.log('====================================');
-    console.log(remoteUids, isMuted);
-    console.log('====================================');
     agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
   };
 
@@ -598,9 +732,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       ]);
     }
   };
-
+  // console.log("filsllfpath", filePath)
   /////
-  // console.log("bookingdate", bookingData)
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -723,9 +856,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 />
                 {filePath ? (
                   <>
+                    {/* <PDFViewer
+                    // sourceUrl={filePath}
+                    /> */}
+
                     <PdfView
                       ref={pdfRef}
                       style={styles.pdfView}
+                      // source={{ uri: `${pdfFilePath ? pdfFilePath : filePath}` }}
                       source={{ uri: filePath }}
                       trustAllCerts={false}
                       showsVerticalScrollIndicator={false}
@@ -870,17 +1008,45 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             />
 
             {User.account_type != 'client' && (
-              <MainButton
-                Title="Add stamp"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                styles={{
-                  paddingHorizontal: widthToDp(1),
-                  paddingVertical: widthToDp(2),
-                }}
-                onPress={() => {
-                  onAddSignatureImage(true);
-                }}
-              />
+
+              <>
+                <MainButton
+                  Title="Add stamp"
+                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                  styles={{
+                    paddingHorizontal: widthToDp(1),
+                    paddingVertical: widthToDp(2),
+                  }}
+                  onPress={() => {
+                    onAddSignatureImage(true);
+                  }}
+                />
+
+                <MainButton
+                  Title="Add Text"
+                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                  styles={{
+                    paddingHorizontal: widthToDp(1),
+                    paddingVertical: widthToDp(2),
+                  }}
+                  onPress={() => {
+                    handlePresentModalPress();
+                  }}
+                />
+
+
+                <MainButton
+                  Title="Add Date"
+                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                  styles={{
+                    paddingHorizontal: widthToDp(1),
+                    paddingVertical: widthToDp(2),
+                  }}
+                  onPress={() => {
+                    setOpen(true);
+                  }}
+                />
+              </>
             )}
           </View>
           {User.account_type != 'client' && (
@@ -898,7 +1064,49 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               />
             </View>
           )}
-
+          <BottomSheetModal
+            ref={bottomSheetModalRef}
+            index={1}
+            snapPoints={snapPoints}
+          // onChange={handleSheetChanges}
+          >
+            <AddText
+              text={documentText}
+              onChangeText={(text: string) => setDocumentText(text)}
+              onPress={() => handleTextonLiveblock()}
+            />
+          </BottomSheetModal>
+          <View style={styles.buttonFlex}>
+            {/* <TouchableOpacity onPress={() => setOpen(true)}>
+              <Text
+                style={{
+                  color: Colors.Orange,
+                  fontFamily: 'Manrope-Bold',
+                  fontSize: widthToDp(5),
+                  borderWidth: 1,
+                  borderColor: Colors.Orange,
+                  paddingHorizontal: widthToDp(2),
+                  borderRadius: widthToDp(2),
+                }}>
+                {moment(date).format('MM-DD-YYYY hh:mm A')}
+              </Text>
+            </TouchableOpacity> */}
+            <DatePicker
+              modal
+              mode="datetime"
+              minimumDate={new Date()}
+              open={open}
+              date={date}
+              onConfirm={date => {
+                setOpen(false);
+                setDate(date);
+                handleDateonLiveblock();
+              }}
+              onCancel={() => {
+                setOpen(false);
+              }}
+            />
+          </View>
           {/* <View style={styles.navigation}>
             <Pressable onPress={() => {}}>
               <NavArrowLeft width={36} height={36} />
@@ -960,6 +1168,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    columnGap: 16,
+    rowGap: 16,
   },
   navigation: {
     flexDirection: 'row',
