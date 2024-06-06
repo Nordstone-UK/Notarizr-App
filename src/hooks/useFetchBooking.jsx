@@ -64,13 +64,13 @@ const useFetchBooking = () => {
     const request = {
       variables: {
         sessionId: id,
-        agentDocuments: docs.map(doc => String(doc)),
+        agentDocuments: docs,
       },
     };
     try {
-      console.log('requestdat', request);
+      console.log('reqddddddddddddt', request);
       const response = await updateAgentDocuments(request);
-      console.log('Agent Booking iNfodddddddddddddddddddddddd', response);
+      console.log('Agent Booking sdsdd', response);
       return sortBookingByDate(data?.getAgentBookings?.bookings);
     } catch (error) {
       console.log(error);

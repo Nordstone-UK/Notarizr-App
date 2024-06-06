@@ -64,7 +64,6 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         set({ objects: {} });
       },
       setPdfFilePath: path => {
-         console.log("ndfdfdfdddddddddddddddddd", path);
         set({ pdfFilePath: path });
       },
       setIsPdfSaved: isSaved => {

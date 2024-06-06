@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 20,
+    marginVertical: 20,
     width: '80%',
   },
   filePathText: {

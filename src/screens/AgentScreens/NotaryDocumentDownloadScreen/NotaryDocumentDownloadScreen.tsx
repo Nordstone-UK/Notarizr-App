@@ -56,10 +56,14 @@ const NotaryDocumentDownloadScreen = ({ route, navigation }) => {
       )}
 
       <View style={styles.buttonContainer}>
-        {downloadedFilePath && ( // Show downloaded file path if available
-          <Text style={styles.filePathText}>Downloaded File Path: {downloadedFilePath}</Text>
-        )}
-        <Button title="Go Back" onPress={handleGoBack} />
+        <View style={styles.Textcontainer}>
+          {downloadedFilePath && (
+            <Text style={styles.filePathText}>Downloaded File Path: {downloadedFilePath}</Text>
+          )}
+        </View>
+        <View style={styles.buttonStyle}>
+          <Button title="Go Back" onPress={handleGoBack} />
+        </View>
       </View>
     </View>
   );
@@ -86,10 +90,19 @@ const styles = StyleSheet.create({
     color: '#FFA500',
   },
   buttonContainer: {
+
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 20,
+    marginVertical: 20,
+    paddingHorizontal: 25,
+  },
+  Textcontainer: {
     width: '80%',
+  },
+  buttonStyle: {
+    padding: 15,    // Add padding
+    // marginLeft: 20,  // Add left margin
   },
   filePathText: {
     marginTop: 10,

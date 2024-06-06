@@ -168,7 +168,7 @@ export default function AgentHomeScreen({navigation}) {
                 }}
                 loading={loading && loadingButton === 'mobile_notary'}
                 fontSize={widthToDp(4)}
-                GradiStyles={{height: height * 0.1}}
+                GradiStyles={{height: height * 0.1, paddingVertical: 10}}
               />
               <GradientButton
                 viewStyle={{width: widthToDp(35)}}
@@ -180,7 +180,7 @@ export default function AgentHomeScreen({navigation}) {
                 }}
                 loading={loading && loadingButton === 'ron'}
                 fontSize={widthToDp(4)}
-                GradiStyles={{height: height * 0.1}}
+                GradiStyles={{height: height * 0.1, paddingVertical: 10}}
               />
             </View>
             <View style={styles.flexContainer}>

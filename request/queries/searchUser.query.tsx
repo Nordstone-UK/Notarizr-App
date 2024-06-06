@@ -9,6 +9,7 @@ export const SEARCH_USER = gql`
         last_name
         first_name
         profile_picture
+        account_type
       }
     }
   }
