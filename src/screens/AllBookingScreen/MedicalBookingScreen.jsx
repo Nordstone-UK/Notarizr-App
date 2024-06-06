@@ -136,7 +136,7 @@ export default function MedicalBookingScreen({route, navigation}) {
           key: item.name + numberOfDocuments,
           value: item.url,
         }));
-        console.log('urlrespons', urlResponse);
+        console.log('urlresponssssssssssssss', urlResponse);
         const request = {
           variables: {
             sessionId: bookingDetail?._id,
@@ -150,6 +150,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             clientDocuments: urlResponse,
           },
         };
+        console.log('rewqesressssssssssssssssssss', request);
         const res =
           bookingDetail.__typename == 'Session'
             ? await updateSessionClientDocs(request)
@@ -364,7 +365,7 @@ export default function MedicalBookingScreen({route, navigation}) {
     setNewPdfPath(documentUri);
     setNewPdfSaved(true);
   };
-  console.log('bookingdetails', bookingDetail);
+
   useEffect(() => {
     if (bookingDetail) {
       const addressId = bookingDetail?.address;
@@ -379,9 +380,16 @@ export default function MedicalBookingScreen({route, navigation}) {
     }
   }, [bookingDetail]);
   const handleAddressPress = coordinates => {
+    if (!coordinates || coordinates.length === 0) {
+      // Use fallbackCoordinates if coordinates are empty or undefined
+      coordinates = bookingDetail?.booked_by.current_location?.coordinates;
+    }
+    console.log('cooofdfdnf', coordinates);
     navigation.navigate('MapArrivalScreen');
     dispatch(setCoordinates(coordinates));
   };
+  console.log('setBookedByAddress', bookedByAddress);
+  console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader

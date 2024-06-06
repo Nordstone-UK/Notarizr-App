@@ -551,7 +551,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     };
   }, [showModal]); // Ensure useEffect runs when showModal changes
 
-  console.log("cliendetails", clientDetail.booked_by)
+
   useEffect(() => {
     const fetchAddress = async () => {
       if (clientDetail && clientDetail.booked_by && Array.isArray(clientDetail.booked_by.addresses)) {
@@ -595,7 +595,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       ),
     );
   };
-
+  console.log("cliendetails", clientDetail)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader

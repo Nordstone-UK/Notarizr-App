@@ -7,9 +7,9 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
+import {ScrollView} from 'react-native-gesture-handler';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -156,6 +156,7 @@ export default function RonDateDocScreen({route, navigation}) {
     setSearchedUser(response);
     setisLoading(false);
   };
+  console.log('seracedusere', searchedUser);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Select Date and Time" />
@@ -368,31 +369,33 @@ export default function RonDateDocScreen({route, navigation}) {
                       height: heightToDp(40),
                       marginBottom: widthToDp(3),
                     }}>
-                    {searchedUser.map(item => (
-                      <TouchableOpacity
-                        key={item._id}
-                        onPress={() => {
-                          setSelectedClient(item.email);
-                          setSelectedClientData(item);
-                        }}
-                        style={{
-                          borderColor: Colors.Orange,
-                          borderWidth: 1,
-                          padding: widthToDp(1),
-                          marginLeft: widthToDp(3),
-                          marginBottom: widthToDp(3),
-                          borderRadius: widthToDp(2),
-                          width: widthToDp(88),
-                        }}>
-                        <Text
+                    {searchedUser
+                      .filter(item => item.account_type !== 'client')
+                      .map(item => (
+                        <TouchableOpacity
+                          key={item._id}
+                          onPress={() => {
+                            setSelectedClient(item.email);
+                            setSelectedClientData(item);
+                          }}
                           style={{
-                            color: Colors.TextColor,
-                            fontSize: widthToDp(4),
+                            borderColor: Colors.Orange,
+                            borderWidth: 1,
+                            padding: widthToDp(1),
+                            marginLeft: widthToDp(3),
+                            marginBottom: widthToDp(3),
+                            borderRadius: widthToDp(2),
+                            width: widthToDp(88),
                           }}>
-                          {item.email}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                          <Text
+                            style={{
+                              color: Colors.TextColor,
+                              fontSize: widthToDp(4),
+                            }}>
+                            {item.email}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
                   </ScrollView>
                 )
               ) : null}

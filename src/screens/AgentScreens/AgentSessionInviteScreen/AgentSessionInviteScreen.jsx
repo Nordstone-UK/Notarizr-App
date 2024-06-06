@@ -161,6 +161,7 @@ export default function AgentSessionInviteScreen({navigation}) {
   };
   console.log('payment', paymentMethod);
   console.log('paymentinfo', paymentMethod);
+  console.log('seracedusere', searchedUser);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Invite Signer" />
