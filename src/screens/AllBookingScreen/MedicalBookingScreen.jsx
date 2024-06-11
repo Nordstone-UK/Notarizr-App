@@ -374,8 +374,6 @@ export default function MedicalBookingScreen({route, navigation}) {
       const address = bookingDetail?.booked_by?.addresses.find(
         address => address._id === addressId,
       );
-
-      console.log('bookedeaddress', address);
       setBookedByAddress(address);
     }
   }, [bookingDetail]);
@@ -385,10 +383,12 @@ export default function MedicalBookingScreen({route, navigation}) {
       coordinates = bookingDetail?.booked_by.current_location?.coordinates;
     }
     console.log('cooofdfdnf', coordinates);
-    navigation.navigate('MapArrivalScreen');
+    navigation.navigate('AgentMapArrivalScreen', {
+      user: 'Client',
+    });
     dispatch(setCoordinates(coordinates));
   };
-  console.log('setBookedByAddress', bookedByAddress);
+  console.log('setBookedByAddress', bookingDetail?.documents);
   console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
@@ -690,19 +690,18 @@ export default function MedicalBookingScreen({route, navigation}) {
                 }}>
                 {bookingDetail.documents &&
                   Array.isArray(bookingDetail.documents) &&
-                  bookingDetail.documents.map((item, index) => (
+                  bookingDetail.documents.map((item, index) => {
+                    console.log('itemsdfdfd', item);
+                    return;
                     <TouchableOpacity
                       key={index}
-                      onPress={() => {
-                        setPdfUrl(item.url);
-                        setIsPdfVisible(true);
-                      }}>
+                      onPress={() => handleDocumentPress(item.url)}>
                       <Image
                         source={require('../../../assets/docPic.png')}
                         style={{width: widthToDp(10), height: heightToDp(10)}}
                       />
-                    </TouchableOpacity>
-                  ))}
+                    </TouchableOpacity>;
+                  })}
               </View>
             </View>
           )}

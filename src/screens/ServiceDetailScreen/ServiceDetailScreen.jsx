@@ -48,7 +48,7 @@ export default function ServiceDetailScreen({route, navigation}) {
   // const [documents, setDocuments] = useState();
   // const [startTime, setStartTime] = useState(new Date());
   console.log('adsddress', selectAddress);
-  const [date, setDate] = useState(null);
+  const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
   console.log('date', date);
   useEffect(() => {
@@ -205,7 +205,7 @@ export default function ServiceDetailScreen({route, navigation}) {
 
   //   setLoading(false);
   // };
-  console.log('addressslist', addresses);
+  console.log('addressslist', date);
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -233,7 +233,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                         paddingHorizontal: widthToDp(2),
                         borderRadius: widthToDp(2),
                       }}>
-                      {moment(new Date()).format('MM-DD-YYYY hh:mm A')}
+                      {moment(date).format('MM-DD-YYYY hh:mm A')}
                     </Text>
                   </TouchableOpacity>
                   <DatePicker

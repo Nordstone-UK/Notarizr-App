@@ -44,7 +44,6 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         });
       },
       updateObject: (id, object) => {
-        console.log("ndfdfdfd", object.position, id);
         set({
           selectedObjectId: id,
           objects: {

@@ -582,7 +582,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
         ),
       );
 
-      navigation.navigate('AgentMapArrivalScreen');
+      navigation.navigate('AgentMapArrivalScreen', {
+        user: "Agent"
+      });
     }
     setNavigationStatus('ongoing');
     // navigation.navigate('MapArrivalScreen');
@@ -596,6 +598,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     );
   };
   console.log("cliendetails", clientDetail)
+  console.log("cliendetailssssssssssssssssssssssss", clientDetail?.booked_by?.current_location)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
