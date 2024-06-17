@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Alert, SafeAreaView, StyleSheet, View, Text} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Colors from '../../themes/Colors';
@@ -10,10 +10,11 @@ import MapViewDirections from 'react-native-maps-directions';
 import useAgentService from '../../hooks/useAgentService';
 import {GET_AGENT_LIVE_LOCATION} from '../../../request/queries/getAgentLiveLocation.query';
 import {useQuery} from '@apollo/client';
-
+import {setNavigationStatus} from '../../features/booking/bookingSlice';
 const GOOGLE_MAPS_APIKEY = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
 
 export default function AgentMapArrivalScreen({navigation}) {
+  const dispatch = useDispatch();
   const {agentLocationUpdate, getCurrentLocation} = useAgentService();
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -153,6 +154,7 @@ export default function AgentMapArrivalScreen({navigation}) {
       {
         text: 'Yes',
         onPress: () => {
+          dispatch(setNavigationStatus('completed'));
           navigation.navigate('ClientDetailsScreen');
         },
         style: 'cancel',
@@ -247,7 +249,7 @@ export default function AgentMapArrivalScreen({navigation}) {
       )}
       <View style={{marginTop: 20}} />
       <NavigationHeader
-        Title={clientData.user?.first_name + ' ' + clientData.user?.last_name}
+        // Title={clientData.user?.first_name + ' ' + clientData.user?.last_name}
         ProfilePic={{uri: clientData.user?.profile_picture}}
         midImg={require('../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}

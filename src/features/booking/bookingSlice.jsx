@@ -5,6 +5,7 @@ const initialState = {
   coordinates: [],
   user: [],
   numberOfDocs: 0,
+  navigationStatus: '',
 };
 
 export const bookingSlice = createSlice({
@@ -27,10 +28,20 @@ export const bookingSlice = createSlice({
       state.numberOfDocs = action.payload;
       console.log('user Info Set in Redux', state.numberOfDocs);
     },
+    setNavigationStatus: (state, action) => {
+      // Step 2: Add the new action to update navigationStatus
+      state.navigationStatus = action.payload;
+      // console.log('Navigation Status Set in Redux', state.navigationStatus);
+    },
   },
 });
 
-export const {setBookingInfoState, setNumberOfDocs, setCoordinates, setUser} =
-  bookingSlice.actions;
+export const {
+  setBookingInfoState,
+  setNumberOfDocs,
+  setCoordinates,
+  setUser,
+  setNavigationStatus,
+} = bookingSlice.actions;
 
 export default bookingSlice.reducer;

@@ -28,6 +28,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
+  setNavigationStatus,
   setUser,
 } from '../../../features/booking/bookingSlice';
 import DocumentScanner from 'react-native-document-scanner-plugin';
@@ -57,11 +58,13 @@ import AddressCard from '../../../components/AddressCard/AddressCard';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
 import { UPDATE_SESSION_PRICEDOCS } from '../../../../request/mutations/updateSessionPriceDocs.mutation';
+import { Alert } from 'react-native';
 
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const downloadPdf = useRef(null);
 
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
+  const navigationStatus = useSelector(state => state.booking.navigationStatus);
   const {
     handlegetBookingStatus,
     handleSessionStatus,
@@ -120,7 +123,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [lastRNBFTask, setLastRNBFTask] = useState({ cancel: () => { } });
-  const [navigationStatus, setNavigationStatus] = useState('');
+  // const [navigationStatus, setNavigationStatus] = useState('');
   const [selected, setSelected] = useState('client_choose');
   const [bookedByAddress, setBookedByAddress] = useState(null);
 
@@ -190,7 +193,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
       };
       const response = await handleSessionUpdation(params)
-
+      console.log("respndfpareamd", response)
       if (response.status == '200') {
         const sessionData = await getSessionByID(clientDetail?._id);
         console.log("sesssiondataaaaaaaaaaaaaaa", sessionData)
@@ -556,8 +559,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     const fetchAddress = async () => {
       if (clientDetail && clientDetail.booked_by && Array.isArray(clientDetail.booked_by.addresses)) {
         const addressId = clientDetail.address;
-        console.log('Addresses:', clientDetail.booked_by.addresses);
-        console.log("adfdfdidddddddddddddddddd", addressId)
+
         const addressdetail = clientDetail.booked_by.addresses.find(
           address => address._id == addressId
         );
@@ -571,11 +573,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
     fetchAddress();
   }, [clientDetail]);
-
-  const handleStartNavigation = () => {
+  console.log("navigationStatus", navigationStatus)
+  const handleStartNavigation = async () => {
     if (
       clientDetail?.service_type === 'mobile_notary'
     ) {
+      await handleStatusChange('travelling')
       dispatch(
         setCoordinates(
           bookedByAddress?.location_coordinates
@@ -586,7 +589,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
         user: "Agent"
       });
     }
-    setNavigationStatus('ongoing');
+    dispatch(
+      setNavigationStatus(
+        "ongoing"
+      ));
+    // setNavigationStatus('ongoing');
     // navigation.navigate('MapArrivalScreen');
   };
   const handleAddressPress = (coordinates) => {
@@ -597,6 +604,32 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       ),
     );
   };
+
+  const handleNotarizrDocumentPress = async (documents) => {
+    console.log("documents", documents);
+    try {
+      for (const document of documents) {
+        const fileName = document.split('/').pop(); // Extract the file name from the URL
+        const downloadDest = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        console.log("documentsdddddddddd", document);
+        const result = await RNFS.downloadFile({
+          fromUrl: document,
+          toFile: downloadDest,
+        }).promise;
+
+        if (result.statusCode === 200) {
+          console.log(`File ${fileName} downloaded to ${downloadDest}`);
+        } else {
+          Alert.alert('Download Failed', `Failed to download the file ${fileName}.`);
+        }
+      }
+      Alert.alert('Download Successful', 'All files downloaded successfully.');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Download Error', 'An error occurred while downloading the files.');
+    }
+  };
+
   console.log("cliendetails", clientDetail)
   console.log("cliendetailssssssssssssssssssssssss", clientDetail?.booked_by?.current_location)
   return (
@@ -654,6 +687,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               {(status === 'Completed' ||
                 status === 'Accepted' ||
                 status === 'Ongoing' ||
+                status === 'Travelling' ||
                 (status === 'to_be_paid' && clientDetail.payment_type === 'on_agent')) && (
                   <Image
                     source={require('../../../../assets/greenIcon.png')}
@@ -942,7 +976,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 </View>
               </View>
             )}
-            {(!clientDetail.observers ||
+            {(!clientDetail.observers || status === "Accepted" &&
               clientDetail.observers.length === 0) &&
               clientDetail.__typename === "Session" &&
               (
@@ -1228,8 +1262,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       <TouchableOpacity
                         key={index}
                         onPress={() => {
-                          // setPdfUrl(item.url);
-                          // setIsPdfVisible(true);
+                          handleDocumentPress(item.url)
                         }}>
                         <Image
                           source={require('../../../../assets/docPic.png')}
@@ -1533,6 +1566,17 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       </TouchableOpacity>
                     ))}
                   </View>
+                  {clientDetail.notarized_docs.length >= 0 && (
+                    <View style={styles.downloadButtonContainer}>
+                      <TouchableOpacity
+                        onPress={() => handleNotarizrDocumentPress(clientDetail.notarized_docs)}
+                        style={styles.downloadButton}
+                      >
+                        <Text style={styles.downloadButtonText}>Download All</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
                 </View>
               )}
             <Modal visible={showModal} animationType="slide">
@@ -1889,9 +1933,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               </>
             ) : null}
             {clientDetail?.service_type === 'mobile_notary' &&
-              (status === 'Accepted' || status === 'Ongoing') && (
+              (status === 'Accepted' || status === 'Ongoing' || status === 'Travelling') && (
                 <>
-                  {navigationStatus !== 'ongoing' && (
+                  {(navigationStatus === '' || (navigationStatus === 'ongoing' && navigationStatus !== 'completed')) && (
                     <GradientButton
                       Title='Start Navigation'
                       colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
@@ -1908,23 +1952,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       fontSize={widthToDp(4)}
                     />
                   )}
-                  {navigationStatus === 'ongoing' && (
-                    <GradientButton
-                      Title='End Navigation'
-                      colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                      GradiStyles={{
-                        width: widthToDp(30),
-                        paddingHorizontal: widthToDp(0),
-                        paddingVertical: heightToDp(3),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(4),
-                      }}
-                      onPress={() => setNavigationStatus('completed')}
-                      fontSize={widthToDp(4)}
-                    />
-                  )}
+
+
 
                   {navigationStatus === 'completed' && (
                     <>
@@ -2295,5 +2324,25 @@ const styles = StyleSheet.create({
     flex: 1,
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
-  }
+  },
+  downloadButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  downloadButton: {
+    width: widthToDp(50),
+    backgroundColor: Colors.Orange,
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 10,
+
+  },
+  downloadButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
 });

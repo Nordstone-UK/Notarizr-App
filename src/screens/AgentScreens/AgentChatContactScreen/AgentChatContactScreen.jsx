@@ -12,7 +12,7 @@ import ChatContacts from '../../../components/ChatContacts/ChatContacts';
 import Colors from '../../../themes/Colors';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {useSelector} from 'react-redux';
-import {heightToDp} from '../../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import {Image} from 'react-native';
 
 export default function AgentChatContactScreen({navigation}) {
@@ -42,7 +42,7 @@ export default function AgentChatContactScreen({navigation}) {
       style={{
         minHeight: heightToDp(100),
         justifyContent: 'center',
-        alignSelf: 'center',
+        alignItems: 'center',
       }}>
       <Image
         source={require('../../../../assets/emptyBox.png')}
@@ -86,5 +86,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.PinkBackground,
+  },
+  picture: {
+    width: 100,
+    height: 100,
   },
 });

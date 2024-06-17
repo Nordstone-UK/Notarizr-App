@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import AgentCard from '../../../components/AgentCard/AgentCard';
@@ -39,8 +39,9 @@ import useAgentService from '../../../hooks/useAgentService';
 
 export default function AgentHomeScreen({navigation}) {
   const {_id, isVerified} = useSelector(state => state.user.user);
-  const {dispatchMobile, dispatchLocal, dispatchRON} = useAgentService();
+  const data = useSelector(state => state.user.user);
 
+  const {dispatchMobile, dispatchLocal, dispatchRON} = useAgentService();
   const bottomSheetRef = useRef(null);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -81,41 +82,74 @@ export default function AgentHomeScreen({navigation}) {
     dispatch(setUser(item?.booked_by));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
   };
-  const handleStripeAccount = async service => {
-    setLoading(true);
-    setLoadingButton(service);
-    const {isUserStripeOnboard} = await checkUserStipeAccount();
-    if (
-      isUserStripeOnboard.has_stripe_account &&
-      isUserStripeOnboard.has_details_submitted
-    ) {
-      if (service === 'mobile_notary') {
-        dispatchMobile('mobile_notary');
-      } else {
-        dispatchRON('ron');
-      }
-      //dispatchMobile(service);
 
-      // navigation.navigate('AgentMainBookingScreen');
-    } else {
-      Alert.alert(
-        'Please make a stripe account before using our services',
-        '',
-        [
-          {
-            text: 'OK',
-            onPress: async () => {
-              navigation.navigate('PaymentUpdateScreen');
-            },
-            style: 'cancel',
-          },
-        ],
-        {cancelable: false},
-      );
+  const handleStripeAccount = useCallback(
+    async service => {
+      setLoading(true);
+      setLoadingButton(service);
+      console.log('servierefd', service);
+      try {
+        const {isUserStripeOnboard} = await checkUserStipeAccount();
+        console.log('isuserstrier', isUserStripeOnboard);
+        if (
+          isUserStripeOnboard &&
+          isUserStripeOnboard.has_stripe_account === true &&
+          isUserStripeOnboard.has_details_submitted === true
+        ) {
+          if (service === 'mobile_notary') {
+            dispatchMobile('mobile_notary');
+          } else if (service === 'ron') {
+            dispatchRON('ron');
+          } else {
+            return;
+          }
+        } else {
+          // console.log('nota adtirped');
+          Alert.alert(
+            'Congratulations! Welcome to Notarizr.',
+            'Please setup your Stripe account in the profile section to accept bookings.',
+            [
+              {
+                text: 'Setup Stripe',
+                onPress: () => {
+                  navigation.navigate('PaymentUpdateScreen');
+                },
+                style: 'default',
+              },
+            ],
+            {cancelable: false},
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        // Alert.alert(
+        //   'Congratulations! Welcome to Notarizr.',
+        //   'Please setup your Stripe account in the profile section to accept bookings.',
+        //   [
+        //     {
+        //       text: 'Setup Stripe',
+        //       onPress: () => {
+        //         navigation.navigate('PaymentUpdateScreen');
+        //       },
+        //       style: 'default',
+        //     },
+        //   ],
+        //   {cancelable: false},
+        // );
+      }
+      setLoading(false);
+      setLoadingButton(null);
+    },
+    [isVerified],
+  );
+  console.log('stinper', isVerified);
+  useEffect(() => {
+    if (isVerified) {
+      handleStripeAccount();
     }
-    setLoading(false);
-    setLoadingButton(null);
-  };
+  }, []);
+  // const verifiedStatus = useMemo(() => isVerified, [isVerified]);
+  // console.log('vlierifstatus', verifiedStatus);
 
   return (
     <>

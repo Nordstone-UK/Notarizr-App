@@ -388,7 +388,7 @@ export default function MedicalBookingScreen({route, navigation}) {
     });
     dispatch(setCoordinates(coordinates));
   };
-  console.log('setBookedByAddress', bookingDetail?.documents);
+  console.log('setBookedByAddress', status);
   console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
@@ -435,6 +435,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               )}
               {(status === 'Completed' ||
                 status === 'Accepted' ||
+                status === 'Travelling' ||
                 status === 'Ongoing') && (
                 <Image
                   source={require('../../../assets/greenIcon.png')}
@@ -638,9 +639,9 @@ export default function MedicalBookingScreen({route, navigation}) {
                   bookedByAddress?.location ||
                   bookingDetail.booked_for?.location
                 }
-                onPress={() =>
-                  handleAddressPress(bookedByAddress.location_coordinates)
-                }
+                // onPress={() =>
+                //   handleAddressPress(bookedByAddress.location_coordinates)
+                // }
                 booking="true"
               />
             </View>
@@ -692,15 +693,16 @@ export default function MedicalBookingScreen({route, navigation}) {
                   Array.isArray(bookingDetail.documents) &&
                   bookingDetail.documents.map((item, index) => {
                     console.log('itemsdfdfd', item);
-                    return;
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleDocumentPress(item.url)}>
-                      <Image
-                        source={require('../../../assets/docPic.png')}
-                        style={{width: widthToDp(10), height: heightToDp(10)}}
-                      />
-                    </TouchableOpacity>;
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => handleDocumentPress(item.url)}>
+                        <Image
+                          source={require('../../../assets/docPic.png')}
+                          style={{width: widthToDp(10), height: heightToDp(10)}}
+                        />
+                      </TouchableOpacity>
+                    );
                   })}
               </View>
             </View>
@@ -1083,6 +1085,27 @@ export default function MedicalBookingScreen({route, navigation}) {
                   fontSize={widthToDp(4)}
                 />
               )}
+            {status === 'Travelling' && (
+              <GradientButton
+                Title={'Start Trace'}
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  width: widthToDp(37),
+                  paddingVertical: widthToDp(4),
+                  marginTop: widthToDp(10),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => {
+                  handleAddressPress(bookedByAddress.location_coordinates);
+                }}
+                fontSize={widthToDp(3.5)}
+                loading={loading}
+              />
+            )}
+
             {status !== 'Completed' && (
               <GradientButton
                 Title={'Upload documents'}
