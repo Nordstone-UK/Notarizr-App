@@ -89,7 +89,12 @@ export default function AddressDetails({navigation}) {
               Title="Add Address"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               GradiStyles={{borderRadius: 15}}
-              onPress={() => navigation.navigate('AddNewAddress')}
+              onPress={() =>
+                navigation.navigate('CurrentLocationScreen', {
+                  previousScreen: 'AddressDetails',
+                })
+              }
+              // onPress={() => navigation.navigate('AddNewAddress')}
             />
           </View>
         </ScrollView>

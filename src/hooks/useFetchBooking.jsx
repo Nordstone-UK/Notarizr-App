@@ -126,12 +126,10 @@ const useFetchBooking = () => {
       },
     };
     try {
+      console.log('reqeusrere', request);
       const response = await updateBookingInfo(request);
       console.log('====================================');
-      console.log(
-        'Documents and Notes',
-        response.data.updateBookingsInfo.status,
-      );
+      console.log('Documents and Notes', response);
       console.log('====================================');
       return response.data.updateBookingsInfo.status;
     } catch (error) {

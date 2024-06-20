@@ -363,6 +363,8 @@ export default function AgentCard(props) {
                 ? 'Ongoing'
                 : props.status === 'completed'
                 ? 'Completed'
+                : props.status === 'travelling'
+                ? 'Travelling'
                 : props.status === 'pending'
                 ? 'Pending'
                 : props.status === 'rejected'
