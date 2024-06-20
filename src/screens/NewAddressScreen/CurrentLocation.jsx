@@ -19,7 +19,8 @@ import axios from 'axios';
 import Colors from '../../themes/Colors';
 import {useNavigation} from '@react-navigation/native';
 
-export default function CurrentLocationScreen() {
+export default function CurrentLocationScreen({route}) {
+  const {previousScreen} = route?.params || {};
   const navigation = useNavigation();
 
   console.log('navigation', navigation.navigate);
@@ -117,7 +118,7 @@ export default function CurrentLocationScreen() {
   const handleConfirmLocation = () => {
     if (markerLocation) {
       navigation.navigate('AddNewAddress', {
-        previousScreen: 'ServiceDetailScreen',
+        previousScreen: previousScreen,
         location: selectedAddress,
         location_coordinates: [
           markerLocation.latitude,

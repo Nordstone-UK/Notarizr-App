@@ -9,6 +9,8 @@ import {
   Alert,
   TouchableOpacity,
   ActivityIndicator,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import PdfView from 'react-native-pdf';
@@ -56,6 +58,7 @@ import {
 } from '../../../request/mutations/updateSessionClientDocs';
 import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import AddressCard from '../../components/AddressCard/AddressCard';
+import RNFetchBlob from 'rn-fetch-blob';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -63,7 +66,7 @@ export default function MedicalBookingScreen({route, navigation}) {
     handleSessionStatus,
     handleUpdateBookingStatus,
   } = useBookingStatus();
-  const {updateSession} = useSession();
+  const {updateSession, handleUpdateSessionReview} = useSession();
   const {handleReviewSubmit, setBookingPrice, fetchBookingByID} =
     useFetchBooking();
   const payment = useSelector(state => state.payment.payment);
@@ -266,13 +269,24 @@ export default function MedicalBookingScreen({route, navigation}) {
   const handleReduxPayment = async () => {
     setIsVisible(false);
     dispatch(paymentCheck());
-    const response = await handleReviewSubmit(
-      bookingDetail._id,
-      review,
-      rating,
-    );
-    if (response === '200') {
-      setModalShow(true);
+    if (bookingDetail.__typename === 'Booking') {
+      const response = await handleReviewSubmit(
+        bookingDetail._id,
+        review,
+        rating,
+      );
+      if (response === '200') {
+        setModalShow(true);
+      }
+    } else {
+      const response = await handleUpdateSessionReview(
+        bookingDetail._id,
+        review,
+        rating,
+      );
+      if (response === '200') {
+        setModalShow(true);
+      }
     }
   };
   const onRefresh = React.useCallback(() => {
@@ -388,7 +402,111 @@ export default function MedicalBookingScreen({route, navigation}) {
     });
     dispatch(setCoordinates(coordinates));
   };
-  console.log('setBookedByAddress', status);
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        let permissionType;
+        if (Platform.Version >= 33) {
+          // Android 13 and above
+          permissionType = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+        } else {
+          permissionType =
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+        }
+
+        const granted = await PermissionsAndroid.request(permissionType, {
+          title: 'Storage Permission Needed',
+          message: 'This app needs access to your storage to save files.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        });
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Storage permission granted');
+          return true;
+        } else {
+          console.log('Storage permission denied');
+          return false;
+        }
+      } catch (err) {
+        console.warn('Error requesting storage permission:', err);
+        return false;
+      }
+    } else {
+      console.log('Platform is not Android');
+      return true; // Assume permission granted for non-Android platforms
+    }
+  };
+
+  const handleNotarizrDocumentPress = async documents => {
+    console.log('documents', documents);
+    try {
+      const hasPermission = await requestStoragePermission();
+      console.log('Permission status:', hasPermission);
+      if (!hasPermission) {
+        Alert.alert(
+          'Permission Denied',
+          'Storage permission is required to download files.',
+        );
+        return;
+      }
+
+      const processDownload = async url => {
+        const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
+        const downloadDest = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+        console.log('Downloading document:', url);
+
+        try {
+          const result = await RNFetchBlob.config({
+            fileCache: true,
+            path: downloadDest,
+          }).fetch('GET', url);
+
+          if (result.info().status === 200) {
+            console.log(`File ${fileName} downloaded to ${downloadDest}`);
+            Alert.alert(
+              'Download Successful',
+              `File downloaded to ${downloadDest}`,
+            );
+          } else {
+            Alert.alert(
+              'Download Failed',
+              `Failed to download the file ${fileName}.`,
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to download ${fileName}:`, error);
+          Alert.alert(
+            'Download Error',
+            `An error occurred while downloading the file ${fileName}.`,
+          );
+        }
+      };
+
+      if (Array.isArray(documents)) {
+        for (const document of documents) {
+          if (typeof document === 'string') {
+            await processDownload(document);
+          } else {
+            await processDownload(document.url);
+          }
+        }
+      } else {
+        for (const url of Object.values(documents)) {
+          await processDownload(url);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert(
+        'Download Error',
+        'An error occurred while downloading the files.',
+      );
+    }
+  };
+
+  // console.log('setBookedByAddress', status);
   console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
@@ -679,10 +797,18 @@ export default function MedicalBookingScreen({route, navigation}) {
             )}
           {bookingDetail.documents && bookingDetail.documents.length > 0 && (
             <View style={{marginTop: heightToDp(2), marginVertical: 10}}>
-              <Text style={[styles.insideHeading]}>
-                {' '}
-                Print uploaded documents
-              </Text>
+              <View style={styles.downloadButtonContainer}>
+                <Text style={[styles.insideHeading]}>
+                  Print uploaded documents
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleNotarizrDocumentPress(bookingDetail.documents)
+                  }
+                  style={styles.downloadButton}>
+                  <Text style={styles.downloadButtonText}>Download</Text>
+                </TouchableOpacity>
+              </View>
               <View
                 style={{
                   flexDirection: 'row',
@@ -940,9 +1066,20 @@ export default function MedicalBookingScreen({route, navigation}) {
           {bookingDetail.client_documents &&
             Object.values(bookingDetail.client_documents)?.length > 0 && (
               <View style={{marginVertical: 10}}>
-                <Text style={[styles.insideHeading]}>
-                  Client uploaded documents
-                </Text>
+                <View style={styles.downloadButtonContainer}>
+                  <Text style={[styles.insideHeading]}>
+                    Client uploaded documents
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleNotarizrDocumentPress(
+                        bookingDetail.client_documents,
+                      )
+                    }
+                    style={styles.downloadButton}>
+                    <Text style={styles.downloadButtonText}>Download</Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.documentContainer}>
                   {Object.values(bookingDetail.client_documents)?.map(
                     (item, index) => {
@@ -997,9 +1134,18 @@ export default function MedicalBookingScreen({route, navigation}) {
           {bookingDetail.agent_document &&
             bookingDetail.agent_document.length > 0 && (
               <View>
-                <Text style={[styles.insideHeading]}>
-                  Agent uploaded documents
-                </Text>
+                <View style={styles.downloadButtonContainer}>
+                  <Text style={[styles.insideHeading]}>
+                    Agent uploaded documents
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleNotarizrDocumentPress(bookingDetail.agent_document)
+                    }
+                    style={styles.downloadButton}>
+                    <Text style={styles.downloadButtonText}>Download</Text>
+                  </TouchableOpacity>
+                </View>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -1023,7 +1169,18 @@ export default function MedicalBookingScreen({route, navigation}) {
           {bookingDetail.notarized_docs &&
             bookingDetail.notarized_docs.length > 0 && (
               <View style={{marginTop: 10}}>
-                <Text style={[styles.insideHeading]}>Notarized documents</Text>
+                <View style={styles.downloadButtonContainer}>
+                  <Text style={[styles.insideHeading]}>
+                    Notarized documents
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleNotarizrDocumentPress(bookingDetail.notarized_docs)
+                    }
+                    style={styles.downloadButton}>
+                    <Text style={styles.downloadButtonText}>Download</Text>
+                  </TouchableOpacity>
+                </View>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -1087,7 +1244,7 @@ export default function MedicalBookingScreen({route, navigation}) {
               )}
             {status === 'Travelling' && (
               <GradientButton
-                Title={'Start Trace'}
+                Title={'Track Agent'}
                 colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
                 GradiStyles={{
                   width: widthToDp(37),
@@ -1308,6 +1465,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexWrap: 'wrap',
     marginHorizontal: 10,
+  },
+  downloadButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  downloadButton: {
+    // width: widthToDp(50),
+    backgroundColor: Colors.Orange,
+    padding: 10,
+    borderRadius: 5,
+    // marginTop: 10,
+    // alignItems: 'center',
+    // justifyContent: 'center',
+    // margin: 10,
+  },
+  downloadButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 {

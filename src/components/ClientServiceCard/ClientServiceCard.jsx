@@ -122,6 +122,8 @@ export default function ClientServiceCard(props) {
                 ? 'Completed'
                 : props.status === 'to_be_paid'
                 ? 'To Be Paid'
+                : props.status === 'travelling'
+                ? 'Travelling'
                 : props.status === 'pending'
                 ? 'Pending'
                 : props.status === 'rejected'
