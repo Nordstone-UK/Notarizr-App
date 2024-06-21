@@ -24,7 +24,6 @@ const useFetchUser = () => {
     // console.log('sssssssssssddddddddddddddd', re);
     await user().then(response => {
       info = response.data.user;
-      console.log('ingo', info.addresses);
       if (info.profile_picture === null || !info.profile_picture) {
         info.profile_picture =
           'https://notarizr-app-data.s3.us-east-2.amazonaws.com/static/unnamed.jpg';

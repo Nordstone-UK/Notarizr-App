@@ -93,6 +93,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   // Create state for sourceKey and sourceUrl
   const [sourceKey, setSourceKey] = useState(initialSourceKey);
   const [sourceUrl, setSourceUrl] = useState(initialSourceUrl);
+  const [pickerItems, setPickerItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [updatedDocumentsession] = useMutation(
     UPDATE_OR_CREATE_SESSION_UPDATED_DOCS,
   );
@@ -122,6 +124,23 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [notarisedDocument, setNotarisedDocument] = useState()
+
+  useEffect(() => {
+    const items = [
+      ...Object.keys(bookingData.client_documents).map(doc => ({
+        label: `${doc}`,
+        value: bookingData.client_documents[doc]
+      })),
+      ...bookingData.agent_document.map((doc, index) => ({
+        label: `Agent Document ${index + 1}`, // Add index to the label
+        value: doc
+      }))
+    ];
+    setPickerItems(items);
+    if (items.length > 0) {
+      setSelectedItem(items[0].value);
+    }
+  }, [bookingData.client_documents, bookingData.agent_document]);
 
   const getBase64FromUrl = async (url) => {
     try {
@@ -511,18 +530,38 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
 
   };
-  const handleLinkChange = (linkId: string, itemLabel: Number) => {
-    const selectedKey = Object.keys(bookingData.client_documents).find(key => bookingData.client_documents[key] === linkId);
-    const newFilePath = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
-    // console.log("filefpate", filePath)
+  const handleLinkChange = async (linkId: string, itemLabel: Number) => {
+    // const selectedKey = Object.keys(.client_documents).find(key => bookingData.client_documents[key] === linkId);
+    console.log("selectedKey", selectedItem)
+    console.log("pickeritem", pickerItems)
     // Update the filePath state with the new file path
+    // console.log("filepateh", filePath)
+
     setFilePath(filePath);
     setNewPdfPath(filePath);
     setSourceUrl(linkId);
-
+    // console.log("pickeitem", pdfBase64)
     setNewPdfSaved(true);
-    readFile(linkId)
+    // const pdfBase64 = await 
+    readFile(linkId);
+    // setPdfBase64(pdfBase64);
     setFileDownloaded(false)
+    for (let i = 0; i < pickerItems.length; i++) {
+      if (pickerItems[i].value === selectedItem) {
+        const newFilePath = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
+        const l = await uploadSignedDocumentsOnS3(pdfBase64);
+        setFilePath(newFilePath);
+        setNewPdfPath(newFilePath);
+        readFile(l);
+        setFileDownloaded(false);
+        pickerItems[i].value = l;
+        break; // Exit loop once the value is updated
+      }
+    }
+
+    // console.log("updatedpickeritem", updatedPickerItems)
+    // Update the pickerItems state with the updated array
+    setSelectedItem(linkId);
 
     // setPdfBase64(linkId)
 
@@ -565,17 +604,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
 
-  const addSignedDocFunc = async url => {
+  const addSignedDocFunc = async docs => {
     try {
+      const urls = docs.map(doc => doc.value);
       const request = {
         variables: {
           bookingId: bookingData?._id,
-          notarizedDocs: [url],
+          notarizedDocs: urls,
           bookingType:
             bookingData?.__typename == 'Booking' ? 'booking' : 'session',
         },
       };
-
+      console.log("usrlsfd", request)
       const response = await AddSignedDocs(request);
       if (response.data.bookingAddNotarizedDocs.status === "200") {
         const request = {
@@ -708,11 +748,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const leave = async () => {
 
     try {
-      console.log("notarizedoc", notarisedDocument)
+      // console.log("notarizedoc", notarisedDocument)
 
 
       // let b = await updateSignedDocumentToDb(notarisedDocument)
-      let c = await addSignedDocFunc(notarisedDocument);
+      let c = await addSignedDocFunc(pickerItems);
       // console.log("bbbdddd", a, "dfdfdfd", b)
       let a = agoraEngineRef.current?.leaveChannel();
       setRemoteUids(["Leave"]);
@@ -819,19 +859,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
         <RNPickerSelect
           style={pickerSelectStyles}
-
           onValueChange={(itemValue, itemLabel) => handleLinkChange(itemValue, itemLabel)}
-          items={[
-            ...Object.keys(bookingData.client_documents).map(doc => ({
-              label: `${doc}`,
-              value: bookingData.client_documents[doc]
-            })),
-            ...bookingData.agent_document.map(doc => ({
-              label: 'Agent Document',
-              value: doc
-            }))
-          ]}
+          items={pickerItems} // Use the pickerItems state variable here
         />
+
 
       </View>
       <View style={styles.container}>

@@ -47,7 +47,6 @@ export default function PdfObject({ id, object, selected }: PdfObjectProps) {
         x: e.translationX + start.value.x,
         y: e.translationY + start.value.y,
       };
-      console.log("ndfdfdfd", newOffset)
       offset.value = newOffset;
       updateObject(id, {
         ...object,

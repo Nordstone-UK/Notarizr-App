@@ -21,9 +21,10 @@ import Toast from 'react-native-toast-message';
 import useFetchUser from '../../hooks/useFetchUser';
 
 export default function AddNewAddress({navigation, route}, props) {
-  const {location, location_coordinates, previousScreen} = route.params;
+  const {location_coordinates, previousScreen} = route?.params || {};
   const {fetchUserInfo} = useFetchUser();
   // console.log('routere', route.params);
+  console.log('padddddddddramss', previousScreen);
   const {handleProfileUpdate} = useUpdate();
   const {hadleUpdateAddress, handleEditAddress} = useFetchUser();
   const [building, setBuilding] = useState();
@@ -85,7 +86,7 @@ export default function AddNewAddress({navigation, route}, props) {
           settempLoading(false);
         }
       } else {
-        console.log('padddddddddramss', params);
+        console.log('padddddddddramss', previousScreen);
         const isUpdated = await hadleUpdateAddress(params);
         if (isUpdated) {
           fetchUserInfo();

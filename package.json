@@ -93,6 +93,7 @@
     "react-native-signature-canvas": "^4.7.1",
     "react-native-splash-screen": "^3.3.0",
     "react-native-svg": "^13.14.0",
+    "react-native-table-component": "^1.2.2",
     "react-native-toast-message": "^2.1.6",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.0.0",

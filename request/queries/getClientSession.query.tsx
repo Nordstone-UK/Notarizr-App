@@ -60,6 +60,8 @@ export const GET_CLIENT_SESSION = gql`
           state
           userAccessCode
         }
+        rating
+        review
         price
         client_documents
         status

@@ -43,6 +43,7 @@ export default function ChatScreen({ route, navigation }: any) {
   const token = useSelector(state => state.chats.chatToken);
   // console.log("tokeren", token)
   const { sender, receiver, chat, channel, voiceToken } = route.params;
+  console.log("receiver", receiver)
   const appKey = '411048105#1224670';
   const uid = 0;
   const [channelName, setChannelName] = useState('');
@@ -274,7 +275,7 @@ export default function ChatScreen({ route, navigation }: any) {
       <NavigationHeader
         Title={receiver?.first_name + ' ' + receiver?.last_name}
         ProfilePic={{ uri: receiver?.profile_picture }}
-        lastImg={require('../../../assets/voiceCallIcon.png')}
+        lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
         lastImgPress={() =>
           navigation.navigate('VoiceCallScreen', {
             sender: sender,

@@ -28,10 +28,10 @@ export default function AddressCard(props) {
         <Text style={styles.text}>
           {splitStringBefore2ndWord(props.location)}
         </Text>
-        <Image
+        {/* <Image
           style={[styles.icon, {tintColor: Colors.Red, marginTop: 20}]}
           source={require('../../../assets/locationIcon.png')}
-        />
+        /> */}
       </View>
       {props.Show && (
         <Image source={require('../../../assets/checkIcon.png')} />

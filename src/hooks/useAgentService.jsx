@@ -1,4 +1,4 @@
-import {useMutation} from '@apollo/client';
+import {useLazyQuery, useMutation} from '@apollo/client';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   setAvailability,
@@ -9,9 +9,13 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {CREATE_SERVICE} from '../../request/mutations/createService.mutation';
 import Toast from 'react-native-toast-message';
+import {UPDATE_AGENT_CURRENT_LOCATION} from '../../request/mutations/updateAgentLocation.mutation';
+import {GET_AGENT_LIVE_LOCATION} from '../../request/queries/getAgentLiveLocation.query';
 
 const useAgentService = () => {
   const [createService] = useMutation(CREATE_SERVICE);
+  const [updateLocation] = useMutation(UPDATE_AGENT_CURRENT_LOCATION);
+  const [getLiveLocation] = useLazyQuery(GET_AGENT_LIVE_LOCATION);
   const {first_name, last_name, location} = useSelector(
     state => state.user.user,
   );
@@ -79,6 +83,17 @@ const useAgentService = () => {
 
     return orderedWeekdays;
   }
+  const getCurrentLocation = async variables => {
+    const {data} = await getLiveLocation({variables});
+    // console.log('dsssssssssadfdf', data);
+    return data?.getCurrentLocation;
+  };
+
+  const agentLocationUpdate = async variables => {
+    const {data} = await updateLocation({variables});
+    // console.log('dddddddddddddd', data);
+    return data?.updateAgentcurrentLocation?.status;
+  };
   const handleRegistration = async variables => {
     const request = {
       variables: {
@@ -115,6 +130,8 @@ const useAgentService = () => {
     dispatchRON,
     dispatchAvailability,
     dispatchCategory,
+    agentLocationUpdate,
+    getCurrentLocation,
   };
 };
 

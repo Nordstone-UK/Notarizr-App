@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   TextInput,
   PermissionsAndroid,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState, useRef} from 'react';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
@@ -18,10 +19,12 @@ import axios from 'axios';
 import Colors from '../../themes/Colors';
 import {useNavigation} from '@react-navigation/native';
 
-export default function CurrentLocationScreen() {
+export default function CurrentLocationScreen({route}) {
+  const {previousScreen} = route?.params || {};
   const navigation = useNavigation();
 
   console.log('navigation', navigation.navigate);
+  const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState(null);
   const [markerLocation, setMarkerLocation] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState('');
@@ -35,8 +38,10 @@ export default function CurrentLocationScreen() {
     try {
       const coordinates = await getLocation();
       setLocation(coordinates);
+      setLoading(false);
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
 
@@ -113,7 +118,7 @@ export default function CurrentLocationScreen() {
   const handleConfirmLocation = () => {
     if (markerLocation) {
       navigation.navigate('AddNewAddress', {
-        previousScreen: 'ServiceDetailScreen',
+        previousScreen: previousScreen,
         location: selectedAddress,
         location_coordinates: [
           markerLocation.latitude,
@@ -147,67 +152,77 @@ export default function CurrentLocationScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Select Location" />
-      {location && (
+      {loading ? ( // Show loading indicator if loading is true
+        <ActivityIndicator
+          size="large"
+          color={Colors.Primary}
+          style={styles.loader}
+        />
+      ) : (
         <>
-          <GooglePlacesAutocomplete
-            ref={googlePlacesRef}
-            placeholder="Search for a place"
-            onPress={handlePlaceSelected}
-            query={{
-              key: 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA', // Replace with your actual API key
-              language: 'en',
-            }}
-            fetchDetails={true}
-            textInputProps={{
-              value: searchText,
-              onChangeText: text => setSearchText(text),
-              placeholderTextColor: Colors.DisableColor || '#A9A9A9',
-            }}
-            renderRightButton={() =>
-              searchText.length > 0 && (
-                <TouchableOpacity
-                  onPress={clearSearch}
-                  style={styles.clearButton}>
-                  <Text style={styles.clearButtonText}>X</Text>
-                </TouchableOpacity>
-              )
-            }
-            styles={{
-              container: styles.searchContainer,
-              textInput: styles.searchInput,
-            }}
-          />
-          <MapView
-            zoomEnabled={true}
-            region={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            onPress={handleMapPress}
-            showsUserLocation={true}
-            provider={PROVIDER_GOOGLE}
-            style={styles.map}>
-            {markerLocation && (
-              <Marker
-                coordinate={markerLocation}
-                draggable
-                onDragEnd={handleMapPress}
-              />
-            )}
-            {agents.map(agent => (
-              <Marker
-                key={agent._id}
-                coordinate={{
-                  latitude: agent.current_location.coordinates[1],
-                  longitude: agent.current_location.coordinates[0],
+          {location && (
+            <>
+              <GooglePlacesAutocomplete
+                ref={googlePlacesRef}
+                placeholder="Search for a place"
+                onPress={handlePlaceSelected}
+                query={{
+                  key: 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA', // Replace with your actual API key
+                  language: 'en',
                 }}
-                title={agent.first_name + ' ' + agent.last_name}
-                description={agent.location}
+                fetchDetails={true}
+                textInputProps={{
+                  value: searchText,
+                  onChangeText: text => setSearchText(text),
+                  placeholderTextColor: Colors.DisableColor || '#A9A9A9',
+                }}
+                renderRightButton={() =>
+                  searchText.length > 0 && (
+                    <TouchableOpacity
+                      onPress={clearSearch}
+                      style={styles.clearButton}>
+                      <Text style={styles.clearButtonText}>X</Text>
+                    </TouchableOpacity>
+                  )
+                }
+                styles={{
+                  container: styles.searchContainer,
+                  textInput: styles.searchInput,
+                }}
               />
-            ))}
-          </MapView>
+              <MapView
+                zoomEnabled={true}
+                region={{
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+                onPress={handleMapPress}
+                showsUserLocation={true}
+                provider={PROVIDER_GOOGLE}
+                style={styles.map}>
+                {markerLocation && (
+                  <Marker
+                    coordinate={markerLocation}
+                    draggable
+                    onDragEnd={handleMapPress}
+                  />
+                )}
+                {agents.map(agent => (
+                  <Marker
+                    key={agent._id}
+                    coordinate={{
+                      latitude: agent.current_location.coordinates[1],
+                      longitude: agent.current_location.coordinates[0],
+                    }}
+                    title={agent.first_name + ' ' + agent.last_name}
+                    description={agent.location}
+                  />
+                ))}
+              </MapView>
+            </>
+          )}
         </>
       )}
       <View style={styles.footer}>
@@ -285,5 +300,11 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: '#FFF',
     fontSize: 18,
+  },
+  loader: {
+    // Add loader style
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

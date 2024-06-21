@@ -67,7 +67,7 @@ export default function ToBePaidScreen({route, navigation}) {
       bookingData._id,
       bookingData.__typename === 'Session' ? true : false,
     );
-    console.log('bookingrocvdfddf,', bookingData.price);
+    console.log('bookingrocvdfddf,', response);
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
 

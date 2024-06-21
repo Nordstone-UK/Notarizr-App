@@ -5,11 +5,15 @@ export const UPDATE_SESSION_PRICEDOCS = gql`
     $sessionId: String!
     $price: Float
     $clientDocuments: JSON
+      $review: String
+    $rating: Int
   ) {
     updateSessionR(
       sessionId: $sessionId
       price: $price
       client_documents: $clientDocuments
+        review: $review
+      rating: $rating
     ) {
       session {
         _id

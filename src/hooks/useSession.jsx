@@ -6,6 +6,7 @@ import {GET_SESSION_BY_ID} from '../../request/queries/getSessionByID.query';
 import {UPDATE_SESSION_STATUS} from '../../request/mutations/updateSessionStatus.mutation';
 import {CREATE_CLIENTSESSION} from '../../request/mutations/createSessiononClient.mutation';
 import {useSelector} from 'react-redux';
+import {UPDATE_SESSION_PRICEDOCS} from '../../request/mutations/updateSessionPriceDocs.mutation';
 
 export const useSession = () => {
   const [createSession] = useMutation(CREATE_SESSION);
@@ -14,6 +15,7 @@ export const useSession = () => {
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const [updateSessionStatus] = useMutation(UPDATE_SESSION_STATUS);
   const [updateSessionItems] = useMutation(UPDATE_SESSION);
+  const [updateSessionReview] = useMutation(UPDATE_SESSION_PRICEDOCS);
   const FinalBookingData = useSelector(state => state.booking.booking);
 
   const handleSessionCreation = async (
@@ -111,6 +113,41 @@ export const useSession = () => {
     console.log('dddddddddddddddddddddddddddddd', response);
     return response.data.updateSessionR;
   };
+  //  const handleUpdateSessionReview = async params => {
+  //    const {sessionId, review,rating} = params;
+
+  //    const request = {
+  //      variables: {
+  //        sessionId,
+  //        identityAuthentication,
+  //        observers,
+  //        paymentType,
+  //      },
+  //    };
+  //    console.log('reqeustrdfdfdfdfdfdf', request);
+  //    const response = await updateSessionItems(request);
+  //    console.log('dddddddddddddddddddddddddddddd', response);
+  //    return response.data.updateSessionR;
+  //  };
+  const handleUpdateSessionReview = async (id, review, rating) => {
+    const request = {
+      variables: {
+        sessionId: id,
+        review: review,
+        rating: rating,
+      },
+    };
+    try {
+      console.log('reqeusrere', request);
+      const response = await updateSessionReview(request);
+      console.log('====================================');
+      console.log('Documents and Notes', response);
+      console.log('====================================');
+      return response.data.updateBookingsInfo.status;
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return {
     handleSessionCreation,
     handleSessionUpdation,
@@ -118,5 +155,6 @@ export const useSession = () => {
     getSessionByID,
     updateSession,
     handleClientSessionCreation,
+    handleUpdateSessionReview,
   };
 };

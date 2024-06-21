@@ -67,7 +67,6 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         x: translationX.value,
         y: translationY.value,
       };
-      console.log("newoffser", newOffset)
       updateObject(id, {
         ...object,
         position: newOffset,
