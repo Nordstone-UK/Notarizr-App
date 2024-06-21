@@ -64,10 +64,11 @@ export default function ReviewPopup(props) {
 const styles = StyleSheet.create({
   bottonSheet: {
     flex: 1,
-    justifyContent: 'flex-end',
+    // justifyContent: 'flex-end',
     backgroundColor: Colors.PinkBackground,
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
+    justifyContent: 'center',
   },
   btn: {
     marginVertical: heightToDp(5),

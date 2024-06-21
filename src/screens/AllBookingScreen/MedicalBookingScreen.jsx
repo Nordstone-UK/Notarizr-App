@@ -1379,6 +1379,7 @@ const styles = StyleSheet.create({
     marginBottom: heightToDp(2),
   },
   insideHeading: {
+    flex: 3,
     color: Colors.TextColor,
     fontSize: widthToDp(4),
     fontFamily: 'Manrope-Bold',
@@ -1468,23 +1469,19 @@ const styles = StyleSheet.create({
   },
   downloadButtonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginRight: 15,
   },
   downloadButton: {
-    // width: widthToDp(50),
+    flex: 1,
     backgroundColor: Colors.Orange,
     padding: 10,
     borderRadius: 5,
-    // marginTop: 10,
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    // margin: 10,
   },
   downloadButtonText: {
     color: '#fff',
     fontSize: 16,
+    textAlign: 'center',
   },
 });
 {

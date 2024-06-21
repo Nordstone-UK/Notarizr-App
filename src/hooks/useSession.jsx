@@ -113,22 +113,7 @@ export const useSession = () => {
     console.log('dddddddddddddddddddddddddddddd', response);
     return response.data.updateSessionR;
   };
-  //  const handleUpdateSessionReview = async params => {
-  //    const {sessionId, review,rating} = params;
 
-  //    const request = {
-  //      variables: {
-  //        sessionId,
-  //        identityAuthentication,
-  //        observers,
-  //        paymentType,
-  //      },
-  //    };
-  //    console.log('reqeustrdfdfdfdfdfdf', request);
-  //    const response = await updateSessionItems(request);
-  //    console.log('dddddddddddddddddddddddddddddd', response);
-  //    return response.data.updateSessionR;
-  //  };
   const handleUpdateSessionReview = async (id, review, rating) => {
     const request = {
       variables: {
