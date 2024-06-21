@@ -8,7 +8,7 @@ const ONESIGNAL_APP_ID = 'dc4e3a66-402e-41d7-832d-25b70c16fdea';
 const initializeOneSignal = () => {
   OneSignal.setAppId(ONESIGNAL_APP_ID);
   OneSignal.promptForPushNotificationsWithUserResponse(response => {
-    // console.log(response);
+    console.log(response);
   });
   OneSignal.setNotificationWillShowInForegroundHandler(
     notificationReceivedEvent => {
@@ -25,6 +25,7 @@ const initializeOneSignal = () => {
 
   OneSignal.setNotificationOpenedHandler(notification => {
     EventRegister.emit('notfication', notification);
+    console.log("Notification opened:", notification);
   });
 };
 
