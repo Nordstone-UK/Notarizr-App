@@ -1,5 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {Alert, SafeAreaView, StyleSheet, View, Text} from 'react-native';
+import {
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
@@ -37,6 +44,7 @@ export default function AgentMapArrivalScreen({navigation}) {
 
   const handleGetLocation = async () => {
     try {
+      setLoading(true);
       if (user === 'individual-agent') {
         const currentLocation = await getLocation();
         console.log('currentlocadfddfd', currentLocation);
@@ -64,6 +72,8 @@ export default function AgentMapArrivalScreen({navigation}) {
       // await updateAgentLocation(currentLocation);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,47 +174,54 @@ export default function AgentMapArrivalScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {location && (
-        <>
-          <View style={styles.infoContainer}>
-            {showInfo && distance && duration && (
-              <Text
-                style={[
-                  styles.infoText,
-                  (distance > 50 || duration > 60) && styles.highValues,
-                ]}>
-                Distance: {distance.toFixed(2)} km, Duration:{' '}
-                {duration.toFixed(2)} min
-              </Text>
-            )}
-          </View>
-          <MapView
-            zoomEnabled={true}
-            region={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            provider="google"
-            showsUserLocation={true}
-            style={styles.map}>
-            {coordinates && (
-              <>
-                <Marker
-                  key={clientData.user?._id}
-                  coordinate={{
-                    latitude: coordinates[0],
-                    longitude: coordinates[1],
-                  }}
-                  title={
-                    clientData.user?.first_name +
-                    ' ' +
-                    clientData.user?.last_name
-                  }
-                  description={clientData.user?.location}
-                />
-                {/* <Marker.Animated ref={markerRef} coordinate={coordinate}>
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={Colors.OrangeGradientStart}
+          style={styles.loader}
+        />
+      ) : (
+        location && (
+          <>
+            <View style={styles.infoContainer}>
+              {showInfo && distance && duration && (
+                <Text
+                  style={[
+                    styles.infoText,
+                    (distance > 50 || duration > 60) && styles.highValues,
+                  ]}>
+                  Distance: {distance.toFixed(2)} km, Duration:{' '}
+                  {duration.toFixed(2)} min
+                </Text>
+              )}
+            </View>
+            <MapView
+              zoomEnabled={true}
+              region={{
+                latitude: location.latitude,
+                longitude: location.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+              provider="google"
+              showsUserLocation={true}
+              style={styles.map}>
+              {coordinates && (
+                <>
+                  <Marker
+                    key={clientData.user?._id}
+                    coordinate={{
+                      latitude: coordinates[0],
+                      longitude: coordinates[1],
+                    }}
+                    title={
+                      clientData.user?.first_name +
+                      ' ' +
+                      clientData.user?.last_name
+                    }
+                    description={clientData.user?.location}
+                  />
+                  {/* <Marker.Animated ref={markerRef} coordinate={coordinate}>
                   <Image
                     source={imagePath.icBike}
                     style={{
@@ -214,38 +231,39 @@ export default function AgentMapArrivalScreen({navigation}) {
                     resizeMode="contain"
                   />
                 </Marker.Animated> */}
-                <MapViewDirections
-                  origin={location}
-                  destination={{
-                    latitude: coordinates[0],
-                    longitude: coordinates[1],
-                  }}
-                  apikey={GOOGLE_MAPS_APIKEY}
-                  strokeWidth={3}
-                  strokeColor="#4285F4"
-                  mode="DRIVING"
-                  onReady={result => {
-                    setDistance(result.distance);
-                    setDuration(result.duration);
-                    console.log(`Distance: ${result.distance} km`);
-                    console.log(`Duration: ${result.duration} min.`);
-                  }}
-                  onError={errorMessage => {
-                    console.log('GOT AN ERROR', errorMessage);
-                  }}
-                />
-                <Marker
-                  coordinate={{
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                  }}
-                  title="Your Location"
-                  pinColor="green"
-                />
-              </>
-            )}
-          </MapView>
-        </>
+                  <MapViewDirections
+                    origin={location}
+                    destination={{
+                      latitude: coordinates[0],
+                      longitude: coordinates[1],
+                    }}
+                    apikey={GOOGLE_MAPS_APIKEY}
+                    strokeWidth={3}
+                    strokeColor="#4285F4"
+                    mode="DRIVING"
+                    onReady={result => {
+                      setDistance(result.distance);
+                      setDuration(result.duration);
+                      console.log(`Distance: ${result.distance} km`);
+                      console.log(`Duration: ${result.duration} min.`);
+                    }}
+                    onError={errorMessage => {
+                      console.log('GOT AN ERROR', errorMessage);
+                    }}
+                  />
+                  <Marker
+                    coordinate={{
+                      latitude: location.latitude,
+                      longitude: location.longitude,
+                    }}
+                    title="Your Location"
+                    pinColor="green"
+                  />
+                </>
+              )}
+            </MapView>
+          </>
+        )
       )}
       <View style={{marginTop: 20}} />
       <NavigationHeader

@@ -1,22 +1,22 @@
-import {NavigationContainer, useNavigation} from '@react-navigation/native';
-import {FC, useEffect, useState} from 'react';
-import {EventRegister} from 'react-native-event-listeners';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { FC, useEffect, useState } from 'react';
+import { EventRegister } from 'react-native-event-listeners';
 import notificationCacheMethods from '../cache/notification';
 import AppNavigation from '../screens/Navigation/AppNavigation';
 import useFetchBooking from '../hooks/useFetchBooking';
-import {useDispatch} from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
   setUser,
 } from '../features/booking/bookingSlice';
-import {useSession} from '../hooks/useSession';
+import { useSession } from '../hooks/useSession';
 
 const Root: FC = (): JSX.Element => {
   const navigation: any = useNavigation();
   const dispatch: any = useDispatch();
-  const {fetchBookingByID} = useFetchBooking();
-  const {getSessionByID} = useSession();
+  const { fetchBookingByID } = useFetchBooking();
+  const { getSessionByID } = useSession();
   const dispatchingAgentData = async (bookingData: any) => {
     await dispatch(setBookingInfoState(bookingData));
     await dispatch(
@@ -33,9 +33,9 @@ const Root: FC = (): JSX.Element => {
   };
   useEffect(() => {
     const listener = EventRegister.addEventListener(
-      'notfication',
+      'notification',
       async data => {
-        const {type, value} = data?.notification?.additionalData;
+        const { type, value } = data?.notification?.additionalData;
 
         if (type === 'session_created') {
           const item = await getSessionByID(value);
@@ -66,7 +66,7 @@ const Root: FC = (): JSX.Element => {
   return <AppNavigation />;
 };
 
-const Wrapper: FC<{}> = ({}) => {
+const Wrapper: FC<{}> = ({ }) => {
   return (
     <NavigationContainer>
       <Root />

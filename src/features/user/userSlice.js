@@ -4,7 +4,7 @@ const initialState = {
   user: null,
   LiveCoordinates: null,
   socketID: null,
-  notification: null,
+  notifications: [],
 };
 export const userSlice = createSlice({
   name: 'user',
@@ -22,7 +22,7 @@ export const userSlice = createSlice({
       state.socketID = action.payload;
     },
     setNotification: (state, action) => {
-      state.notification = action.payload;
+      state.notifications.push(action.payload);
     },
   },
 });

@@ -1259,7 +1259,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   handleAddressPress(bookedByAddress.location_coordinates);
                 }}
                 fontSize={widthToDp(3.5)}
-                loading={loading}
+                // loading={loading}
               />
             )}
 

@@ -14,26 +14,13 @@ import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {EventRegister} from 'react-native-event-listeners';
+import {useSelector} from 'react-redux';
+import moment from 'moment';
 
 export default function NotificationScreen({navigation}) {
-  const [notifications, setNotifications] = useState([]);
-  console.log('Notifications:', notifications);
+  const notifications = useSelector(state => state.user.notifications);
 
-  useEffect(() => {
-    const listener = EventRegister.addEventListener(
-      'notification',
-      notification => {
-        setNotifications(prevNotifications => [
-          ...prevNotifications,
-          notification.notification,
-        ]);
-      },
-    );
-
-    // return () => {
-    //   EventRegister.removeEventListener(listener);
-    // };
-  }, []);
+  console.log('Notificationsssssssssssssss:', notifications);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,6 +42,11 @@ export default function NotificationScreen({navigation}) {
                   </Text>
                   <Text style={styles.notificationMessage}>
                     {notification?.body}
+                  </Text>
+                  <Text style={styles.notificationTime}>
+                    {moment(notification?.rawPayload?.google?.sent_time).format(
+                      'MMMM Do YYYY, h:mm:ss a',
+                    )}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -100,30 +92,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   notificationCard: {
-    margin: 10,
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: Colors.White,
-    shadowColor: Colors.Black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 0.1,
-    elevation: 5,
+    backgroundColor: Colors.white,
+    elevation: 10,
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: widthToDp(2),
+    marginHorizontal: heightToDp(5),
   },
   notificationContent: {
     flex: 1,
   },
   notificationTitle: {
-    fontSize: widthToDp(5),
-    fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
+    fontFamily: 'Poppins-Bold',
   },
   notificationMessage: {
-    fontSize: widthToDp(4),
     color: Colors.TextColor,
+    fontSize: widthToDp(3.5),
+    fontFamily: 'Poppins-Regular',
+  },
+  notificationTime: {
+    fontSize: widthToDp(3.5),
+    color: Colors.OrangeGradientEnd,
     marginTop: 5,
   },
 });

@@ -323,6 +323,10 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     return namesString;
   }
   const setBookingAmount = async () => {
+    if (!AmountEntered) {
+      Alert.alert('Please fill in the amount');
+      return;
+    }
     try {
       let response;
 
@@ -701,7 +705,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   };
 
   console.log("cliendetails", clientDetail)
-  console.log("cliendetailssssssssssssssssssssssss", clientDetail?.documents)
+  console.log("cliendetailssssssssssssssssssssssss", clientDetail?.status)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -1216,7 +1220,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   location={
                     bookedByAddress?.location
                   }
-                  onPress={() => handleAddressPress(bookedByAddress.location_coordinates)}
+                  onPress={handleStartNavigation}
                   booking="true"
                 />
               </View>
@@ -2050,39 +2054,41 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     />
                   )}
                   {status === 'Travelling' && (
-                    <>
-                      <GradientButton
-                        Title='Start Notary'
-                        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                        GradiStyles={{
-                          width: widthToDp(30),
-                          paddingHorizontal: widthToDp(0),
-                          paddingVertical: heightToDp(3),
-                        }}
-                        styles={{
-                          padding: widthToDp(0),
-                          fontSize: widthToDp(4),
-                        }}
-                        onPress={() => handleStatusChange('ongoing')}
-                        fontSize={widthToDp(4)}
-                      />
 
-                      <GradientButton
-                        Title='End Notary'
-                        colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                        GradiStyles={{
-                          width: widthToDp(30),
-                          paddingHorizontal: widthToDp(0),
-                          paddingVertical: heightToDp(3),
-                        }}
-                        styles={{
-                          padding: widthToDp(0),
-                          fontSize: widthToDp(4)
-                        }}
-                        onPress={() => handleStatusChange('completed')}
-                        fontSize={widthToDp(4)}
-                      />
-                    </>
+                    <GradientButton
+                      Title='Start Notary'
+                      colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                      GradiStyles={{
+                        width: widthToDp(30),
+                        paddingHorizontal: widthToDp(0),
+                        paddingVertical: heightToDp(3),
+                      }}
+                      styles={{
+                        padding: widthToDp(0),
+                        fontSize: widthToDp(4),
+                      }}
+                      onPress={() => handleStatusChange('ongoing')}
+                      fontSize={widthToDp(4)}
+                    />
+                  )}
+                  {status === 'Ongoing' && (
+
+                    <GradientButton
+                      Title='End Notary'
+                      colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                      GradiStyles={{
+                        width: widthToDp(30),
+                        paddingHorizontal: widthToDp(0),
+                        paddingVertical: heightToDp(3),
+                      }}
+                      styles={{
+                        padding: widthToDp(0),
+                        fontSize: widthToDp(4)
+                      }}
+                      onPress={() => handleStatusChange('completed')}
+                      fontSize={widthToDp(4)}
+                    />
+
                   )}
                 </>
               )}

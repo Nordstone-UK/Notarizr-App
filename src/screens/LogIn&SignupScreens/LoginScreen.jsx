@@ -93,7 +93,9 @@ export default function LoginScreen({navigation}, props) {
         const locationPermission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
-
+        const locationPermission14 = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+        );
         // Request camera permission
         // const cameraPermission = await PermissionsAndroid.request(
         //   PermissionsAndroid.PERMISSIONS.CAMERA,
@@ -115,6 +117,7 @@ export default function LoginScreen({navigation}, props) {
         // Check if permissions are granted
         if (
           locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
+          locationPermission14 === PermissionsAndroid.RESULTS.GRANTED &&
           // cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
           // NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           PhonePermission === PermissionsAndroid.RESULTS.GRANTED
