@@ -64,7 +64,7 @@ export default function AddNewAddress({navigation, route}, props) {
         lng: lng.toString(),
       };
       if (route.params?.address) {
-        console.log('edit');
+        console.log('edit', route.params?.address._id);
         params.addressId = route.params?.address._id;
         console.log('paramss', params);
         const isUpdated = await handleEditAddress(params);
@@ -76,7 +76,8 @@ export default function AddNewAddress({navigation, route}, props) {
             text1: 'Address Updated!',
             text2: 'Your address has been updated successfully.',
           });
-          navigation.goBack();
+
+          navigation.navigate(previousScreen);
         } else {
           Toast.show({
             type: 'error',

@@ -124,13 +124,14 @@ export default function LegalDocScreen({route, navigation}) {
     let stateName = 'USA';
 
     const locationResponse = await handleGetLocation();
+    console.log('locationres', locationResponse);
     if (
       locationResponse &&
       locationResponse.results &&
       locationResponse.results.length > 0
     ) {
       const addressComponents = locationResponse.results[0]?.address_components;
-
+      console.log('addresscomop;nent', addressComponents);
       if (addressComponents && addressComponents.length >= 5) {
         stateName = addressComponents[4]?.long_name || 'USA'; // Use state name if available, otherwise fallback to 'USA'
       } else {

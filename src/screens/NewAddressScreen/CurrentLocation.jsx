@@ -18,9 +18,33 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import axios from 'axios';
 import Colors from '../../themes/Colors';
 import {useNavigation} from '@react-navigation/native';
+import {getLocation, handleGetLocation} from '../../utils/Geocode';
+const MAX_RETRIES = 3;
+const TIMEOUT = 5000; // 5 seconds
 
+const getAddressFromCoordinates = async (latitude, longitude) => {
+  const apiKey = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
+  const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await axios.get(apiUrl, {timeout: TIMEOUT});
+      if (response.data.results.length > 0) {
+        return response.data.results[0].formatted_address;
+      } else {
+        return 'Address not found';
+      }
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        throw new Error('Error fetching address: ' + error);
+      } else {
+        console.warn(`Attempt ${attempt} failed. Retrying...`);
+      }
+    }
+  }
+};
 export default function CurrentLocationScreen({route}) {
-  const {previousScreen} = route?.params || {};
+  const {previousScreen, address} = route?.params || {};
   const navigation = useNavigation();
 
   console.log('navigation', navigation.navigate);
@@ -34,20 +58,22 @@ export default function CurrentLocationScreen({route}) {
   const [searchText, setSearchText] = useState('');
   const googlePlacesRef = useRef();
 
-  const handleGetLocation = async () => {
-    try {
-      const coordinates = await getLocation();
-      setLocation(coordinates);
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
-  };
+  // const handleGetLocation = async () => {
+  //   try {
+  //     console.log('cccccccccdddddccc');
+  //     const coordinates = await getLocation();
+  //     console.log('cccccccccccc', coor);
+  //     setLocation(coordinates);
+  //     setLoading(false);
+  //   } catch (error) {
+  //     console.log(error);
+  //     setLoading(false);
+  //   }
+  // };
 
   const requestLocationPermission = async () => {
     try {
-      const granted = await PermissionsAndroid.request(
+      const fineLocationGranted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
           title: 'Location Permission',
@@ -57,38 +83,75 @@ export default function CurrentLocationScreen({route}) {
           buttonPositive: 'OK',
         },
       );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the location');
+
+      const backgroundLocationGranted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+        {
+          title: 'Background Location Permission',
+          message: 'This app needs access to your location in the background.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+
+      if (
+        fineLocationGranted === PermissionsAndroid.RESULTS.GRANTED &&
+        backgroundLocationGranted === PermissionsAndroid.RESULTS.GRANTED
+      ) {
+        console.log('Location permissions granted');
+        setLoading(false);
       } else {
         console.log('Location permission denied');
+        Alert.alert(
+          'Permission Denied',
+          'Location permission is required for this app to work. Please grant the permission from settings.',
+        );
+        setLoading(false);
       }
     } catch (err) {
       console.warn(err);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     requestLocationPermission();
   }, []);
-
   useEffect(() => {
-    handleGetLocation();
+    getState();
   }, []);
+  const getState = async query => {
+    // setLoading(true);
 
-  const getLocation = () => {
-    return new Promise((resolve, reject) => {
-      Geolocation.getCurrentPosition(
-        position => {
-          const {latitude, longitude} = position.coords;
-          resolve({latitude, longitude});
-        },
-        error => {
-          reject(error);
-        },
-        {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
-      );
-    });
+    const locationResponse = await handleGetLocation();
+    const currentlocation = await getLocation();
+    setLocation(currentlocation);
+    const {latitude, longitude} = currentlocation;
+
+    console.log('loctieofd', latitude);
+    console.log('curentlocat', currentlocation);
   };
+  // useEffect(() => {
+  //  const locationResponse = await handleGetLocation();
+  //  console.log("loctieofd",locationResponse)
+  // }, []);
+
+  // const getLocation = () => {
+  //   return new Promise((resolve, reject) => {
+  //     Geolocation.getCurrentPosition(
+  //       position => {
+  //         const {latitude, longitude} = position.coords;
+  //         console.log('llllllll', latitude);
+  //         resolve({latitude, longitude});
+  //       },
+  //       error => {
+  //         reject(error);
+  //       },
+  //       {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+  //     );
+  //   });
+  // };
 
   const handlePlaceSelected = (data, details) => {
     const {lat, lng} = details.geometry.location;
@@ -119,6 +182,7 @@ export default function CurrentLocationScreen({route}) {
     if (markerLocation) {
       navigation.navigate('AddNewAddress', {
         previousScreen: previousScreen,
+        address: address,
         location: selectedAddress,
         location_coordinates: [
           markerLocation.latitude,
@@ -127,7 +191,10 @@ export default function CurrentLocationScreen({route}) {
       });
     }
   };
-  console.log('mardkere', latitude, longitude);
+  // const MAX_RETRIES = 3;
+  // const TIMEOUT = 5000; // 5 seconds
+
+  // console.log('mardkere', latitude, longitude);
   const getAddressFromCoordinates = async (latitude, longitude) => {
     const apiKey = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
     const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;

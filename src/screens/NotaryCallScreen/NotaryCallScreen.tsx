@@ -536,7 +536,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     console.log("pickeritem", pickerItems)
     // Update the filePath state with the new file path
     // console.log("filepateh", filePath)
-
+    // const newFilePath = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
+    // setFilePath(newFilePath);
+    // setNewPdfPath(newFilePath);
     setFilePath(filePath);
     setNewPdfPath(filePath);
     setSourceUrl(linkId);
@@ -750,7 +752,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     try {
       // console.log("notarizedoc", notarisedDocument)
 
-
+      for (let i = 0; i < pickerItems.length; i++) {
+        if (pickerItems[i].value === selectedItem) {
+          const newFilePath = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
+          const l = await uploadSignedDocumentsOnS3(pdfBase64);
+          setFilePath(newFilePath);
+          setNewPdfPath(newFilePath);
+          readFile(l);
+          setFileDownloaded(false);
+          pickerItems[i].value = l;
+          break; // Exit loop once the value is updated
+        }
+      }
       // let b = await updateSignedDocumentToDb(notarisedDocument)
       let c = await addSignedDocFunc(pickerItems);
       // console.log("bbbdddd", a, "dfdfdfd", b)

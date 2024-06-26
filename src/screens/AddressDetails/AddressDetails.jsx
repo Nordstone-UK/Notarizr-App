@@ -29,7 +29,12 @@ export default function AddressDetails({navigation}) {
   }, [navigation]);
   const {addresses = []} = useSelector(state => state.user.user);
   const handleEditAddress = address => {
-    navigation.navigate('AddNewAddress', {address: address});
+    navigation.navigate('CurrentLocationScreen', {
+      previousScreen: 'AddressDetails',
+      address: address,
+    });
+
+    // navigation.navigate('AddNewAddress', {address: address});
   };
   const deleteAddress = async addressId => {
     const isUpdated = await handleDeleteAddress(addressId);

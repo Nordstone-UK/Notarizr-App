@@ -15,10 +15,12 @@ import {useMutation} from '@apollo/client';
 import {UPDATE_ONLINE_STATUS} from '../../../request/mutations/updateOnlineStatus.mutation';
 import Toast from 'react-native-toast-message';
 import {useNavigation} from '@react-navigation/native';
+import {EventRegister} from 'react-native-event-listeners';
 
 export default function AgentHomeHeader(props) {
   const navigation = useNavigation();
   const [isEnabled, setIsEnabled] = useState();
+  const [notificationCount, setNotificationCount] = useState(0);
   const [updateOnlineStatusR] = useMutation(UPDATE_ONLINE_STATUS);
   const {profile_picture, first_name, last_name, online_status} = useSelector(
     state => state.user.user,
@@ -56,6 +58,18 @@ export default function AgentHomeHeader(props) {
       setIsEnabled(false);
     }
   }, [online_status]);
+  useEffect(() => {
+    const notificationListener = EventRegister.addEventListener(
+      'notification',
+      handleNotification,
+    );
+    return () => {
+      EventRegister.removeEventListener(notificationListener);
+    };
+  }, []);
+  const handleNotification = notification => {
+    setNotificationCount(notification.count);
+  };
   return (
     <View>
       <View style={styles.namebar}>
@@ -96,6 +110,11 @@ export default function AgentHomeHeader(props) {
               source={require('../../../assets/bellIcon.png')}
               style={styles.backIcon}
             />
+            {notificationCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationText}>{notificationCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -161,6 +180,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
     marginLeft: widthToDp(5),
-    marginBottom:height*.02
+    marginBottom: height * 0.02,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    backgroundColor: Colors.Orange,
+    borderRadius: 30,
+    width: 15,
+    height: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    right: 0,
+    top: 0,
+  },
+  notificationText: {
+    fontSize: 12,
+    color: Colors.white,
+    fontWeight: 'bold',
   },
 });
