@@ -18,10 +18,12 @@ import useAgentService from '../../hooks/useAgentService';
 import {GET_AGENT_LIVE_LOCATION} from '../../../request/queries/getAgentLiveLocation.query';
 import {useQuery} from '@apollo/client';
 import {setNavigationStatus} from '../../features/booking/bookingSlice';
+import useCustomerSuport from '../../hooks/useCustomerSupport';
 const GOOGLE_MAPS_APIKEY = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
 
 export default function AgentMapArrivalScreen({navigation}) {
   const dispatch = useDispatch();
+  const {handleCallSupport} = useCustomerSuport();
   const {agentLocationUpdate, getCurrentLocation} = useAgentService();
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function AgentMapArrivalScreen({navigation}) {
   const coordinates = useSelector(state => state.booking.coordinates);
   const user = useSelector(state => state.user.user.account_type);
   // console.log('useresss', clientData.booking.agent._id);
-  // console.log('ddddddddddddddd', clientData);
+  console.log('ddddddddddddddd', clientData);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -272,7 +274,15 @@ export default function AgentMapArrivalScreen({navigation}) {
         midImg={require('../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}
         lastImg={require('../../../assets/chatIcon.png')}
-        lastImgPress={() => navigation.navigate('ChatScreen')}
+        lastImgPress={() =>
+          navigation.navigate('ChatScreen', {
+            sender: clientData.booking?.booked_by || clientData.booking?.client,
+            receiver: clientData.booking?.agent,
+            chat: clientData.booking?._id,
+            channel: clientData.booking?.agora_channel_name,
+            voiceToken: clientData.booking?.agora_channel_token,
+          })
+        }
       />
       {user !== 'client' && (
         <View style={styles.button}>

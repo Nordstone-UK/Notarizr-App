@@ -12,7 +12,7 @@ import {
   PermissionsAndroid,
   Platform, Linking
 } from 'react-native';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNBlobUtil from 'react-native-blob-util';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Pdf from 'react-native-pdf';
 import PdfView from 'react-native-pdf';
@@ -664,11 +664,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
       const processDownload = async (url) => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        const downloadDest = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+        // const downloadDest = `${RNBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
+        const downloadDest = `/storage/emulated/0/Download/${fileName}`;
         console.log("Downloading document:", url);
 
         try {
-          const result = await RNFetchBlob.config({
+          const result = await RNBlobUtil.config({
             fileCache: true,
             path: downloadDest,
           }).fetch('GET', url);

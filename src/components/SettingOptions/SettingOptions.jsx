@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   iconsetting: {
+    width: '83%',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -41,4 +42,9 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(3),
     color: Colors.TextColor,
   },
+  // arrowIcon: {
+  //   width: widthToDp(4),
+  //   height: widthToDp(4), // Use widthToDp to maintain aspect ratio
+  //   resizeMode: 'contain',
+  // },
 });

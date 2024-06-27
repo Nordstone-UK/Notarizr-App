@@ -41,7 +41,7 @@ export default function ChatScreen({ route, navigation }: any) {
   };
   const { getAgoraCallToken } = useChatService();
   const token = useSelector(state => state.chats.chatToken);
-  // console.log("tokeren", token)
+  console.log("tokeren", token)
   const { sender, receiver, chat, channel, voiceToken } = route.params;
   console.log("receiver", receiver)
   const appKey = '411048105#1224670';

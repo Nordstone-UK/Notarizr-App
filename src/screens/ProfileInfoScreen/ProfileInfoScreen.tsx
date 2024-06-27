@@ -86,7 +86,8 @@ export default function ProfileInfoScreen({ navigation }: any) {
                 onPress={
                   user?.account_type === 'client'
                     ? () => navigation.navigate('ProfileDetailEditScreen')
-                    : () => navigation.navigate('AgentProfileEditScreen')
+                    : () => navigation.navigate('ProfileDetailEditScreen')
+                  // navigation.navigate('AgentProfileEditScreen')
                 }>
                 <Image
                   source={require('../../../assets/editIcon.png')}
@@ -134,7 +135,7 @@ export default function ProfileInfoScreen({ navigation }: any) {
             {user != null && user?.account_type !== 'client' && (
               <SettingOptions
                 icon={require('../../../assets/license.png')}
-                Title="Update License and Notary Seal"
+                Title="Update License and Notary Seals"
               // onPress={() => navigation.navigate('PasswordEditScreen')}
               />
             )}
