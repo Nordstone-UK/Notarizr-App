@@ -7656,10 +7656,10 @@ react-native-autocomplete-dropdown@^1.1.2:
     react-native-size-matters "^0.3.0"
     react-native-vector-icons ">=7.0.0"
 
-react-native-blob-util@^0.19.6, react-native-blob-util@>=0.13.7:
-  version "0.19.6"
-  resolved "https://registry.npmjs.org/react-native-blob-util/-/react-native-blob-util-0.19.6.tgz"
-  integrity sha512-62yMJdgOMEu2Ir9V177FbvOYZskFu92XkT/hUWMMdu3G7UhqnetwtyVwqo4jfNrr+Y3Lp0gXYx60vxjMaov1pQ==
+react-native-blob-util@^0.19.9, react-native-blob-util@>=0.13.7:
+  version "0.19.9"
+  resolved "https://registry.npmjs.org/react-native-blob-util/-/react-native-blob-util-0.19.9.tgz"
+  integrity sha512-gIuErPqGbBIAPWf+K07x/8mRZ80Waz9DWgwMdQ8zWgms8kYfAji0GNk2gvZZ0y9MKe61jme7oOdZ7InWLRy2GA==
   dependencies:
     base-64 "0.1.0"
     glob "^10.3.10"
