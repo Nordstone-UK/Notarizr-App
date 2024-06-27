@@ -28,30 +28,30 @@ export default function ChatContactScreen({navigation}) {
       />
     );
   };
-   const renderEmptyComponent = () => (
+  const renderEmptyComponent = () => (
     <View
-            style={{
-              minHeight: heightToDp(100),
-              justifyContent: 'center',
-              alignSelf: 'center',
-            }}>
-            <Image
-              source={require('../../../assets/emptyBox.png')}
-              style={styles.picture}
-            />
-            <Text
-              style={[
-                styles.Heading,
+      style={{
+        minHeight: heightToDp(100),
+        justifyContent: 'center',
+        alignSelf: 'center',
+      }}>
+      <Image
+        source={require('../../../assets/emptyBox.png')}
+        style={styles.picture}
+      />
+      <Text
+        style={[
+          styles.Heading,
 
-                {
-                  fontSize: widthToDp(4),
-                  fontFamily: 'Manrope-SemiBold',
-                  fontWeight: '600',
-                },
-              ]}>
-             No chats available
-            </Text>
-          </View>
+          {
+            fontSize: widthToDp(4),
+            fontFamily: 'Manrope-SemiBold',
+            fontWeight: '600',
+          },
+        ]}>
+        No chats available
+      </Text>
+    </View>
   );
 
   return (

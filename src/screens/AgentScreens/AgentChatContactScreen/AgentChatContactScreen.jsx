@@ -19,10 +19,12 @@ export default function AgentChatContactScreen({navigation}) {
   const chats = useSelector(state => state.chats.allChats || []);
   console.log('remdereote,', chats);
   const renderItem = ({item}) => {
+    console.log('itemssssss', item);
     const user = item.booked_by; // Assuming either "agent" or "client" property exists in each item
     if (!user) {
       return null; // Handle case where user data is missing
     }
+
     return (
       <ChatContacts
         image={{uri: user?.profile_picture}}

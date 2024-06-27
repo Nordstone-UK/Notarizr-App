@@ -25,13 +25,14 @@ import useStripeApi from '../../hooks/useStripeApi';
 import WebView from 'react-native-webview';
 
 export default function PaymentUpdateScreen({navigation}, props) {
-  const {handleStripeCreation, handleOnboardingLink} = useStripeApi();
-
+  const {handleStripeCreation, handleOnboardingLink, checkUserStipeAccount} =
+    useStripeApi();
   const user = useSelector(state => state.user.user.account_type);
   console.log('user', user);
   const [Link, setLink] = useState();
   const [loading, setLoading] = useState(false);
-
+  const [isUserStripeOnboard, setIsUserStripeOnboard] = useState(false);
+  console.log('userstripeac', isUserStripeOnboard);
   // const openLink = async () => {
   //   // const supported = await Linking.canOpenURL(Link);
   //   // if (supported) {
@@ -41,6 +42,13 @@ export default function PaymentUpdateScreen({navigation}, props) {
   //   // }
   // };
   useEffect(() => {
+    const fetchStripeStatus = async () => {
+      const response = await checkUserStipeAccount();
+      setIsUserStripeOnboard(response.isUserStripeOnboard);
+    };
+
+    fetchStripeStatus();
+
     // CreateStripeAccount();
     // onBoardingLink();
   }, []);
@@ -77,7 +85,11 @@ export default function PaymentUpdateScreen({navigation}, props) {
           {!Link && user !== 'client' && (
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Create Stripe Account"
+              Title={
+                isUserStripeOnboard.has_stripe_account
+                  ? 'Edit Stripe Account'
+                  : 'Create Stripe Account'
+              }
               onPress={() => CreateStripeAccount()}
               loading={loading}
               isDisabled={loading}

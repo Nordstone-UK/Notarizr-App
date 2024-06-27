@@ -15,7 +15,7 @@ import {
 import React, {useState, useEffect} from 'react';
 import PdfView from 'react-native-pdf';
 import Pdf from 'react-native-pdf';
-
+import RNBlobUtil from 'react-native-blob-util';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -58,7 +58,6 @@ import {
 } from '../../../request/mutations/updateSessionClientDocs';
 import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import AddressCard from '../../components/AddressCard/AddressCard';
-import RNFetchBlob from 'rn-fetch-blob';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const {
@@ -454,11 +453,11 @@ export default function MedicalBookingScreen({route, navigation}) {
 
       const processDownload = async url => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        const downloadDest = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`;
+        const downloadDest = `/storage/emulated/0/Download/${fileName}`;
         console.log('Downloading document:', url);
 
         try {
-          const result = await RNFetchBlob.config({
+          const result = await RNBlobUtil.config({
             fileCache: true,
             path: downloadDest,
           }).fetch('GET', url);
