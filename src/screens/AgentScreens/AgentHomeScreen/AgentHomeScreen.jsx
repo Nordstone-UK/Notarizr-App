@@ -93,9 +93,8 @@ export default function AgentHomeScreen({navigation}) {
         console.log('isuserstrier', isUserStripeOnboard);
         if (
           isUserStripeOnboard &&
-          isUserStripeOnboard.has_stripe_account === true
-          //  &&
-          // isUserStripeOnboard.has_details_submitted === true
+          isUserStripeOnboard.has_stripe_account === true &&
+          isUserStripeOnboard.has_details_submitted === true
         ) {
           if (service === 'mobile_notary') {
             dispatchMobile('mobile_notary');
