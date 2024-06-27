@@ -380,7 +380,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     bottomSheetModalRef.current?.present();
 
   };
-
+  const handleCloseModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.close();
+  }, []);
   ////////////// live bolcks ////////////////
   const insertObject = useLiveblocks(state => state.insertObject);
   const setPdfFilePath = useLiveblocks(state => state.setPdfFilePath);
@@ -389,6 +391,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
 
   const handleTextonLiveblock = () => {
+    handleCloseModalPress();
     // console.log("hellodftesxt", documentText)
     insertObject(new Date().toISOString(), {
       type: 'text',
@@ -1041,87 +1044,86 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
         </View>
         <View style={styles.actions}>
-          <View style={styles.editActions}>
+          {/* <View style={styles.editActions}> */}
+          <MainButton
+            Title="Sign"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            styles={{
+              paddingHorizontal: widthToDp(3),
+              paddingVertical: widthToDp(2),
+            }}
+            onPress={() => {
+              // onSignatureAdd();
+              getSignature();
+            }}
+          />
+          <MainButton
+            Title="Upload sign"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            styles={{
+              paddingHorizontal: widthToDp(1),
+              paddingVertical: widthToDp(2),
+            }}
+            onPress={() => {
+              onAddSignatureImage(false);
+            }}
+          />
+          {User.account_type != 'client' && (
+            // <View style={styles.editActions}>
             <MainButton
-              Title="Sign"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(3),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => {
-                // onSignatureAdd();
-                getSignature();
-              }}
-            />
-            <MainButton
-              Title="Upload sign"
+              Title="Add stamp"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               styles={{
                 paddingHorizontal: widthToDp(1),
                 paddingVertical: widthToDp(2),
               }}
               onPress={() => {
-                onAddSignatureImage(false);
+                onAddSignatureImage(true);
+              }}
+            />
+          )}
+          {User.account_type != 'client' && (
+            <MainButton
+              Title="Add Text"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              styles={{
+                paddingHorizontal: widthToDp(1),
+                paddingVertical: widthToDp(2),
+              }}
+              onPress={() => {
+                handlePresentModalPress();
+              }}
+            />
+          )}
+          {User.account_type != 'client' && (
+            <MainButton
+              Title="Add Date"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              styles={{
+                paddingHorizontal: widthToDp(1),
+                paddingVertical: widthToDp(2),
+              }}
+              onPress={() => {
+                setOpen(true);
+              }}
+            />
+            // </View>
+          )}
+          {/* </View> */}
+          {User.account_type != 'client' && (
+
+            <MainButton
+              Title="Complete call"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              styles={{
+                paddingHorizontal: widthToDp(4),
+                paddingVertical: widthToDp(2),
+              }}
+              onPress={() => {
+                leave();
               }}
             />
 
-            {User.account_type != 'client' && (
-
-              <>
-                <MainButton
-                  Title="Add stamp"
-                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                  styles={{
-                    paddingHorizontal: widthToDp(1),
-                    paddingVertical: widthToDp(2),
-                  }}
-                  onPress={() => {
-                    onAddSignatureImage(true);
-                  }}
-                />
-
-                <MainButton
-                  Title="Add Text"
-                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                  styles={{
-                    paddingHorizontal: widthToDp(1),
-                    paddingVertical: widthToDp(2),
-                  }}
-                  onPress={() => {
-                    handlePresentModalPress();
-                  }}
-                />
-
-
-                <MainButton
-                  Title="Add Date"
-                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                  styles={{
-                    paddingHorizontal: widthToDp(1),
-                    paddingVertical: widthToDp(2),
-                  }}
-                  onPress={() => {
-                    setOpen(true);
-                  }}
-                />
-              </>
-            )}
-          </View>
-          {User.account_type != 'client' && (
-            <View>
-              <MainButton
-                Title="Complete call"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                styles={{
-                  paddingHorizontal: widthToDp(4),
-                  paddingVertical: widthToDp(2),
-                }}
-                onPress={() => {
-                  leave();
-                }}
-              />
-            </View>
           )}
           <BottomSheetModal
             ref={bottomSheetModalRef}
@@ -1226,7 +1228,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    // justifyContent: 'center',
     flexWrap: 'wrap',
     columnGap: 16,
     rowGap: 16,
@@ -1240,6 +1242,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     columnGap: 16,
+    flexWrap: 'wrap',
   },
   Maincontainer: {
     flex: 1,
