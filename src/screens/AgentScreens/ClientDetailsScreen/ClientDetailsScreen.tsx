@@ -618,42 +618,29 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       try {
         let permissionsToRequest = [];
 
-        // Check for each media type permission
         if (Platform.Version >= 33) {
-          // Android 13 and above
-          permissionsToRequest.push(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          );
-          permissionsToRequest.push(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-          );
-          permissionsToRequest.push(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
-          );
+          permissionsToRequest.push(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES);
+          permissionsToRequest.push(PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO);
+          permissionsToRequest.push(PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO);
         } else {
-          // Fallback to legacy external storage permission for older Android versions
-          permissionsToRequest.push(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          );
+          permissionsToRequest.push(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
         }
+
         console.log('Permissions to request:', permissionsToRequest);
 
-        // Request permissions
         const granted = await PermissionsAndroid.requestMultiple(
           permissionsToRequest,
           {
             title: 'Storage Permission Needed',
-            message:
-              'This app needs access to your storage to save media files.',
+            message: 'This app needs access to your storage to save media files.',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',
-          },
+          }
         );
 
-        // Check if all permissions are granted
-        const allPermissionsGranted = permissionsToRequest.every(permission =>
-          granted[permission] === PermissionsAndroid.RESULTS.GRANTED
+        const allPermissionsGranted = permissionsToRequest.every(
+          permission => granted[permission] === PermissionsAndroid.RESULTS.GRANTED
         );
 
         if (allPermissionsGranted) {
@@ -672,13 +659,13 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       return true; // Assume permission granted for non-Android platforms
     }
   };
+
   const checkDownloadDirectory = async () => {
-    let dirs = ReactNativeBlobUtil.fs.dirs;
-    let downloadDir = `${dirs.DownloadDir}`;
+    let downloadDir = '/storage/emulated/0/Download'; // This is the correct path to check
 
     try {
       const dirInfo = await ReactNativeBlobUtil.fs.exists(downloadDir); // Check if the download directory exists
-      console.log("diringod", dirInfo)
+      console.log("dirInfo", dirInfo);
       if (dirInfo) {
         console.log('Download directory exists:', downloadDir);
         return true;
@@ -713,16 +700,19 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
       const processDownload = async (url) => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        let dirs = ReactNativeBlobUtil.fs.dirs;
-        let downloadPath = `${dirs.DownloadDir}/${fileName}`;
+        let downloadPath = `/storage/emulated/0/Download/${fileName}`;
+
+        console.log("Downloading document:", url);
 
         try {
-          const result = await ReactNativeBlobUtil.config({
-            fileCache: true,
-            path: downloadPath,
-          }).fetch('GET', url);
+          const res = await RNFS.downloadFile({
+            fromUrl: url,
+            toFile: downloadPath
+          }).promise;
 
-          if (result.info().status === 200) {
+          console.log("Response:", res);
+
+          if (res.statusCode === 200) {
             console.log(`File ${fileName} downloaded to ${downloadPath}`);
             Alert.alert('Download Successful', `File downloaded to ${downloadPath}`);
           } else {
