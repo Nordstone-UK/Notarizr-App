@@ -407,9 +407,7 @@ export default function MedicalBookingScreen({route, navigation}) {
       try {
         let permissionsToRequest = [];
 
-        // Check for each media type permission
         if (Platform.Version >= 33) {
-          // Android 13 and above
           permissionsToRequest.push(
             PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
           );
@@ -420,13 +418,13 @@ export default function MedicalBookingScreen({route, navigation}) {
             PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
           );
         } else {
-          // Fallback to legacy external storage permission for older Android versions
           permissionsToRequest.push(
             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
           );
         }
-        console.log('perpermisssontypes', permissionsToRequest);
-        // Request permissions
+
+        console.log('Permissions to request:', permissionsToRequest);
+
         const granted = await PermissionsAndroid.requestMultiple(
           permissionsToRequest,
           {
@@ -439,15 +437,12 @@ export default function MedicalBookingScreen({route, navigation}) {
           },
         );
 
-        // Check if all permissions are granted
-        if (
-          granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] ===
-            PermissionsAndroid.RESULTS.GRANTED &&
-          granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO] ===
-            PermissionsAndroid.RESULTS.GRANTED &&
-          granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO] ===
-            PermissionsAndroid.RESULTS.GRANTED
-        ) {
+        const allPermissionsGranted = permissionsToRequest.every(
+          permission =>
+            granted[permission] === PermissionsAndroid.RESULTS.GRANTED,
+        );
+
+        if (allPermissionsGranted) {
           console.log('Storage permissions granted');
           return true;
         } else {
@@ -463,42 +458,28 @@ export default function MedicalBookingScreen({route, navigation}) {
       return true; // Assume permission granted for non-Android platforms
     }
   };
-  // const requestStoragePermission = async () => {
-  //   if (Platform.OS === 'android') {
-  //     try {
-  //       let permissionType;
-  //       if (Platform.Version >= 33) {
-  //         // Android 13 and above
-  //         permissionType = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
-  //       } else {
-  //         permissionType =
-  //           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
-  //       }
 
-  //       const granted = await PermissionsAndroid.request(permissionType, {
-  //         title: 'Storage Permission Needed',
-  //         message: 'This app needs access to your storage to save files.',
-  //         buttonNeutral: 'Ask Me Later',
-  //         buttonNegative: 'Cancel',
-  //         buttonPositive: 'OK',
-  //       });
+  const checkDownloadDirectory = async () => {
+    let downloadDir = '/storage/emulated/0/Download'; // This is the correct path to check
 
-  //       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //         console.log('Storage permission granted');
-  //         return true;
-  //       } else {
-  //         console.log('Storage permission denied');
-  //         return false;
-  //       }
-  //     } catch (err) {
-  //       console.warn('Error requesting storage permission:', err);
-  //       return false;
-  //     }
-  //   } else {
-  //     console.log('Platform is not Android');
-  //     return true; // Assume permission granted for non-Android platforms
-  //   }
-  // };
+    try {
+      const dirInfo = await ReactNativeBlobUtil.fs.exists(downloadDir); // Check if the download directory exists
+      console.log('dirInfo', dirInfo);
+      if (dirInfo) {
+        console.log('Download directory exists:', downloadDir);
+        return true;
+      } else {
+        console.log(
+          'Download directory does not exist or is not accessible:',
+          downloadDir,
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking download directory:', error);
+      return false;
+    }
+  };
 
   const handleNotarizrDocumentPress = async documents => {
     console.log('documents', documents);
@@ -513,22 +494,34 @@ export default function MedicalBookingScreen({route, navigation}) {
         return;
       }
 
+      const downloadDirExists = await checkDownloadDirectory();
+      if (!downloadDirExists) {
+        Alert.alert(
+          'Download Directory Not Found',
+          'The download directory does not exist or is not accessible.',
+        );
+        return;
+      }
+
       const processDownload = async url => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        let dirs = ReactNativeBlobUtil.fs.dirs;
-        let downloadPath = `${dirs.DownloadDir}/${fileName}`;
+        let downloadPath = `/storage/emulated/0/Download/${fileName}`;
+
+        console.log('Downloading document:', url);
 
         try {
-          const result = await ReactNativeBlobUtil.config({
-            fileCache: true,
-            path: downloadPath,
-          }).fetch('GET', url);
-          console.log('rrrrrrrrrrrrrrseeeeeeeeee', result);
-          if (result.info().status === 200) {
-            console.log(`File ${fileName} downloaded to ${downloadDest}`);
+          const res = await RNFS.downloadFile({
+            fromUrl: url,
+            toFile: downloadPath,
+          }).promise;
+
+          console.log('Response:', res);
+
+          if (res.statusCode === 200) {
+            console.log(`File ${fileName} downloaded to ${downloadPath}`);
             Alert.alert(
               'Download Successful',
-              `File downloaded to ${downloadDest}`,
+              `File downloaded to ${downloadPath}`,
             );
           } else {
             Alert.alert(
