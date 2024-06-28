@@ -12,7 +12,8 @@ import {
   PermissionsAndroid,
   Platform, Linking
 } from 'react-native';
-import RNBlobUtil from 'react-native-blob-util';
+
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Pdf from 'react-native-pdf';
 import PdfView from 'react-native-pdf';
@@ -615,33 +616,55 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {
       try {
-        let permissionType;
-        if (Platform.Version >= 33) { // Android 13 and above
-          permissionType = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
-        } else {
-          permissionType = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
-        }
+        let permissionsToRequest = [];
 
-        const granted = await PermissionsAndroid.request(
-          permissionType,
+        // Check for each media type permission
+        if (Platform.Version >= 33) {
+          // Android 13 and above
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          );
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          );
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+          );
+        } else {
+          // Fallback to legacy external storage permission for older Android versions
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          );
+        }
+        console.log('Permissions to request:', permissionsToRequest);
+
+        // Request permissions
+        const granted = await PermissionsAndroid.requestMultiple(
+          permissionsToRequest,
           {
             title: 'Storage Permission Needed',
-            message: 'This app needs access to your storage to save files.',
+            message:
+              'This app needs access to your storage to save media files.',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',
           },
         );
 
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Storage permission granted');
+        // Check if all permissions are granted
+        const allPermissionsGranted = permissionsToRequest.every(permission =>
+          granted[permission] === PermissionsAndroid.RESULTS.GRANTED
+        );
+
+        if (allPermissionsGranted) {
+          console.log('Storage permissions granted');
           return true;
         } else {
-          console.log('Storage permission denied');
+          console.log('Some or all storage permissions denied');
           return false;
         }
       } catch (err) {
-        console.warn('Error requesting storage permission:', err);
+        console.warn('Error requesting storage permissions:', err);
         return false;
       }
     } else {
@@ -649,8 +672,25 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       return true; // Assume permission granted for non-Android platforms
     }
   };
+  const checkDownloadDirectory = async () => {
+    let dirs = ReactNativeBlobUtil.fs.dirs;
+    let downloadDir = `${dirs.DownloadDir}`;
 
-
+    try {
+      const dirInfo = await ReactNativeBlobUtil.fs.exists(downloadDir); // Check if the download directory exists
+      console.log("diringod", dirInfo)
+      if (dirInfo) {
+        console.log('Download directory exists:', downloadDir);
+        return true;
+      } else {
+        console.log('Download directory does not exist or is not accessible:', downloadDir);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking download directory:', error);
+      return false;
+    }
+  };
 
   const handleNotarizrDocumentPress = async (documents) => {
     console.log("documents", documents);
@@ -662,21 +702,29 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
         return;
       }
 
+      const downloadDirExists = await checkDownloadDirectory();
+      if (!downloadDirExists) {
+        Alert.alert(
+          'Download Directory Not Found',
+          'The download directory does not exist or is not accessible.',
+        );
+        return;
+      }
+
       const processDownload = async (url) => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        // const downloadDest = `${RNBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
-        const downloadDest = `/storage/emulated/0/Download/${fileName}`;
-        console.log("Downloading document:", url);
+        let dirs = ReactNativeBlobUtil.fs.dirs;
+        let downloadPath = `${dirs.DownloadDir}/${fileName}`;
 
         try {
-          const result = await RNBlobUtil.config({
+          const result = await ReactNativeBlobUtil.config({
             fileCache: true,
-            path: downloadDest,
+            path: downloadPath,
           }).fetch('GET', url);
 
           if (result.info().status === 200) {
-            console.log(`File ${fileName} downloaded to ${downloadDest}`);
-            Alert.alert('Download Successful', `File downloaded to ${downloadDest}`);
+            console.log(`File ${fileName} downloaded to ${downloadPath}`);
+            Alert.alert('Download Successful', `File downloaded to ${downloadPath}`);
           } else {
             Alert.alert('Download Failed', `Failed to download the file ${fileName}.`);
           }
@@ -705,8 +753,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     }
   };
 
-  console.log("cliendetails", clientDetail)
-  console.log("cliendetailssssssssssssssssssssssss", clientDetail?.status)
+  // console.log("cliendetails", clientDetail)
+  // console.log("cliendetailssssssssssssssssssssssss", clientDetail?.status)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
