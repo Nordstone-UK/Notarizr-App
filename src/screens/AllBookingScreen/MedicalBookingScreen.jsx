@@ -15,7 +15,7 @@ import {
 import React, {useState, useEffect} from 'react';
 import PdfView from 'react-native-pdf';
 import Pdf from 'react-native-pdf';
-import RNBlobUtil from 'react-native-blob-util';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -401,35 +401,61 @@ export default function MedicalBookingScreen({route, navigation}) {
     });
     dispatch(setCoordinates(coordinates));
   };
+
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {
       try {
-        let permissionType;
+        let permissionsToRequest = [];
+
+        // Check for each media type permission
         if (Platform.Version >= 33) {
           // Android 13 and above
-          permissionType = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          );
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          );
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+          );
         } else {
-          permissionType =
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+          // Fallback to legacy external storage permission for older Android versions
+          permissionsToRequest.push(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          );
         }
+        console.log('perpermisssontypes', permissionsToRequest);
+        // Request permissions
+        const granted = await PermissionsAndroid.requestMultiple(
+          permissionsToRequest,
+          {
+            title: 'Storage Permission Needed',
+            message:
+              'This app needs access to your storage to save media files.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
 
-        const granted = await PermissionsAndroid.request(permissionType, {
-          title: 'Storage Permission Needed',
-          message: 'This app needs access to your storage to save files.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        });
-
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Storage permission granted');
+        // Check if all permissions are granted
+        if (
+          granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] ===
+            PermissionsAndroid.RESULTS.GRANTED &&
+          granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO] ===
+            PermissionsAndroid.RESULTS.GRANTED &&
+          granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO] ===
+            PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          console.log('Storage permissions granted');
           return true;
         } else {
-          console.log('Storage permission denied');
+          console.log('Some or all storage permissions denied');
           return false;
         }
       } catch (err) {
-        console.warn('Error requesting storage permission:', err);
+        console.warn('Error requesting storage permissions:', err);
         return false;
       }
     } else {
@@ -437,6 +463,42 @@ export default function MedicalBookingScreen({route, navigation}) {
       return true; // Assume permission granted for non-Android platforms
     }
   };
+  // const requestStoragePermission = async () => {
+  //   if (Platform.OS === 'android') {
+  //     try {
+  //       let permissionType;
+  //       if (Platform.Version >= 33) {
+  //         // Android 13 and above
+  //         permissionType = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+  //       } else {
+  //         permissionType =
+  //           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+  //       }
+
+  //       const granted = await PermissionsAndroid.request(permissionType, {
+  //         title: 'Storage Permission Needed',
+  //         message: 'This app needs access to your storage to save files.',
+  //         buttonNeutral: 'Ask Me Later',
+  //         buttonNegative: 'Cancel',
+  //         buttonPositive: 'OK',
+  //       });
+
+  //       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //         console.log('Storage permission granted');
+  //         return true;
+  //       } else {
+  //         console.log('Storage permission denied');
+  //         return false;
+  //       }
+  //     } catch (err) {
+  //       console.warn('Error requesting storage permission:', err);
+  //       return false;
+  //     }
+  //   } else {
+  //     console.log('Platform is not Android');
+  //     return true; // Assume permission granted for non-Android platforms
+  //   }
+  // };
 
   const handleNotarizrDocumentPress = async documents => {
     console.log('documents', documents);
@@ -453,15 +515,15 @@ export default function MedicalBookingScreen({route, navigation}) {
 
       const processDownload = async url => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        const downloadDest = `/storage/emulated/0/Download/${fileName}`;
-        console.log('Downloading document:', url);
+        let dirs = ReactNativeBlobUtil.fs.dirs;
+        let downloadPath = `${dirs.DownloadDir}/${fileName}`;
 
         try {
-          const result = await RNBlobUtil.config({
+          const result = await ReactNativeBlobUtil.config({
             fileCache: true,
-            path: downloadDest,
+            path: downloadPath,
           }).fetch('GET', url);
-
+          console.log('rrrrrrrrrrrrrrseeeeeeeeee', result);
           if (result.info().status === 200) {
             console.log(`File ${fileName} downloaded to ${downloadDest}`);
             Alert.alert(
