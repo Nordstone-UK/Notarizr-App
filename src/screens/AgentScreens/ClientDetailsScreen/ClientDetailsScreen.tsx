@@ -700,19 +700,16 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
       const processDownload = async (url) => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        let downloadPath = `/storage/emulated/0/Download/${fileName}`;
-
-        console.log("Downloading document:", url);
+        let dirs = ReactNativeBlobUtil.fs.dirs;
+        let downloadPath = `${dirs.DownloadDir}/${fileName}`;
 
         try {
-          const res = await RNFS.downloadFile({
-            fromUrl: url,
-            toFile: downloadPath
-          }).promise;
+          const result = await ReactNativeBlobUtil.config({
+            fileCache: true,
+            path: downloadPath,
+          }).fetch('GET', url);
 
-          console.log("Response:", res);
-
-          if (res.statusCode === 200) {
+          if (result.info().status === 200) {
             console.log(`File ${fileName} downloaded to ${downloadPath}`);
             Alert.alert('Download Successful', `File downloaded to ${downloadPath}`);
           } else {

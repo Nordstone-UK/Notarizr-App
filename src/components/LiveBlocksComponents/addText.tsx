@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
     paddingHorizontal: widthToDp(1),
-    textAlignVertical: 'top',
+    // textAlignVertical: 'top',
   },
 
   input: {
