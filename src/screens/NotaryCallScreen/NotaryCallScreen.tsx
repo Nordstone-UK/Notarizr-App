@@ -790,10 +790,19 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     });
   }
   const mute = () => {
-    setIsMuted(!isMuted);
-    agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
+    // setIsMuted(!isMuted);
+    // agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
+    if (agoraEngineRef.current) {
+      agoraEngineRef.current.muteLocalAudioStream(!isMuted);
+      setIsMuted((prev) => !prev);
+    }
   };
-
+  const toggleVideoMute = () => {
+    if (agoraEngineRef.current) {
+      agoraEngineRef.current.enableLocalVideo(!isJoined);
+      setIsJoined((prev) => !prev);
+    }
+  };
   const getPermission = async () => {
     if (Platform.OS === 'android') {
       await PermissionsAndroid.requestMultiple([
@@ -842,7 +851,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             {isJoined ? (
               <TouchableOpacity
                 style={styles.hourGlass}
-                onPress={() => setIsJoined(!isJoined)}>
+                onPress={toggleVideoMute}>
                 <Image
                   source={require('../../../assets/videoOff.png')}
                   style={{ width: widthToDp(10), height: widthToDp(10) }}
@@ -851,7 +860,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             ) : (
               <TouchableOpacity
                 style={styles.hourGlass}
-                onPress={() => setIsJoined(!isJoined)}>
+                onPress={toggleVideoMute}>
                 <Image
                   source={require('../../../assets/video.png')}
                   style={{ width: widthToDp(10), height: widthToDp(10) }}

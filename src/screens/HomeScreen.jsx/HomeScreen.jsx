@@ -128,6 +128,7 @@ export default function HomeScreen({route, navigation}) {
                   <FlatList
                     data={Booking.slice(0, 2)}
                     keyExtractor={item => item._id}
+                    style={{marginBottom: heightToDp(30)}}
                     renderItem={({item}) => {
                       return (
                         <TouchableOpacity onPress={() => handleAgentData(item)}>
