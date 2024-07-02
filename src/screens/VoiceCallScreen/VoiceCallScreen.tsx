@@ -30,6 +30,8 @@ export default function VoiceCallScreen({ route, navigation }: any) {
   const [message, setMessage] = useState('');
   const [CName, setChannelName] = useState<string>('');
   const [CToken, setCallToken] = useState<string>('');
+  const [callDuration, setCallDuration] = useState(0); // New state for the call duration
+  const timerRef = useRef<any>(null);
   const uid = 0;
 
   console.log('Channel Name:', channelName);
@@ -65,6 +67,7 @@ export default function VoiceCallScreen({ route, navigation }: any) {
           onJoinChannelSuccess: () => {
             showMessage('Successfully joined the channel ' + channelName);
             setIsJoined(true);
+            startTimer();
           },
           onUserJoined: (_connection: any, Uid: number) => {
             showMessage('Remote user joined with uid ' + Uid);
@@ -104,6 +107,7 @@ export default function VoiceCallScreen({ route, navigation }: any) {
       text1: msg,
     });
   }
+
   const join = async () => {
     if (isJoined) {
       return;
@@ -124,11 +128,29 @@ export default function VoiceCallScreen({ route, navigation }: any) {
       agoraEngineRef.current?.leaveChannel();
       setRemoteUid(0);
       setIsJoined(false);
+      stopTimer(); // Stop the timer when leaving the call
+      setCallDuration(0);
       showMessage('You left the channel');
       navigation.goBack();
     } catch (e) {
       console.log(e);
     }
+  };
+  const startTimer = () => {
+    timerRef.current = setInterval(() => {
+      setCallDuration((prevDuration) => prevDuration + 1);
+    }, 1000);
+  };
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -145,6 +167,7 @@ export default function VoiceCallScreen({ route, navigation }: any) {
           <Text style={styles.text}>
             {receiver?.first_name as string} {receiver?.last_name as string}
           </Text>
+          <Text style={styles.timer}>{formatDuration(callDuration)}</Text>
         </View>
 
         <TouchableOpacity
@@ -177,6 +200,13 @@ const styles = StyleSheet.create({
   completeIcon: {
     marginTop: heightToDp(25),
   },
+  timer: {
+    marginTop: heightToDp(6),
+    fontSize: widthToDp(5),
+    fontFamily: 'Manrope-Bold',
+    color: Colors.TextColor,
+    textAlign: 'center',
+  },
   groupimage: {
     flex: 1,
   },
@@ -203,4 +233,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+
 });
