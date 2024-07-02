@@ -199,7 +199,7 @@ export default function AuthenticationScreen({route, navigation}) {
         Title="Booking"
         midImg={require('../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}
-        lastImg={require('../../../assets/bellIcon.png')}
+        // lastImg={require('../../../assets/bellIcon.png')}
       />
       <Text style={styles.heading}>
         Please select a document for verification
