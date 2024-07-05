@@ -52,19 +52,20 @@ const styles = StyleSheet.create({
   },
 
   TextInput: {
+    width: widthToDp(50),
     fontSize: widthToDp(4),
     height: 100,
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
     paddingHorizontal: widthToDp(1),
-    // textAlignVertical: 'top',
+    textAlignVertical: 'top',
   },
 
   input: {
     // flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    // justifyContent: 'center',
+    // alignItems: 'center',
     // alignContent: 'center',
     borderWidth: 2,
     borderColor: Colors.Orange,

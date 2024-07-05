@@ -65,7 +65,7 @@ import AddText from '../../components/LiveBlocksComponents/addText';
 import { UPDATE_OR_CREATE_SESSION_UPDATED_DOCS } from '../../../request/mutations/updateSessionUpdateddocs';
 export default function NotaryCallScreen({ route, navigation }: any) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['20%', '30%'], []);
+  const snapPoints = useMemo(() => ['25%', '40%'], []);
   const { uploadimageToS3, uploadAllDocuments } = useRegister();
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
@@ -921,10 +921,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           ) : (
             fileDownloaded && (
               <>
-                <SignatureContainer
-                  signatureData={signatureData}
-                  onSignatureChange={handleDragabbleSignatureData}
-                />
+
                 {filePath ? (
                   <>
                     {/* <PDFViewer
@@ -1049,8 +1046,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 )}
               </>
             )
-          )}
-
+          )
+          }
+          <SignatureContainer
+            signatureData={signatureData}
+            onSignatureChange={handleDragabbleSignatureData}
+          />
         </View>
         <View style={styles.actions}>
           {/* <View style={styles.editActions}> */}
