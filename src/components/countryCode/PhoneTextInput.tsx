@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import PhoneInput from 'react-native-phone-number-input';
 import Colors from '../../themes/Colors';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
+import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 // import styles from './Styles/index';
 
 export interface Props {
@@ -17,6 +17,7 @@ export interface Props {
   inputStyle?: string;
   value?: number;
   onChange?: Function;
+  editable?: boolean;
 }
 
 const PhoneTextInput = ({
@@ -28,6 +29,7 @@ const PhoneTextInput = ({
   labelStyle,
   placeholder,
   defaultCode,
+  editable = true,
 }: any) => {
   const phoneInput = useRef<PhoneInput>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -58,13 +60,13 @@ const PhoneTextInput = ({
         onChangeFormattedText={text => {
           onChange(text);
         }}
-        textInputProps={{placeholderTextColor: Colors.DisableColor}}
+        textInputProps={{ placeholderTextColor: Colors.DisableColor, editable: editable }}
       />
       <Text
         style={[
           (isFocused && styles.labelFocused) ||
-            (Label && styles.labelUnFocused) ||
-            false,
+          (Label && styles.labelUnFocused) ||
+          false,
           labelStyle,
         ]}>
         {LabelTextInput}

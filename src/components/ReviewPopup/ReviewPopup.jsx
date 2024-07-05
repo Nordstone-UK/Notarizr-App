@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+} from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
@@ -36,32 +43,39 @@ const StarRating = ({rating, onStarPress}) => {
 };
 export default function ReviewPopup(props) {
   return (
-    <View style={styles.bottonSheet}>
-      <Text style={styles.text}>
-        Please provide us with feedback for your agent
-      </Text>
-      <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
-      <LabelTextInput
-        LabelTextInput={'Reveiw'}
-        labelStyle={{
-          backgroundColor: Colors.PinkBackground,
-          color: Colors.TextColor,
-        }}
-        Label={true}
-        onChangeText={text => props.handleReviewSubmit(text)}
-      />
-      <View style={styles.btn}>
-        <GradientButton
-          Title="Submit"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={props.onPress}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <View style={styles.bottonSheet}>
+        <Text style={styles.text}>
+          Please provide us with feedback for your agent
+        </Text>
+        <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
+        <LabelTextInput
+          LabelTextInput={'Reveiw'}
+          labelStyle={{
+            backgroundColor: Colors.PinkBackground,
+            color: Colors.TextColor,
+          }}
+          Label={true}
+          onChangeText={text => props.handleReviewSubmit(text)}
         />
+        <View style={styles.btn}>
+          <GradientButton
+            Title="Submit"
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            onPress={props.onPress}
+          />
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   bottonSheet: {
     flex: 1,
     // justifyContent: 'flex-end',

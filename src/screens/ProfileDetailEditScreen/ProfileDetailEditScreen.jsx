@@ -169,6 +169,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultValue={first_name}
                 LabelTextInput={'First Name'}
                 onChangeText={text => setfirstName(text)}
+                editable={false}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/profileTabIcon.png')}
@@ -177,6 +178,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 Label={true}
                 LabelTextInput={'Last Name'}
                 onChangeText={text => setlastName(text)}
+                editable={false}
               />
 
               <LabelTextInput
@@ -200,6 +202,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultCode={countryCode}
                 value={phoneNumberWithoutCode}
                 placeholder={'XXXXXXXXXXX'}
+                editable={false}
               />
               <CustomDatePicker
                 onConfirm={date => setDate(date)}
