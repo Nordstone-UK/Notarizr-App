@@ -9,6 +9,7 @@ export const UPDATE_PROFILE_INFO = gql`
     $location: String!
     $gender: String!
     $description: String!
+    
   ) {
     update(
       first_name: $firstName
@@ -18,6 +19,7 @@ export const UPDATE_PROFILE_INFO = gql`
       location: $location
       gender: $gender
       description: $description
+   
     ) {
       message
       status

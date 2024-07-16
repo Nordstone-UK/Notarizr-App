@@ -154,10 +154,32 @@ const uploadSignedDocumentsOnS3 = async base64Data => {
     throw error;
   }
 };
+const uploadSignatureOnS3 = async (base64Data) => {
+  const s3bucket = new S3({
+    accessKeyId: accessKeyId,
+    secretAccessKey: secretAccessKey,
+    signatureVersion: signatureVersion,
+  });
+  const params = {
+    Bucket: MUNROE_BUCKET_NAME,
+    Key: `signed-documents/${new Date().getTime()}.png`,
+    Body: Buffer.from(base64Data.replace('data:image/png;base64,', ''), 'base64'),
+    ContentType: 'image/png',
+  };
 
+  try {
+    const data = await s3bucket.upload(params).promise();
+    console.log('File uploaded successfully. Location:', data.Location);
+    return data.Location;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+};
 export {
   uploadImageOnS3,
   uploadDirectOnS3,
+  uploadSignatureOnS3,
   uploadDocumentsOnS3,
   uploadSignedDocumentsOnS3,
 };
