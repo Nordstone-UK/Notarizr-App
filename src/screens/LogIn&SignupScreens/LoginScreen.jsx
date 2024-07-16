@@ -126,7 +126,7 @@ export default function LoginScreen({navigation}, props) {
         ) {
           console.log('All permissions granted');
         } else {
-          console.log('Some permissions denied');
+          console.log('Some permissionssssss denied');
         }
       } else if (Platform.OS === 'ios') {
         // Request location permission

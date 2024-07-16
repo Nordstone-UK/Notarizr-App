@@ -14,6 +14,10 @@ export const FETCH_USER_INFO = gql`
       isBlocked
       chatPrivacy
       notarySeal
+      notarysigns{
+      signUrl
+      _id
+      }
       location
       rating
       subscriptionType

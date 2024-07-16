@@ -130,6 +130,7 @@ dependencies {
 implementation 'com.github.netless-io:whiteboard-android:2.16.84'
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.fresco:stetho:2.6.0")
+    implementation project(':react-native-vector-icons')
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
@@ -144,3 +145,4 @@ implementation 'com.github.netless-io:whiteboard-android:2.16.84'
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
