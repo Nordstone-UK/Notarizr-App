@@ -119,6 +119,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [pageWidth, setPageWidth] = useState(0);
+
   const [pageHeight, setPageHeight] = useState(0);
   const [filePath, setFilePath] = useState(
     `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
@@ -433,7 +434,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       const pdfDoc = await PDFDocument.load(pdfBase64, {
         ignoreEncryption: true,
       });
-
+      console.log("sbbbbbbbbbbbbbbbbbbbb", x, y)
       const pages = pdfDoc.getPages();
       const firstPage = pages[page - 1];
       const yOffsetPercentage = 0.1; // 10% offset (adjust as needed)
@@ -899,6 +900,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     const page = pdfDoc.getPages()[currentPage - 1];
     const { width, height } = page.getSize();
 
+
     paths.forEach((path, index) => {
       console.log(`Path ssssssssssssssss}:`, JSON.stringify(path[0].color)); // Stringify and log the path object
 
@@ -906,14 +908,23 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         console.log(`Path ${index}:`, JSON.stringify(path)); // Stringify and log the path object
 
         const svgPath = convertPointsToSvgPath(path[0].points, width, height);
-        console.log("sbbbbbbbbbbbbbbbbbbbb", svgPath)
-        page.moveTo(100, page.getHeight() - 5)
+        console.log("sbbbbbbbbbbbbbbbbbbbb", path[0].points[0])
+        const x = path[0].points[0].x;
+        const y = path[0].points[0].y;
+        console.log("xxxxxxxxxxxxxxxx", page.getHeight() - 100,)
+        // page.moveTo(100, page.getHeight() - 100)
         // Convert the color from rgb string to pdf-lib rgb
         const colorString = path[0].color;
         const color = rgbStringToRgb(colorString);
 
-        page.moveDown(25)
+        // page.moveDown(55)
         page.drawSvgPath(svgPath, {
+          x: (page.getWidth() * x) / pageWidth,
+          y:
+            page.getHeight() -
+            (page.getHeight() * y) / pageHeight
+          ,
+
           borderColor: color,
           borderWidth: 5,
         });
@@ -1086,7 +1097,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                       onError={error => console.error(error)}
                     />
                     {drawingMode && (
-                      <SketchCanvasComponent onPathsChange={handlePathsChange} stamps={User} onStampChanges={handleSavedStamp} onClearPaths={handleClearPaths} />
+                      <SketchCanvasComponent onPathsChange={handlePathsChange} stamps={User} onStampChanges={handleSavedStamp} saveToPdf={saveToPdf} />
                     )}
                     {/* {paths.length > 0 && (
                       <TouchableOpacity style={styles.button} onPress={saveToPdf}>
@@ -1094,9 +1105,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         <Text style={styles.buttonText}>Save to PDF</Text>
                       </TouchableOpacity>
                     )} */}
-                    {paths.length > 0 && (
+                    {/* {paths.length > 0 && (
                       <Button title="Save to PDF" onPress={saveToPdf} />
-                    )}
+                    )} */}
                     <View style={styles.currentPageTextContainer}>
                       <RNText
                         style={styles.currentPageText}>
