@@ -395,7 +395,6 @@ export default function MedicalBookingScreen({route, navigation}) {
       // Use fallbackCoordinates if coordinates are empty or undefined
       coordinates = bookingDetail?.booked_by.current_location?.coordinates;
     }
-    console.log('cooofdfdnf', coordinates);
     navigation.navigate('AgentMapArrivalScreen', {
       user: 'Client',
     });
@@ -1306,7 +1305,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                   fontSize: widthToDp(4),
                 }}
                 onPress={() => {
-                  handleAddressPress(bookedByAddress.location_coordinates);
+                  handleAddressPress(bookedByAddress?.location_coordinates);
                 }}
                 fontSize={widthToDp(3.5)}
                 // loading={loading}

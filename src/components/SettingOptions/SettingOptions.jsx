@@ -30,6 +30,9 @@ const styles = StyleSheet.create({
     width: widthToDp(8),
     height: heightToDp(8),
     resizeMode: 'contain',
+    backgroundColor: 'rgba(184, 228, 235, 1)',
+    borderRadius: 10,
+    // padding: 4,
   },
   iconsetting: {
     width: '83%',

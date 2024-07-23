@@ -2,18 +2,15 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Pressable,
   View,
   ScrollView,
   SafeAreaView,
   PermissionsAndroid,
   Platform,
-  Alert,
   BackHandler,
   Dimensions,
   ActivityIndicator,
   Text as RNText,
-  Button,
 } from 'react-native';
 import moment from 'moment-timezone';
 import DatePicker from 'react-native-date-picker';
@@ -65,7 +62,6 @@ import PDFViewer from './PDFViewer';
 import AddText from '../../components/LiveBlocksComponents/addText';
 import { UPDATE_OR_CREATE_SESSION_UPDATED_DOCS } from '../../../request/mutations/updateSessionUpdateddocs';
 import SketchCanvasComponent from './PenTool/SketchCanvasComponent';
-import DrawingControls from './PenTool/DrawingControls';
 import useUpdate from '../../hooks/useUpdate';
 import useFetchUser from '../../hooks/useFetchUser';
 export default function NotaryCallScreen({ route, navigation }: any) {
@@ -85,11 +81,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const bookingData = useSelector(state => state?.booking?.booking);
   const clientDocumentsKeys = Object.keys(bookingData.client_documents);
   const clientDocumentsValues = Object.values(bookingData.client_documents);
-  // Determine initial values for sourceKey and sourceUrl
+
   const initialSourceKey = clientDocumentsKeys.length > 0
     ? clientDocumentsKeys[0]
     : bookingData.agent_document.length > 0
-      ? 'agent_document' // Assign a default key if agent_document is used
+      ? 'agent_document'
       : null;
 
   const initialSourceUrl = clientDocumentsValues.length > 0
@@ -115,11 +111,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [stampBase64, setStampBase64] = useState(null);
   const [signatureArrayBuffer, setSignatureArrayBuffer] = useState(null);
   const [pdfBase64, setPdfBase64] = useState(null);
-  const [pdfArrayBuffer, setPdfArrayBuffer] = useState(null);
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [pageWidth, setPageWidth] = useState(0);
-
   const [pageHeight, setPageHeight] = useState(0);
   const [filePath, setFilePath] = useState(
     `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
@@ -127,11 +121,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [signatureData, setSignatureData] = useState(null);
   const [documentText, setDocumentText] = useState(null);
   const [signatureDimensions, setSignatureDimensions] = useState({});
-  const [isSignatureImage, setIsSignatureImage] = useState(false);
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
-  const [isHost, setIsHost] = useState(false);
-  const [notarisedDocument, setNotarisedDocument] = useState()
 
   useEffect(() => {
     const items = [
@@ -140,7 +130,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         value: bookingData.client_documents[doc]
       })),
       ...bookingData.agent_document.map((doc, index) => ({
-        label: `Agent Document ${index + 1}`, // Add index to the label
+        label: `Agent Document ${index + 1}`,
         value: doc
       }))
     ];
@@ -167,7 +157,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.error("Error fetching and converting image to Base64:", error);
     }
   };
-
   const handleDragabbleSignatureData = async (signatureData) => {
     if (!signatureData) {
       console.error("signatureData is undefined");
@@ -229,11 +218,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     if (newPdfSaved) {
       setFilePath(newPdfPath);
-      setPdfArrayBuffer(_base64ToArrayBuffer(pdfBase64));
     }
-
-  }, [signatureBase64, filePath, newPdfSaved, sourceUrl, stampBase64, newPdfPath]);
-
+  }, [filePath, newPdfSaved, sourceUrl, newPdfPath]);
   const _base64ToArrayBuffer = base64 => {
     const binary_string = atob(base64);
     const len = binary_string.length;
@@ -257,16 +243,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     return btoa(result);
   };
   const downloadFile = async () => {
+    console.log("soureurl", sourceUrl, fileDownloaded)
     if (!fileDownloaded && sourceUrl) {
-
       try {
+        // console.log("soureurl", sourceUrl)
         const destinationPath = newPdfPath ? newPdfPath : filePath;
-
+        console.log("destinationpath", destinationPath)
         const downloadResult = await RNFS.downloadFile({
           fromUrl: sourceUrl,
           toFile: destinationPath,
         }).promise;
-
         if (downloadResult.statusCode === 200) {
           setFileDownloaded(true);
           await readFile(destinationPath);
@@ -287,20 +273,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       if (fileExists) {
         const contents = await RNFS.readFile(path, 'base64');
         setPdfBase64(contents);
-        setPdfArrayBuffer(_base64ToArrayBuffer(contents));
-        console.log('File read successfully:', path);
       } else {
-        console.warn('File does not exist at path:', path);
-
-        // Fetch the file from the URL
-        // const url = 'https://pdf-lib.js.org/assets/with_update_sections.pdf';
         const arrayBuffer = await fetch(path).then(res => res.arrayBuffer());
-
-        // Do whatever you need with the fetched array buffer here
-
-        // Example: Set array buffer to a state variable
-        setPdfArrayBuffer(arrayBuffer);
-
       }
     } catch (error) {
       console.error('Error reading file:', error);
@@ -308,14 +282,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
   const getSignature = () => {
     setSignaturePad(!getSignaturePad);
-    setIsSignatureImage(false);
     setSignatureImageMimeType(null);
   };
   const handleSignature = React.useCallback(async (signature) => {
     try {
-
       let signaturesigns = await uploadSignatureOnS3(signature);
-
       const signupdated = await handleNotarysignUpdate(signaturesigns);
       if (signupdated) {
         await fetchUserInfo();
@@ -350,8 +321,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           setStampBase64(result.assets[0].base64);
           setSignatureImageMimeType(result.assets[0].type);
           setSignatureData(s3Url)
-          setIsSignatureImage(true);
-
           setSignaturePad(false);
           setPdfEditMode(true);
           insertObject(new Date().toISOString(), {
@@ -363,12 +332,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               y: 100,
             },
           });
-
         } else {
           setSignatureBase64(result.assets[0].base64);
           setSignatureData(s3Url)
           setSignatureImageMimeType(result.assets[0].type);
-          setIsSignatureImage(true);
           setSignaturePad(false);
           setPdfEditMode(true);
           insertObject(new Date().toISOString(), {
@@ -381,7 +348,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             },
           });
         }
-
       }
     } catch (error) {
       console.log('error', error);
@@ -389,7 +355,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
   const handlePresentModalPress = () => {
     bottomSheetModalRef.current?.present();
-
   };
   const handleCloseModalPress = useCallback(() => {
     bottomSheetModalRef.current?.close();
@@ -397,10 +362,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   ////////////// live bolcks ////////////////
   const insertObject = useLiveblocks(state => state.insertObject);
   const setPdfFilePath = useLiveblocks(state => state.setPdfFilePath);
-  const pdfFilePath = useLiveblocks(state => state.pdfFilePath);
-  const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
-  const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
-
   const handleTextonLiveblock = () => {
     handleCloseModalPress();
     insertObject(new Date().toISOString(), {
@@ -425,8 +386,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     });
   }
   //////////////////////////////////////////
-
-
   const handleSingleTap = async (page, x, y) => {
     if (pdfEditMode) {
       setNewPdfSaved(false);
@@ -434,10 +393,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       const pdfDoc = await PDFDocument.load(pdfBase64, {
         ignoreEncryption: true,
       });
-      console.log("sbbbbbbbbbbbbbbbbbbbb", x, y)
       const pages = pdfDoc.getPages();
       const firstPage = pages[page - 1];
-      const yOffsetPercentage = 0.1; // 10% offset (adjust as needed)
+      const yOffsetPercentage = 0.1;
       const yOffset = pageHeight * yOffsetPercentage;
       if (signatureImageMimeType == 'image' || signatureImageMimeType == 'jpg' || signatureImageMimeType == 'png') {
         const signatureImage =
@@ -476,13 +434,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             setNewPdfSaved(true);
             setPdfBase64(pdfBase64);
             const l = await uploadSignedDocumentsOnS3(pdfBase64);
-            setNotarisedDocument(l)
             await updatedDocument(l)
           })
           .catch(err => {
             console.log('eeee', err.message);
           });
-
       }
       else {
         const { width: width, height: height } = signatureDimensions;
@@ -504,7 +460,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             height: height * 1.45,
           });
         }
-
         const pdfBytes = await pdfDoc.save();
         const pdfBase64 = _uint8ToBase64(pdfBytes);
         const path = `${RNFS.DocumentDirectoryPath
@@ -517,11 +472,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             setPdfBase64(pdfBase64);
             setFilePath(path)
             setNewPdfSaved(true);
-            // if (signatureBase64 && stampBase64) {
             const l = await uploadSignedDocumentsOnS3(pdfBase64);
             // const d = await uploadAllDocuments(pdfBase64)
-
-            setNotarisedDocument(l)
             await updatedDocument(l)
             // setPdfFilePath(l);
             // updateSignedDocumentToDb(l);
@@ -531,28 +483,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           .catch(err => {
             // console.log('eeee', err.message);
           });
-
       }
       setPdfEditMode(false);
-
     }
-
   };
   const handleLinkChange = async (linkId: string, itemLabel: Number) => {
-    // const selectedKey = Object.keys(.client_documents).find(key => bookingData.client_documents[key] === linkId);
-
-    // Update the filePath state with the new file path
-
-    // const newFilePath = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
-    // setFilePath(newFilePath);
-    // setNewPdfPath(newFilePath);
     setFilePath(filePath);
     setNewPdfPath(filePath);
     setSourceUrl(linkId);
     setNewPdfSaved(true);
-    // const pdfBase64 = await 
     readFile(linkId);
-    // setPdfBase64(pdfBase64);
     setFileDownloaded(false)
     for (let i = 0; i < pickerItems.length; i++) {
       if (pickerItems[i].value === selectedItem) {
@@ -563,21 +503,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         readFile(l);
         setFileDownloaded(false);
         pickerItems[i].value = l;
-        break; // Exit loop once the value is updated
+        break;
       }
     }
-
-    // console.log("updatedpickeritem", updatedPickerItems)
-    // Update the pickerItems state with the updated array
     setSelectedItem(linkId);
-
-    // setPdfBase64(linkId)
-
-    // deleteAllObjects()
   };
-
   const updatedDocument = async url => {
-    // console.log("updfdfdfdfd", url)
     const urlResponse = {
       key: sourceKey,
       value: url
@@ -588,12 +519,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         updatedDocuments: [urlResponse],
       },
     };
-    console.log("requet", request)
     const success = await updatedDocumentsession(request)
-    console.log("sudccc", success)
   }
   const updateSignedDocumentToDb = async url => {
-
     try {
       const request = {
         variables: {
@@ -631,7 +559,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             sessionId: bookingData?._id
           },
         };
-
         let sessiondata = await getSession(request);
         dispatch(setBookingInfoState(sessiondata.data.getSession.session));
       }
@@ -642,7 +569,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   /////////////////////////////////////
-
   ///////////////////////////////
 
   const { channel, token: CutomToken, routeFrom } = route.params;
@@ -653,17 +579,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [remoteUids, setRemoteUids] = useState<any[]>([]);
   const agoraEngineRef = useRef<IRtcEngine>();
   const [isJoined, setIsJoined] = useState(false);
-  const [remoteUid, setRemoteUid] = useState(0);
-  const [value, setValue] = useState(50);
-
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
-
   const pdfRef = React.useRef<Pdf>(null);
   const [totalPages, setTotalPages] = React.useState<number>(0);
-  const [newSource, setNewSource] = useState<object>();
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
-
   const handleBackButton = () => {
     if (routeFrom === 'agent') {
       // If routeFrom is 'agent', navigate back
@@ -680,7 +600,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     return true;
   };
-
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', handleBackButton);
     return () => {
@@ -696,7 +615,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         agoraEngineRef.current = createAgoraRtcEngine();
         const agoraEngine = agoraEngineRef.current;
         const currentUserIsHost = true;
-        setIsHost(currentUserIsHost);
         agoraEngine.registerEventHandler({
           onJoinChannelSuccess: () => {
             showMessage('Successfully joined ' + channelName);
@@ -704,20 +622,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           },
           onUserJoined: (_connection, uid) => {
             showMessage('Remote user joined with uid ' + uid);
-
             setRemoteUids(prevUids => [...prevUids, uid]);
           },
           onUserOffline: (_connection, uid) => {
-
             showMessage('Remote user left the channel. uid: ' + uid);
             if (remoteUids[0] === 'Leave') {
               navigation.navigate('MedicalBookingScreen');
             }
             setRemoteUids(prevUids => prevUids.filter(prevUid => prevUid !== uid));
-            // if (remoteUids === [0]) {
             // Host left the call, navigate to AgentCallFinishing
             navigation.navigate('MedicalBookingScreen');
-            // }
           },
           onRequestToken(connection) { },
         });
@@ -754,10 +668,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
   const leave = async () => {
-
     try {
-      // console.log("notarizedoc", notarisedDocument)
-
       for (let i = 0; i < pickerItems.length; i++) {
         if (pickerItems[i].value === selectedItem) {
           const newFilePath = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
@@ -767,20 +678,17 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           readFile(l);
           setFileDownloaded(false);
           pickerItems[i].value = l;
-          break; // Exit loop once the value is updated
+          break;
         }
       }
       // let b = await updateSignedDocumentToDb(notarisedDocument)
       let c = await addSignedDocFunc(pickerItems);
-      // console.log("bbbdddd", a, "dfdfdfd", b)
       let a = agoraEngineRef.current?.leaveChannel();
       setRemoteUids(["Leave"]);
       setIsJoined(false);
-
       showMessage('You left the session');
       await updateSession("completed", bookingData?._id);
       navigation.navigate('AgentCallFinishing');
-
     } catch (e) {
       console.log(e);
     }
@@ -793,8 +701,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     });
   }
   const mute = () => {
-    // setIsMuted(!isMuted);
-    // agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
     if (agoraEngineRef.current) {
       agoraEngineRef.current.muteLocalAudioStream(!isMuted);
       setIsMuted((prev) => !prev);
@@ -814,13 +720,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       ]);
     }
   };
-  // const [drawMode, setDrawMode] = useState<'pen' | 'line' | 'arrow' | 'rectangle' | null>(null);
   const [drawingMode, setDrawingMode] = useState<'pen' | 'line' | 'arrow' | 'rectangle'>('pen');
-
   const [paths, setPaths] = useState<any[]>([]);
-  console.log("pathssss", paths)
-  console.log("drawingdfdfd", drawingMode)
-  // Utility function to convert rgb string to pdf-lib rgb
   function rgbStringToRgb(rgbString) {
     const colorArray = rgbString.match(/\d+/g).map(Number);
     return rgb(colorArray[0] / 255, colorArray[1] / 255, colorArray[2] / 255);
@@ -834,11 +735,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const handleSavedStamp = (stampPath) => {
     console.log("pahedfdfddddddddddd", stampPath)
     onAddSavedStamp(stampPath);
-    // setPaths([...paths, newPaths]); // Assuming newPaths is a single path object
   };
   const identifyFileType = (url) => {
     const fileExtension = url.split('.').pop().toLowerCase();
-
     if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
       return 'jpg';
     } else if (fileExtension === 'png') {
@@ -848,16 +747,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
   const onAddSavedStamp = async (stampPath) => {
-
     const fileType = await identifyFileType(stampPath);
-
-
-    // if (isStamp) {
-    // setStampBase64(result.assets[0].base64);
     setSignatureImageMimeType(fileType);
     setSignatureData(stampPath)
-    setIsSignatureImage(true);
-
     setSignaturePad(false);
     setPdfEditMode(true);
     insertObject(new Date().toISOString(), {
@@ -869,7 +761,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         y: 100,
       },
     });
-
   }
   const _uint8ToBase641 = (uint8Array) => {
     let binary = '';
@@ -880,7 +771,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     return btoa(binary);
   };
   const convertPointsToSvgPath = (points) => {
-    console.log("pttttttttttttttttttttttttsst", points)
     let path = '';
     if (points.length > 0) {
       path += `M ${points[0].x} ${points[0].y}`;
@@ -890,64 +780,39 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     return path;
   };
-  // console.log("odddddddddddddddddddfffffffffffff", pdfBase64)
   const drawPathsOnPdf = async (paths) => {
-    // if (pdfEditMode) {
     const pdfDoc = await PDFDocument.load(pdfBase64, {
       ignoreEncryption: true,
     });
-
     const page = pdfDoc.getPages()[currentPage - 1];
     const { width, height } = page.getSize();
-
-
     paths.forEach((path, index) => {
-      console.log(`Path ssssssssssssssss}:`, JSON.stringify(path[0].color)); // Stringify and log the path object
-
       if (path[0].type === 'pen' && Array.isArray(path[0].points) && path[0].points.length > 0) {
-        console.log(`Path ${index}:`, JSON.stringify(path)); // Stringify and log the path object
-
         const svgPath = convertPointsToSvgPath(path[0].points, width, height);
-        console.log("sbbbbbbbbbbbbbbbbbbbb", path[0].points[0])
         const x = path[0].points[0].x;
         const y = path[0].points[0].y;
-        console.log("xxxxxxxxxxxxxxxx", page.getHeight() - 100,)
-        // page.moveTo(100, page.getHeight() - 100)
-        // Convert the color from rgb string to pdf-lib rgb
         const colorString = path[0].color;
         const color = rgbStringToRgb(colorString);
-
-        // page.moveDown(55)
         page.drawSvgPath(svgPath, {
           x: (page.getWidth() * x) / pageWidth,
           y:
             page.getHeight() -
-            (page.getHeight() * y) / pageHeight
-          ,
-
+            (page.getHeight() * y) / pageHeight,
           borderColor: color,
           borderWidth: 5,
         });
       }
-      // Add handling for 'line', 'arrow', 'rectangle'
     });
-
     const pdfBytesWithDrawing = await pdfDoc.save();
     return pdfBytesWithDrawing;
-    // }
   };
   const handleClearPaths = () => {
-    // Handle clear paths logic
-    console.log('Paths cleared');
-    setPaths([]); // Clear paths state
+    setPaths([]);
   };
-
   const saveToPdf = async () => {
-
     setPdfEditMode(true)
     const updatedPdfBytes = await drawPathsOnPdf(paths);
     const pdfBase64 = _uint8ToBase641(updatedPdfBytes);
-
     const path = `${RNFS.DocumentDirectoryPath}/react-native_signed_${Date.now()}.pdf`;
     await RNFS.writeFile(path, pdfBase64, 'base64')
       .then(async success => {
@@ -956,19 +821,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         setPdfBase64(pdfBase64);
         const l = await uploadSignedDocumentsOnS3(pdfBase64);
         console.log("ffffffffffffffffffffffffff", l)
-        setNotarisedDocument(l)
         await updatedDocument(l)
-        handleClearPaths();
+        await handleClearPaths();
       })
       .catch(err => {
         console.log('eeee', err.message);
       });
-    console.log(`PDF created at: ${path}`);
-
   };
-
-  // console.log("filsllfpath", bookingData.client_documents)
-  /////
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
@@ -1041,14 +900,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={(itemValue, itemLabel) => handleLinkChange(itemValue, itemLabel)}
-          items={pickerItems} // Use the pickerItems state variable here
+          items={pickerItems}
         />
-
-
       </View>
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
-
           {getSignaturePad ? (
             <Signature
               onOK={sig => handleSignature(sig)}
@@ -1065,7 +921,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                     <PdfView
                       ref={pdfRef}
                       style={styles.pdfView}
-                      // source={{ uri: `${pdfFilePath ? pdfFilePath : filePath}` }}
                       source={{ uri: filePath }}
                       trustAllCerts={false}
                       showsVerticalScrollIndicator={false}
@@ -1096,25 +951,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                       }}
                       onError={error => console.error(error)}
                     />
-                    {drawingMode && (
+                    {drawingMode && User.account_type != 'client' && (
                       <SketchCanvasComponent onPathsChange={handlePathsChange} stamps={User} onStampChanges={handleSavedStamp} saveToPdf={saveToPdf} />
                     )}
-                    {/* {paths.length > 0 && (
-                      <TouchableOpacity style={styles.button} onPress={saveToPdf}>
-                        <Icon name="save" size={20} color={Colors.White} /> 
-                        <Text style={styles.buttonText}>Save to PDF</Text>
-                      </TouchableOpacity>
-                    )} */}
-                    {/* {paths.length > 0 && (
-                      <Button title="Save to PDF" onPress={saveToPdf} />
-                    )} */}
                     <View style={styles.currentPageTextContainer}>
                       <RNText
                         style={styles.currentPageText}>
                         {currentPage}
                       </RNText>
                     </View>
-
                     {/* <View style={styles.penToolcanva}>
                       <DrawingControls setDrawingMode={setDrawingMode} clearCanvas={clearCanvas} />
                     </View> */}
@@ -1125,7 +970,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         if (object.page !== currentPage) {
                           return null;
                         }
-
                         return (
                           <PdfObject
                             id={objectId}
@@ -1293,7 +1137,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 leave();
               }}
             />
-
           )}
           <BottomSheetModal
             ref={bottomSheetModalRef}
@@ -1308,20 +1151,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             />
           </BottomSheetModal>
           <View style={styles.buttonFlex}>
-            {/* <TouchableOpacity onPress={() => setOpen(true)}>
-              <Text
-                style={{
-                  color: Colors.Orange,
-                  fontFamily: 'Manrope-Bold',
-                  fontSize: widthToDp(5),
-                  borderWidth: 1,
-                  borderColor: Colors.Orange,
-                  paddingHorizontal: widthToDp(2),
-                  borderRadius: widthToDp(2),
-                }}>
-                {moment(date).format('MM-DD-YYYY hh:mm A')}
-              </Text>
-            </TouchableOpacity> */}
             <DatePicker
               modal
               mode="datetime"
@@ -1338,14 +1167,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               }}
             />
           </View>
-          {/* <View style={styles.navigation}>
-            <Pressable onPress={() => {}}>
-              <NavArrowLeft width={36} height={36} />
-            </Pressable>
-            <Pressable onPress={() => {}}>
-              <NavArrowRight width={36} height={36} />
-            </Pressable>
-          </View> */}
         </View>
       </View>
     </SafeAreaView>
@@ -1360,7 +1181,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'gray',
     borderRadius: 4,
     color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
+    paddingRight: 30,
   },
   inputAndroid: {
     fontSize: 16,
@@ -1370,7 +1191,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'purple',
     borderRadius: 8,
     color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
+    paddingRight: 30,
   },
 });
 const styles = StyleSheet.create({

@@ -9,6 +9,7 @@ import {
   Alert,
   ScrollView,
   TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SignupButton from '../../components/SingupButton.jsx/SignupButton';
@@ -63,12 +64,22 @@ export default function LegalDocScreen({route, navigation}) {
   }, []);
 
   function createDocumentObject(array) {
+    if (!array || !Array.isArray(array) || array.length === 0) {
+      console.log('Array is undefined, null, or empty');
+
+      return;
+    }
     console.log('arrya', array);
-    const documentObjects = array.map(item => {
-      const [name, price] = item.split(' - $');
+    const documentObjects = array?.map(item => {
+      const [name, price] = item?.split(' - $');
       return {name, price: parseFloat(price)};
     });
-
+    if (documentObjects.length === 0) {
+      console.log('No documents found');
+      // setTotalPrice(0);
+      // setSelectedDocs([]);
+      return; // Exit the function early
+    }
     const highestPriceDocument = documentObjects.reduce(
       (max, doc) => (doc.price > max.price ? doc : max),
       documentObjects[0], // Initialize with the first document if the array is not empty
@@ -78,7 +89,7 @@ export default function LegalDocScreen({route, navigation}) {
     setTotalPrice(highestPriceDocument?.price);
     setSelectedDocs(documentObjects);
   }
-
+  console.log('documentarray', documentArray);
   const additionalSignaturePrice = 10;
 
   const calculateAdditionalSignaturesCost = additionalSignatures => {
@@ -220,8 +231,8 @@ export default function LegalDocScreen({route, navigation}) {
                 setSelected={val => setSelected(val)}
                 data={
                   documentArray &&
-                  documentArray.map(item => ({
-                    value: `${item.name} - $${item.statePrices[0].price}`,
+                  documentArray?.map(item => ({
+                    value: `${item?.name} - $${item?.statePrices[0]?.price}`,
                   }))
                 }
                 save="value"
@@ -252,6 +263,14 @@ export default function LegalDocScreen({route, navigation}) {
                   color: Colors.white,
                   fontFamily: 'Manrope-SemiBold',
                 }}
+                notFoundText={
+                  <TouchableOpacity
+                    onPress={() => console.log('No Documents Found pressed')}>
+                    <Text style={{color: Colors.TextColor}}>
+                      No Documents Found...
+                    </Text>
+                  </TouchableOpacity>
+                }
               />
             )}
           </View>
