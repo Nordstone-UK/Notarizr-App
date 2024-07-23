@@ -192,6 +192,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 Label={true}
                 labelStyle={emailValid && {color: Colors.Red}}
                 AdjustWidth={emailValid && {borderColor: Colors.Red}}
+                editable={false}
               />
               <PhoneTextInput
                 onChange={e => {

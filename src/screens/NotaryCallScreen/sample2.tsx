@@ -1,301 +1,341 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, FlatList, Image } from 'react-native';
-import { SketchCanvas as RNSketchCanvas } from '@terrylinla/react-native-sketch-canvas';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MainButton from '../../../components/MainGradientButton/MainButton';
-import Colors from '../../../themes/Colors';
-import { widthToDp } from '../../../utils/Responsive';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  SafeAreaView,
+  View,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import SignupButton from '../../components/SingupButton.jsx/SignupButton';
+import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
+import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
+import MainButton from '../../components/MainGradientButton/MainButton';
+import { height, heightToDp, width, widthToDp } from '../../utils/Responsive';
+import Colors from '../../themes/Colors';
+import AgentCard from '../../components/AgentCard/AgentCard';
+import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
+import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
+import { handleGetLocation } from '../../utils/Geocode';
+import Geolocation from '@react-native-community/geolocation';
+import useFetchUser from '../../hooks/useFetchUser';
+// import {ScrollView} from 'react-native-virtualized-view';
+import { useDispatch, useSelector } from 'react-redux';
+import { setBookingInfoState } from '../../features/booking/bookingSlice';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { MultipleSelectList } from 'react-native-dropdown-select-list';
+import GradientButton from '../../components/MainGradientButton/GradientButton';
+import Toast from 'react-native-toast-message';
 
-interface Point {
-  x: number;
-  y: number;
-}
+export default function LegalDocScreen({ route, navigation }) {
+  const dispatch = useDispatch();
+  const bookingData = useSelector(state => state.booking.booking);
+  const [documentArray, setDocumentArray] = useState();
+  const [Limit, setLimit] = useState(20);
+  const [page, setPage] = useState(1);
+  const { fetchDocumentTypes } = useFetchUser();
+  const [totalDocs, setTotalDocs] = useState();
+  const [prevPage, setPrevPage] = useState();
+  const [loading, setLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState();
+  const [isVisible, setIsVisible] = useState('');
+  const DOCUMENTS_PER_LOAD = 5;
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState([]);
+  const [selected, setSelected] = React.useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [selectedDocs, setSelectedDocs] = useState([]);
+  const [additionalSignatures, setAdditionalSignatures] = useState(0);
+  useEffect(() => {
+    // const fetchData = async () => {
+    //   setLoading(true);
+    //   await
+    getState();
+    //   setLoading(false);
+    // };
 
-interface Path {
-  id?: number;
-  type: 'pen' | 'line' | 'arrow' | 'rectangle';
-  points?: Point[];
-  start?: Point;
-  end?: Point;
-  color?: string;
-}
+    // fetchData();
+  }, []);
 
-interface SketchCanvasComponentProps {
-  onPathsChange: (paths: Path[]) => void;
-  onStampChanges: (stampImage: string) => void;
-  stamps: string[]; // Array of stamp images provided via props
-  saveToPdf: () => Promise<void>;
-}
+  function createDocumentObject(array) {
+    console.log('arrya', array);
+    const documentObjects = array?.map(item => {
+      const [name, price] = item?.split(' - $');
+      return { name, price: parseFloat(price) };
+    });
 
-const availableColors = [
-  { name: 'red', rgb: { r: 255, g: 0, b: 0 } },
-  { name: 'blue', rgb: { r: 0, g: 0, b: 255 } },
-  { name: 'green', rgb: { r: 0, g: 128, b: 0 } },
-  { name: 'orange', rgb: { r: 255, g: 165, b: 0 } },
-  { name: 'purple', rgb: { r: 128, g: 0, b: 128 } },
-  { name: 'yellow', rgb: { r: 255, g: 255, b: 0 } },
-  { name: 'black', rgb: { r: 0, g: 0, b: 0 } },
-  { name: 'white', rgb: { r: 255, g: 255, b: 255 } },
-];
+    const highestPriceDocument = documentObjects.reduce(
+      (max, doc) => (doc.price > max.price ? doc : max),
+      documentObjects[0], // Initialize with the first document if the array is not empty
+    );
 
-const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsChange, stamps, onStampChanges, saveToPdf }) => {
-  const [paths, setPaths] = useState<Path[]>([]);
-  const [currentPath, setCurrentPath] = useState<Path | null>(null);
-  const [drawingMode, setDrawingMode] = useState<'pen' | 'line' | 'arrow' | 'rectangle' | null>(null);
-  const [strokeColor, setStrokeColor] = useState<string>(`rgb(${0}, ${0}, ${0})`);
-  const [colorPickerVisible, setColorPickerVisible] = useState<boolean>(false);
-  const [showDropdown, setShowDropdown] = useState<boolean>(false);
-  const [stampModalVisible, setStampModalVisible] = useState<boolean>(false);
-  const [signModalVisible, setSignModalVisible] = useState<boolean>(false);
-
-  const sketchRef = useRef<RNSketchCanvas>(null);
-
-  const handleStrokeStart = useCallback((x: number, y: number) => {
-    if (drawingMode === 'pen') {
-      setCurrentPath({ type: 'pen', points: [{ x, y }], color: strokeColor });
-    } else if (drawingMode === 'line' || drawingMode === 'arrow' || drawingMode === 'rectangle') {
-      setCurrentPath({ type: drawingMode, start: { x, y }, end: { x, y } });
-    }
-  }, [drawingMode, strokeColor]);
-
-  const handleStrokeChanged = useCallback((x: number, y: number) => {
-    if (drawingMode === 'pen') {
-      setCurrentPath(prevPath => prevPath ? ({
-        ...prevPath,
-        points: [...prevPath.points!, { x, y }],
-      }) : null);
-    } else if (drawingMode === 'line' || drawingMode === 'arrow' || drawingMode === 'rectangle') {
-      setCurrentPath(prevPath => prevPath ? ({
-        ...prevPath,
-        end: { x, y },
-      }) : null);
-    }
-  }, [drawingMode]);
-
-  const handleStrokeEnd = useCallback(() => {
-    if (currentPath) {
-      setPaths(prevPaths => [...prevPaths, currentPath]);
-      onPathsChange([currentPath]);
-      setCurrentPath(null);
-    }
-  }, [currentPath, onPathsChange]);
-
-  const clearPaths = () => {
-    if (sketchRef.current) {
-      sketchRef.current.clear();
-    }
-    setPaths([]);
-    setCurrentPath(null);
-  };
-  const handlesaveToPdf = () => {
-    saveToPdf();
-    clearPaths();
+    console.log('Highest Price Document:', highestPriceDocument);
+    setTotalPrice(highestPriceDocument?.price);
+    setSelectedDocs(documentObjects);
   }
-  const selectColor = (colorObj: { name: string, rgb: { r: number, g: number, b: number } }) => {
-    const { rgb } = colorObj;
-    setStrokeColor(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
-    setColorPickerVisible(false);
-  };
+  console.log('documentarray', documentArray);
+  const additionalSignaturePrice = 10;
 
-  const handlePenPress = () => {
-    if (drawingMode === 'pen') {
-      setDrawingMode(null);
+  const calculateAdditionalSignaturesCost = additionalSignatures => {
+    if (!isNaN(parseInt(additionalSignatures))) {
+      return additionalSignatures * additionalSignaturePrice;
     } else {
-      setDrawingMode('pen');
-      setShowDropdown(!showDropdown);
+      return 0;
     }
   };
 
-
-
-  const handleStampPress = () => {
-    setStampModalVisible(true);
-  };
-
-  const handleSignaturePress = () => {
-    // Handle signature press logic here
-    setSignModalVisible(true);
-    console.log('Signature button pressed');
-  };
-  console.log("stampsfdfd", stamps)
-  const renderStampModal = () => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={stampModalVisible}
-        onRequestClose={() => setStampModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modal}>
-            <TouchableOpacity onPress={() => handleStampSelect(stamps.notarySeal)}>
-              <Image source={{ uri: stamps.notarySeal }} style={{ width: 100, height: 100 }} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  const handleStampSelect = (stampImage: string) => {
-    setStampModalVisible(false);
-
-    onStampChanges(stampImage);
-  };
-  const handleSignSelect = (stampImage: string) => {
-    setSignModalVisible(false);
-
-    onStampChanges(stampImage.signUrl);
-  };
-  const renderSignModal = () => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={signModalVisible}
-        onRequestClose={() => setSignModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modal}>
-            <FlatList
-              data={stamps.notarysigns}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleSignSelect(item)}>
-                  <Image source={{ uri: item.signUrl }} style={{ width: 100, height: 100 }} />
-                </TouchableOpacity>
-              )}
-              keyExtractor={(item, index) => index.toString()}
-              numColumns={3}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-  return (
-    <View style={styles.container}>
-      {renderStampModal()}
-      {renderSignModal()}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={colorPickerVisible}
-        onRequestClose={() => setColorPickerVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modal}>
-            <FlatList
-              data={availableColors}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.colorButton, { backgroundColor: `rgb(${item.rgb.r}, ${item.rgb.g}, ${item.rgb.b})` }]}
-                  onPress={() => selectColor(item)}
-                />
-              )}
-              keyExtractor={(item) => item.name}
-              numColumns={4}
-            />
-          </View>
-        </View>
-      </Modal>
-      <RNSketchCanvas
-        ref={sketchRef}
-        style={styles.canvas}
-        strokeColor={strokeColor}
-        strokeWidth={3}
-        onStrokeStart={handleStrokeStart}
-        onStrokeChanged={handleStrokeChanged}
-        onStrokeEnd={handleStrokeEnd}
-        touchEnabled={drawingMode !== null}
-      />
-      <View style={styles.controls}>
-        <TouchableOpacity style={styles.iconButton} onPress={handlePenPress}>
-          <Icon name="pencil" size={30} color={drawingMode === 'pen' ? 'blue' : 'black'} />
-        </TouchableOpacity>
-        {showDropdown && (
-          <>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setColorPickerVisible(true)}>
-              <Icon name="tint" size={30} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={clearPaths}>
-              <Icon name="trash" size={30} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleStampPress}>
-              <Icon name="image" size={30} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleSignaturePress}>
-              <Icon name="edit" size={30} color="black" />
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-      {paths.length > 0 && (
-
-        <MainButton
-          Title="Save to PDF"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          styles={{
-            paddingHorizontal: widthToDp(4),
-            paddingVertical: widthToDp(2),
-          }}
-          onPress={handlesaveToPdf}
-        />
-
-      )}
-    </View>
+  const totalAdditionalSignaturesCost = calculateAdditionalSignaturesCost(
+    parseInt(additionalSignatures),
   );
-};
+  const totalPriceWithSignatures = totalPrice + totalAdditionalSignaturesCost;
+  const handleAdditionalSignaturesChange = text => {
+    const newValue = text === '' || isNaN(parseInt(text)) ? 0 : parseInt(text);
+    setAdditionalSignatures(newValue);
+  };
+
+  const submitAddressDetails = async docArray => {
+    setLoading(true);
+    if (selectedDocs.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select at least one document',
+      });
+    } else {
+      dispatch(
+        setBookingInfoState({
+          ...bookingData,
+          totalPrice: parseFloat(totalPriceWithSignatures),
+          documentType: docArray,
+          totalSignaturesRequired: parseInt(additionalSignatures),
+        }),
+      );
+      navigation.navigate('MobileNotaryDateScreen');
+    }
+    setLoading(false);
+  };
+  const getState = async query => {
+    setLoading(true);
+
+    let stateName = 'USA';
+
+    const locationResponse = await handleGetLocation();
+    console.log('locationres', locationResponse);
+    if (
+      locationResponse &&
+      locationResponse.results &&
+      locationResponse.results.length > 0
+    ) {
+      const addressComponents = locationResponse.results[0]?.address_components;
+      console.log('addresscomop;nent', addressComponents);
+      if (addressComponents && addressComponents.length >= 5) {
+        stateName = addressComponents[4]?.long_name || 'USA'; // Use state name if available, otherwise fallback to 'USA'
+      } else {
+        console.warn(
+          'Address components not found or incomplete:',
+          addressComponents,
+        );
+      }
+    } else {
+      console.warn('Location response invalid or empty:', locationResponse);
+    }
+
+    const data = await fetchDocumentTypes(page, Limit, stateName, query);
+    const modifiedDocuments = data.documentTypes.map(doc => ({
+      ...doc,
+      key: doc._id,
+      value: `${doc.name} - $${doc.statePrices[0].price}`, // Use _id as the unique key for each document
+    }));
+    setDocumentArray(modifiedDocuments);
+    console.log('doumntsfdffdfd', data);
+    setTotalDocs(data.totalDocs);
+    setDocumentArray(modifiedDocuments);
+    setLoading(false);
+    if (Limit < data?.totalDocs) {
+      setLimit(Limit + DOCUMENTS_PER_LOAD);
+    }
+  };
+
+  const handleSearchInput = query => {
+    console.log('qure', query);
+    setSearchResults(query);
+    setDocumentArray();
+    getState(query);
+  };
+  const handleScroll = (event, query) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isAtBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height;
+
+    if (isAtBottom && Limit < totalDocs) {
+      console.log('Running at bottom');
+      getState(searchResults);
+    }
+  };
+  const renderItem = ({ item, index }) => (
+    <LegalDocumentCard
+      source={require('../../../assets/legalDoc.png')}
+      key={index}
+      Title={item.name}
+      Price={item.statePrices[0].price}
+      onPress={() => submitAddressDetails(item.name, item.statePrices[0].price)}
+    />
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <NavigationHeader
+        Title="All Documents"
+      // midImg={require('../../../assets/Search.png')}
+      // midImgPress={() => setIsVisible(!isVisible)}
+      />
+
+      <BottomSheetStyle>
+        <ScrollView
+          scrollEnabled={true}
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <Text style={styles.selectorHeading}>
+            Please select the documents you want to get notarized.
+          </Text>
+          <View
+            style={{
+              marginTop: widthToDp(2),
+              paddingHorizontal: widthToDp(2),
+            }}>
+            {loading ? (
+              <View
+                style={{
+                  justifyContent: 'center',
+                }}>
+                <ActivityIndicator size="large" color={Colors.Orange} />
+              </View>
+            ) : (
+              <MultipleSelectList
+                setSelected={val => setSelected(val)}
+                data={
+                  documentArray &&
+                  documentArray?.map(item => ({
+                    value: `${item?.name} - $${item?.statePrices[0]?.price}`,
+                  }))
+                }
+                save="value"
+                onSelect={() => createDocumentObject(selected)}
+                label="Documents"
+                placeholder="Search for documents"
+                boxStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                }}
+                dropdownStyles={{
+                  borderColor: Colors.Orange,
+                  borderWidth: 2,
+                  borderRadius: widthToDp(5),
+                  maxHeight: widthToDp(75),
+                }}
+                inputStyles={{ color: Colors.TextColor }}
+                badgeStyles={{ backgroundColor: Colors.Orange }}
+                dropdownTextStyles={{ color: Colors.TextColor }}
+                checkBoxStyles={{ tintColor: Colors.TextColor }}
+                labelStyles={{
+                  color: Colors.TextColor,
+                  fontSize: widthToDp(4),
+                }}
+                badgeTextStyles={{
+                  fontSize: widthToDp(3),
+                }}
+                notFoundText={
+                  <TouchableOpacity onPress={() => console.log('No Documents Found pressed')}>
+                    <Text style={{ color: Colors.TextColor }}>No Documents Found...</Text>
+                  </TouchableOpacity>
+                }
+              />
+            )}
+          </View>
+        </ScrollView>
+
+        <View
+          style={{
+            paddingVertical: widthToDp(3),
+            paddingHorizontal: widthToDp(3),
+          }}>
+          <Text style={styles.selectorHeading}>
+            Number of Additional Signatures Required
+          </Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="Enter number of additional signatures"
+              placeholderTextColor={Colors.Placeholder}
+              onChangeText={handleAdditionalSignaturesChange}
+              value={additionalSignatures.toString()}
+            />
+          </View>
+          <Text style={styles.totalPrice}>
+            Total Price: ${totalPriceWithSignatures.toFixed(2)}
+          </Text>
+          <GradientButton
+            onPress={() => submitAddressDetails(selectedDocs)}
+            title="Continue"
+            loading={loading}
+            disabled={loading}
+          />
+        </View>
+      </BottomSheetStyle>
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
+    backgroundColor: Colors.Background,
   },
-  canvas: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: 'transparent',
+  contentContainer: {
+    paddingVertical: widthToDp(3),
+    paddingHorizontal: widthToDp(3),
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  selectorHeading: {
+    fontSize: widthToDp(5),
+    fontWeight: 'bold',
+    color: Colors.TextColor,
+    marginBottom: widthToDp(2),
   },
-  modal: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    maxHeight: '80%',
+  picture: {
+    height: heightToDp(40),
+    width: widthToDp(80),
+    resizeMode: 'contain',
   },
-  colorButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    margin: 5,
+  subheading: {
+    fontSize: widthToDp(4),
+    fontWeight: 'bold',
+    color: Colors.TextColor,
+    textAlign: 'center',
+    marginTop: widthToDp(2),
   },
-  controls: {
-    position: 'absolute',
-    top: 20,
-    right: 5,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+  inputContainer: {
+    marginVertical: widthToDp(2),
   },
-  iconButton: {
-    marginVertical: 5,
-    padding: 5,
+  input: {
+    borderColor: Colors.Orange,
+    borderWidth: 1,
+    borderRadius: widthToDp(2),
+    padding: widthToDp(3),
+    color: Colors.TextColor,
+  },
+  totalPrice: {
+    fontSize: widthToDp(4.5),
+    fontWeight: 'bold',
+    color: Colors.TextColor,
+    marginVertical: widthToDp(2),
   },
 });
 
-export default SketchCanvasComponent;

@@ -31,15 +31,13 @@ export default function AgentMapArrivalScreen({navigation}) {
   const [duration, setDuration] = useState(null);
   const [showInfo, setShowInfo] = useState(true);
   const clientData = useSelector(state => state.booking);
-  const coordinates = useSelector(state => state.booking.coordinates);
-  const user = useSelector(state => state.user.user.account_type);
-  // console.log('useresss', clientData.booking.agent._id);
-  console.log('ddddddddddddddd', clientData);
+  const coordinates = useSelector(state => state.booking?.coordinates);
+  const user = useSelector(state => state.user.user?.account_type);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       handleGetLocation();
-    }, 6000); // Update location every second
+    }, 9000);
 
     return () => clearInterval(intervalId); // Clear interval on component unmount
   }, []);
@@ -62,8 +60,8 @@ export default function AgentMapArrivalScreen({navigation}) {
         const agentLocation = await getCurrentLocation(params);
         if (agentLocation) {
           const agentCoordinates = {
-            latitude: agentLocation.coordinates[1],
-            longitude: agentLocation.coordinates[0],
+            latitude: agentLocation?.coordinates[1],
+            longitude: agentLocation?.coordinates[0],
           };
           setLocation(agentCoordinates);
           updateDirections(agentCoordinates);
@@ -71,7 +69,6 @@ export default function AgentMapArrivalScreen({navigation}) {
           setLocation(DEFAULT_COORDINATES);
         }
       }
-      // await updateAgentLocation(currentLocation);
     } catch (error) {
       console.log(error);
     } finally {
@@ -99,12 +96,12 @@ export default function AgentMapArrivalScreen({navigation}) {
   };
 
   const updateDirections = currentLocation => {
-    setDistance(null); // Clear distance and duration while calculating new values
+    setDistance(null);
     setDuration(null);
     if (coordinates) {
       const origin = {
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
+        latitude: currentLocation?.latitude,
+        longitude: currentLocation?.longitude,
       };
       const destination = {
         latitude: coordinates[0],
@@ -136,23 +133,14 @@ export default function AgentMapArrivalScreen({navigation}) {
   };
   const updateAgentLocation = async currentLocation => {
     try {
-      console.log('Type of current location:', typeof currentLocation.latitude);
-
-      const latString = '' + currentLocation.latitude;
-      const lngString = '' + currentLocation.longitude;
-
+      const latString = '' + currentLocation?.latitude;
+      const lngString = '' + currentLocation?.longitude;
       const params = {
         lat: latString,
         lng: lngString,
       };
 
       const response = await agentLocationUpdate(params);
-      // console.log('resdfdfdfd', response);
-      // if (response === '200') {
-      //   console.log('Location updated successfully');
-      // } else {
-      //   console.log('Failed to update location');
-      // }
     } catch (error) {
       console.log('Error updating location:', error);
     }
@@ -200,8 +188,8 @@ export default function AgentMapArrivalScreen({navigation}) {
             <MapView
               zoomEnabled={true}
               region={{
-                latitude: location.latitude,
-                longitude: location.longitude,
+                latitude: location?.latitude,
+                longitude: location?.longitude,
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
               }}
@@ -211,17 +199,17 @@ export default function AgentMapArrivalScreen({navigation}) {
               {coordinates && (
                 <>
                   <Marker
-                    key={clientData.user?._id}
+                    key={clientData?.user?._id}
                     coordinate={{
                       latitude: coordinates[0],
                       longitude: coordinates[1],
                     }}
                     title={
-                      clientData.user?.first_name +
+                      clientData?.user?.first_name +
                       ' ' +
-                      clientData.user?.last_name
+                      clientData?.user?.last_name
                     }
-                    description={clientData.user?.location}
+                    description={clientData?.user?.location}
                   />
                   {/* <Marker.Animated ref={markerRef} coordinate={coordinate}>
                   <Image
@@ -255,8 +243,8 @@ export default function AgentMapArrivalScreen({navigation}) {
                   />
                   <Marker
                     coordinate={{
-                      latitude: location.latitude,
-                      longitude: location.longitude,
+                      latitude: location?.latitude,
+                      longitude: location?.longitude,
                     }}
                     title="Your Location"
                     pinColor="green"
@@ -270,17 +258,18 @@ export default function AgentMapArrivalScreen({navigation}) {
       <View style={{marginTop: 20}} />
       <NavigationHeader
         // Title={clientData.user?.first_name + ' ' + clientData.user?.last_name}
-        ProfilePic={{uri: clientData.user?.profile_picture}}
+        ProfilePic={{uri: clientData?.user?.profile_picture}}
         midImg={require('../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}
         lastImg={require('../../../assets/chatIcon.png')}
         lastImgPress={() =>
           navigation.navigate('ChatScreen', {
-            sender: clientData.booking?.booked_by || clientData.booking?.client,
-            receiver: clientData.booking?.agent,
-            chat: clientData.booking?._id,
-            channel: clientData.booking?.agora_channel_name,
-            voiceToken: clientData.booking?.agora_channel_token,
+            sender:
+              clientData?.booking?.booked_by || clientData.booking?.client,
+            receiver: clientData?.booking?.agent,
+            chat: clientData?.booking?._id,
+            channel: clientData?.booking?.agora_channel_name,
+            voiceToken: clientData?.booking?.agora_channel_token,
           })
         }
       />

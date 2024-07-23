@@ -216,15 +216,6 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
           )}
 
           <View style={styles.buttonBottom}>
-            {/* {notary === 'Accepted' && (
-              <GradientButton
-                Title="Start Notary"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => handleStatusChange('ongoing')}
-                loading={loading}
-                GradiStyles={{marginTop: widthToDp(5)}}
-              />
-            )} */}
             {notary === 'Ongoing' && (
               <GradientButton
                 Title="Complete Notary"

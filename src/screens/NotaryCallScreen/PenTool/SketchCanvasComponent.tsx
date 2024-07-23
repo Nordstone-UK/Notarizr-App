@@ -49,10 +49,8 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
   const [signModalVisible, setSignModalVisible] = useState<boolean>(false);
 
   const sketchRef = useRef<RNSketchCanvas>(null);
-  // console.log("ptahsdfd", paths[0]?.points)
   const handleStrokeStart = useCallback((x: number, y: number) => {
     if (drawingMode === 'pen') {
-
       setCurrentPath({ type: 'pen', points: [{ x, y }], color: strokeColor });
     } else if (drawingMode === 'line' || drawingMode === 'arrow' || drawingMode === 'rectangle') {
       setCurrentPath({ type: drawingMode, start: { x, y }, end: { x, y } });
@@ -88,12 +86,10 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     setPaths([]);
     setCurrentPath(null);
   };
-  const handlesaveToPdf = () => {
-    saveToPdf();
+  const handlesaveToPdf = async () => {
+    await saveToPdf();
     clearPaths();
   }
-
-
   const renderShape = (path: Path) => {
     switch (path.type) {
       case 'pen':
@@ -202,9 +198,13 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
       >
         <View style={styles.modalContainer}>
           <View style={styles.modal}>
-            <TouchableOpacity onPress={() => handleStampSelect(stamps.notarySeal)}>
-              <Image source={{ uri: stamps.notarySeal }} style={{ width: 100, height: 100 }} />
-            </TouchableOpacity>
+            {stamps?.notarySeal ? (
+              <TouchableOpacity onPress={() => handleStampSelect(stamps?.notarySeal)}>
+                <Image source={{ uri: stamps?.notarySeal }} style={{ width: 100, height: 100 }} />
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.noDataText}>Please add a stamp</Text>
+            )}
           </View>
         </View>
       </Modal>
@@ -229,16 +229,21 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
       >
         <View style={styles.modalContainer}>
           <View style={styles.modal}>
-            <FlatList
-              data={stamps.notarysigns}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleSignSelect(item)}>
-                  <Image source={{ uri: item.signUrl }} style={{ width: 100, height: 100 }} />
-                </TouchableOpacity>
-              )}
-              keyExtractor={(item, index) => index.toString()}
-              numColumns={3}
-            />
+            {stamps.notarysigns && stamps.notarysigns.length > 0 ? (
+              <FlatList
+                data={stamps?.notarysigns}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => handleSignSelect(item)}>
+                    <Image source={{ uri: item?.signUrl }} style={{ width: 100, height: 100 }} />
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item, index) => index.toString()}
+                numColumns={3}
+              />
+            ) : (
+              <Text style={styles.noDataText}>Please add signatures</Text>
+            )}
+
           </View>
         </View>
       </Modal>

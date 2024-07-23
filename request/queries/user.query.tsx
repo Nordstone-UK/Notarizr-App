@@ -36,6 +36,7 @@ export const FETCH_USER_INFO = gql`
         location
        location_coordinates
       }
+      registered_for
       userAccessCode
     }
   }
