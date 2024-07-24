@@ -26,19 +26,26 @@ import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
 import {UniqueDirectiveNamesRule} from 'graphql';
 
-export default function AgentVerificationScreen({navigation}, props) {
+export default function AgentVerificationScreen({navigation, route}, props) {
+  const {onComplete = () => {}} = route.params || {};
   const variables = useSelector(state => state.register);
   const [photoID, setphotoID] = useState(null);
   const [Certificate, setCertificate] = useState(null);
   const [Seal, setSeal] = useState(null);
   const [loading, setLoading] = useState(false);
-  const {uploadFiles, handleCompression, uploadFilestoS3, handleRegister} =
-    useRegister();
+  const {
+    uploadFiles,
+    handleCompression,
+    uploadFilestoS3,
+    handleRegister,
+    handleUpdateSeal,
+    handleUpdatecertificate,
+  } = useRegister();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
 
   const {resetStack} = useLogin();
-
+  console.log('fdfdfdfd', onComplete);
   const handleUpload = documentType => {
     setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
     setCurrentStep(currentStep + 1);
@@ -129,6 +136,27 @@ export default function AgentVerificationScreen({navigation}, props) {
         photoId: photoURL,
         notarySeal: SealUrl,
       };
+
+      if (onComplete) {
+        console.log('ddddddddddddddff');
+        let certificateVariables = {
+          photoId: photoURL,
+          certificate_url: CertificateURL,
+        };
+        let sealVariable = {
+          notarySeal: SealUrl,
+        };
+        let respose1 = await handleUpdateSeal(sealVariable);
+        let respose = await handleUpdatecertificate(certificateVariables);
+        console.log('resopsonfdf', respose1, respose);
+        await onComplete();
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Registration completed successfully',
+        });
+        navigation.goBack();
+      }
 
       const isRegister = await handleRegister(params);
       setLoading(false);

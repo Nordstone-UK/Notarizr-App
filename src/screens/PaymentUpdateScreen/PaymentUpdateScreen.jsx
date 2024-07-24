@@ -86,7 +86,7 @@ export default function PaymentUpdateScreen({navigation}, props) {
             <GradientButton
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               Title={
-                isUserStripeOnboard.has_stripe_account
+                isUserStripeOnboard?.has_stripe_account
                   ? 'Edit Stripe Account'
                   : 'Create Stripe Account'
               }

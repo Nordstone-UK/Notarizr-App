@@ -35,7 +35,18 @@ export default function SettingScreen({navigation}, props) {
   const toggleAccountType = async () => {
     const newAccountType =
       accountType === 'individual-agent' ? 'client' : 'individual-agent';
-    if (!User.registered_for.includes(newAccountType)) {
+    if (
+      User.registered_for.length === 1 &&
+      User.registered_for.includes('client') &&
+      newAccountType === 'individual-agent'
+    ) {
+      // Navigate to the AgentVerificationScreen for the first time
+      navigation.navigate('AgentVerificationScreen', {
+        onComplete: async () => {
+          await handleAccountTypeUpdate(newAccountType);
+        },
+      });
+    } else if (!User.registered_for.includes(newAccountType)) {
       Alert.alert(
         'Account Type Update',
         `Would you like to add "${newAccountType}" to your account types?`,
@@ -76,10 +87,10 @@ export default function SettingScreen({navigation}, props) {
       const {data} = await updateAccountType({
         variables: {account_type: newAccountType},
       });
-      if (data.updateAccountType.status === 'success') {
+      console.log('datedfdfdfd', data.updateAccountType.status);
+      if (data.updateAccountType.status === '200') {
         setAccountType(newAccountType);
       } else {
-        // Handle error, show a message, etc.
         console.error(data.updateAccountType.message);
       }
     } catch (error) {
@@ -110,7 +121,9 @@ export default function SettingScreen({navigation}, props) {
           />
           <SettingOptions
             icon={require('../../../assets/accountSwitch.png')}
-            Title={`Switch to ${accountType === 'agent' ? 'Client' : 'Agent'}`}
+            Title={`Switch to ${
+              accountType === 'individual-agent' ? 'Client' : 'Agent'
+            }`}
             onPress={toggleAccountType}
           />
         </ScrollView>
