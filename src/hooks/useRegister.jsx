@@ -6,10 +6,18 @@ import DocumentPicker from 'react-native-document-picker';
 import React, {useCallback} from 'react';
 import useLogin from './useLogin';
 import Toast from 'react-native-toast-message';
+import {
+  UPDATE_AGENT_PHOTO_AND_CERTIFICATE,
+  UPDATE_NOTARY_SEAL,
+} from '../../request/mutations/updateNotarysign.mutation';
 
 const useRegister = () => {
   const {saveAccessTokenToStorage} = useLogin();
   const [register] = useMutation(REGISTER_USER);
+  const [updateAgentPhotoAndCertificate] = useMutation(
+    UPDATE_AGENT_PHOTO_AND_CERTIFICATE,
+  );
+  const [updateNotarySeal] = useMutation(UPDATE_NOTARY_SEAL);
 
   const handleCompression = async image => {
     console.log('handleCompression', image);
@@ -75,6 +83,42 @@ const useRegister = () => {
 
       const {data} = await register(request);
       if (data?.register?.status === '201') {
+        saveAccessTokenToStorage(data?.register?.access_token);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
+  };
+  const handleUpdatecertificate = async variables => {
+    try {
+      const request = {
+        variables,
+      };
+
+      const {data} = await updateAgentPhotoAndCertificate(request);
+      console.log('dffffaaaaaaaaaaaaaa', data);
+      if (data?.updateAgentPhotoAndCertificate?.status === '200') {
+        saveAccessTokenToStorage(data?.register?.access_token);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
+  };
+  const handleUpdateSeal = async variables => {
+    try {
+      const request = {
+        variables,
+      };
+
+      const {data} = await updateNotarySeal(request);
+      console.log('dffffaaaaaaaaaddddddddddddsssssaaaaa', data);
+      if (data?.updateNotarySeal?.status === '204') {
         saveAccessTokenToStorage(data?.register?.access_token);
         return true;
       } else {
@@ -183,6 +227,8 @@ const useRegister = () => {
     uploadAllDocuments,
     uploadDocArray,
     uploadimageToS3,
+    handleUpdateSeal,
+    handleUpdatecertificate,
   };
 };
 

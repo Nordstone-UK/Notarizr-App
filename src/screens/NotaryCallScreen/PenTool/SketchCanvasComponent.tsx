@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, FlatList, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, FlatList, Image, Text } from 'react-native';
 import { SketchCanvas as RNSketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MainButton from '../../../components/MainGradientButton/MainButton';
@@ -189,6 +189,7 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     setSignModalVisible(true);
   };
   const renderStampModal = () => {
+    console.log("ddddddddddddd", stamps?.notarySeal)
     return (
       <Modal
         animationType="slide"
