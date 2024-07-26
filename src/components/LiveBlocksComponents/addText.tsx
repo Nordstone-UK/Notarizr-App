@@ -1,5 +1,6 @@
 import {
   KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,7 +13,12 @@ import { TextInput } from 'react-native-gesture-handler';
 
 export default function AddText(props) {
   return (
-    <View style={styles.bottonSheet}>
+    <KeyboardAvoidingView
+      style={styles.bottonSheet}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+
       {/* <Text style={styles.text}>
         Add text
       </Text> */}
@@ -31,7 +37,8 @@ export default function AddText(props) {
       <TouchableOpacity onPress={props.onPress}>
         <Text style={[styles.text, { color: Colors.Red }]}>Add Text</Text>
       </TouchableOpacity>
-    </View>
+
+    </KeyboardAvoidingView>
   );
 }
 
@@ -64,9 +71,6 @@ const styles = StyleSheet.create({
   input: {
     // flex: 1,
     flexDirection: 'row',
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // alignContent: 'center',
     borderWidth: 2,
     borderColor: Colors.Orange,
     width: widthToDp(60),
