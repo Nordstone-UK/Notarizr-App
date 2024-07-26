@@ -9,32 +9,40 @@ import React from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {TextInput} from 'react-native-gesture-handler';
+import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
 
 export default function RequestPayment(props) {
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.bottonSheet}>
-        <Text style={styles.text}>
-          Mention the charges to complete this service
-        </Text>
-        <View style={styles.input}>
-          <Text style={styles.smallText}>$</Text>
-          <TextInput
-            keyboardType="numeric"
-            style={styles.TextInput}
-            onChangeText={props.onChangeText}
-            // placeholder="Enter amount"
-            // placeholderTextColor={Colors.InputTextColor}
-          />
-        </View>
+    // <KeyboardAvoidingView
+    //   style={styles.container}
+    //   behavior={Platform.OS === 'ios' ? 'height' : 'height'}>
+    <View style={styles.bottonSheet}>
+      <Text style={styles.text}>
+        Mention the charges to complete this service
+      </Text>
+      <View style={styles.input}>
+        <Text style={styles.smallText}>$</Text>
+        <BottomSheetTextInput
+          // value="Awesome 🎉"
+          keyboardType="numeric"
+          style={styles.TextInput}
+          onChangeText={props.onChangeText}
+        />
 
-        <TouchableOpacity onPress={props.onPress}>
-          <Text style={[styles.text, {color: Colors.Red}]}>Send Request</Text>
-        </TouchableOpacity>
+        {/* <TextInput
+          keyboardType="numeric"
+          style={styles.TextInput}
+          onChangeText={props.onChangeText}
+          // placeholder="Enter amount"
+          // placeholderTextColor={Colors.InputTextColor}
+        /> */}
       </View>
-    </KeyboardAvoidingView>
+
+      <TouchableOpacity onPress={props.onPress}>
+        <Text style={[styles.text, {color: Colors.Red}]}>Send Request</Text>
+      </TouchableOpacity>
+    </View>
+    // </KeyboardAvoidingView>
   );
 }
 
