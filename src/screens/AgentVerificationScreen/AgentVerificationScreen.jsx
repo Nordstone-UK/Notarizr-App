@@ -28,6 +28,7 @@ import {UniqueDirectiveNamesRule} from 'graphql';
 
 export default function AgentVerificationScreen({navigation, route}, props) {
   const {onComplete = () => {}} = route.params || {};
+  console.log('c0mpletedfd', onComplete);
   const variables = useSelector(state => state.register);
   const [photoID, setphotoID] = useState(null);
   const [Certificate, setCertificate] = useState(null);
@@ -137,8 +138,11 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         notarySeal: SealUrl,
       };
 
-      if (onComplete) {
-        console.log('ddddddddddddddff');
+      if (typeof onComplete === 'function' && onComplete.name !== '') {
+        console.log(
+          'ddddddddddddddff====================================',
+          onComplete.name,
+        );
         let certificateVariables = {
           photoId: photoURL,
           certificate_url: CertificateURL,
@@ -156,6 +160,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
           text2: 'Registration completed successfully',
         });
         navigation.goBack();
+        return;
       }
 
       const isRegister = await handleRegister(params);
