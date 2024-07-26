@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, FlatList, Image, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, FlatList, Image, Text, ActivityIndicator } from 'react-native';
 import { SketchCanvas as RNSketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MainButton from '../../../components/MainGradientButton/MainButton';
@@ -22,7 +22,7 @@ interface Path {
 
 interface SketchCanvasComponentProps {
   onPathsChange: (paths: Path[]) => void;
-  stamps: string[];
+  stamps: { notarySeal?: string; notarysigns?: { signUrl: string }[] };
   onStampChanges: (stampImage: string) => void;
   saveToPdf: () => Promise<void>;
 }
@@ -47,7 +47,9 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [stampModalVisible, setStampModalVisible] = useState<boolean>(false);
   const [signModalVisible, setSignModalVisible] = useState<boolean>(false);
-
+  const [loading, setLoading] = useState<boolean>(true);
+  const [imageLoading, setImageLoading] = useState(false);
+  console.log("lllllllogisdfd", loading)
   const sketchRef = useRef<RNSketchCanvas>(null);
   const handleStrokeStart = useCallback((x: number, y: number) => {
     if (drawingMode === 'pen') {
@@ -90,76 +92,7 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     await saveToPdf();
     clearPaths();
   }
-  const renderShape = (path: Path) => {
-    switch (path.type) {
-      case 'pen':
-        return (
-          <RNSketchCanvas.Path
-            key={path.id}
-            strokeColor={strokeColor}
-            strokeWidth={3}
-            path={path.points!}
-          />
-        );
-      case 'line':
-        return (
-          <RNSketchCanvas.Line
-            key={path.id}
-            strokeColor={strokeColor}
-            strokeWidth={3}
-            x1={path.start!.x}
-            y1={path.start!.y}
-            x2={path.end!.x}
-            y2={path.end!.y}
-          />
-        );
-      case 'arrow':
-        const arrowHead = calculateArrowHead(path.start!, path.end!);
-        return (
-          <>
-            <RNSketchCanvas.Path
-              key={`${path.id}-line`}
-              strokeColor={strokeColor}
-              strokeWidth={3}
-              path={[path.start!, path.end!]}
-            />
-            <RNSketchCanvas.Path
-              key={`${path.id}-head`}
-              strokeColor={strokeColor}
-              strokeWidth={3}
-              path={arrowHead}
-            />
-          </>
-        );
-      case 'rectangle':
-        return (
-          <RNSketchCanvas.Path
-            key={path.id}
-            strokeColor={strokeColor}
-            strokeWidth={3}
-            path={[
-              path.start!,
-              { x: path.end!.x, y: path.start!.y },
-              path.end!,
-              { x: path.start!.x, y: path.end!.y },
-              path.start!,
-            ]}
-          />
-        );
-      default:
-        return null;
-    }
-  };
 
-  const calculateArrowHead = (start: Point, end: Point): Point[] => {
-    const headLength = 15;
-    const angle = Math.atan2(end.y - start.y, end.x - start.x);
-    return [
-      { x: end.x - headLength * Math.cos(angle - Math.PI / 6), y: end.y - headLength * Math.sin(angle - Math.PI / 6) },
-      end,
-      { x: end.x - headLength * Math.cos(angle + Math.PI / 6), y: end.y - headLength * Math.sin(angle + Math.PI / 6) },
-    ];
-  };
 
   const selectColor = (colorObj: { name: string, rgb: { r: number, g: number, b: number } }) => {
     const { rgb } = colorObj;
@@ -176,10 +109,6 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     }
   };
 
-  const handleModeChange = (mode: 'pen' | 'line' | 'arrow' | 'rectangle') => {
-    setDrawingMode(mode);
-    setShowDropdown(false);
-  };
 
   const handleStampPress = () => {
     setStampModalVisible(true);
@@ -188,8 +117,18 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
   const handleSignaturePress = () => {
     setSignModalVisible(true);
   };
+
+  const handleImageLoadStart = () => {
+    console.log("starte", stamps?.notarySeal)
+    setLoading(true)
+
+  };
+
+  const handleImageLoadEnd = () => {
+    console.log("endfdd", stamps?.notarySeal)
+    setLoading(false)
+  };
   const renderStampModal = () => {
-    console.log("ddddddddddddd", stamps?.notarySeal)
     return (
       <Modal
         animationType="slide"
@@ -199,9 +138,18 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
       >
         <View style={styles.modalContainer}>
           <View style={styles.modal}>
+            {loading ? (
+              <ActivityIndicator size="large" color={Colors.OrangeGradientStart} style={styles.centeredActivityIndicator} />
+            ) : null}
             {stamps?.notarySeal ? (
               <TouchableOpacity onPress={() => handleStampSelect(stamps?.notarySeal)}>
-                <Image source={{ uri: stamps?.notarySeal }} style={{ width: 100, height: 100 }} />
+                <Image
+                  source={{ uri: stamps?.notarySeal }}
+                  style={{ width: 100, height: 100 }}
+                  onLoad={() => console.log('Image loaded')}
+                  onLoadStart={handleImageLoadStart}
+                  onLoadEnd={handleImageLoadEnd}
+                />
               </TouchableOpacity>
             ) : (
               <Text style={styles.noDataText}>Please add a stamp</Text>
@@ -220,7 +168,18 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     setSignModalVisible(false);
     onStampChanges(stampImage.signUrl);
   };
+
   const renderSignModal = () => {
+    const renderItem = useCallback(({ item }: { item: { signUrl: string } }) => (
+      <TouchableOpacity onPress={() => handleSignSelect(item.signUrl)}>
+        <Image
+          source={{ uri: item.signUrl }}
+          style={{ width: 100, height: 100 }}
+          onLoadStart={handleImageLoadStart}
+          onLoadEnd={handleImageLoadEnd}
+        />
+      </TouchableOpacity>
+    ), [])
     return (
       <Modal
         animationType="slide"
@@ -230,19 +189,18 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
       >
         <View style={styles.modalContainer}>
           <View style={styles.modal}>
-            {stamps.notarysigns && stamps.notarysigns.length > 0 ? (
+            {loading ? (
+              <ActivityIndicator size="large" color={Colors.OrangeGradientStart} style={styles.centeredActivityIndicator} />
+            ) : null}
+            {stamps?.notarysigns && stamps?.notarysigns.length > 0 ? (
               <FlatList
-                data={stamps?.notarysigns}
-                renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => handleSignSelect(item)}>
-                    <Image source={{ uri: item?.signUrl }} style={{ width: 100, height: 100 }} />
-                  </TouchableOpacity>
-                )}
+                data={stamps.notarysigns}
+                renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()}
                 numColumns={3}
               />
             ) : (
-              <Text style={styles.noDataText}>Please add signatures</Text>
+              <Text style={styles.noDataText}>Please add a signature</Text>
             )}
 
           </View>
@@ -373,6 +331,16 @@ const styles = StyleSheet.create({
   iconButton: {
     marginVertical: 5,
     padding: 5,
+  },
+  noDataText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  centeredActivityIndicator: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -15 }, { translateY: -15 }],
   },
 });
 
