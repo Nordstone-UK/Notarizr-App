@@ -38,6 +38,60 @@ export default function LabelTextInput(props) {
         {props.leftImageSoucre && (
           <Image source={props.leftImageSoucre} style={styles.iconLeft} />
         )}
+        {props.LabelTextInput === 'Review' ? (
+          Platform.OS === 'android' ? (
+            <TextInput
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              editable={props.editable !== false}
+              style={[styles.input, props.InputStyles]}
+              keyboardType={props.keyboardType || 'default'}
+              secureTextEntry={props.secureTextEntry || false}
+              placeholder={props.placeholder}
+              defaultValue={props.defaultValue}
+              value={props.value}
+              placeholderTextColor={
+                Colors.DisableColor || props.placeholderTextColor
+              }
+              multiline
+              onChangeText={props.onChangeText}
+            />
+          ) : (
+            <BottomSheetTextInput
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              editable={props.editable !== false}
+              style={[styles.input, props.InputStyles]}
+              keyboardType={props.keyboardType || 'default'}
+              secureTextEntry={props.secureTextEntry || false}
+              placeholder={props.placeholder}
+              defaultValue={props.defaultValue}
+              value={props.value}
+              placeholderTextColor={
+                Colors.DisableColor || props.placeholderTextColor
+              }
+              multiline
+              onChangeText={props.onChangeText}
+            />
+          )
+        ) : (
+          <TextInput
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            editable={props.editable !== false}
+            style={[styles.input, props.InputStyles]}
+            keyboardType={props.keyboardType || 'default'}
+            secureTextEntry={props.secureTextEntry || false}
+            placeholder={props.placeholder}
+            defaultValue={props.defaultValue}
+            value={props.value}
+            placeholderTextColor={
+              Colors.DisableColor || props.placeholderTextColor
+            }
+            multiline
+            onChangeText={props.onChangeText}
+          />
+        )}
         <TextInput
           onFocus={handleFocus}
           onBlur={handleBlur}
