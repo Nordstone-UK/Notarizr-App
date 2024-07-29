@@ -22,20 +22,23 @@ export default function RequestPayment(props) {
       </Text>
       <View style={styles.input}>
         <Text style={styles.smallText}>$</Text>
-        <BottomSheetTextInput
-          // value="Awesome 🎉"
-          keyboardType="numeric"
-          style={styles.TextInput}
-          onChangeText={props.onChangeText}
-        />
-
-        {/* <TextInput
-          keyboardType="numeric"
-          style={styles.TextInput}
-          onChangeText={props.onChangeText}
-          // placeholder="Enter amount"
-          // placeholderTextColor={Colors.InputTextColor}
-        /> */}
+        {Platform.OS === 'android' ? (
+          <TextInput
+            keyboardType="numeric"
+            style={styles.TextInput}
+            onChangeText={props.onChangeText}
+            placeholder="Enter amount"
+            placeholderTextColor={Colors.InputTextColor}
+          />
+        ) : (
+          <BottomSheetTextInput
+            keyboardType="numeric"
+            style={styles.TextInput}
+            onChangeText={props.onChangeText}
+            placeholder="Enter amount"
+            placeholderTextColor={Colors.InputTextColor}
+          />
+        )}
       </View>
 
       <TouchableOpacity onPress={props.onPress}>
@@ -47,9 +50,6 @@ export default function RequestPayment(props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   bottonSheet: {
     flex: 1,
     borderTopLeftRadius: 15,
@@ -64,32 +64,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     alignSelf: 'center',
   },
-  starRating: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  coloredStar: {
-    fontSize: 30,
-    marginRight: 10,
-    color: 'yellow',
-  },
+
   smallText: {
     fontSize: widthToDp(5.5),
     color: Colors.TextColor,
     fontFamily: 'Manrope-SemiBold',
   },
   TextInput: {
-    fontSize: widthToDp(5.5),
+    fontSize: widthToDp(4.5),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
     paddingHorizontal: widthToDp(1),
   },
-  transparentStar: {
-    fontSize: 30,
-    marginRight: 10,
-    color: 'transparent',
-  },
+
   input: {
     // flex: 1,
     flexDirection: 'row',

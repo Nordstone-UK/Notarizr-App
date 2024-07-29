@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import Colors from '../../../themes/Colors';
 import { widthToDp } from '../../../utils/Responsive';
+import useFetchUser from '../../../hooks/useFetchUser';
 
 interface Point {
   x: number;
@@ -39,6 +40,8 @@ const availableColors = [
 ];
 
 const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsChange, stamps, onStampChanges, saveToPdf }) => {
+  let { handleDeleteSign, fetchUserInfo } = useFetchUser()
+
   const [paths, setPaths] = useState<Path[]>([]);
   const [currentPath, setCurrentPath] = useState<Path | null>(null);
   const [drawingMode, setDrawingMode] = useState<'pen' | 'line' | 'arrow' | 'rectangle' | null>(null);
@@ -168,18 +171,41 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     setSignModalVisible(false);
     onStampChanges(stampImage.signUrl);
   };
+  const handleSignDelete = async (signId: string) => {
+    try {
+      const signupdated = await handleDeleteSign(signId);
+      // if (response.data.deleteNotarySignR.status === 'success') {
 
+      if (signupdated) {
+        console.log("sgnd", signupdated)
+        await fetchUserInfo();
+      }
+      // setSignToDelete(null);
+      // setStampModalVisible(false);
+      // setSignModalVisible(false);
+      // Optionally, update the stamps list after deletion
+      // }
+    } catch (error) {
+      console.error('Error deleting sign:', error);
+    }
+  };
   const renderSignModal = () => {
-    const renderItem = useCallback(({ item }: { item: { signUrl: string } }) => (
-      <TouchableOpacity onPress={() => handleSignSelect(item.signUrl)}>
-        <Image
-          source={{ uri: item.signUrl }}
-          style={{ width: 100, height: 100 }}
-          onLoadStart={handleImageLoadStart}
-          onLoadEnd={handleImageLoadEnd}
-        />
-      </TouchableOpacity>
-    ), [])
+    const renderItem = useCallback(({ item }: { item: { signUrl: string, id: string } }) => (
+      <View style={styles.signItemContainer}>
+        <TouchableOpacity onPress={() => handleSignSelect(item.signUrl)}>
+          <Image
+            source={{ uri: item.signUrl }}
+            style={{ width: 100, height: 100 }}
+            onLoadStart={handleImageLoadStart}
+            onLoadEnd={handleImageLoadEnd}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.deleteButton} onPress={() => handleSignDelete(item._id)}>
+          <Icon name="times" size={20} color="red" />
+        </TouchableOpacity>
+      </View>
+    ), []);
+    console.log("stamps", stamps.notarysigns)
     return (
       <Modal
         animationType="slide"
@@ -341,6 +367,16 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '50%',
     transform: [{ translateX: -15 }, { translateY: -15 }],
+  },
+  signItemContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 10,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
   },
 });
 

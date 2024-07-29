@@ -8,6 +8,7 @@ import {UPDATE_USER_ADDRESS} from '../../request/mutations/updateUserAddress.mut
 import {SEARCH_USER} from '../../request/queries/searchUser.query';
 import {EDIT_USER_ADDRESS} from '../../request/mutations/editUserAddress.mutation';
 import {DELETE_USER_ADDRESS} from '../../request/mutations/deleteUserAddress.mutation';
+import {DELETE_NOTARY_SIGN_MUTATION} from '../../request/mutations/deleteUserSign.mutation';
 
 const useFetchUser = () => {
   const [user] = useLazyQuery(FETCH_USER_INFO);
@@ -15,6 +16,7 @@ const useFetchUser = () => {
   const [updateAddress] = useMutation(UPDATE_USER_ADDRESS);
   const [editAddress] = useMutation(EDIT_USER_ADDRESS);
   const [deleteUserAddress] = useMutation(DELETE_USER_ADDRESS);
+  const [deleteUserSign] = useMutation(DELETE_NOTARY_SIGN_MUTATION);
 
   const [searchUser] = useLazyQuery(SEARCH_USER);
   const dispatch = useDispatch();
@@ -100,6 +102,21 @@ const useFetchUser = () => {
       // Handle error
     }
   };
+  const handleDeleteSign = async signId => {
+    console.log('addressid', signId);
+    try {
+      const response = await deleteUserSign({
+        variables: {
+          signId: signId,
+        },
+      });
+      console.log('daaaaaaaaaaaaaaaaa===========', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      // Handle error
+    }
+  };
 
   const searchUserByEmail = async email => {
     const request = {
@@ -123,6 +140,7 @@ const useFetchUser = () => {
     searchUserByEmail,
     handleEditAddress,
     handleDeleteAddress,
+    handleDeleteSign,
   };
 };
 
