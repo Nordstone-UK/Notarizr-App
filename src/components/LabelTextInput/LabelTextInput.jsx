@@ -92,7 +92,7 @@ export default function LabelTextInput(props) {
             onChangeText={props.onChangeText}
           />
         )}
-        <TextInput
+        {/* <TextInput
           onFocus={handleFocus}
           onBlur={handleBlur}
           editable={props.editable !== false}
@@ -107,7 +107,7 @@ export default function LabelTextInput(props) {
           }
           multiline
           onChangeText={props.onChangeText}
-        />
+        /> */}
 
         {props.rightImageSoucre && (
           <TouchableOpacity onPress={props.rightImagePress} style={{}}>
