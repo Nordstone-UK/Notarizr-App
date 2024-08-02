@@ -37,6 +37,7 @@ export default function ToBePaidScreen({route, navigation}) {
   const DocumentPrice = bookingData?.document_type?.price;
 
   const init = async () => {
+    console.log('iniiiiiiii');
     if (bookingData?.__typename === 'Session') {
       await updateSession('accepted', bookingData._id);
     } else {
@@ -99,7 +100,8 @@ export default function ToBePaidScreen({route, navigation}) {
       console.log('error.message', error.message);
       // navigation.navigate('HomeScreen');
     } else {
-      await init();
+      let a = await init();
+      console.log('assssssssssssssssssssssssssss', a);
       navigation.navigate('AgentBookCompletion');
     }
     setLoading(false);

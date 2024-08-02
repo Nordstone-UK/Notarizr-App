@@ -36,6 +36,7 @@ export default function AgentBookCompletion({navigation}) {
 
     const timer = setTimeout(() => {
       if (isMounted) {
+        console.log('unmounded');
         navigation.navigate('MedicalBookingScreen');
       }
     }, delay);
@@ -72,7 +73,7 @@ export default function AgentBookCompletion({navigation}) {
         />
 
         <Text style={styles.text}>
-          Congratulations,{'\n'} you have booked an agent!
+          Congratulations,{'\n'} you have booked an agentss!
         </Text>
       </View>
       <Image
