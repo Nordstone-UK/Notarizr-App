@@ -39,7 +39,7 @@ export default function ToBePaidScreen({route, navigation}) {
   const init = async () => {
     console.log('iniiiiiiii');
     if (bookingData?.__typename === 'Session') {
-      await updateSession('accepted', bookingData._id);
+      await updateSession('paid', bookingData._id);
     } else {
       await handleUpdateBookingStatus('accepted', bookingData._id);
     }

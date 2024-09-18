@@ -24,8 +24,10 @@ import {useNavigation} from '@react-navigation/native';
 import ClientTimeCard from '../ClientTimeCard/ClientTimeCard';
 import {useSelector} from 'react-redux';
 import moment from 'moment';
+import GradientButton from '../MainGradientButton/GradientButton';
 
 export default function ClientServiceCard(props) {
+  // console.log('sdddddd', props?.servicetype);
   const navigation = useNavigation();
   const address = props?.agentAddress;
   const [firstPart, secondPart] = splitStringBefore2ndWord(address);
@@ -128,6 +130,8 @@ export default function ClientServiceCard(props) {
                 ? 'Pending'
                 : props.status === 'rejected'
                 ? 'Rejected'
+                : props.status === 'payment_confirmed'
+                ? 'Payment Confirmed'
                 : props.status}
             </Text>
           </View>
@@ -147,28 +151,56 @@ export default function ClientServiceCard(props) {
               <Text style={styles.nameHeading}>{props.agentName}</Text>
             </View>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-            }}>
-            <Image
-              source={props.image}
-              style={{width: widthToDp(4), height: heightToDp(4)}}
-            />
-
+          {props?.servicetype === 'mobile_notary' ? (
             <View
               style={{
-                marginLeft: widthToDp(2),
-                paddingHorizontal: 5,
-                // flexDirection: 'row',
-                // justifyContent: 'center',
+                flexDirection: 'row',
               }}>
-              <Text style={styles.address}>
-                {capitalizeFirstLetter(firstPart)}
-              </Text>
-              {secondPart && <Text style={[styles.address]}>{secondPart}</Text>}
+              <Image
+                source={props.image}
+                style={{width: widthToDp(4), height: heightToDp(4)}}
+              />
+
+              <View
+                style={{
+                  marginLeft: widthToDp(2),
+                  paddingHorizontal: 5,
+                  // flexDirection: 'row',
+                  // justifyContent: 'center',
+                }}>
+                <Text style={styles.address}>
+                  {capitalizeFirstLetter(firstPart)}
+                </Text>
+                {secondPart && (
+                  <Text style={[styles.address]}>{secondPart}</Text>
+                )}
+              </View>
             </View>
-          </View>
+          ) : (
+            <View>
+              {/* <GradientButton
+                Title="Join Session"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                // onPress={() =>
+                //   navigation.navigate('NotaryCallScreen', {
+                //     routeFrom: 'agent',
+                //     uid: clientDetail?._id,
+                //     channel: clientDetail?.agora_channel_name,
+                //     token: clientDetail?.agora_channel_token,
+                //   })
+                // }
+                GradiStyles={{
+                  width: widthToDp(30),
+                  paddingHorizontal: widthToDp(0),
+                  // paddingVertical: heightToDp(3.5),
+                }}
+                styles={{
+                  fontSize: widthToDp(4),
+                }}
+                fontSize={widthToDp(4)}
+              /> */}
+            </View>
+          )}
 
           <View
             style={{

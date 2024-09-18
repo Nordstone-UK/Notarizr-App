@@ -222,7 +222,9 @@ export default function MedicalBookingScreen({route, navigation}) {
 
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+  console.log('sssssstattussdfd');
   const handleStatusChange = async StatusPassed => {
+    console.log('sssssssss', StatusPassed);
     setLoading(true);
     try {
       if (bookingDetail?.__typename !== 'Session') {
@@ -555,7 +557,33 @@ export default function MedicalBookingScreen({route, navigation}) {
       );
     }
   };
-  // console.log('setBookedByAddress', status);
+  const handleReject = async () => {
+    Alert.alert(
+      'Confirm Rejection',
+      'The payment is high. Are you sure you want to reject the session and create a new session?',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancellation pressed'),
+          style: 'cancel',
+        },
+        {
+          text: 'Reject and Book New',
+          onPress: async () => {
+            console.log('Session rejected and new booking created');
+            await handleStatusChange('cancelled');
+            // Add your logic to create a new booking here
+            navigation.navigate('RonDateDocScreen');
+          },
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+  const handleAccept = async () => {
+    await handleStatusChange('payment_confirmed');
+  };
+  console.log('setBookedByAddress', status);
   console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
@@ -577,7 +605,7 @@ export default function MedicalBookingScreen({route, navigation}) {
         midImgPress={() => handleCallSupport()}
       />
       <View style={styles.headingContainer}>
-        <Text style={styles.lightHeading}>Selected Service</Text>
+        {/* <Text style={styles.lightHeading}>Selected Service</Text> */}
         {bookingDetail?.service_type === 'mobile_notary' && (
           <Text style={styles.Heading}>Mobile Notary</Text>
         )}
@@ -603,6 +631,8 @@ export default function MedicalBookingScreen({route, navigation}) {
               {(status === 'Completed' ||
                 status === 'Accepted' ||
                 status === 'Travelling' ||
+                status === 'Paid' ||
+                status === 'Payment_confirmed' ||
                 status === 'Ongoing') && (
                 <Image
                   source={require('../../../assets/greenIcon.png')}
@@ -618,12 +648,16 @@ export default function MedicalBookingScreen({route, navigation}) {
                   <Text style={styles.insideText}>To Be Paid</Text>
                 </>
               ) : (
-                <Text style={styles.insideText}>{status}</Text>
+                <Text style={styles.insideText}>
+                  {status === 'Payment_confirmed'
+                    ? 'Payment Confirmed'
+                    : status}
+                </Text>
               )}
             </View>
           </View>
 
-          {bookingDetail.client && (
+          {/* {bookingDetail.client && (
             <View>
               <Text style={[styles.insideHeading]}>Client details</Text>
 
@@ -666,20 +700,20 @@ export default function MedicalBookingScreen({route, navigation}) {
                 </View>
                 <View>
                   <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
-                    {bookingDetail.client?.email}
+                    {bookingDetail.client.first_name}{' '}
+                    {bookingDetail.client.last_name}
                   </Text>
                   <Text
                     style={{
                       color: 'black',
                       fontFamily: 'Poppins-Regular',
                     }}>
-                    {bookingDetail.client.first_name}{' '}
-                    {bookingDetail.client.last_name}
+                    {bookingDetail.client?.email}
                   </Text>
                 </View>
               </View>
             </View>
-          )}
+          )} */}
 
           {bookingDetail.agent && (
             <View>
@@ -726,16 +760,16 @@ export default function MedicalBookingScreen({route, navigation}) {
                 </View>
                 <View>
                   <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
-                    {bookingDetail.agent?.email}
+                    {bookingDetail.agent.first_name}{' '}
+                    {bookingDetail.agent.last_name}
                   </Text>
-                  <Text
+                  {/* <Text
                     style={{
                       color: 'black',
                       fontFamily: 'Poppins-Regular',
                     }}>
-                    {bookingDetail.agent.first_name}{' '}
-                    {bookingDetail.agent.last_name}
-                  </Text>
+                    {bookingDetail.agent?.email}
+                  </Text> */}
                 </View>
               </View>
             </View>
@@ -901,7 +935,7 @@ export default function MedicalBookingScreen({route, navigation}) {
             </View>
           </View>
 
-          {bookingDetail.payment_type && (
+          {/* {bookingDetail.payment_type && (
             <View>
               <Text style={[styles.insideHeading]}>Payment Info </Text>
               <View
@@ -928,7 +962,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 </Text>
               </View>
             </View>
-          )}
+          )} */}
           {bookingDetail.payment_type == 'on_notarizr' && (
             <View>
               <Text style={[styles.insideHeading]}>Paying Amount</Text>
@@ -948,6 +982,70 @@ export default function MedicalBookingScreen({route, navigation}) {
                     : ''}
                 </Text>
               </View>
+              {bookingDetail.payment_type == 'on_notarizr' &&
+                status == 'To_be_paid' &&
+                price > 0 && (
+                  <View style={styles.addressView}>
+                    <View style={styles.paymentbuttons}>
+                      <MainButton
+                        Title="Reject"
+                        colors={[
+                          Colors.OrangeGradientStart,
+                          Colors.OrangeGradientEnd,
+                        ]}
+                        onPress={() => handleReject()}
+                        GradiStyles={{
+                          width: widthToDp(30),
+                          paddingHorizontal: widthToDp(0),
+                          paddingVertical: heightToDp(3),
+                        }}
+                        // loading={loadingReject}
+                        // isDisabled={loadingReject}
+                        styles={{
+                          padding: widthToDp(0),
+                          fontSize: widthToDp(4),
+                        }}
+                      />
+                    </View>
+                    <View style={styles.paymentbuttons}>
+                      <MainButton
+                        Title="Accept"
+                        colors={[
+                          Colors.OrangeGradientStart,
+                          Colors.OrangeGradientEnd,
+                        ]}
+                        onPress={() => handleAccept()}
+                        GradiStyles={{
+                          width: widthToDp(30),
+                          paddingHorizontal: widthToDp(0),
+                          paddingVertical: heightToDp(3),
+                        }}
+                        // loading={loadingReject}
+                        // isDisabled={loadingReject}
+                        styles={{
+                          padding: widthToDp(0),
+                          fontSize: widthToDp(4),
+                        }}
+                      />
+                    </View>
+                    {/* <TouchableOpacity
+                      style={styles.paymentbuttons}
+                      onPress={() => handleReject()}>
+                      <Text
+                        style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
+                        Reject
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.paymentbuttons}
+                      onPress={() => handleAccept()}>
+                      <Text
+                        style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
+                        Accept
+                      </Text>
+                    </TouchableOpacity> */}
+                  </View>
+                )}
             </View>
           )}
           {bookingDetail && typeof bookingDetail.totalPrice === 'number' && (
@@ -1312,28 +1410,33 @@ export default function MedicalBookingScreen({route, navigation}) {
               />
             )}
 
-            {status !== 'Completed' && (
-              <GradientButton
-                Title={'Upload documents'}
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                GradiStyles={{
-                  width: widthToDp(37),
-                  paddingVertical: widthToDp(4),
-                  marginTop: widthToDp(10),
-                }}
-                styles={{
-                  padding: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={() => {
-                  selectDocuments();
-                }}
-                fontSize={widthToDp(3.5)}
-                loading={loading}
-              />
-            )}
+            {status !== 'Completed' &&
+              status !== 'To_be_paid' &&
+              status !== 'Pending' && (
+                <GradientButton
+                  Title={'Upload documents'}
+                  colors={[
+                    Colors.OrangeGradientStart,
+                    Colors.OrangeGradientEnd,
+                  ]}
+                  GradiStyles={{
+                    width: widthToDp(37),
+                    paddingVertical: widthToDp(4),
+                    marginTop: widthToDp(10),
+                  }}
+                  styles={{
+                    padding: widthToDp(0),
+                    fontSize: widthToDp(4),
+                  }}
+                  onPress={() => {
+                    selectDocuments();
+                  }}
+                  fontSize={widthToDp(3.5)}
+                  loading={loading}
+                />
+              )}
             {bookingDetail.payment_type == 'on_notarizr' &&
-              status == 'To_be_paid' &&
+              status == 'Payment_confirmed' &&
               status !== 'Accepted' &&
               status !== 'Completed' && (
                 <GradientButton
@@ -1531,6 +1634,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  paymentbuttons: {
+    paddingHorizontal: widthToDp(7),
+    // backgroundColor: Colors.OrangeGradientEnd,
+    marginLeft: widthToDp(5),
+    width: widthToDp(30),
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 30,
+    alignItems: 'center',
   },
 });
 {

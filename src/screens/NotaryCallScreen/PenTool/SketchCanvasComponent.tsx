@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, FlatList, Image, Text, ActivityIndicator } from 'react-native';
 import { SketchCanvas as RNSketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon1 from 'react-native-vector-icons/FontAwesome5';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import Colors from '../../../themes/Colors';
 import { widthToDp } from '../../../utils/Responsive';
@@ -272,7 +273,7 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
       />
       <View style={styles.controls}>
         <TouchableOpacity style={styles.iconButton} onPress={handlePenPress}>
-          <Icon name="pencil" size={30} color={drawingMode === 'pen' ? 'blue' : 'black'} />
+          <Icon name="pencil" size={30} color={drawingMode === 'pen' ? Colors.Orange : 'black'} />
         </TouchableOpacity>
         {showDropdown && (
           <>
@@ -283,7 +284,7 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
               <Icon name="trash" size={30} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={handleStampPress}>
-              <Icon name="image" size={30} color="black" />
+              <Icon1 name="stamp" size={30} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={handleSignaturePress}>
               <Icon name="edit" size={30} color="black" />

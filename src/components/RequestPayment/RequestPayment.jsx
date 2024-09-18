@@ -18,12 +18,14 @@ export default function RequestPayment(props) {
     //   behavior={Platform.OS === 'ios' ? 'height' : 'height'}>
     <View style={styles.bottonSheet}>
       <Text style={styles.text}>
-        Mention the charges to complete this service
+        {/* Mention the charges to complete this service */}
+        How much do you want to charge the client?
       </Text>
       <View style={styles.input}>
-        <Text style={styles.smallText}>$</Text>
+        {/* <Text style={styles.smallText}>$</Text> */}
         {Platform.OS === 'android' ? (
           <TextInput
+            value={props.amount !== undefined ? props.amount.toString() : ''}
             keyboardType="numeric"
             style={styles.TextInput}
             onChangeText={props.onChangeText}
@@ -32,6 +34,7 @@ export default function RequestPayment(props) {
           />
         ) : (
           <BottomSheetTextInput
+            value={props.amount}
             keyboardType="numeric"
             style={styles.TextInput}
             onChangeText={props.onChangeText}

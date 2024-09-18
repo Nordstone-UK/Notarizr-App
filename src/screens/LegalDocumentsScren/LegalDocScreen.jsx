@@ -314,9 +314,8 @@ export default function LegalDocScreen({route, navigation}) {
                   fontFamily: 'Manrope-Regular',
                   fontSize: widthToDp(3.5),
                 }}>
-                Any additional signatures would cost
-                <Text style={{fontFamily: 'Manrope-Bold'}}> +$10 </Text>per each
-                .
+                Any additional signature will be
+                <Text style={{fontFamily: 'Manrope-Bold'}}> +$10 </Text>.
               </Text>
             </View>
             <View

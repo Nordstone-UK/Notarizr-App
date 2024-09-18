@@ -2,6 +2,14 @@
   "migIndex": 1,
   "data": [
     {
+      "path": "assets/fonts/DancingScript-VariableFont_wght.ttf",
+      "sha1": "80f13e7575ec59a51b7fdc42bb0b9d7a34439123"
+    },
+    {
+      "path": "assets/fonts/JacquesFrancoisShadow-Regular.ttf",
+      "sha1": "dbd33b44df14f281b6bbb52939321e7dbb31663b"
+    },
+    {
       "path": "assets/fonts/Manrope-Bold.ttf",
       "sha1": "a6b63c832d12337efb3123f47863f54472c81bf5"
     },
@@ -32,6 +40,22 @@
     {
       "path": "assets/fonts/Manrope-VariableFont_wght.ttf",
       "sha1": "1b4df48059f89147cf4f2e29d2d6a22ce1b6e7fe"
+    },
+    {
+      "path": "assets/fonts/PlaywriteCU-ExtraLight.ttf",
+      "sha1": "8c1039306d0c92c4798bbb3f4592d7a58b7af73b"
+    },
+    {
+      "path": "assets/fonts/PlaywriteCU-Light.ttf",
+      "sha1": "27476c1da104410aa52c3143c4024e744127740e"
+    },
+    {
+      "path": "assets/fonts/PlaywriteCU-Regular.ttf",
+      "sha1": "ab46dbab2616e6b0c0ea60c8917bcb137080a893"
+    },
+    {
+      "path": "assets/fonts/PlaywriteCU-Thin.ttf",
+      "sha1": "f6fc23911d86593b2fbe7388f5a13ae9d8134474"
     },
     {
       "path": "assets/fonts/Poppins-Black.ttf",
@@ -68,6 +92,14 @@
     {
       "path": "assets/fonts/Poppins-Thin.ttf",
       "sha1": "09ba4dcd5509c8085bf88c665dcc51cbdfced27b"
+    },
+    {
+      "path": "assets/fonts/ProtestGuerrilla-Regular.ttf",
+      "sha1": "2b8eb6b339e3f1741b1024b8412c8d76c69c7aa8"
+    },
+    {
+      "path": "assets/fonts/SofadiOne-Regular.ttf",
+      "sha1": "6df20d491ee7bce576c9659b112c3905ffdce41b"
     }
   ]
 }

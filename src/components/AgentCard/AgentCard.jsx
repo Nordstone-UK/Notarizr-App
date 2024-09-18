@@ -369,6 +369,8 @@ export default function AgentCard(props) {
                 ? 'Pending'
                 : props.status === 'rejected'
                 ? 'Rejected'
+                : props.status === 'payment_confirmed'
+                ? 'Payment Confirmed'
                 : props.status}
             </Text>
           </View>
@@ -389,28 +391,56 @@ export default function AgentCard(props) {
               <Text style={styles.nameHeading}>{name}</Text>
             </View>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-            }}>
-            <Image
-              source={props.image}
-              style={{width: widthToDp(4), height: heightToDp(4)}}
-            />
-
+          {props?.servicetype === 'mobile_notary' ? (
             <View
               style={{
-                marginLeft: widthToDp(1),
-                paddingHorizontal: 5,
-                // flexDirection: 'row',
-                // alignItems: 'center',
+                flexDirection: 'row',
               }}>
-              <Text style={styles.address}>
-                {capitalizeFirstLetter(firstPart)}
-              </Text>
-              {secondPart && <Text style={[styles.address]}>{secondPart}</Text>}
+              <Image
+                source={props.image}
+                style={{width: widthToDp(4), height: heightToDp(4)}}
+              />
+
+              <View
+                style={{
+                  marginLeft: widthToDp(1),
+                  paddingHorizontal: 5,
+                  // flexDirection: 'row',
+                  // alignItems: 'center',
+                }}>
+                <Text style={styles.address}>
+                  {capitalizeFirstLetter(firstPart)}
+                </Text>
+                {secondPart && (
+                  <Text style={[styles.address]}>{secondPart}</Text>
+                )}
+              </View>
             </View>
-          </View>
+          ) : (
+            <View>
+              {/* <GradientButton
+                Title="Join Session"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                // onPress={() =>
+                //   navigation.navigate('NotaryCallScreen', {
+                //     routeFrom: 'agent',
+                //     uid: clientDetail?._id,
+                //     channel: clientDetail?.agora_channel_name,
+                //     token: clientDetail?.agora_channel_token,
+                //   })
+                // }
+                GradiStyles={{
+                  width: widthToDp(30),
+                  paddingHorizontal: widthToDp(0),
+                  // paddingVertical: heightToDp(3.5),
+                }}
+                styles={{
+                  fontSize: widthToDp(4),
+                }}
+                fontSize={widthToDp(4)}
+              /> */}
+            </View>
+          )}
 
           <View
             style={{

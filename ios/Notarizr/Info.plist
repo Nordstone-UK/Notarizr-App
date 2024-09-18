@@ -43,7 +43,6 @@
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
-
 			<key>3.13.41.233</key>
 			<dict>
 				<key>NSIncludesSubdomains</key>
@@ -53,11 +52,11 @@
 			</dict>
 		</dict>
 	</dict>
-	 <key>LSApplicationQueriesSchemes</key>
-    <array>
-        <string>tel</string>
-        <string>telprompt</string>
-    </array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>telprompt</string>
+	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to your location to provide you with personalized recommendations and services based on your current location. Your location data will only be used within the app and will not be shared with any third parties.</string>
 	<key>UILaunchStoryboardName</key>
@@ -93,6 +92,14 @@
 		<string>Poppins-Regular.ttf</string>
 		<string>Poppins-SemiBold.ttf</string>
 		<string>Poppins-Thin.ttf</string>
+		<string>DancingScript-VariableFont_wght.ttf</string>
+		<string>JacquesFrancoisShadow-Regular.ttf</string>
+		<string>PlaywriteCU-ExtraLight.ttf</string>
+		<string>PlaywriteCU-Light.ttf</string>
+		<string>PlaywriteCU-Regular.ttf</string>
+		<string>PlaywriteCU-Thin.ttf</string>
+		<string>ProtestGuerrilla-Regular.ttf</string>
+		<string>SofadiOne-Regular.ttf</string>
 	</array>
 </dict>
 </plist>

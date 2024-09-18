@@ -50,6 +50,7 @@ export default function ServiceDetailScreen({route, navigation}) {
   console.log('adsddress', selectAddress);
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState('date');
   console.log('date', date);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -99,6 +100,10 @@ export default function ServiceDetailScreen({route, navigation}) {
     );
     navigation.navigate('LegalDocScreen');
   };
+  const handleOpenPicker = pickermode => {
+    setMode(pickermode);
+    setOpen(true);
+  };
   const showConfirmation = async () => {
     setLoading(true);
     if (
@@ -106,8 +111,8 @@ export default function ServiceDetailScreen({route, navigation}) {
       (date && email && firstName && lastName && phoneNumber && location)
     ) {
       Alert.alert(
-        'Disclaimer',
-        'We may contact you to modify the time based on local agent availability and time of day..',
+        'Please Note:',
+        'We may contact you to adjust the time based on agent availability and time of day.',
         [
           {
             text: 'OK',
@@ -222,6 +227,33 @@ export default function ServiceDetailScreen({route, navigation}) {
               <View style={{marginVertical: heightToDp(2)}}>
                 <Text style={styles.headingContainer}>Date & Time:</Text>
                 <View style={styles.buttonFlex}>
+                  <TouchableOpacity onPress={() => handleOpenPicker('date')}>
+                    <Text style={styles.dateText}>
+                      {moment(date).format('MM-DD-YYYY')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleOpenPicker('time')}>
+                    <Text style={styles.dateText}>
+                      {moment(date).format(' hh:mm A')}
+                    </Text>
+                  </TouchableOpacity>
+                  <DatePicker
+                    modal
+                    mode={mode}
+                    // minimumDate={date}
+                    open={open}
+                    date={date}
+                    onConfirm={selectedDate => {
+                      setOpen(false); // Close the modal
+                      setDate(selectedDate); // Update the state with the new selected date or time
+                    }}
+                    onCancel={() => {
+                      setOpen(false);
+                    }}
+                    locale="en"
+                  />
+                </View>
+                {/* <View style={styles.buttonFlex}>
                   <TouchableOpacity onPress={() => setOpen(true)}>
                     <Text
                       style={{
@@ -251,10 +283,10 @@ export default function ServiceDetailScreen({route, navigation}) {
                       setOpen(false);
                     }}
                   />
-                </View>
+                </View> */}
               </View>
               <Text style={styles.insideHeading}>
-                To whom are you booking this service for:
+                Who are you booking this service?
               </Text>
 
               <View style={styles.buttonFlex}>
@@ -455,6 +487,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     marginTop: heightToDp(5),
+  },
+  dateText: {
+    color: Colors.Orange,
+    fontFamily: 'Manrope-Bold',
+    fontSize: widthToDp(5),
+    borderWidth: 1,
+    borderColor: Colors.Orange,
+    paddingHorizontal: widthToDp(2),
+    borderRadius: widthToDp(2),
+    marginRight: widthToDp(2),
   },
 });
 {

@@ -101,7 +101,7 @@ export default function AllBookingScreen({route, navigation}) {
                 marginHorizontal: widthToDp(5),
               }}>
               <MainButton
-                Title="Active"
+                Title="Accepted"
                 colors={
                   isFocused === 'accepted'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]

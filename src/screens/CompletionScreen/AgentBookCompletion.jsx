@@ -73,7 +73,7 @@ export default function AgentBookCompletion({navigation}) {
         />
 
         <Text style={styles.text}>
-          Congratulations,{'\n'} you have booked an agentss!
+          Congratulations,{'\n'} you have booked an agent!
         </Text>
       </View>
       <Image

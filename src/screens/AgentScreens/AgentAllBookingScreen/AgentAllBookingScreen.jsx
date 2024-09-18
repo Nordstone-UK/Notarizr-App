@@ -86,7 +86,7 @@ export default function AgentAllBookingScreen({navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader
-        Title="One Click and Select our services."
+        Title="Bookings"
         // SearchEnabled={true}
         Switch={true}
       />
@@ -110,7 +110,7 @@ export default function AgentAllBookingScreen({navigation}) {
                 alignSelf: 'center',
               }}>
               <MainButton
-                Title="Active"
+                Title="Accepted"
                 colors={
                   isFocused === 'accepted'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
@@ -220,7 +220,7 @@ export default function AgentAllBookingScreen({navigation}) {
                 data={mergerData}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => {
-                  // console.log("items",item)
+                  console.log('items', item);
                   return (
                     <ClientServiceCard
                       image={require('../../../../assets/agentLocation.png')}

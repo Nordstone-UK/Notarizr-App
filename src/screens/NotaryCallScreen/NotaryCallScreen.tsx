@@ -64,11 +64,19 @@ import { UPDATE_OR_CREATE_SESSION_UPDATED_DOCS } from '../../../request/mutation
 import SketchCanvasComponent from './PenTool/SketchCanvasComponent';
 import useUpdate from '../../hooks/useUpdate';
 import useFetchUser from '../../hooks/useFetchUser';
+import LinearGradient from 'react-native-linear-gradient';
+import useFetchBooking from '../../hooks/useFetchBooking';
+import { UPDATE_OR_CREATE_SESSION_CLIENT_DOCS } from '../../../request/mutations/updateSessionClientDocs';
+import DrawSignTypeModal from './Signature';
+
 export default function NotaryCallScreen({ route, navigation }: any) {
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['25%', '40%'], []);
-  const { uploadimageToS3, uploadAllDocuments } = useRegister();
+  const { uploadimageToS3, uploadAllDocuments, uploadMultipleFiles, uploadDocArray } = useRegister();
+  const [updateSessionClientDocs] = useMutation(
+    UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
+  );
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
   const { updateSession } = useSession();
@@ -122,21 +130,31 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [documentText, setDocumentText] = useState(null);
   const [signatureDimensions, setSignatureDimensions] = useState({});
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isDrawTypeModalVisible, setDrawTypeModalVisible] = useState(false);
 
+  const {
+    updateAgentdocs,
+  } = useFetchBooking();
   useEffect(() => {
+    const extractFileName = (url) => {
+      return url.split('/').pop();
+    };
+
     const items = [
-      ...Object.keys(bookingData.client_documents).map(doc => ({
-        label: `${doc}`,
-        value: bookingData.client_documents[doc]
+      ...Object.entries(bookingData.client_documents).map(([key, url]) => ({
+        label: extractFileName(url), // Extract the file name for client documents
+        value: url
       })),
-      ...bookingData.agent_document.map((doc, index) => ({
-        label: `Agent Document ${index + 1}`,
-        value: doc
+      ...bookingData.agent_document.map((url, index) => ({
+        label: extractFileName(url), // Extract the file name for agent documents
+        value: url
       }))
     ];
+
     setPickerItems(items);
     if (items.length > 0) {
-      setSelectedItem(items[0].value);
+      setSelectedItem(items[0].value); // Set the default selected item
     }
   }, [bookingData.client_documents, bookingData.agent_document]);
 
@@ -487,7 +505,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       setPdfEditMode(false);
     }
   };
-  const handleLinkChange = async (linkId: string, itemLabel: Number) => {
+  const handleLinkChange = async (linkId: string, itemLabel: string) => {
+    console.log("linkiddd", itemLabel)
+    // setSelectedItem()
     setFilePath(filePath);
     setNewPdfPath(filePath);
     setSourceUrl(linkId);
@@ -539,7 +559,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.log('error', error);
     }
   };
-
+  console.log("boolkingdaree", bookingData)
   const addSignedDocFunc = async docs => {
     try {
       const urls = docs.map(doc => doc.value);
@@ -828,14 +848,128 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         console.log('eeee', err.message);
       });
   };
+  const selectDocuments = async () => {
+    setLoading(true);
+    let urlResponse;
+    const response = await uploadMultipleFiles();
+    console.log('responsessssssssss', response);
+    if (response) {
+      urlResponse = await uploadDocArray(response);
+      console.log('sssssssssssssssssssssssss', urlResponse);
+      // urlResponse = urlResponse.map(item => ({
+      //   key: item.name,
+      //   value: item.url,
+      // }));
+
+      const request = {
+        variables: {
+          sessionId: bookingData?._id,
+          agentDocuments: urlResponse,
+        },
+      };
+      const res = await updateAgentdocs(bookingData?._id, urlResponse)
+      var reponse;
+      if (bookingData.__typename == 'Session') {
+        const request = {
+          variables: {
+            sessionId: bookingData?._id,
+          },
+        };
+        reponse = await getSession(request);
+        dispatch(setBookingInfoState(reponse.data.getSession.session));
+        setLoading(false);
+      }
+    }
+  };
+  const clientDocumentsUpload = async () => {
+    setLoading(true);
+    // setShowIcon(false);
+    try {
+      let urlResponse;
+      const response = await uploadMultipleFiles();
+      console.log('response', response);
+      // setUploadingDocs(response);
+      if (response) {
+        urlResponse = await uploadAllDocuments(response);
+        const documentKeys = Object.keys(bookingData.client_documents);
+
+        // Get the length of the keys array, which corresponds to the number of documents
+        const numberOfDocuments = documentKeys.length;
+        urlResponse = urlResponse.map(item => ({
+          key: item.name + numberOfDocuments,
+          value: item.url,
+        }));
+        const request = {
+          variables: {
+            sessionId: bookingData?._id,
+            clientDocuments: urlResponse,
+          },
+        };
+
+        const res =
+          await updateSessionClientDocs(request)
+        var reponse;
+        if (bookingData.__typename == 'Session') {
+          const request = {
+            variables: {
+              sessionId: bookingData?._id,
+            },
+          };
+          reponse = await getSession(request);
+          console.log('ressss', reponse.data.getSession.session);
+          dispatch(setBookingInfoState(reponse.data.getSession.session));
+        }
+
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      setLoading(false); // Stop loading
+    }
+    // setShowIcon(true);
+  };
+  const handleSignPress = () => {
+    setDrawTypeModalVisible(true);
+  };
+
+  const handleSignCloseModal = () => {
+    setDrawTypeModalVisible(false);
+  };
+
+  const handleSelectDrawType = (type) => {
+    setDrawTypeModalVisible(false);
+    if (type === 'draw') {
+      // Handle drawing logic
+      getSignature(); // Assuming this is your drawing function
+    } else if (type === 'upload') {
+      // Handle upload logic
+      onAddSignatureImage(false); // Assuming this is your upload function
+    }
+  };
   return (
     <SafeAreaView style={styles.Maincontainer}>
       <View style={styles.SecondContainer}>
+        <View style={styles.topbuttons}>
+          <LinearGradient
+            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.sessionIDComponent]}>
+
+            <RNText
+              style={styles.sessionID}>
+              {`Session ID: ${bookingData._id}`}
+            </RNText>
+          </LinearGradient>
+
+        </View>
         <View style={styles.flexContainer}>
+
           <ScrollView
             style={styles.scroll}
             horizontal={true}
             contentContainerStyle={styles.scrollContainer}>
+
             {isJoined ? (
               <React.Fragment key={0}>
                 <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
@@ -868,7 +1002,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 style={styles.hourGlass}
                 onPress={toggleVideoMute}>
                 <Image
-                  source={require('../../../assets/videoOff.png')}
+                  source={require('../../../assets/video.png')}
                   style={{ width: widthToDp(10), height: widthToDp(10) }}
                 />
               </TouchableOpacity>
@@ -877,9 +1011,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 style={styles.hourGlass}
                 onPress={toggleVideoMute}>
                 <Image
-                  source={require('../../../assets/video.png')}
+                  source={require('../../../assets/videoOff.png')}
                   style={{ width: widthToDp(10), height: widthToDp(10) }}
                 />
+
               </TouchableOpacity>
             )}
             <TouchableOpacity style={styles.hourGlass} onPress={() => mute()}>
@@ -895,12 +1030,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           </View>
         </View>
       </View>
-      <View style={{ backgroundColor: Colors.white }}>
 
+      <View style={{ backgroundColor: Colors.white }}>
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={(itemValue, itemLabel) => handleLinkChange(itemValue, itemLabel)}
           items={pickerItems}
+          value={selectedItem}
+          placeholder={{
+            label: 'Select a document',
+            // value: { selectedItem },
+            color: '#9EA0A4',
+          }}
         />
       </View>
       <View style={styles.container}>
@@ -1061,7 +1202,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         <View style={styles.actions}>
 
           <MainButton
-            Title="Sign"
+            Title="Add Signature"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             styles={{
               paddingHorizontal: widthToDp(3),
@@ -1069,10 +1210,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             }}
             onPress={() => {
               // onSignatureAdd();
-              getSignature();
+              // getSignature();
+              handleSignPress();
             }}
           />
-          <MainButton
+          {/* <MainButton
             Title="Upload sign"
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             styles={{
@@ -1082,19 +1224,40 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             onPress={() => {
               onAddSignatureImage(false);
             }}
-          />
-          {User.account_type != 'client' && (
+          /> */}
+          {User.account_type === 'client' && (
             <MainButton
-              Title="Add stamp"
+              Title="Upload Document"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               styles={{
                 paddingHorizontal: widthToDp(1),
                 paddingVertical: widthToDp(2),
               }}
-              onPress={() => {
-                onAddSignatureImage(true);
-              }}
+              onPress={() => clientDocumentsUpload()}
             />
+
+          )}
+          {User.account_type != 'client' && (
+            <MainButton
+              Title="Upload Document"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              styles={{
+                paddingHorizontal: widthToDp(1),
+                paddingVertical: widthToDp(2),
+              }}
+              onPress={() => selectDocuments()}
+            />
+            // <MainButton
+            //   Title="Add stamp"
+            //   colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            //   styles={{
+            //     paddingHorizontal: widthToDp(1),
+            //     paddingVertical: widthToDp(2),
+            //   }}
+            //   onPress={() => {
+            //     onAddSignatureImage(true);
+            //   }}
+            // />
           )}
           {User.account_type != 'client' && (
             <MainButton
@@ -1150,6 +1313,14 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               onPress={() => handleTextonLiveblock()}
             />
           </BottomSheetModal>
+          <DrawSignTypeModal
+            isVisible={isDrawTypeModalVisible}
+            onClose={handleSignCloseModal}
+            signs={User}
+            onStampChanges={handleSavedStamp}
+
+          // onSelectOption={handleSelectDrawType}
+          />
           <View style={styles.buttonFlex}>
             <DatePicker
               modal
@@ -1206,7 +1377,7 @@ const styles = StyleSheet.create({
     // height: height * 0.6,
   },
   currentPageTextContainer: {
-    backgroundColor: 'green',
+    backgroundColor: Colors.Orange,
     width: 25,
     height: 25,
     position: 'absolute',
@@ -1248,7 +1419,7 @@ const styles = StyleSheet.create({
   },
   Maincontainer: {
     flex: 1,
-    //backgroundColor: Colors.PinkBackground,
+    backgroundColor: Colors.white
   },
   NavbarContainer: {
     flexDirection: 'row',
@@ -1375,15 +1546,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffe0',
     color: '#0000ff',
   },
+  sessionIDComponent: {
+    borderRadius: 5,
+    alignSelf: 'center',
+    backgroundColor: Colors.white
+  },
+  sessionID: {
+    color: Colors.white,
+    padding: '.5%',
+    paddingHorizontal: 5,
+    // color: '#fff',
+    fontSize: widthToDp(2.8),
+    textAlign: 'center',
+    fontFamily: 'Manrope-Bold',
+  },
+  topbuttons: {
+    flexDirection: "row",
+    rowGap: 10,
+    alignItems: 'center',
+    marginTop: 6,
+    marginHorizontal: 10,
 
+  },
   penToolcanva: {
     position: 'absolute',
-
     top: 0,
     left: 0,
     // bottom: 0,
     right: 0,
   }
+
 });
 
 ///////////////////////////////
