@@ -15,7 +15,7 @@ import {
   Dimensions,
   PermissionsAndroid,
   Platform,
-  Linking,
+  Linking, TextInput
 } from 'react-native';
 
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -134,7 +134,17 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   // const [navigationStatus, setNavigationStatus] = useState('');
   const [selected, setSelected] = useState('client_choose');
   const [bookedByAddress, setBookedByAddress] = useState(null);
-
+  const [numOfWitnesses, setNumOfWitnesses] = useState(1); // Start with 1 witness
+  const [witnessFields, setWitnessFields] = useState(['']); // Array to store input values for each witness
+  const handleAddWitnessField = () => {
+    setWitnessFields([...witnessFields, '']); // Add an empty string for the new witness field
+  };
+  // const handleWitnessInputChange = (index, value) => {
+  //   const updatedFields = [...witnessFields];
+  //   updatedFields[index] = value; // Update the specific input field value
+  //   setWitnessFields(updatedFields);
+  //   SearchUser(value); // Perform search based on the input
+  // };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -812,7 +822,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           {clientDetail?.service_type !== 'mobile_notary' && (
             <>
               <Text style={styles.Heading}>Remote Online Notary</Text>
-              <Text style={[styles.Heading, { fontSize: widthToDp(4), fontStyle: 'italic' }]}>Your fee to Notarizr for this session is $2.99</Text>
+              <Text style={[styles.Heading, { fontSize: widthToDp(3), fontStyle: 'italic' }]}>Your fee to Notarizr for this session is $2.99</Text>
             </>
           )}
         </View>
@@ -1138,7 +1148,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               (status === 'Paid' && clientDetail.observers.length === 0)) &&
               clientDetail.__typename === 'Session' && (
                 <View>
-                  <Text style={styles.insideHeading}>Observers</Text>
+                  <Text style={styles.insideHeading}>Make observers as witnesses</Text>
                   <Text
                     style={{
                       fontFamily: 'Poppins-Regular',
@@ -1148,8 +1158,109 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     An Observer is anyone with relevant information for all the
                     signing that may need to be on the notarization session.
                   </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: widthToDp(2),
+                      marginHorizontal: widthToDp(5),
+                      marginVertical: widthToDp(2),
+                    }}>
+                    <Text style={{
+                      color: Colors.TextColor,
+                      width: widthToDp(70),
+                    }}>
+                      How many witnesses do you want to invite?
+                    </Text>
+                    <TextInput
+                      style={{
+                        paddingHorizontal: widthToDp(2),
+                        paddingVertical: heightToDp(2),
+                        width: widthToDp(15),
+                        height: heightToDp(10),
+                        borderColor: Colors.Orange,
+                        borderWidth: 2,
+                        borderRadius: widthToDp(3),
+                        color: 'black',
+                      }}
+                      // value={additionalSignatures}
+                      // onChangeText={handleAdditionalSignaturesChange}
+                      placeholder=""
+                      keyboardType="numeric"
+                      onChangeText={text => {
+                        const number = parseInt(text, 10) || 1; // Ensure the input is a valid number
+                        setNumOfWitnesses(number);
+                        setWitnessFields(Array(number).fill('')); // Reset witness fields based on input number
+                      }}
 
+                    />
+                  </View>
+                  {/* <Text style={styles.insideHeading}>How many witnesses do you want to invite?</Text>
                   <LabelTextInput
+                    placeholder="Enter number of witnesses"
+                    keyboardType="numeric"
+                    defaultValue={numOfWitnesses.toString()}
+                    onChangeText={text => {
+                      const number = parseInt(text, 10) || 1; // Ensure the input is a valid number
+                      setNumOfWitnesses(number);
+                      setWitnessFields(Array(number).fill('')); // Reset witness fields based on input number
+                    }}
+                    InputStyles={{ padding: widthToDp(2) }}
+                    AdjustWidth={{
+                      width: widthToDp(92),
+                      borderColor: Colors.Orange,
+                    }}
+                  /> */}
+                  {witnessFields.map((witness, index) => (
+                    <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "center", marginBottom: 10 }}>
+                      {/* <LabelTextInput
+                        placeholder={`Search witness ${index + 1} by email`}
+                        value={witnessFields[index]}
+                        onChangeText={text => {
+                          SearchUser(text);
+                          setSearchFor('Observer');
+                          setShowObserverSearchView(true);
+                        }}
+                        InputStyles={{ padding: widthToDp(2) }}
+                        AdjustWidth={{
+                          width: widthToDp(82), // Smaller width to leave room for the + button
+                          borderColor: Colors.Orange,
+                        }}
+                        rightImageSoucre={require('../../../../assets/close.png')}
+                        rightImagePress={() => {
+                          const updatedFields = [...witnessFields];
+                          updatedFields[index] = ''; // Clear the specific input field
+                          setWitnessFields(updatedFields);
+                          setSearchedUser([]); // Clear search results
+                        }}
+                      /> */}
+                      <LabelTextInput
+                        placeholder="Search observer by email"
+                        defaultValue={''}
+                        onChangeText={text => {
+                          SearchUser(text);
+                          setSearchFor('Observer');
+                          setShowObserverSearchView(true);
+                        }}
+                        InputStyles={{ padding: widthToDp(2) }}
+                        AdjustWidth={{
+                          width: widthToDp(92),
+                          borderColor: Colors.Orange,
+                        }}
+                        rightImageSoucre={require('../../../../assets/close.png')}
+                        rightImagePress={() => {
+                          setSearchedUser([]);
+                        }}
+                      />
+                      {/* {index === witnessFields.length - 1 && (
+                        <TouchableOpacity onPress={handleAddWitnessField}>
+                          <Text style={{ fontSize: 24, color: Colors.Orange }}>+</Text>
+                        </TouchableOpacity>
+                      )} */}
+                    </View>
+                  ))}
+                  {/* <LabelTextInput
                     placeholder="Search observer by email"
                     defaultValue={''}
                     onChangeText={text => {
@@ -1166,7 +1277,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     rightImagePress={() => {
                       setSearchedUser([]);
                     }}
-                  />
+                  /> */}
 
                   {observers.length > 0 && (
                     <View>
@@ -2138,7 +2249,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 {clientDetail.payment_type == 'on_notarizr' &&
                   status !== 'Accepted' && status == 'To_be_paid' && (
                     <GradientButton
-                      Title="Request Payment"
+                      Title="Requested Payment  for [RON]"
                       colors={[
                         Colors.OrangeGradientStart,
                         Colors.OrangeGradientEnd,
@@ -2281,7 +2392,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 <GradientButton
                   Title={
                     clientDetail.payment_type == 'on_notarizr'
-                      ? 'Request Payment'
+                      ? 'Requested Payment  for [RON]'
                       : 'Join session'
                   }
                   colors={[

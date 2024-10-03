@@ -35,6 +35,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         set({ currentPage: page });
       },
       insertObject: (id, object) => {
+         console.log("Inserting object:", { id, object });
         set({
           objects: {
             ...get().objects,

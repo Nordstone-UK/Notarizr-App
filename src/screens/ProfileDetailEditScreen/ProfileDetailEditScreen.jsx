@@ -47,8 +47,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     date_of_birth,
   } = useSelector(state => state.user.user);
   // const data = useSelector(state => state.user.user);
-  // console.log('dattttt', data);
-  const dateOfBirth = moment(date_of_birth, 'DD-MM-YYYY').toDate();
+  const dateOfBirth = moment.utc(date_of_birth, 'YYYY-MM-DD').toDate();
 
   const [firstName, setfirstName] = useState(first_name);
   const [lastName, setlastName] = useState(last_name);
@@ -66,7 +65,6 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const {account_type} = useSelector(state => state.user.user);
   const {fetchUserInfo} = useFetchUser();
   const {countryCode, phoneNumberWithoutCode} = removeCountryCode(phoneNumber);
-  console.log(countryCode);
   const {handleCompression, uploadBlobToS3} = useRegister();
   const {handleProfileUpdate} = useUpdate();
   const showCameraGalleryAlert = () => {
@@ -119,6 +117,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       profilePicture: image,
       gender: gender,
       description: description,
+      dateOfBirth: date,
     };
     const isUpdated = await handleProfileUpdate(params);
     if (isUpdated) {

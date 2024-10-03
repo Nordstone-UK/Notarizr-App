@@ -123,13 +123,11 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
   };
 
   const handleImageLoadStart = () => {
-    console.log("starte", stamps?.notarySeal)
     setLoading(true)
 
   };
 
   const handleImageLoadEnd = () => {
-    console.log("endfdd", stamps?.notarySeal)
     setLoading(false)
   };
   const renderStampModal = () => {
@@ -169,8 +167,9 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
     onStampChanges(stampImage);
   };
   const handleSignSelect = (stampImage: string) => {
+    console.log("sterdf", stampImage)
     setSignModalVisible(false);
-    onStampChanges(stampImage.signUrl);
+    onStampChanges(stampImage);
   };
   const handleSignDelete = async (signId: string) => {
     try {
@@ -206,7 +205,6 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
         </TouchableOpacity>
       </View>
     ), []);
-    console.log("stamps", stamps.notarysigns)
     return (
       <Modal
         animationType="slide"

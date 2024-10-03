@@ -72,6 +72,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         position: newOffset,
       });
       const signatureData = object.type === 'image' ? object.sourceUrl : object.text;
+      const fontFamily = object.type === 'text' ? object.fontfamily : undefined;
 
       onSignatureChange({
         width: FIXED_IMAGE_SIZE * scale.value,
@@ -79,7 +80,8 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         x: translationX.value,
         y: translationY.value,
         type: object.type,
-        signatureData: signatureData
+        signatureData: signatureData,
+        fontFamily: fontFamily,
       });
     }
   };
@@ -102,7 +104,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   //     transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }],
   //   };
   // });
-
+  console.log("object.typere", object)
   const renderContent = useCallback(() => {
     if (object.type === 'date') {
       return (
@@ -118,7 +120,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
 
       return (
         <View style={styles.dateContainer}>
-          <Text style={styles.text} >{object.text}</Text>
+          <Text style={[styles.text, { fontFamily: object.fontfamily }]} >{object.text}</Text>
         </View>
       )
     }
@@ -174,6 +176,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+    resizeMode: 'contain'
   },
   text: {
     // backgroundColor: "yellow",

@@ -37,7 +37,7 @@ export default function LegalDocScreen({route, navigation}) {
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
   const [documentArray, setDocumentArray] = useState();
-  const [Limit, setLimit] = useState(20);
+  const [Limit, setLimit] = useState(2000);
   const [page, setPage] = useState(1);
   const {fetchDocumentTypes} = useFetchUser();
   const [totalDocs, setTotalDocs] = useState();
@@ -52,6 +52,7 @@ export default function LegalDocScreen({route, navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [additionalSignatures, setAdditionalSignatures] = useState(0);
+  console.log('boookingdatea', bookingData.address);
   useEffect(() => {
     // const fetchData = async () => {
     //   setLoading(true);
@@ -89,7 +90,7 @@ export default function LegalDocScreen({route, navigation}) {
     setTotalPrice(highestPriceDocument?.price);
     setSelectedDocs(documentObjects);
   }
-  console.log('documentarray', documentArray);
+  // console.log('documentarray', documentArray);
   const additionalSignaturePrice = 10;
 
   const calculateAdditionalSignaturesCost = additionalSignatures => {
@@ -130,6 +131,8 @@ export default function LegalDocScreen({route, navigation}) {
     setLoading(false);
   };
   const getState = async query => {
+    const state = extractState(bookingData.address);
+    console.log('ssssssssssssssssssssssss', state);
     setLoading(true);
 
     let stateName = 'USA';
@@ -144,7 +147,8 @@ export default function LegalDocScreen({route, navigation}) {
       const addressComponents = locationResponse.results[0]?.address_components;
       console.log('addresscomop;nent', addressComponents);
       if (addressComponents && addressComponents.length >= 5) {
-        stateName = addressComponents[4]?.long_name || 'USA'; // Use state name if available, otherwise fallback to 'USA'
+        stateName = state || addressComponents[4]?.long_name || 'USA';
+        console.log('statenamere', stateName);
       } else {
         console.warn(
           'Address components not found or incomplete:',
@@ -156,13 +160,13 @@ export default function LegalDocScreen({route, navigation}) {
     }
 
     const data = await fetchDocumentTypes(page, Limit, stateName, query);
+
     const modifiedDocuments = data.documentTypes.map(doc => ({
       ...doc,
       key: doc._id,
       value: `${doc.name} - $${doc.statePrices[0].price}`, // Use _id as the unique key for each document
     }));
-    setDocumentArray(modifiedDocuments);
-    console.log('doumntsfdffdfd', data);
+    console.log('doumntsfdffdfd', modifiedDocuments);
     setTotalDocs(data.totalDocs);
     setDocumentArray(modifiedDocuments);
     setLoading(false);
@@ -170,6 +174,19 @@ export default function LegalDocScreen({route, navigation}) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
   };
+  function extractState(address) {
+    if (!address) {
+      console.warn('Address is undefined or null:', address);
+      return null; // or return a default state if applicable
+    }
+
+    const parts = address.split(' ');
+    if (parts.length >= 2) {
+      const state = parts[parts.length - 2];
+      return state;
+    }
+    return null;
+  }
 
   const handleSearchInput = query => {
     console.log('qure', query);

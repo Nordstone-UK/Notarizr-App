@@ -1,6 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Signature from 'react-native-signature-canvas';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { decode as atob, encode as btoa } from 'base-64'; // Importing base-64 for encoding and decoding
+import ViewShot from 'react-native-view-shot';
+
+import RNFS from 'react-native-fs';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import RNPickerSelect from 'react-native-picker-select'; // Import the picker
@@ -14,6 +18,7 @@ import useRegister from '../../../hooks/useRegister';
 import { TextInput } from 'react-native';
 import { FlatList } from 'react-native';
 import Colors from '../../../themes/Colors';
+import MainButton from '../../../components/MainGradientButton/MainButton';
 
 interface DrawSignComponentProps {
   isVisible: boolean;
@@ -33,9 +38,10 @@ const fontStyles = [
 ];
 
 const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClose, signs, onStampChanges }) => {
-  console.log("udsfffffffff", signs)
+  // console.log("udsfffffffff", signs)
   const { fetchUserInfo, handleDeleteSign } = useFetchUser();
   const insertObject = useLiveblocks(state => state.insertObject);
+  console.log("insertobject", insertObject)
   const { uploadimageToS3 } = useRegister();
   const { handleNotarysignUpdate } = useUpdate();
   const [selectedOption, setSelectedOption] = useState('');
@@ -47,22 +53,53 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
   const [signModalVisible, setSignModalVisible] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedFontStyle, setSelectedFontStyle] = useState(fontStyles[0].value);
-
-
+  const viewShotRef = useRef(null);
   const signaturePadRef = useRef(null);
 
+  console.log("signgdf", signaturePadRef)
   const handleSelectOption = (option) => {
     setSelectedOption(option);
     if (option === 'draw') {
       setSignaturePadVisible(true);
     } else if (option === 'upload') {
       setSignaturePadVisible(false);
-      handleImageUpload(); // Trigger image upload process
+      handleImageUpload();
     } else {
       setSignaturePadVisible(false);
     }
   };
-
+  const handleTextToImage = async (inputText: string) => {
+    console.log("inputtext", inputText)
+    const uri = await viewShotRef.current.capture();
+    console.log("Captured image URI:", uri);
+    setUploadedImageUri(uri);
+    const signaturesigns = await uploadimageToS3(uri);
+    // let signaturesigns = await uploadSignatureOnS3(uri);
+    console.log("signupdfdfd", signaturesigns)
+    const signupdated = await handleNotarysignUpdate(signaturesigns);
+    if (signupdated) {
+      await fetchUserInfo();
+    }
+    setSignatureData(uri);
+    insertObject(new Date().toISOString(), {
+      type: 'image',
+      sourceUrl: signaturesigns,
+      position: {
+        x: 100,
+        y: 100,
+      },
+    });
+    // insertObject(new Date().toISOString(), {
+    //   type: 'text',
+    //   text: inputText,
+    //   fontfamily: selectedFontStyle,
+    //   // page: 0,
+    //   position: {
+    //     x: 200,
+    //     y: 200,
+    //   },
+    // });
+  };
   const handleSignature = async (signature) => {
     console.log("Signature received:", signature);
     try {
@@ -74,7 +111,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
       setSignatureData(signature);
       insertObject(new Date().toISOString(), {
         type: 'image',
-        sourceUrl: signaturesigns,
+        sourceUrl: signature,
         position: {
           x: 100,
           y: 100,
@@ -260,27 +297,35 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
             <View style={styles.contentContainer}>
               <Text style={styles.contentText}>Type your signature.</Text>
               <TextInput
-                style={[styles.textInput, { fontFamily: selectedFontStyle }]} // Apply dynamic font style
+                style={[styles.textInput, { fontFamily: selectedFontStyle }]}
                 placeholder="Type something..."
                 onChangeText={setInputText}
                 value={inputText}
               />
-              <View style={styles.styledTextContainer}>
-                <Picker
-                  selectedValue={selectedFontStyle}
-                  style={styles.picker}
-                  onValueChange={(itemValue) => setSelectedFontStyle(itemValue)}
-
-                >
-                  {fontStyles.map((font, index) => {
-                    console.log("Mapping font:", font); // Log each font being mapped
-                    return (
-                      <Picker.Item style={{ fontFamily: font.value }} key={index} label={font.label} value={font.value} />
-                    );
-                  })}
-                </Picker>
-                <Text style={[styles.styledText, { fontFamily: selectedFontStyle }]}>{inputText}</Text>
-              </View>
+              <ViewShot ref={viewShotRef} options={{ fileName: "Your-File-Name", format: "jpg", quality: 0.9 }}>
+                <View style={styles.styledTextContainer}>
+                  <Text style={[styles.styledText, { fontFamily: selectedFontStyle }]}>{inputText}</Text>
+                </View>
+              </ViewShot>
+              <Picker
+                selectedValue={selectedFontStyle}
+                style={styles.picker}
+                onValueChange={(itemValue) => setSelectedFontStyle(itemValue)}>
+                {fontStyles.map((font, index) => (
+                  <Picker.Item key={index} label={font.label} value={font.value} />
+                ))}
+              </Picker>
+              {inputText && (
+                <MainButton
+                  Title="Add Sign"
+                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                  styles={{
+                    paddingHorizontal: widthToDp(4),
+                    paddingVertical: widthToDp(2),
+                  }}
+                  onPress={() => handleTextToImage(inputText)}
+                />
+              )}
             </View>
           )}
           <TouchableOpacity
@@ -385,10 +430,11 @@ const styles = StyleSheet.create({
   styledTextContainer: {
     width: '100%',
     alignItems: 'center',
+    backgroundColor: 'white'
   },
   styledText: {
     fontSize: 20,
-    color: '#FF7F00',
+    color: Colors.Black,
     // fontWeight: 'bold',
   },
   signModalContainer: {

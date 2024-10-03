@@ -31,7 +31,7 @@ import {
 import DragabbleSignature from './DragabbleSignature';
 
 import Toast from 'react-native-toast-message';
-import { PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
@@ -132,7 +132,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isDrawTypeModalVisible, setDrawTypeModalVisible] = useState(false);
-
+  // console.log("signaturarra", signatureArrayBuffer)
   const {
     updateAgentdocs,
   } = useFetchBooking();
@@ -175,17 +175,19 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       console.error("Error fetching and converting image to Base64:", error);
     }
   };
-  const handleDragabbleSignatureData = async (signatureData) => {
+  const handleDragabbleSignatureData = async (signatureData: any) => {
     if (!signatureData) {
-      console.error("signatureData is undefined");
+      console.error("signatureData is undefined", signatureData);
       return;
     }
-    const { width, height, x, y, delete: deleteStatus, signatureData: imageData, type } = signatureData;
+    console.error("signatureData is undefined", signatureData);
+    const { width, height, x, y, delete: deleteStatus, signatureData: imageData, type, fontFamily } = signatureData;
     setSignatureDimensions({
       width,
       height,
       x,
       y,
+      fontFamily,
       Deletestatus: deleteStatus
     });
     if (deleteStatus === true) {
@@ -459,7 +461,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           });
       }
       else {
-        const { width: width, height: height } = signatureDimensions;
+        const { width: width, height: height, fontFamily } = signatureDimensions;
+        console.log("fontfamilu", fontFamily)
+        const customFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
         if (Platform.OS == 'ios') {
           firstPage.drawText(signatureArrayBuffer, {
             x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
@@ -476,6 +481,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               85,
             width: width * 1.45,
             height: height * 1.45,
+            font: customFont,
           });
         }
         const pdfBytes = await pdfDoc.save();
