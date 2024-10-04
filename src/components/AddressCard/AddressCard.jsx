@@ -9,7 +9,6 @@ import {
 } from '../../utils/Responsive';
 
 export default function AddressCard(props) {
-  console.log('props.shoe', props.Show);
   const OrangeGradient = string => {
     return (
       <LinearGradient

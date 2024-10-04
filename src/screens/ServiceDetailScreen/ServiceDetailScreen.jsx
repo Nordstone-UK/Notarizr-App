@@ -47,11 +47,10 @@ export default function ServiceDetailScreen({route, navigation}) {
   // const [isEnabled, setIsEnabled] = useState(false);
   // const [documents, setDocuments] = useState();
   // const [startTime, setStartTime] = useState(new Date());
-  console.log('adsddress', selectAddress);
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('date');
-  console.log('date', date);
+  console.log('addresss', selectAddress);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
@@ -85,7 +84,7 @@ export default function ServiceDetailScreen({route, navigation}) {
           price: null,
         },
 
-        address: selectAddress,
+        address: location,
         bookedFor: {
           email: email,
           first_name: firstName,
@@ -286,7 +285,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                 </View> */}
               </View>
               <Text style={styles.insideHeading}>
-                Who are you booking this service?
+                Who are you booking this service for?
               </Text>
 
               <View style={styles.buttonFlex}>
@@ -335,7 +334,10 @@ export default function ServiceDetailScreen({route, navigation}) {
                     <AddressCard
                       key={index}
                       location={item.location}
-                      onPress={() => setSelectedAddress(item._id)}
+                      onPress={() => {
+                        setSelectedAddress(item._id);
+                        setlocation(item.location);
+                      }}
                       Show={selectAddress === item._id}
                       booking="true"
                     />

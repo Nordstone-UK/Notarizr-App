@@ -60,6 +60,8 @@ import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import AddressCard from '../../components/AddressCard/AddressCard';
 
 export default function MedicalBookingScreen({route, navigation}) {
+  const token = useSelector(state => state.chats.chatToken);
+  console.log('clienttokenchagfdfddfdfdfd', token);
   const {
     handlegetBookingStatus,
     handleSessionStatus,

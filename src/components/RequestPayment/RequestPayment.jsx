@@ -31,6 +31,7 @@ export default function RequestPayment(props) {
             onChangeText={props.onChangeText}
             placeholder="Enter amount"
             placeholderTextColor={Colors.InputTextColor}
+            placeholderStyle={styles.placeholderText}
           />
         ) : (
           <BottomSheetTextInput
@@ -40,6 +41,7 @@ export default function RequestPayment(props) {
             onChangeText={props.onChangeText}
             placeholder="Enter amount"
             placeholderTextColor={Colors.InputTextColor}
+            placeholderStyle={styles.placeholderText}
           />
         )}
       </View>
@@ -74,12 +76,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
   },
   TextInput: {
+    width: '100%',
     fontSize: widthToDp(4.5),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
     paddingHorizontal: widthToDp(1),
   },
-
+  placeholderText: {
+    fontSize: widthToDp(2), // Responsive placeholder size
+  },
   input: {
     // flex: 1,
     flexDirection: 'row',

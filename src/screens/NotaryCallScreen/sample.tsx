@@ -1,333 +1,170 @@
-import { useMutation } from '@apollo/client';
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  Animated,
-  View,
-  SafeAreaView,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import { heightToDp, widthToDp } from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
-import Colors from '../../themes/Colors';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
-import SplashScreen from 'react-native-splash-screen';
-import useRegister from '../../hooks/useRegister';
-import useLogin from '../../hooks/useLogin';
-import { useSelector } from 'react-redux';
-import { uriToBlob } from '../../utils/ImagePicker';
-import Toast from 'react-native-toast-message';
-import { gql } from 'graphql-tag';
-import { useMutation } from '@apollo/client';
+export default function ChatScreen({ route, navigation }: any) {
+  const [isInitialized, setIsInitialized] = useState(false); // Manage initialized state
+  const [content, setContent] = useState<IMessage[]>([]); // Manage chat content
 
-const UPDATE_AGENT_PHOTO_AND_CERTIFICATE = gql`
-  mutation UpdateAgentPhotoAndCertificate($photoId: String!, $certificate_url: String!) {
-    updateAgentPhotoAndCertificate(photoId: $photoId, certificate_url: $certificate_url) {
-      message
-      status
+  const getPermission = async () => {
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      ]);
     }
-  }
-`;
-
-const UPDATE_NOTARY_SEAL = gql`
-  mutation UpdateNotarySeal($notarySeal: String!) {
-    updateNotarySeal(notarySeal: $notarySeal) {
-      message
-      status
-    }
-  }
-`;
-
-export default function AgentVerificationScreen({ navigation, route }) {
-  const { onComplete = () => { } } = route.params || {};
-  const variables = useSelector(state => state.register);
-  const [photoID, setphotoID] = useState(null);
-  const [Certificate, setCertificate] = useState(null);
-  const [Seal, setSeal] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const { uploadFiles, handleCompression, uploadFilestoS3, handleRegister } = useRegister();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedDocuments, setUploadedDocuments] = useState([]);
-  const { resetStack } = useLogin();
-
-  const [updateAgentPhotoAndCertificate] = useMutation(UPDATE_AGENT_PHOTO_AND_CERTIFICATE);
-  const [updateNotarySeal] = useMutation(UPDATE_NOTARY_SEAL);
-
-  const handleUpload = documentType => {
-    setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
-    setCurrentStep(currentStep + 1);
   };
 
-  const handleDelete = documentType => {
-    setUploadedDocuments(prevDocuments =>
-      prevDocuments.filter(doc => doc !== documentType),
-    );
-    setCurrentStep(currentStep - 1);
+  const { getAgoraCallToken } = useChatService();
+  const token = useSelector(state => state.chats.chatToken);
+  const { sender, receiver, chat, channel, voiceToken } = route.params;
+  const appKey = '411048105#1224670';
+  const uid = 0;
+  const [channelName, setChannelName] = useState('');
+  const [callToken, setCallToken] = useState('');
+  const [chatToken, setChatToken] = useState(token);
+  const [targetId, setTargetId] = useState(receiver?._id);
+  const [username, setUsername] = useState(sender?._id);
+  const chatClient = ChatClient.getInstance();
+  const chatManager = chatClient.chatManager;
+
+  const agoraEngineRef = useRef<IRtcEngine>(); // Agora engine instance
+
+  const getVoiceToken = async () => {
+    try {
+      const { channelName, token } = await getAgoraCallToken(receiver._id);
+      setChannelName(channelName);
+      setCallToken(token);
+    } catch (error) {
+      console.log('API Error:', error);
+    }
   };
 
-  const selectPhotoID = async () => {
-    const response = await uploadFiles();
-    if (response) {
-      setphotoID(response);
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Please try again',
+  const retrieveConversation = async () => {
+    chatManager
+      .getAllConversations()
+      .then(data => {
+        const convID = data[0]?.convId;
+        fetchHistoryMessages(convID, ChatConversationType.PeerChat);
+      })
+      .catch(reason => {
+        console.log('Loading conversations failed', reason);
       });
-      setphotoID(null);
+  };
+
+  const fetchHistoryMessages = async (convID: string, convType: number) => {
+    try {
+      const messages = await chatManager.fetchHistoryMessagesByOptions(convID, convType, { cursor: '', pageSize: 20 });
+      const formattedMessages = formatMessages(messages.list);
+      setContent(previousMessages => GiftedChat.append(previousMessages, formattedMessages));
+    } catch (error) {
+      console.error('Failed to fetch history messages:', error);
     }
   };
 
-  const selectCertificate = async () => {
-    const response = await uploadFiles();
-    if (response) {
-      setCertificate(response);
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Please try again',
-      });
-      setCertificate(null);
+  const sendmsg = (newMessage: IMessage) => {
+    const content = newMessage.text;
+
+    if (!isInitialized) {
+      console.log('Perform initialization first.');
+      return;
     }
-  };
 
-  const selectSeal = async () => {
-    const response = await uploadFiles();
-    if (response) {
-      setSeal(response);
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Please try again',
-      });
-      setSeal(null);
-    }
-  };
+    let msg = ChatMessage.createTextMessage(targetId, content, ChatMessageChatType.PeerChat);
 
-  const deletePhotoID = () => {
-    setphotoID(null);
-  };
-
-  const deleteCertificate = () => {
-    setCertificate(null);
-  };
-
-  const deleteSeal = () => {
-    setSeal(null);
-  };
-
-  const submitRegister = async () => {
-    setLoading(true);
-    if (photoID && Certificate && Seal) {
-      const photoBlob = await uriToBlob(photoID);
-      const certificateBlob = await uriToBlob(Certificate);
-      const sealBlob = await uriToBlob(Seal);
-
-      const photoURL = await uploadFilestoS3(photoBlob, variables.firstName);
-      const certificateURL = await uploadFilestoS3(certificateBlob, variables.firstName);
-      const sealURL = await uploadFilestoS3(sealBlob, variables.firstName);
-
-      const params = {
-        ...variables,
-        certificateUrl: certificateURL,
-        photoId: photoURL,
-        notarySeal: sealURL,
-      };
-
-      try {
-        await updateAgentPhotoAndCertificate({
-          variables: {
-            photoId: photoURL,
-            certificate_url: certificateURL,
-          },
-        });
-        await updateNotarySeal({
-          variables: {
-            notarySeal: sealURL,
-          },
-        });
-
-        const isRegister = await handleRegister(params);
-        setLoading(false);
-
-        if (isRegister) {
-          setLoading(false);
-          resetStack('signup');
-          if (onComplete) {
-            onComplete();
-          }
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'Problem while registering',
-          });
-        }
-      } catch (error) {
-        console.error('Error updating agent info:', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Problem while updating agent info',
-        });
-        setLoading(false);
+    const callback = new (class {
+      onProgress(locaMsgId: any, progress: any) {
+        console.log(`send message process: ${locaMsgId}, ${progress}`);
       }
-    } else {
-      Toast.show({
-        type: 'warning',
-        text1: 'Warning!',
-        text2: 'Please provide all the documents',
-      });
-      setLoading(false);
-    }
+      onError(locaMsgId: any, error: any) {
+        console.log(`send message fail: ${locaMsgId}, ${JSON.stringify(error)}`);
+      }
+      onSuccess(message: { localMsgId: string }) {
+        const newMessages = [
+          {
+            _id: message.localMsgId,
+            text: content,
+            createdAt: new Date(),
+            user: { _id: sender?._id },
+          },
+        ];
+        setContent(previousMessages => GiftedChat.append(previousMessages, newMessages));
+      }
+    })();
+
+    chatManager
+      .sendMessage(msg, callback)
+      .then(() => console.log('Message sent: ' + msg.localMsgId))
+      .catch(reason => console.log('Send failed: ' + JSON.stringify(reason)));
   };
+
+  const formatMessages = (messageList: any[]) => {
+    return messageList.map(message => ({
+      _id: message.msgId,
+      text: message.body?.content || '',
+      createdAt: new Date(message.localTime),
+      user: { _id: message.from },
+    }));
+  };
+
+  useEffect(() => {
+
+    const init = () => {
+      const chatOptions = new ChatOptions({ autoLogin: true, appKey });
+      chatClient.init(chatOptions).then(() => {
+        console.log('Init success');
+        setIsInitialized(true);
+        const listener = {
+          onConnected: () => {
+            console.log('onConnected');
+            retrieveConversation();
+          },
+        };
+        chatClient.addConnectionListener(listener);
+        login();
+      });
+    };
+
+    const login = () => {
+      chatClient
+        .loginWithAgoraToken(username, chatToken)
+        .then(() => console.log('Login success'))
+        .catch(reason => console.log('Login failed: ' + JSON.stringify(reason)));
+    };
+
+    init();
+    getVoiceToken();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <CompanyHeader
-        Header="Verification"
-        subHeading="Please verify your identity"
-        HeaderStyle={{ alignSelf: 'center' }}
-        subHeadingStyle={{
-          alignSelf: 'center',
-          fontSize: 17,
-          marginVertical: heightToDp(1.5),
-          color: '#121826',
-        }}
+      <NavigationHeader
+        Title={receiver?.first_name + ' ' + receiver?.last_name}
+        ProfilePic={{ uri: receiver?.profile_picture }}
+        lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
+        lastImgPress={() =>
+          navigation.navigate('VoiceCallScreen', { sender, receiver, channelName: channel, token: voiceToken })
+        }
       />
-      <BottomSheetStyle>
-        <ScrollView
-          style={{ marginTop: heightToDp(5) }}
-          showsVerticalScrollIndicator={false}>
-          <Text style={styles.text}>
-            Please upload the below documents to verify your identity
-          </Text>
-          <View style={styles.flexContainer}>
-            <Text style={styles.subHeading}>1. Picture ID</Text>
-            <Text style={styles.subHeading}>2. Notary Certificate</Text>
-            <Text style={styles.subHeading}>3. Notary Stamp</Text>
-          </View>
-          <View style={{ marginVertical: heightToDp(2) }}>
-            {!photoID && (
-              <MainButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload Photo ID"
-                GradiStyles={{
-                  width: widthToDp(50),
-                  paddingVertical: widthToDp(1.5),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(0),
-                  paddingVertical: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={selectPhotoID}
-              />
-            )}
-            {!Certificate && photoID && (
-              <MainButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload Notary Certificate"
-                GradiStyles={{
-                  width: widthToDp(50),
-                  paddingVertical: widthToDp(1.5),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(0),
-                  paddingVertical: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={selectCertificate}
-              />
-            )}
-            {!Seal && photoID && Certificate && (
-              <MainButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload Notary Seal"
-                GradiStyles={{
-                  width: widthToDp(50),
-                  paddingVertical: widthToDp(1.5),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(0),
-                  paddingVertical: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={selectSeal}
-              />
-            )}
-          </View>
-          {photoID && (
-            <DocumentComponent
-              title="Photo ID"
-              fileName={photoID}
-              handleDelete={deletePhotoID}
-            />
-          )}
-          {Certificate && (
-            <DocumentComponent
-              title="Certificate"
-              fileName={Certificate}
-              handleDelete={deleteCertificate}
-            />
-          )}
-          {Seal && (
-            <DocumentComponent
-              title="Notary Seal"
-              fileName={Seal}
-              handleDelete={deleteSeal}
-            />
-          )}
-          <View style={styles.buttonContainer}>
-            {photoID && Certificate && Seal && (
-              <GradientButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                style={{ width: widthToDp(75) }}
-                GradiStyles={{ paddingVertical: widthToDp(2) }}
-                title="Submit"
-                onPress={submitRegister}
-                loading={loading}
-              />
-            )}
-          </View>
-        </ScrollView>
-      </BottomSheetStyle>
+      <View style={styles.bottonSheet}>
+        <GiftedChat
+          messages={content}
+          onSend={newMessages => sendmsg(newMessages[0])}
+          user={{ _id: sender?._id }}
+          textInputProps={{
+            style: { flex: 1, marginHorizontal: 10, color: 'black', fontSize: 16 },
+          }}
+        />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: Colors.PinkBackground,
     flex: 1,
-    backgroundColor: Colors.white,
   },
-  text: {
-    fontSize: 15,
-    color: '#121826',
-    marginLeft: widthToDp(6),
-  },
-  subHeading: {
-    fontSize: 16,
-    color: '#121826',
-    marginLeft: widthToDp(6),
-    fontWeight: '600',
-  },
-  flexContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(2),
-  },
-  buttonContainer: {
-    marginVertical: heightToDp(4),
-    alignItems: 'center',
+  bottonSheet: {
+    marginTop: widthToDp(2),
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 });

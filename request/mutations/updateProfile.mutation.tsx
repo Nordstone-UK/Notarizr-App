@@ -9,6 +9,7 @@ export const UPDATE_PROFILE_INFO = gql`
     $location: String!
     $gender: String!
     $description: String!
+    $dateOfBirth: String!
     
   ) {
     update(
@@ -19,6 +20,7 @@ export const UPDATE_PROFILE_INFO = gql`
       location: $location
       gender: $gender
       description: $description
+      date_of_birth: $dateOfBirth
    
     ) {
       message

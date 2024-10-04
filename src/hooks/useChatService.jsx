@@ -80,8 +80,9 @@ function useChatService() {
       ...sessions,
       ...sessonoging,
     ];
-
+    console.log('{{{{{{{{{{fdfdddfdfd', data);
     const filteredChats = removeDuplicatesByAgentName(mergedDetails);
+    console.log('clientfilterhattsdd', filteredChats);
 
     dispatch(setAllChats(filteredChats));
     dispatch(setChatToken(data?.getUserChatToken?.token));
@@ -110,7 +111,7 @@ function useChatService() {
     // const sessonoging = sessionOngoing?.getAgentSessions?.sessions || {
     //   data: 'null',
     // };
-
+    console.log('agenttokenldfdfldld', data.getUserChatToken?.token);
     const mergedDetails = [
       ...bookings,
       ...ongoingBook,
@@ -119,6 +120,7 @@ function useChatService() {
     ];
     // console.log('merge', mergedDetails);
     const filteredChats = removeDuplicatesByClientName(mergedDetails);
+    console.log('agentfilterhattsdd', filteredChats);
     dispatch(setAllChats(filteredChats));
     dispatch(setChatToken(data?.getUserChatToken?.token));
   };
@@ -143,12 +145,14 @@ function useChatService() {
     const resultArray = [];
 
     for (const item of array) {
-      const clientName = item.booked_by.first_name + item.booked_by.last_name;
+      if (item.booked_by) {
+        const clientName = item.booked_by.first_name + item.booked_by.last_name;
 
-      // Check if clientName is not in uniqueAgents, add it to uniqueAgents and push the item to the resultArray
-      if (!uniqueAgents[clientName]) {
-        uniqueAgents[clientName] = true;
-        resultArray.push(item);
+        // Check if clientName is not in uniqueAgents, add it to uniqueAgents and push the item to the resultArray
+        if (!uniqueAgents[clientName]) {
+          uniqueAgents[clientName] = true;
+          resultArray.push(item);
+        }
       }
     }
 

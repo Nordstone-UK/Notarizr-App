@@ -44,9 +44,10 @@ const useFetchUser = () => {
         searchString: Search,
       },
     };
+    console.log('variivf', request);
     try {
       const response = await getDocuments(request);
-
+      console.log('lobaionfdfdfdfd', response.data.getPaginatedDocumentTypes);
       return response.data.getPaginatedDocumentTypes;
     } catch (err) {
       console.log(err);
@@ -103,14 +104,12 @@ const useFetchUser = () => {
     }
   };
   const handleDeleteSign = async signId => {
-    console.log('addressid', signId);
     try {
       const response = await deleteUserSign({
         variables: {
           signId: signId,
         },
       });
-      console.log('daaaaaaaaaaaaaaaaa===========', response);
       return response.data;
     } catch (error) {
       console.error('Error deleting address:', error);

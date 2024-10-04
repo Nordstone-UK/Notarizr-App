@@ -236,8 +236,8 @@ export default function AgentAllBookingScreen({navigation}) {
                       agentName={
                         item?.booked_by?.first_name &&
                         item?.booked_by?.last_name
-                          ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
-                          : `${item.client.first_name} ${item.client.last_name}`
+                          ? `${item?.booked_by.first_name} ${item?.booked_by.last_name}`
+                          : `${item?.client?.first_name} ${item?.client?.last_name}`
                       }
                       agentAddress={
                         item?.booked_by?.location

@@ -7,6 +7,7 @@ import {CommonActions, useNavigation} from '@react-navigation/native';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function NavigationHeader(props) {
+  console.log('prrrrrrrropdf', props);
   const navigation = useNavigation();
   const handleNavigateToTabScreen = () => {
     navigation.dispatch(
