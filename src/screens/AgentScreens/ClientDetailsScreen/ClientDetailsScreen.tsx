@@ -71,7 +71,8 @@ import { Alert } from 'react-native';
 
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const downloadPdf = useRef(null);
-
+  const token = useSelector(state => state.chats.chatToken);
+  console.log('agenttokenchagfdfddfdfdfd', token);
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
   const navigationStatus = useSelector(state => state.booking.navigationStatus);
   const {
