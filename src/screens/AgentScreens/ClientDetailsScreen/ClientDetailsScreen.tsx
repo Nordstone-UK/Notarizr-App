@@ -1806,9 +1806,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               Object.values(clientDetail.client_documents)?.length > 0 && (
                 <View style={{ marginVertical: 10 }}>
                   <View style={styles.downloadButtonContainer}>
-                    <Text style={[styles.insideHeading]}>
-                      Client uploaded documents
-                    </Text>
+                    <View style={styles.uplodaText}>
+                      <Text style={[styles.insideHeading]}>
+                        Client uploaded documents
+                      </Text>
+                    </View>
                     <TouchableOpacity
                       onPress={() =>
                         handleNotarizrDocumentPress(
@@ -1847,9 +1849,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               clientDetail.agent_document.length > 0 && (
                 <View style={{ marginVertical: 5, marginTop: 10 }}>
                   <View style={styles.downloadButtonContainer}>
-                    <Text style={[styles.insideHeading]}>
-                      Agent uploaded documents
-                    </Text>
+                    <View style={styles.uplodaText}>
+                      <Text style={[styles.insideHeading]}>
+                        Agent uploaded documents
+                      </Text>
+                    </View>
                     <TouchableOpacity
                       onPress={() =>
                         handleNotarizrDocumentPress(clientDetail.agent_document)
@@ -1882,9 +1886,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               clientDetail.notarized_docs.length > 0 && (
                 <View style={{ marginTop: 10 }}>
                   <View style={styles.downloadButtonContainer}>
-                    <Text style={[styles.insideHeading]}>
-                      Notarized documents
-                    </Text>
+                    <View style={styles.uplodaText}>
+                      <Text style={[styles.insideHeading]}>
+                        Notarized documents
+                      </Text>
+                    </View>
                     <TouchableOpacity
                       onPress={() =>
                         handleNotarizrDocumentPress(clientDetail.notarized_docs)
@@ -2672,6 +2678,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginRight: 15,
+  },
+  uplodaText: {
+    flex: 3,
   },
   downloadButton: {
     flex: 1,

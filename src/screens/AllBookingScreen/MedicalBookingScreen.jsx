@@ -1216,9 +1216,11 @@ export default function MedicalBookingScreen({route, navigation}) {
             Object.values(bookingDetail.client_documents)?.length > 0 && (
               <View style={{marginVertical: 10}}>
                 <View style={styles.downloadButtonContainer}>
-                  <Text style={[styles.insideHeading]}>
-                    Client uploaded documents
-                  </Text>
+                  <View style={styles.uplodaText}>
+                    <Text style={[styles.insideHeading]}>
+                      Client uploaded documents
+                    </Text>
+                  </View>
                   <TouchableOpacity
                     onPress={() =>
                       handleNotarizrDocumentPress(
@@ -1625,6 +1627,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 15,
+  },
+  uplodaText: {
+    flex: 3,
   },
   downloadButton: {
     flex: 1,

@@ -14,14 +14,44 @@ import Colors from '../../themes/Colors';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {EventRegister} from 'react-native-event-listeners';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import moment from 'moment';
-
+import {GET_NOTIFICATIONS_BY_ID} from '../../../request/queries/getNotificationsbyId.query';
+import {store} from '../../app/store';
+import {useQuery} from '@apollo/client';
 export default function NotificationScreen({navigation}) {
-  const notifications = useSelector(state => state.user.notifications);
+  // const notifications = useSelector(state => state.user.notifications);
+  const [notifications, setNotification] = useState([]);
+  console.log('notifidfdfdfd', notifications);
+  const dispatch = useDispatch();
 
-  console.log('Notificationsssssssssssssss:', notifications);
+  const userInfo = store.getState().user.user; // Get the user info from Redux store
+  const {loading, error, data} = useQuery(GET_NOTIFICATIONS_BY_ID, {
+    variables: {
+      receiverId: userInfo?._id,
+      page: 1,
+      limit: 300,
+    },
+    skip: !userInfo?._id, // Skip the query if user ID is not available
+  });
 
+  useEffect(() => {
+    if (data && data.getNotificationById) {
+      const fetchedNotifications = data.getNotificationById.notifications;
+
+      setNotification(fetchedNotifications); // Dispatch the fetched notifications to the Redux store
+      console.log('Fetched notifications:', fetchedNotifications);
+    }
+  }, [data, dispatch]);
+
+  if (loading) {
+    return <Text>Loading...</Text>; // Optional: You can create a loading component
+  }
+
+  if (error) {
+    console.error('Error fetching notifications:', error);
+    return <Text>Error fetching notifications.</Text>; // Handle the error case
+  }
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Notifications" />
@@ -41,12 +71,15 @@ export default function NotificationScreen({navigation}) {
                     {notification?.title}
                   </Text>
                   <Text style={styles.notificationMessage}>
-                    {notification?.body}
+                    {notification?.description}{' '}
+                    {/* Use description instead of body */}
                   </Text>
                   <Text style={styles.notificationTime}>
-                    {moment(notification?.rawPayload?.google?.sent_time).format(
-                      'MMMM Do YYYY, h:mm:ss a',
-                    )}
+                    {notification?.createdAt
+                      ? moment(Number(notification.createdAt)).format(
+                          'MMMM Do YYYY, h:mm:ss a',
+                        )
+                      : 'Unknown date'}
                   </Text>
                 </View>
               </TouchableOpacity>
