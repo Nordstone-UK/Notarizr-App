@@ -1286,9 +1286,11 @@ export default function MedicalBookingScreen({route, navigation}) {
             bookingDetail.agent_document.length > 0 && (
               <View>
                 <View style={styles.downloadButtonContainer}>
-                  <Text style={[styles.insideHeading]}>
-                    Agent uploaded documents
-                  </Text>
+                  <View style={styles.uplodaText}>
+                    <Text style={[styles.insideHeading]}>
+                      Agent uploaded documents
+                    </Text>
+                  </View>
                   <TouchableOpacity
                     onPress={() =>
                       handleNotarizrDocumentPress(bookingDetail.agent_document)
@@ -1321,9 +1323,11 @@ export default function MedicalBookingScreen({route, navigation}) {
             bookingDetail.notarized_docs.length > 0 && (
               <View style={{marginTop: 10}}>
                 <View style={styles.downloadButtonContainer}>
-                  <Text style={[styles.insideHeading]}>
-                    Notarized documents
-                  </Text>
+                  <View style={styles.uplodaText}>
+                    <Text style={[styles.insideHeading]}>
+                      Notarized documents
+                    </Text>
+                  </View>
                   <TouchableOpacity
                     onPress={() =>
                       handleNotarizrDocumentPress(bookingDetail.notarized_docs)
