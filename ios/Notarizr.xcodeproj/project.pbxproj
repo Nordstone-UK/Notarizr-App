@@ -18,8 +18,12 @@
 		35834D13A01F4EEF9475C909 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D8DBA7EA186042448D191B05 /* Poppins-Regular.ttf */; };
 		3FFF5D33F47D40568E1AE9CF /* Manrope-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0CF9C4173BFC481D905942FE /* Manrope-Medium.ttf */; };
 		41F5F486904A485DAA0BF076 /* Manrope-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 772261F8F6F642E2B9FA4A22 /* Manrope-ExtraLight.ttf */; };
+		4B0E1F3B13064386839A2ADF /* PlaywriteCU-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 909F03B83B064ADBBCCFD544 /* PlaywriteCU-Thin.ttf */; };
+		735A39666AF34D3FA0A561E7 /* SofadiOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DC9530FE4132487A875FE5F4 /* SofadiOne-Regular.ttf */; };
 		7699B88040F8A987B510C191 /* libPods-Notarizr-NotarizrTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-Notarizr-NotarizrTests.a */; };
+		7AE6D81EBD144E9D92BA3C93 /* JacquesFrancoisShadow-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = ACB1C6137789463388E1DD7F /* JacquesFrancoisShadow-Regular.ttf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		839B46049D7048BC8B860671 /* PlaywriteCU-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3CF9C0A949234C738C364DC6 /* PlaywriteCU-Light.ttf */; };
 		931E0B85B8CD436D8B491152 /* Manrope-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F03868E956E4819B3E72C7E /* Manrope-Regular.ttf */; };
 		9CC28EBA9D864ED0AF102F9F /* Manrope-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7B3313C81C71453780CD6346 /* Manrope-Light.ttf */; };
 		B3566F61431D48CAA9B6D243 /* Poppins-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AFC65925A9CF4790ABE90CFC /* Poppins-ExtraBold.ttf */; };
@@ -29,16 +33,12 @@
 		CF7B09959D044447A36A7508 /* Manrope-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CA05E86AD193411FB5736C6C /* Manrope-ExtraBold.ttf */; };
 		D72C7E15180B4609AA111BE3 /* Manrope-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4BF4F63B092F49FE87F3935F /* Manrope-VariableFont_wght.ttf */; };
 		E81A54437D5344AF9CD08354 /* Poppins-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA7B51016B2B43F5A8F6CAB4 /* Poppins-Thin.ttf */; };
-		EF6BC99F6B3547C0909B2207 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 24DF74C2B1EF47E781CFACB1 /* Poppins-SemiBold.ttf */; };
-		F825EB9097B44F87AFB003A6 /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F4DADF6CDC374897BD16A59F /* Poppins-Bold.ttf */; };
-		F5F4F9688A824E4096A70CE7 /* DancingScript-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B38640B86F554B7C85DB5CDE /* DancingScript-VariableFont_wght.ttf */; };
-		7AE6D81EBD144E9D92BA3C93 /* JacquesFrancoisShadow-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = ACB1C6137789463388E1DD7F /* JacquesFrancoisShadow-Regular.ttf */; };
-		F54AC3856CD24B0BBC1B0587 /* PlaywriteCU-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B0211BAFB26B4E58AB2AB21B /* PlaywriteCU-ExtraLight.ttf */; };
-		839B46049D7048BC8B860671 /* PlaywriteCU-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3CF9C0A949234C738C364DC6 /* PlaywriteCU-Light.ttf */; };
-		FEA36278E751474D846FE3AD /* PlaywriteCU-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5C96FC66BD364179AD54B5C2 /* PlaywriteCU-Regular.ttf */; };
-		4B0E1F3B13064386839A2ADF /* PlaywriteCU-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 909F03B83B064ADBBCCFD544 /* PlaywriteCU-Thin.ttf */; };
 		EC0D74A7A9A9406186B3BAB1 /* ProtestGuerrilla-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 776018053A3843CF8BCB053C /* ProtestGuerrilla-Regular.ttf */; };
-		735A39666AF34D3FA0A561E7 /* SofadiOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DC9530FE4132487A875FE5F4 /* SofadiOne-Regular.ttf */; };
+		EF6BC99F6B3547C0909B2207 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 24DF74C2B1EF47E781CFACB1 /* Poppins-SemiBold.ttf */; };
+		F54AC3856CD24B0BBC1B0587 /* PlaywriteCU-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B0211BAFB26B4E58AB2AB21B /* PlaywriteCU-ExtraLight.ttf */; };
+		F5F4F9688A824E4096A70CE7 /* DancingScript-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B38640B86F554B7C85DB5CDE /* DancingScript-VariableFont_wght.ttf */; };
+		F825EB9097B44F87AFB003A6 /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F4DADF6CDC374897BD16A59F /* Poppins-Bold.ttf */; };
+		FEA36278E751474D846FE3AD /* PlaywriteCU-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5C96FC66BD364179AD54B5C2 /* PlaywriteCU-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,12 +68,15 @@
 		2D93FFE7AF914C1DA2BBBB0D /* Poppins-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Light.ttf"; path = "../assets/fonts/Poppins-Light.ttf"; sourceTree = "<group>"; };
 		2F03868E956E4819B3E72C7E /* Manrope-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-Regular.ttf"; path = "../assets/fonts/Manrope-Regular.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Notarizr.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notarizr.debug.xcconfig"; path = "Target Support Files/Pods-Notarizr/Pods-Notarizr.debug.xcconfig"; sourceTree = "<group>"; };
+		3CF9C0A949234C738C364DC6 /* PlaywriteCU-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlaywriteCU-Light.ttf"; path = "../assets/fonts/PlaywriteCU-Light.ttf"; sourceTree = "<group>"; };
 		4BF4F63B092F49FE87F3935F /* Manrope-VariableFont_wght.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-VariableFont_wght.ttf"; path = "../assets/fonts/Manrope-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Notarizr.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notarizr.release.xcconfig"; path = "Target Support Files/Pods-Notarizr/Pods-Notarizr.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-Notarizr-NotarizrTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notarizr-NotarizrTests.debug.xcconfig"; path = "Target Support Files/Pods-Notarizr-NotarizrTests/Pods-Notarizr-NotarizrTests.debug.xcconfig"; sourceTree = "<group>"; };
+		5C96FC66BD364179AD54B5C2 /* PlaywriteCU-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlaywriteCU-Regular.ttf"; path = "../assets/fonts/PlaywriteCU-Regular.ttf"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-Notarizr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Notarizr.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7055D3572D914446AA2646A1 /* Manrope-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-SemiBold.ttf"; path = "../assets/fonts/Manrope-SemiBold.ttf"; sourceTree = "<group>"; };
 		772261F8F6F642E2B9FA4A22 /* Manrope-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-ExtraLight.ttf"; path = "../assets/fonts/Manrope-ExtraLight.ttf"; sourceTree = "<group>"; };
+		776018053A3843CF8BCB053C /* ProtestGuerrilla-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ProtestGuerrilla-Regular.ttf"; path = "../assets/fonts/ProtestGuerrilla-Regular.ttf"; sourceTree = "<group>"; };
 		7B3313C81C71453780CD6346 /* Manrope-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-Light.ttf"; path = "../assets/fonts/Manrope-Light.ttf"; sourceTree = "<group>"; };
 		8065401F2AD8426000583DAB /* FontAwesome6_Brands.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome6_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Brands.ttf"; sourceTree = "<group>"; };
 		806540202AD8426100583DAB /* FontAwesome6_Solid.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome6_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Solid.ttf"; sourceTree = "<group>"; };
@@ -97,22 +100,19 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Notarizr/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-Notarizr-NotarizrTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notarizr-NotarizrTests.release.xcconfig"; path = "Target Support Files/Pods-Notarizr-NotarizrTests/Pods-Notarizr-NotarizrTests.release.xcconfig"; sourceTree = "<group>"; };
 		8DD3EEE28DA343A4BB51100D /* Manrope-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-Bold.ttf"; path = "../assets/fonts/Manrope-Bold.ttf"; sourceTree = "<group>"; };
+		909F03B83B064ADBBCCFD544 /* PlaywriteCU-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlaywriteCU-Thin.ttf"; path = "../assets/fonts/PlaywriteCU-Thin.ttf"; sourceTree = "<group>"; };
 		9221F5EEA362460795825071 /* Poppins-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Black.ttf"; path = "../assets/fonts/Poppins-Black.ttf"; sourceTree = "<group>"; };
+		ACB1C6137789463388E1DD7F /* JacquesFrancoisShadow-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "JacquesFrancoisShadow-Regular.ttf"; path = "../assets/fonts/JacquesFrancoisShadow-Regular.ttf"; sourceTree = "<group>"; };
 		AFC65925A9CF4790ABE90CFC /* Poppins-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-ExtraBold.ttf"; path = "../assets/fonts/Poppins-ExtraBold.ttf"; sourceTree = "<group>"; };
+		B0211BAFB26B4E58AB2AB21B /* PlaywriteCU-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlaywriteCU-ExtraLight.ttf"; path = "../assets/fonts/PlaywriteCU-ExtraLight.ttf"; sourceTree = "<group>"; };
+		B38640B86F554B7C85DB5CDE /* DancingScript-VariableFont_wght.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "DancingScript-VariableFont_wght.ttf"; path = "../assets/fonts/DancingScript-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		CA05E86AD193411FB5736C6C /* Manrope-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Manrope-ExtraBold.ttf"; path = "../assets/fonts/Manrope-ExtraBold.ttf"; sourceTree = "<group>"; };
 		D8DBA7EA186042448D191B05 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Regular.ttf"; path = "../assets/fonts/Poppins-Regular.ttf"; sourceTree = "<group>"; };
+		DC9530FE4132487A875FE5F4 /* SofadiOne-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "SofadiOne-Regular.ttf"; path = "../assets/fonts/SofadiOne-Regular.ttf"; sourceTree = "<group>"; };
 		E72B6195A32549DE98A705EC /* Poppins-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-ExtraLight.ttf"; path = "../assets/fonts/Poppins-ExtraLight.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F4DADF6CDC374897BD16A59F /* Poppins-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; };
 		FA7B51016B2B43F5A8F6CAB4 /* Poppins-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Thin.ttf"; path = "../assets/fonts/Poppins-Thin.ttf"; sourceTree = "<group>"; };
-		B38640B86F554B7C85DB5CDE /* DancingScript-VariableFont_wght.ttf */ = {isa = PBXFileReference; name = "DancingScript-VariableFont_wght.ttf"; path = "../assets/fonts/DancingScript-VariableFont_wght.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		ACB1C6137789463388E1DD7F /* JacquesFrancoisShadow-Regular.ttf */ = {isa = PBXFileReference; name = "JacquesFrancoisShadow-Regular.ttf"; path = "../assets/fonts/JacquesFrancoisShadow-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		B0211BAFB26B4E58AB2AB21B /* PlaywriteCU-ExtraLight.ttf */ = {isa = PBXFileReference; name = "PlaywriteCU-ExtraLight.ttf"; path = "../assets/fonts/PlaywriteCU-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		3CF9C0A949234C738C364DC6 /* PlaywriteCU-Light.ttf */ = {isa = PBXFileReference; name = "PlaywriteCU-Light.ttf"; path = "../assets/fonts/PlaywriteCU-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		5C96FC66BD364179AD54B5C2 /* PlaywriteCU-Regular.ttf */ = {isa = PBXFileReference; name = "PlaywriteCU-Regular.ttf"; path = "../assets/fonts/PlaywriteCU-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		909F03B83B064ADBBCCFD544 /* PlaywriteCU-Thin.ttf */ = {isa = PBXFileReference; name = "PlaywriteCU-Thin.ttf"; path = "../assets/fonts/PlaywriteCU-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		776018053A3843CF8BCB053C /* ProtestGuerrilla-Regular.ttf */ = {isa = PBXFileReference; name = "ProtestGuerrilla-Regular.ttf"; path = "../assets/fonts/ProtestGuerrilla-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		DC9530FE4132487A875FE5F4 /* SofadiOne-Regular.ttf */ = {isa = PBXFileReference; name = "SofadiOne-Regular.ttf"; path = "../assets/fonts/SofadiOne-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -639,7 +639,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 49;
 				DEVELOPMENT_TEAM = 2QUL8T8AKF;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Notarizr/Info.plist;
@@ -649,7 +649,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -669,7 +669,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 49;
 				DEVELOPMENT_TEAM = 2QUL8T8AKF;
 				INFOPLIST_FILE = Notarizr/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Notarizr;
@@ -678,7 +678,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -778,6 +778,8 @@
 					"-ld_classic",
 					"-Wl",
 					"-ld_classic",
+					"-Wl",
+					"-ld_classic",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
@@ -850,6 +852,8 @@
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-Wl",
+					"-ld_classic",
 					"-Wl",
 					"-ld_classic",
 					"-Wl",
