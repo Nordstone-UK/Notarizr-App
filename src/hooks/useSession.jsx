@@ -128,7 +128,7 @@ export const useSession = () => {
       console.log('====================================');
       console.log('Documents and Notes', response);
       console.log('====================================');
-      return response.data.updateBookingsInfo.status;
+      return response.data.updateSessionR.status;
     } catch (error) {
       console.log(error);
     }

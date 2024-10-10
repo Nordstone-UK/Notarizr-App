@@ -215,6 +215,7 @@ export default function MedicalBookingScreen({route, navigation}) {
     setRating(selectedRating);
   };
   const handleReview = reviewGiven => {
+    console.log('reoveiee', reviewGiven);
     setReview(reviewGiven);
   };
   function capitalizeFirstLetter(str) {
@@ -282,11 +283,13 @@ export default function MedicalBookingScreen({route, navigation}) {
         setModalShow(true);
       }
     } else {
+      console.log('reiveinindisosd');
       const response = await handleUpdateSessionReview(
         bookingDetail._id,
         review,
         rating,
       );
+      console.log('respoonse', response);
       if (response === '200') {
         setModalShow(true);
       }
