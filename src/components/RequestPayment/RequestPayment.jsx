@@ -45,7 +45,6 @@ export default function RequestPayment(props) {
           />
         )}
       </View>
-
       <TouchableOpacity onPress={props.onPress}>
         <Text style={[styles.text, {color: Colors.Red}]}>Send Request</Text>
       </TouchableOpacity>

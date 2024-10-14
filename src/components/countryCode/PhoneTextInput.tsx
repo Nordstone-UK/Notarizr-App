@@ -63,7 +63,7 @@ const PhoneTextInput = ({
         }}
         textInputProps={{ placeholderTextColor: Colors.DisableColor, editable: editable }}
         disableArrowIcon={!editable}
-
+x
       />
       <Text
         style={[
