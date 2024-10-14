@@ -47,6 +47,7 @@ const PhoneTextInput = ({
       onFocus={handleFocus}
       onBlur={handleBlur}>
       <PhoneInput
+        disabled={!editable}
         containerStyle={[styles.PhoneInputStyle, inputStyle]}
         textContainerStyle={[styles.PhoneTextContainerStyle, inputStyle]}
         ref={phoneInput}
@@ -61,6 +62,8 @@ const PhoneTextInput = ({
           onChange(text);
         }}
         textInputProps={{ placeholderTextColor: Colors.DisableColor, editable: editable }}
+        disableArrowIcon={!editable}
+
       />
       <Text
         style={[

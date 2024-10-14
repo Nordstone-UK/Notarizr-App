@@ -11,6 +11,8 @@ import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import GradientButton from '../MainGradientButton/GradientButton';
+import {TextInput} from 'react-native-gesture-handler';
+import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
 
 const StarRating = ({rating, onStarPress}) => {
   return (
@@ -51,6 +53,7 @@ export default function ReviewPopup(props) {
           Please provide us with feedback for your agent
         </Text>
         <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
+
         <LabelTextInput
           LabelTextInput={'Reveiw'}
           labelStyle={{

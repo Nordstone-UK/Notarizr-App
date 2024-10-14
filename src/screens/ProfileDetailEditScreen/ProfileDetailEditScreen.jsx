@@ -34,7 +34,9 @@ import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTex
 import {removeCountryCode} from '../../utils/CountryCode';
 import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
 
-export default function ProfileDetailEditScreen({navigation}, props) {
+export default function ProfileDetailEditScreen({navigation, route}, props) {
+  const {profileEdit} = route.params || {profileEdit: false};
+  console.log('profileedit', profileEdit);
   const {
     gender: oldGender,
     first_name,
@@ -168,7 +170,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultValue={first_name}
                 LabelTextInput={'First Name'}
                 onChangeText={text => setfirstName(text)}
-                editable={false}
+                editable={profileEdit}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/profileTabIcon.png')}
@@ -177,7 +179,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 Label={true}
                 LabelTextInput={'Last Name'}
                 onChangeText={text => setlastName(text)}
-                editable={false}
+                editable={profileEdit}
               />
 
               <LabelTextInput
@@ -191,7 +193,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 Label={true}
                 labelStyle={emailValid && {color: Colors.Red}}
                 AdjustWidth={emailValid && {borderColor: Colors.Red}}
-                editable={false}
+                editable={profileEdit}
               />
               <PhoneTextInput
                 onChange={e => {
@@ -202,7 +204,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultCode={countryCode}
                 value={phoneNumberWithoutCode}
                 placeholder={'XXXXXXXXXXX'}
-                editable={false}
+                editable={profileEdit}
               />
               <CustomDatePicker
                 onConfirm={date => setDate(date)}

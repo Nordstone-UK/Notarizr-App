@@ -85,8 +85,12 @@ export default function ProfileInfoScreen({ navigation }: any) {
               <TouchableOpacity
                 onPress={
                   user?.account_type === 'client'
-                    ? () => navigation.navigate('ProfileDetailEditScreen')
-                    : () => navigation.navigate('ProfileDetailEditScreen')
+                    ? () => navigation.navigate('ProfileDetailEditScreen', {
+                      profileEdit: true,
+                    })
+                    : () => navigation.navigate('ProfileDetailEditScreen', {
+                      profileEdit: true,
+                    })
                   // navigation.navigate('AgentProfileEditScreen')
                 }>
                 <Image
