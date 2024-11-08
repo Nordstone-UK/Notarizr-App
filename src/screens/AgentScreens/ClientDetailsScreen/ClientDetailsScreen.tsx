@@ -137,6 +137,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [bookedByAddress, setBookedByAddress] = useState(null);
   const [numOfWitnesses, setNumOfWitnesses] = useState(1); // Start with 1 witness
   const [witnessFields, setWitnessFields] = useState(['']); // Array to store input values for each witness
+  const [searchText, setSearchText] = useState('');
   const handleAddWitnessField = () => {
     setWitnessFields([...witnessFields, '']); // Add an empty string for the new witness field
   };
@@ -424,6 +425,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
   // console.log('lietder', clientDetail);
   const SearchUser = async query => {
+    console.log("alsddfdf", query)
     setisLoading(true);
     const response = await searchUserByEmail(query);
     setSearchedUser(response);
@@ -1197,22 +1199,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
                     />
                   </View>
-                  {/* <Text style={styles.insideHeading}>How many witnesses do you want to invite?</Text>
-                  <LabelTextInput
-                    placeholder="Enter number of witnesses"
-                    keyboardType="numeric"
-                    defaultValue={numOfWitnesses.toString()}
-                    onChangeText={text => {
-                      const number = parseInt(text, 10) || 1; // Ensure the input is a valid number
-                      setNumOfWitnesses(number);
-                      setWitnessFields(Array(number).fill('')); // Reset witness fields based on input number
-                    }}
-                    InputStyles={{ padding: widthToDp(2) }}
-                    AdjustWidth={{
-                      width: widthToDp(92),
-                      borderColor: Colors.Orange,
-                    }}
-                  /> */}
+
                   {witnessFields.map((witness, index) => (
                     <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "center", marginBottom: 10 }}>
                       {/* <LabelTextInput
@@ -1238,8 +1225,10 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       /> */}
                       <LabelTextInput
                         placeholder="Search observer by email"
+                        value={searchText}
                         defaultValue={''}
                         onChangeText={text => {
+                          setSearchText(text);
                           SearchUser(text);
                           setSearchFor('Observer');
                           setShowObserverSearchView(true);
@@ -1252,6 +1241,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                         rightImageSoucre={require('../../../../assets/close.png')}
                         rightImagePress={() => {
                           setSearchedUser([]);
+                          setSearchText('');
                         }}
                       />
                       {/* {index === witnessFields.length - 1 && (

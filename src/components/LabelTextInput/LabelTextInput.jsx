@@ -27,7 +27,7 @@ export default function LabelTextInput(props) {
       setIsFocused(false);
     }
   };
-
+  console.log('proooooooooooooooooo', props.value);
   return (
     <View style={[styles.container, props.container]}>
       <View
