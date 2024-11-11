@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthToDp(1),
   },
   placeholderText: {
-    fontSize: widthToDp(2), // Responsive placeholder size
+    fontSize: widthToDp(2),
   },
   input: {
     // flex: 1,

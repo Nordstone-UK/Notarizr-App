@@ -241,7 +241,7 @@ export default function AgentAllBookingScreen({navigation}) {
                       }
                       agentAddress={
                         item?.booked_by?.location
-                          ? `${item?.booked_by?.location}`
+                          ? `${item?.address}`
                           : `${item?.client?.location}`
                       }
                       status={item?.status}

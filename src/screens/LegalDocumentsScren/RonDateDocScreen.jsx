@@ -49,7 +49,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState();
   const [isVisible, setIsVisible] = useState('');
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(null);
   const DOCUMENTS_PER_LOAD = 5;
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('date');
@@ -63,6 +63,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [fileResponse, setFileResponse] = useState([]);
+  let initialDate = new Date();
   console.log('searchuser', selectedClient);
   const [isYes, setIsYes] = useState(true);
   const {uploadMultipleFiles} = useRegister();
@@ -136,6 +137,19 @@ export default function RonDateDocScreen({route, navigation}) {
 
     setLoading(false);
   };
+  const showConfirmation = async () => {
+    setLoading(true);
+    if (date) {
+      submitAddressDetails();
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select Date & Time',
+      });
+    }
+    setLoading(false);
+  };
+
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
@@ -317,12 +331,12 @@ export default function RonDateDocScreen({route, navigation}) {
             <View style={styles.buttonFlex}>
               <TouchableOpacity onPress={() => handleOpenPicker('date')}>
                 <Text style={styles.dateText}>
-                  {moment(date).format('MM-DD-YYYY')}
+                  {moment(date || initialDate).format('MM-DD-YYYY')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleOpenPicker('time')}>
                 <Text style={styles.dateText}>
-                  {moment(date).format(' hh:mm A')}
+                  {moment(date || initialDate).format(' hh:mm A')}
                 </Text>
               </TouchableOpacity>
               <DatePicker
@@ -330,7 +344,7 @@ export default function RonDateDocScreen({route, navigation}) {
                 mode={mode}
                 // minimumDate={date}
                 open={open}
-                date={date}
+                date={date || initialDate}
                 onConfirm={selectedDate => {
                   setOpen(false); // Close the modal
                   setDate(selectedDate); // Update the state with the new selected date or time
@@ -670,7 +684,7 @@ export default function RonDateDocScreen({route, navigation}) {
                 marginTop: heightToDp(2),
                 width: widthToDp(90),
               }}
-              onPress={() => submitAddressDetails(selectedDocs)}
+              onPress={() => showConfirmation(selectedDocs)}
             />
             {/* {isYes && <Text style={styles.text}>OR</Text>} */}
           </View>

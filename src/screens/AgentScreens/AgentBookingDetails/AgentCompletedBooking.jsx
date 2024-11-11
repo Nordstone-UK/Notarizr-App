@@ -82,6 +82,7 @@ export default function AgentCompletedBooking({navigation}) {
                 data={mergerData}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => {
+                  console.log('itemsdfldfld', item);
                   return (
                     <ClientServiceCard
                       image={require('../../../../assets/agentLocation.png')}
@@ -102,7 +103,7 @@ export default function AgentCompletedBooking({navigation}) {
                       }
                       agentAddress={
                         item?.booked_by?.location
-                          ? `${item?.booked_by?.location}`
+                          ? `${item?.address}`
                           : `${item?.client?.location}`
                       }
                       status={item?.status}

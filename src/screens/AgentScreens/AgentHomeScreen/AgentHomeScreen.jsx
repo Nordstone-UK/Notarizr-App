@@ -232,7 +232,7 @@ export default function AgentHomeScreen({navigation}) {
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
-                      // console.log("items",item)
+                      console.log('items', item);
                       return (
                         <ClientServiceCard
                           image={require('../../../../assets/agentLocation.png')}
@@ -245,7 +245,7 @@ export default function AgentHomeScreen({navigation}) {
                             ' ' +
                             item.booked_by.last_name
                           }
-                          agentAddress={item.booked_by.location}
+                          agentAddress={item.address}
                           status={item?.status}
                           OrangeText="At Home"
                           Button={true}

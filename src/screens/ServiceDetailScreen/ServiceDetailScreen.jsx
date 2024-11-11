@@ -47,10 +47,10 @@ export default function ServiceDetailScreen({route, navigation}) {
   // const [isEnabled, setIsEnabled] = useState(false);
   // const [documents, setDocuments] = useState();
   // const [startTime, setStartTime] = useState(new Date());
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(null);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('date');
-  console.log('addresss', selectAddress);
+  let initialDate = new Date();
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
@@ -228,12 +228,12 @@ export default function ServiceDetailScreen({route, navigation}) {
                 <View style={styles.buttonFlex}>
                   <TouchableOpacity onPress={() => handleOpenPicker('date')}>
                     <Text style={styles.dateText}>
-                      {moment(date).format('MM-DD-YYYY')}
+                      {moment(date || initialDate).format('MM-DD-YYYY')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleOpenPicker('time')}>
                     <Text style={styles.dateText}>
-                      {moment(date).format(' hh:mm A')}
+                      {moment(date || initialDate).format(' hh:mm A')}
                     </Text>
                   </TouchableOpacity>
                   <DatePicker
@@ -241,7 +241,7 @@ export default function ServiceDetailScreen({route, navigation}) {
                     mode={mode}
                     // minimumDate={date}
                     open={open}
-                    date={date}
+                    date={date || initialDate}
                     onConfirm={selectedDate => {
                       setOpen(false); // Close the modal
                       setDate(selectedDate); // Update the state with the new selected date or time

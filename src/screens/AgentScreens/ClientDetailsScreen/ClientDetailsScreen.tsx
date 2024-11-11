@@ -1402,7 +1402,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   Booked For Location
                 </Text>
                 <AddressCard
-                  location={bookedByAddress?.location}
+                  location={clientDetail?.address}
                   onPress={handleStartNavigation}
                   booking="true"
                 />
