@@ -26,7 +26,27 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+def common_pods
+  config = use_native_modules!
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => flags[:hermes_enabled],
+    :fabric_enabled => flags[:fabric_enabled],
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+end
+
 target 'Notarizr' do
+   # pod 'Google-Maps-iOS-Utils', :git => '[https://github.com/Simon-TechForm/google-maps-ios-utils.git](https://github.com/Simon-TechForm/google-maps-ios-utils.git)', :branch => 'feat/support-apple-silicon'
+
+   rn_maps_path = '../node_modules/react-native-maps'
+
+   pod 'GoogleMaps'
+ 
+   # pod 'Firebase/Core', '~> 10.17.0'  # Upgrade Firebase/Core to version 10.17.0 or higher
+ 
+   pod 'react-native-google-maps', :path => rn_maps_path
   config = use_native_modules!
 
   # Flags change depending on the env values.
@@ -51,13 +71,30 @@ target 'Notarizr' do
     # Pods for testing
   end
 
-  post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+  # post_install do |installer|
+  #   # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+  #   react_native_post_install(
+  #     installer,
+  #     config[:reactNativePath],
+  #     :mac_catalyst_enabled => false
+  #   )
+  #   __apply_Xcode_12_5_M1_post_install_workaround(installer)
+  # end
+
+  # Add this block at the end, before the final end
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      config.build_settings["DEVELOPMENT_TEAM"] = "YOUR_TEAM_ID" # Replace with your team ID
+    end
   end
+  
+  react_native_post_install(
+    installer,
+    config[:reactNativePath],
+    :mac_catalyst_enabled => false
+  )
+  __apply_Xcode_12_5_M1_post_install_workaround(installer)
+end
 end

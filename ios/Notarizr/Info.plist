@@ -52,6 +52,9 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We require your location to provide personalized content based on your current location. Your location data will only be used within the app and will not be shared with third parties.</string>
+		
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tel</string>

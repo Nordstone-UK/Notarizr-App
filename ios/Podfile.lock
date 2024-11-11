@@ -44,6 +44,30 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.72.5)
   - fmt (6.2.1)
   - glog (0.3.5)
+  - Google-Maps-iOS-Utils (4.1.0):
+    - Google-Maps-iOS-Utils/Clustering (= 4.1.0)
+    - Google-Maps-iOS-Utils/Geometry (= 4.1.0)
+    - Google-Maps-iOS-Utils/GeometryUtils (= 4.1.0)
+    - Google-Maps-iOS-Utils/Heatmap (= 4.1.0)
+    - Google-Maps-iOS-Utils/QuadTree (= 4.1.0)
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/Clustering (4.1.0):
+    - Google-Maps-iOS-Utils/QuadTree
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/Geometry (4.1.0):
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/GeometryUtils (4.1.0):
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/Heatmap (4.1.0):
+    - Google-Maps-iOS-Utils/QuadTree
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/QuadTree (4.1.0):
+    - GoogleMaps
+  - GoogleMaps (7.4.0):
+    - GoogleMaps/Maps (= 7.4.0)
+  - GoogleMaps/Base (7.4.0)
+  - GoogleMaps/Maps (7.4.0):
+    - GoogleMaps/Base
   - hermes-engine (0.72.5):
     - hermes-engine/Pre-built (= 0.72.5)
   - hermes-engine/Pre-built (0.72.5)
@@ -383,6 +407,10 @@ PODS:
     - React-Core
   - react-native-geolocation-service (5.3.1):
     - React
+  - react-native-google-maps (1.8.0):
+    - Google-Maps-iOS-Utils (= 4.1.0)
+    - GoogleMaps (= 7.4.0)
+    - React-Core
   - react-native-image-picker (7.0.0):
     - React-Core
   - react-native-image-resizer (1.4.5):
@@ -594,6 +622,7 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GoogleMaps
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
@@ -621,6 +650,7 @@ DEPENDENCIES:
   - react-native-document-scanner-plugin (from `../node_modules/react-native-document-scanner-plugin`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
+  - react-native-google-maps (from `../node_modules/react-native-maps`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-immediate-phone-call (from `../node_modules/react-native-immediate-phone-call`)
@@ -671,6 +701,8 @@ SPEC REPOS:
     - AgoraRtcEngine_iOS
     - BEMCheckBox
     - fmt
+    - Google-Maps-iOS-Utils
+    - GoogleMaps
     - HyphenateChat
     - libevent
     - lottie-ios
@@ -749,6 +781,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-geolocation-service:
     :path: "../node_modules/react-native-geolocation-service"
+  react-native-google-maps:
+    :path: "../node_modules/react-native-maps"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-image-resizer:
@@ -847,6 +881,8 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: 448e08a759d29a96e15725ae532445bf4343567c
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  Google-Maps-iOS-Utils: 3343332b18dfd5be8f1f44edd7d481ace3da4d9a
+  GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: f6cf92a471053245614d9d8097736f6337d5b86c
   HyphenateChat: 95aa4abbad0e763f513acbe21ff9543f50b886cd
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
@@ -876,6 +912,7 @@ SPEC CHECKSUMS:
   react-native-document-scanner-plugin: bcb4b5a6770ebb10080c8f051de1e9c1bb81afac
   react-native-geolocation: ef66fb798d96284c6043f0b16c15d9d1d4955db4
   react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
+  react-native-google-maps: 356b9d01da0920be13e4c4dc83673b30e8a22c16
   react-native-image-picker: ddbbe4d226d9c82a82360f5de66bf71a657a42e6
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-immediate-phone-call: eb8a86325478db6c066eac6ecf8fa9ba3fbf66c5
@@ -929,6 +966,6 @@ SPEC CHECKSUMS:
   StripeUICore: ce85e040a22bf0335061d14973d37757528b3d2d
   Yoga: 86fed2e4d425ee4c6eab3813ba1791101ee153c6
 
-PODFILE CHECKSUM: 2effe170c7de71c3c0c1c3ed6d52657ce90b9d80
+PODFILE CHECKSUM: 703d6554dc2c3a9fec846c1eb0257d2492fa4ab3
 
 COCOAPODS: 1.15.2

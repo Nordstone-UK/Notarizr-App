@@ -219,6 +219,7 @@ export default function CurrentLocationScreen({route}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Select Location" />
+
       {loading ? ( // Show loading indicator if loading is true
         <ActivityIndicator
           size="large"
@@ -311,11 +312,11 @@ export default function CurrentLocationScreen({route}) {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    // ...StyleSheet.absoluteFillObject,
     flex: 1,
   },
   searchContainer: {
-    position: 'absolute',
+    // position: 'absolute',
     width: '100%',
     zIndex: 1,
   },
