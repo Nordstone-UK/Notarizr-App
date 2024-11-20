@@ -97,7 +97,7 @@ export default function ServiceDetailScreen({route, navigation}) {
         preferenceAnalysis: 'distance',
       }),
     );
-    navigation.navigate('LegalDocScreen');
+    navigation.navigate('LegalDocScreen', {address: selectAddress});
   };
   const handleOpenPicker = pickermode => {
     setMode(pickermode);
@@ -335,10 +335,10 @@ export default function ServiceDetailScreen({route, navigation}) {
                       key={index}
                       location={item.location}
                       onPress={() => {
-                        setSelectedAddress(item._id);
-                        setlocation(item.location);
+                        setSelectedAddress(item.location);
+                        setlocation(item._id);
                       }}
-                      Show={selectAddress === item._id}
+                      Show={selectAddress === item.location}
                       booking="true"
                     />
                   ))}

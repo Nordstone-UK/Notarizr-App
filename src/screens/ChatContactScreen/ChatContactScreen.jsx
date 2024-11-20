@@ -12,6 +12,7 @@ import {Image} from 'react-native';
 export default function ChatContactScreen({navigation}) {
   const user = useSelector(state => state.user.user);
   const chats = useSelector(state => state.chats.allChats);
+  console.log('chatsdfdf', chats);
   const renderItem = ({item}) => {
     const user = item.agent;
     return (

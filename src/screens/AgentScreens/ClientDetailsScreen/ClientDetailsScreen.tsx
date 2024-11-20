@@ -15,7 +15,8 @@ import {
   Dimensions,
   PermissionsAndroid,
   Platform,
-  Linking, TextInput
+  Linking, TextInput,
+  ToastAndroid
 } from 'react-native';
 
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -72,7 +73,6 @@ import { Alert } from 'react-native';
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const downloadPdf = useRef(null);
   const token = useSelector(state => state.chats.chatToken);
-  console.log('agenttokenchagfdfddfdfdfd', token);
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
   const navigationStatus = useSelector(state => state.booking.navigationStatus);
   const {
@@ -112,9 +112,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [notaryBlock, setNotaryBlock] = useState();
   const [AmountEntered, setAmountEntered] = useState<number>();
   const [searchFor, setSearchFor] = useState('');
-  const [showObserverSearchView, setShowObserverSearchView] = useState(false);
-  const [searchedUser, setSearchedUser] = useState([]);
-  const [observers, setObservers] = useState([]);
   const [isLoading, setisLoading] = useState(false);
   const [showIcon, setShowIcon] = useState(true);
   const [uploadShow, setUploadShow] = useState(true);
@@ -135,18 +132,62 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   // const [navigationStatus, setNavigationStatus] = useState('');
   const [selected, setSelected] = useState('client_choose');
   const [bookedByAddress, setBookedByAddress] = useState(null);
-  const [numOfWitnesses, setNumOfWitnesses] = useState(1); // Start with 1 witness
-  const [witnessFields, setWitnessFields] = useState(['']); // Array to store input values for each witness
+  const [numOfWitnesses, setNumOfWitnesses] = useState(1);
+  const [witnessFields, setWitnessFields] = useState(['']);
+  const [searchTexts, setSearchTexts] = useState(['']);
+  const [searchedUser, setSearchedUser] = useState([]);
+  const [observers, setObservers] = useState([]);
+  const [showObserverSearchView, setShowObserverSearchView] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const handleAddWitnessField = () => {
-    setWitnessFields([...witnessFields, '']); // Add an empty string for the new witness field
+  const [activeFieldIndex, setActiveFieldIndex] = useState(null);
+
+
+  const handleWitnessCountChange = (text) => {
+    let number = parseInt(text, 10) || 1;
+    if (number > 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Only 5 observers are allowed',
+      });
+      number = 5;
+    }
+    setNumOfWitnesses(number);
+    setWitnessFields(Array(number).fill(''));
+    setSearchTexts(Array(number).fill(''));
   };
-  // const handleWitnessInputChange = (index, value) => {
-  //   const updatedFields = [...witnessFields];
-  //   updatedFields[index] = value; // Update the specific input field value
-  //   setWitnessFields(updatedFields);
-  //   SearchUser(value); // Perform search based on the input
-  // };
+
+  const handleSearchChange = (text, index) => {
+    const updatedSearchTexts = [...searchTexts];
+    updatedSearchTexts[index] = text;
+    setSearchTexts(updatedSearchTexts);
+
+    // Search logic
+    setSearchedUser([]); // Clear existing results
+    setShowObserverSearchView(true);
+    setisLoading(true);
+    // setSearchText(text);
+    SearchUser(text);
+    setSearchFor('Observer');
+    setShowObserverSearchView(true);
+    setActiveFieldIndex(index)
+    // Simulate async search (replace with actual API call)
+    // setTimeout(() => {
+    //   setSearchedUser([
+    //     { _id: `${index}-1`, email: `user${index}@example.com` },
+    //     { _id: `${index}-2`, email: `user${index + 1}@example.com` },
+    //   ]);
+    //   setisLoading(false);
+    // }, 1000);
+  };
+
+  const handleSelectObserver = (observer) => {
+    setObservers((prev) => [...prev, observer]);
+    setShowObserverSearchView(false);
+  };
+
+  const handleRemoveObserver = (id) => {
+    setObservers((prev) => prev.filter((observer) => observer._id !== id));
+  };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -604,12 +645,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
         Array.isArray(clientDetail.booked_by.addresses)
       ) {
         const addressId = clientDetail.address;
-
         const addressdetail = clientDetail.booked_by.addresses.find(
           address => address._id == addressId,
         );
-
-        console.log('Found address:', addressdetail);
         setBookedByAddress(addressdetail);
       } else {
         console.log('Client detail or addresses are not properly loaded.');
@@ -618,7 +656,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
     fetchAddress();
   }, [clientDetail]);
-  console.log('navigationStatus', navigationStatus);
+
   const handleStartNavigation = async () => {
     if (clientDetail?.service_type === 'mobile_notary') {
       await handleStatusChange('travelling');
@@ -834,6 +872,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       <BottomSheetStyle>
         <ScrollView
           scrollEnabled={true}
+          nestedScrollEnabled={true}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
@@ -884,56 +923,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
               )}
             </View>
           </View>
-          {/* <ClientServiceCard
-            image={require('../../../../assets/agentLocation.png')}
-            source={{
-              uri: clientDetail?.booked_by?.profile_picture
-                ? `${clientDetail?.booked_by?.profile_picture}`
-                : `${clientDetail?.client?.profile_picture}`,
-            }}
-            bottomRightText={clientDetail?.document_type}
-            bottomLeftText="Total"
-            agentName={
-              clientDetail?.booked_by?.first_name &&
-              clientDetail?.booked_by?.last_name
-                ? `${clientDetail?.booked_by?.first_name} ${clientDetail?.booked_by?.last_name}`
-                : `${clientDetail?.client?.first_name} ${clientDetail?.client?.last_name}`
-            }
-            agentAddress={
-              clientDetail?.booked_by?.location
-                ? `${clientDetail?.booked_by?.location}`
-                : `${clientDetail?.client.location}`
-            }
-            task={clientDetail?.status}
-            OrangeText="At Home"
-            onPress={() =>
-              navigation.navigate('ClientDetailsScreen', {
-                clientDetail: clientDetail,
-              })
-            }
-            status={clientDetail?.status}
-            dateofBooking={clientDetail?.date_of_booking}
-            timeofBooking={clientDetail?.time_of_booking}
-            createdAt={clientDetail?.createdAt}
-          /> */}
+
           <View style={styles.sheetContainer}>
-            {/* <Text style={[styles.insideHeading]}>Booking Preferences</Text>
-            {clientDetail?.service_type === 'mobile_notary' && (
-              <View>
-                <Text
-                  style={{
-                    fontSize: widthToDp(4),
-                    marginLeft: widthToDp(7),
-                    fontFamily: 'Manrope-Bold',
-                    color: Colors.TextColor,
-                  }}>
-                  Document Type:
-                </Text>
-                <Text style={[styles.detail, {marginLeft: widthToDp(7)}]}>
-                  {displayNamesWithCommas(clientDetail?.document_type)}
-                </Text>
-              </View>
-            )} */}
+
             {clientDetail.client ? (
               <View>
                 <Text style={[styles.insideHeading]}>Client details</Text>
@@ -971,9 +963,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     />
                   </View>
                   <View>
-                    {/* <Text style={{ color: 'black', fontFamily: 'Poppins-Bold' }}>
-                      {clientDetail.client.email}
-                    </Text> */}
                     <Text
                       style={{ color: 'black', fontFamily: 'Poppins-Bold' }}>
                       {clientDetail.client.first_name}{' '}
@@ -1031,67 +1020,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 </View>
               </View>
             )}
-
-            {/* {clientDetail.agent && (
-              <View>
-                <Text style={[styles.insideHeading]}>
-                  Allocated agent details
-                </Text>
-
-                <View
-                  style={{
-                    width: widthToDp(90),
-                    marginTop: 10,
-                    marginHorizontal: widthToDp(5),
-
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: widthToDp(3),
-                    borderRadius: widthToDp(2),
-                    backgroundColor: 'white',
-                    shadowColor: '#000',
-                    shadowOffset: {
-                      width: 0,
-                      height: 2,
-                    },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-
-                    elevation: 5,
-                    // marginLeft: 3,
-                  }}>
-                  <View style={{ marginRight: 10 }}>
-                    <Image
-                      source={{
-                        uri:
-                          clientDetail.agent.profile_picture != 'none'
-                            ? clientDetail.agent.profile_picture
-                            : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
-                      }}
-                      style={{
-                        width: widthToDp(14),
-                        height: widthToDp(14),
-                        borderRadius: widthToDp(7),
-                      }}
-                    />
-                  </View>
-                  <View>
-                    <Text style={{ color: 'black', fontFamily: 'Poppins-Bold' }}>
-                      {clientDetail.agent?.email}
-                    </Text>
-                    <Text
-                      style={{
-                        color: 'black',
-                        fontFamily: 'Poppins-Regular',
-                      }}>
-                      {clientDetail.agent.first_name}{' '}
-                      {clientDetail.agent.last_name}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            )} */}
-
             {clientDetail.observers && clientDetail.observers.length > 0 && (
               <View>
                 <Text style={[styles.insideHeading]}>Observers </Text>
@@ -1187,51 +1115,38 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                         borderRadius: widthToDp(3),
                         color: 'black',
                       }}
-                      // value={additionalSignatures}
-                      // onChangeText={handleAdditionalSignaturesChange}
                       placeholder=""
                       keyboardType="numeric"
                       onChangeText={text => {
-                        const number = parseInt(text, 10) || 1; // Ensure the input is a valid number
+                        let number = parseInt(text, 10) || 1;
+                        if (number > 5) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Only 5 observers are allowed',
+                          });
+                          number = 5;
+                        }
                         setNumOfWitnesses(number);
-                        setWitnessFields(Array(number).fill('')); // Reset witness fields based on input number
+                        setWitnessFields(Array(number).fill(''));
                       }}
 
                     />
                   </View>
 
-                  {witnessFields.map((witness, index) => (
-                    <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "center", marginBottom: 10 }}>
-                      {/* <LabelTextInput
-                        placeholder={`Search witness ${index + 1} by email`}
-                        value={witnessFields[index]}
-                        onChangeText={text => {
-                          SearchUser(text);
-                          setSearchFor('Observer');
-                          setShowObserverSearchView(true);
-                        }}
-                        InputStyles={{ padding: widthToDp(2) }}
-                        AdjustWidth={{
-                          width: widthToDp(82), // Smaller width to leave room for the + button
-                          borderColor: Colors.Orange,
-                        }}
-                        rightImageSoucre={require('../../../../assets/close.png')}
-                        rightImagePress={() => {
-                          const updatedFields = [...witnessFields];
-                          updatedFields[index] = ''; // Clear the specific input field
-                          setWitnessFields(updatedFields);
-                          setSearchedUser([]); // Clear search results
-                        }}
-                      /> */}
+                  {witnessFields.map((_, index) => (
+                    <View key={index} style={{ alignItems: 'center', justifyContent: "center", marginBottom: 10 }}>
+
                       <LabelTextInput
-                        placeholder="Search observer by email"
-                        value={searchText}
+                        placeholder={`Search observer by  ${index + 1} email`}
+                        value={searchTexts[index]}
                         defaultValue={''}
-                        onChangeText={text => {
-                          setSearchText(text);
-                          SearchUser(text);
-                          setSearchFor('Observer');
-                          setShowObserverSearchView(true);
+                        onChangeText={(text) => handleSearchChange(text, index)}
+                        rightImagePress={() => {
+                          const updatedSearchTexts = [...searchTexts];
+                          updatedSearchTexts[index] = ''; // Clear the input field for this index
+                          setSearchTexts(updatedSearchTexts);
+                          setSearchedUser([]); // Optionally clear the search results
+                          setShowObserverSearchView(false); // Optionally hide the search view
                         }}
                         InputStyles={{ padding: widthToDp(2) }}
                         AdjustWidth={{
@@ -1239,36 +1154,65 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                           borderColor: Colors.Orange,
                         }}
                         rightImageSoucre={require('../../../../assets/close.png')}
-                        rightImagePress={() => {
-                          setSearchedUser([]);
-                          setSearchText('');
-                        }}
+                      // rightImagePress={() => {
+                      //   setSearchedUser([]);
+                      //   setSearchText('');
+                      // }}
                       />
-                      {/* {index === witnessFields.length - 1 && (
-                        <TouchableOpacity onPress={handleAddWitnessField}>
-                          <Text style={{ fontSize: 24, color: Colors.Orange }}>+</Text>
-                        </TouchableOpacity>
-                      )} */}
+                      {showObserverSearchView &&
+                        searchFor == 'Observer' &&
+                        activeFieldIndex === index &&
+                        searchedUser.length !== 0
+                        ? (
+                          isLoading ? (
+                            <ActivityIndicator
+                              size="large"
+                              color={Colors.Orange}
+                              style={{ height: heightToDp(40) }}
+                            />
+                          ) : (
+                            <ScrollView
+                              showsVerticalScrollIndicator={false}
+                              nestedScrollEnabled={true}
+                              style={{
+                                height: heightToDp(40),
+                                marginBottom: widthToDp(3),
+                              }}>
+                              {searchedUser.map(item => (
+                                <TouchableOpacity
+                                  key={item._id}
+                                  onPress={() => {
+                                    const updatedSearchTexts = [...searchTexts];
+                                    updatedSearchTexts[index] = item.email;
+                                    setSearchTexts(updatedSearchTexts);
+                                    setObservers(prev => [...prev, item]);
+                                    setShowObserverSearchView(false);
+                                  }}
+                                  style={{
+                                    borderColor: Colors.Orange,
+                                    borderWidth: 1,
+                                    padding: widthToDp(1),
+                                    // marginLeft: widthToDp(6),
+                                    marginBottom: widthToDp(3),
+                                    borderRadius: widthToDp(2),
+                                    width: widthToDp(88),
+                                    // backgroundColor: 'red'
+                                  }}>
+                                  <Text
+                                    style={{
+                                      color: Colors.TextColor,
+                                      fontSize: widthToDp(4),
+                                    }}>
+                                    {item.email}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </ScrollView>
+                          )
+                        ) : null}
                     </View>
                   ))}
-                  {/* <LabelTextInput
-                    placeholder="Search observer by email"
-                    defaultValue={''}
-                    onChangeText={text => {
-                      SearchUser(text);
-                      setSearchFor('Observer');
-                      setShowObserverSearchView(true);
-                    }}
-                    InputStyles={{ padding: widthToDp(2) }}
-                    AdjustWidth={{
-                      width: widthToDp(92),
-                      borderColor: Colors.Orange,
-                    }}
-                    rightImageSoucre={require('../../../../assets/close.png')}
-                    rightImagePress={() => {
-                      setSearchedUser([]);
-                    }}
-                  /> */}
+
 
                   {observers.length > 0 && (
                     <View>
@@ -1278,8 +1222,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                             style={{
                               width: widthToDp(90),
                               marginTop: 10,
-
-                              backgroundColor: 'red',
                               flexDirection: 'row',
                               alignItems: 'center',
                               padding: widthToDp(3),
@@ -1326,9 +1268,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                                 }}>
                                 {item?.email}
                               </Text>
-
                             </View>
-
                             <TouchableOpacity
                               onPress={() => {
                                 setObservers(
@@ -1349,51 +1289,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     </View>
                   )}
 
-                  {showObserverSearchView &&
-                    searchFor == 'Observer' &&
-                    searchedUser.length !== 0 ? (
-                    isLoading ? (
-                      <ActivityIndicator
-                        size="large"
-                        color={Colors.Orange}
-                        style={{ height: heightToDp(40) }}
-                      />
-                    ) : (
-                      <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        style={{
-                          height: heightToDp(40),
-                          marginBottom: widthToDp(3),
-                        }}>
-                        {searchedUser.map(item => (
-                          <TouchableOpacity
-                            key={item._id}
-                            onPress={() => {
-                              setObservers(prev => [...prev, item]);
-                              setShowObserverSearchView(false);
-                            }}
-                            style={{
-                              borderColor: Colors.Orange,
-                              borderWidth: 1,
-                              padding: widthToDp(1),
-                              marginLeft: widthToDp(6),
-                              marginBottom: widthToDp(3),
-                              borderRadius: widthToDp(2),
-                              width: widthToDp(88),
-                              // backgroundColor: 'red'
-                            }}>
-                            <Text
-                              style={{
-                                color: Colors.TextColor,
-                                fontSize: widthToDp(4),
-                              }}>
-                              {item.email}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    )
-                  ) : null}
                 </View>
               )}
             {clientDetail.__typename === 'Booking' && clientDetail.address && (
@@ -1402,7 +1297,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   Booked For Location
                 </Text>
                 <AddressCard
-                  location={clientDetail?.address}
+                  location={bookedByAddress?.location}
                   onPress={handleStartNavigation}
                   booking="true"
                 />
@@ -1524,6 +1419,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 <View
                   style={{
                     flexDirection: 'row',
+                    marginTop: heightToDp(4),
                     marginLeft: widthToDp(5),
                     columnGap: widthToDp(3),
                   }}>
@@ -1777,6 +1673,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   <View
                     style={{
                       flexDirection: 'row',
+                      marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
                     }}>
@@ -1814,6 +1711,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   <View
                     style={{
                       flexDirection: 'row',
+                      marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
                     }}>
@@ -1855,6 +1753,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   <View
                     style={{
                       flexDirection: 'row',
+                      marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
                     }}>
@@ -1892,6 +1791,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   <View
                     style={{
                       flexDirection: 'row',
+                      marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
                     }}>

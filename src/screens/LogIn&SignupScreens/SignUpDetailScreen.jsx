@@ -29,12 +29,17 @@ import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
 import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
 import moment from 'moment';
+import {statesData} from '../../data/statesData';
+import SingleSelectDropDown from '../../components/SingleSelectDropDown/SingleSelectDropDown';
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function SignUpDetailScreen({navigation}, props) {
   const [date, setDate] = useState(new Date());
   const [firstName, setfirstName] = useState('');
   const [lastName, setlastName] = useState('');
   const [phoneNumber, setNumber] = useState('');
   const [location, setlocation] = useState('');
+  const [state, setState] = useState(null);
   const [email, setEmail] = useState('');
   const [emailValid, setEmailValid] = useState();
   const [gender, setgender] = useState('');
@@ -64,6 +69,13 @@ export default function SignUpDetailScreen({navigation}, props) {
         text1: 'Warning!',
         text2: 'Please fill all the fields before submitting.',
       });
+    } else if (!emailRegex.test(email)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email',
+        text2: 'Please enter a valid email address.',
+      });
+      return;
     } else {
       return new Promise(() => {
         try {
@@ -114,6 +126,8 @@ export default function SignUpDetailScreen({navigation}, props) {
             text1: `OTP Sent on ${response.data.getValidPhoneOtp.phoneNumber}`,
             text2: '',
           });
+          console.log('location', location.formattedState);
+          // return;
           navigation.navigate('SignPhoneVerification', {
             firstName,
             lastName,
@@ -196,14 +210,32 @@ export default function SignUpDetailScreen({navigation}, props) {
                 }}
                 textStyle={{}}
               />
-
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/locationIcon.png')}
-                Label={true}
-                placeholder={'Enter your city'}
-                LabelTextInput={'Address'}
-                onChangeText={text => setlocation(text)}
-              />
+              {variables == 'client' && (
+                <SingleSelectDropDown
+                  data={statesData}
+                  setSelected={item => {
+                    console.log('staterere', item);
+                    // Remove spaces from the selected state and set it
+                    const formattedState = item?.replace(/\s+/g, '');
+                    console.log('formateds dste', formattedState);
+                    setlocation(formattedState);
+                  }}
+                  label="State"
+                  placeholder="Choose your state..."
+                  Label={true}
+                  LabelTextInput={'State'}
+                  value={state?.label}
+                />
+              )}
+              {variables !== 'client' && (
+                <LabelTextInput
+                  leftImageSoucre={require('../../../assets/locationIcon.png')}
+                  Label={true}
+                  placeholder={'Enter your city'}
+                  LabelTextInput={'Address'}
+                  onChangeText={text => setlocation(text)}
+                />
+              )}
               {variables !== 'client' && (
                 <MultiLineTextInput
                   Label={true}

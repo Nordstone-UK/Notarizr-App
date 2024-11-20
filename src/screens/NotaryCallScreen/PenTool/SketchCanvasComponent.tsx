@@ -53,7 +53,6 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
   const [signModalVisible, setSignModalVisible] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [imageLoading, setImageLoading] = useState(false);
-  console.log("lllllllogisdfd", loading)
   const sketchRef = useRef<RNSketchCanvas>(null);
   const handleStrokeStart = useCallback((x: number, y: number) => {
     if (drawingMode === 'pen') {
@@ -273,22 +272,22 @@ const SketchCanvasComponent: React.FC<SketchCanvasComponentProps> = ({ onPathsCh
         <TouchableOpacity style={styles.iconButton} onPress={handlePenPress}>
           <Icon name="pencil" size={30} color={drawingMode === 'pen' ? Colors.Orange : 'black'} />
         </TouchableOpacity>
-        {showDropdown && (
-          <>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setColorPickerVisible(true)}>
-              <Icon name="tint" size={30} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={clearPaths}>
-              <Icon name="trash" size={30} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleStampPress}>
-              <Icon1 name="stamp" size={30} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleSignaturePress}>
-              <Icon name="edit" size={30} color="black" />
-            </TouchableOpacity>
-          </>
-        )}
+        {/* {showDropdown && ( */}
+        <>
+          <TouchableOpacity style={styles.iconButton} onPress={() => setColorPickerVisible(true)}>
+            <Icon name="tint" size={30} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={clearPaths}>
+            <Icon name="trash" size={30} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handleStampPress}>
+            <Icon1 name="stamp" size={30} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handleSignaturePress}>
+            <Icon1 name="signature" size={30} color="black" />
+          </TouchableOpacity>
+        </>
+        {/* )}s */}
       </View>
       {paths.length > 0 && (
 
@@ -311,7 +310,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'absolute',
-    top: 0,
+    top: 40,
     left: 0,
     bottom: 0,
     right: 0,

@@ -900,13 +900,13 @@ export default function MedicalBookingScreen({route, navigation}) {
               <View
                 style={{
                   flexDirection: 'row',
+                  marginTop: heightToDp(4),
                   marginLeft: widthToDp(5),
                   columnGap: widthToDp(3),
                 }}>
                 {bookingDetail.documents &&
                   Array.isArray(bookingDetail.documents) &&
                   bookingDetail.documents.map((item, index) => {
-                    console.log('itemsdfdfd', item);
                     return (
                       <TouchableOpacity
                         key={index}
@@ -1214,7 +1214,6 @@ export default function MedicalBookingScreen({route, navigation}) {
               </View>
             </View>
           )}
-
           {bookingDetail.client_documents &&
             Object.values(bookingDetail.client_documents)?.length > 0 && (
               <View style={{marginVertical: 10}}>
@@ -1305,6 +1304,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 <View
                   style={{
                     flexDirection: 'row',
+                    marginTop: heightToDp(4),
                     marginLeft: widthToDp(5),
                     columnGap: widthToDp(3),
                   }}>
@@ -1342,6 +1342,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                 <View
                   style={{
                     flexDirection: 'row',
+                    marginTop: heightToDp(4),
                     marginLeft: widthToDp(5),
                     columnGap: widthToDp(3),
                   }}>
@@ -1622,6 +1623,7 @@ const styles = StyleSheet.create({
   },
   documentContainer: {
     flexDirection: 'row',
+    marginTop: heightToDp(4),
     marginLeft: widthToDp(5),
     columnGap: widthToDp(3),
     rowGap: heightToDp(4),

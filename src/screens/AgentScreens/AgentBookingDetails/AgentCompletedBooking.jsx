@@ -82,7 +82,6 @@ export default function AgentCompletedBooking({navigation}) {
                 data={mergerData}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => {
-                  console.log('itemsdfldfld', item);
                   return (
                     <ClientServiceCard
                       image={require('../../../../assets/agentLocation.png')}

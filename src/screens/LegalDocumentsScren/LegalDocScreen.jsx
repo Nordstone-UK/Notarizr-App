@@ -34,6 +34,8 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Toast from 'react-native-toast-message';
 
 export default function LegalDocScreen({route, navigation}) {
+  const {address} = route.params;
+
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
   const [documentArray, setDocumentArray] = useState();
@@ -131,7 +133,7 @@ export default function LegalDocScreen({route, navigation}) {
     setLoading(false);
   };
   const getState = async query => {
-    const state = extractState(bookingData.address);
+    const state = extractState(address);
     console.log('ssssssssssssssssssssssss', state);
     setLoading(true);
 
@@ -183,7 +185,10 @@ export default function LegalDocScreen({route, navigation}) {
     const parts = address.split(' ');
     if (parts.length >= 2) {
       const state = parts[parts.length - 2];
+      console.log('ststere===========', state);
       return state;
+    } else {
+      return parts[0].trim();
     }
     return null;
   }

@@ -232,7 +232,15 @@ export default function AgentHomeScreen({navigation}) {
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
-                      console.log('items', item);
+                      console.log('itemsd', item);
+                      const addressId = item.address;
+                      let addressdetail = null;
+                      if (item?.booked_by?.addresses) {
+                        addressdetail = item.booked_by.addresses.find(
+                          address => address._id == addressId,
+                        );
+                      }
+                      // console.log('addfesdfd', addressdetail);
                       return (
                         <ClientServiceCard
                           image={require('../../../../assets/agentLocation.png')}
@@ -245,7 +253,7 @@ export default function AgentHomeScreen({navigation}) {
                             ' ' +
                             item.booked_by.last_name
                           }
-                          agentAddress={item.address}
+                          agentAddress={addressdetail?.location}
                           status={item?.status}
                           OrangeText="At Home"
                           Button={true}

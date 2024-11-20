@@ -4,6 +4,7 @@ import {SelectList} from 'react-native-dropdown-select-list';
 import {widthToDp} from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import {Text} from 'react-native';
+import {color} from '@rneui/base';
 
 export default function SingleSelectDropDown(props) {
   const [isFocused, setIsFocused] = useState(false);
@@ -13,11 +14,11 @@ export default function SingleSelectDropDown(props) {
 
     if (selectedItem) {
       // Log the label of the selected item
-      console.log('Selected label:', selectedItem.label);
 
       // Call the setSelected function passed via props with the label
       props.setSelected(selectedItem.label);
     }
+    setIsFocused(false);
   };
   return (
     <View style={styles.container}>
@@ -31,18 +32,17 @@ export default function SingleSelectDropDown(props) {
           value: state.label, // Display the 'label' in the dropdown
         }))}
         placeholder={props.placeholder}
-        boxStyles={[
-          styles.box,
-          isFocused && styles.boxFocused, // Apply focused style
-        ]}
+        boxStyles={[styles.box, isFocused && styles.boxFocused]}
         dropdownStyles={styles.dropdown}
         inputStyles={styles.input}
         badgeStyles={styles.badge}
         dropdownTextStyles={styles.dropdownText}
         labelStyles={styles.label}
         badgeTextStyles={styles.badgeText}
-        onFocus={() => setIsFocused(true)} // Set focus on dropdown
-        onBlur={() => setIsFocused(false)} // Remove focus on blur
+        dropdownShown={isFocused}
+        onSelect={() => setIsFocused(false)}
+        // onFocus={() => setIsFocused(true)}
+        // onBlur={() => setIsFocused(false)}
       />
       {(isFocused && props.LabelTextInput) || props.Label || false ? (
         <Text
@@ -67,12 +67,14 @@ const styles = StyleSheet.create({
     marginTop: widthToDp(3), // Top margin
   },
   box: {
-    borderColor: Colors.Orange,
+    borderColor: '#D3D5DA',
     borderWidth: 2,
     borderRadius: widthToDp(2),
   },
   boxFocused: {
-    borderColor: '#FF7A28', // Change border color on focus
+    borderWidth: 2,
+    borderColor: Colors.Orange,
+    borderRadius: widthToDp(2),
   },
   dropdown: {
     borderColor: Colors.Orange,

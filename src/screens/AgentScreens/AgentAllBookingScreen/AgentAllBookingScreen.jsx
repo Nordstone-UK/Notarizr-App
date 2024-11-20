@@ -220,7 +220,14 @@ export default function AgentAllBookingScreen({navigation}) {
                 data={mergerData}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => {
-                  console.log('items', item);
+                  const addressId = item.address;
+                  let addressdetail = null;
+                  if (item?.booked_by?.addresses) {
+                    addressdetail = item.booked_by.addresses.find(
+                      address => address._id == addressId,
+                    );
+                  }
+                  console.log('sssssssssssf', addressdetail);
                   return (
                     <ClientServiceCard
                       image={require('../../../../assets/agentLocation.png')}
@@ -240,8 +247,8 @@ export default function AgentAllBookingScreen({navigation}) {
                           : `${item?.client?.first_name} ${item?.client?.last_name}`
                       }
                       agentAddress={
-                        item?.booked_by?.location
-                          ? `${item?.address}`
+                        item?.booked_by
+                          ? `${addressdetail?.location}`
                           : `${item?.client?.location}`
                       }
                       status={item?.status}

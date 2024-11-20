@@ -7,7 +7,6 @@ import {CommonActions, useNavigation} from '@react-navigation/native';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function NavigationHeader(props) {
-  console.log('prrrrrrrropdf', props);
   const navigation = useNavigation();
   const handleNavigateToTabScreen = () => {
     navigation.dispatch(
@@ -98,6 +97,7 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(2),
     alignItems: 'center',
     justifyContent: 'space-between',
+    // backgroundColor: 'red',
   },
   touchContainer: {
     flexDirection: 'row',

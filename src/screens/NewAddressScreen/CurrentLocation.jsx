@@ -218,9 +218,10 @@ export default function CurrentLocationScreen({route}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Select Location" />
-
-      {loading ? ( // Show loading indicator if loading is true
+      <View style={{zIndex: 999}}>
+        {navigation && <NavigationHeader Title="Select Location" />}
+      </View>
+      {loading ? (
         <ActivityIndicator
           size="large"
           color={Colors.Primary}

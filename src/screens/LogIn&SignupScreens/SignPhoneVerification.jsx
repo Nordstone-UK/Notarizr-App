@@ -21,6 +21,9 @@ import {VERIFY_PHONE_OTP} from '../../../request/queries/verifyPhoneOTP.query';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {ceredentailSet} from '../../features/register/registerSlice';
 import {SafeAreaView} from 'react-native';
+import {VERIFY_SIGNUP_WITH_OTP} from '../../../request/queries/verifySignupotp.query';
+import Toast from 'react-native-toast-message';
+import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
 
 export default function SignPhoneVerification({route, navigation}) {
   const {
@@ -37,14 +40,30 @@ export default function SignPhoneVerification({route, navigation}) {
   // const Statemail = useSelector(state => state.register.email);
   const [otp, setOTPcode] = useState('');
   const [verifYOTP, {loading: verifyLoading}] = useLazyQuery(VERIFY_PHONE_OTP);
-  const [getPhoneOtp, {loading: phoneLoading}] = useLazyQuery(GET_PHONE_OTP);
+  const [getPhoneOtp, {loading: phoneLoading}] =
+    useLazyQuery(GET_VALID_PHONE_OTP);
+  const [
+    verifyOTPWithMobileNo,
+    {loading: Verifywithmobileloaing, data, error},
+  ] = useLazyQuery(VERIFY_SIGNUP_WITH_OTP, {
+    fetchPolicy: 'no-cache', // Ensures fresh data is fetched every time
+    onCompleted: response => {
+      console.log('Success:', response);
+    },
+    onError: err => {
+      console.error('Error:', err.message);
+    },
+  });
+
   const dispatch = useDispatch();
   const handleOtpVerification = async () => {
-    await verifYOTP({
-      variables: {email, otp},
-    })
-      .then(response => {
-        navigation.navigate('ProfilePictureScreen');
+    try {
+      const response = await verifyOTPWithMobileNo({
+        variables: {phoneNumber, otp},
+      });
+
+      if (response?.data?.verifySignUpOTP?.status === '200') {
+        // OTP verification successful
         dispatch(
           ceredentailSet({
             firstName,
@@ -58,27 +77,89 @@ export default function SignPhoneVerification({route, navigation}) {
           }),
         );
         navigation.navigate('ProfilePictureScreen');
-      })
-      .catch(error => {
-        console.error(error);
+      } else {
+        // OTP verification failed
+        Toast.show({
+          type: 'error',
+          text1: 'We are Sorry!',
+          text2:
+            response?.data?.verifySignUpOTP?.message ||
+            'Invalid OTP. Please try again.',
+        });
+      }
+    } catch (err) {
+      console.error('OTP Verification Error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Error!',
+        text2: 'Something went wrong. Please try again later.',
       });
+    }
   };
+  // const handleOtpVerification = async () => {
+  //   await verifyOTPWithMobileNo({
+  //     variables: {phoneNumber, otp},
+  //   })
+  //     .then(response => {
+  //       console.log('reospondfndnfd', response.data.verifySignUpOTP);
+  //       // navigation.navigate('ProfilePictureScreen');
+  //       if (response.data.verifySignUpOTP.status === '200') {
+  //         dispatch(
+  //           ceredentailSet({
+  //             firstName,
+  //             lastName,
+  //             location,
+  //             gender,
+  //             email,
+  //             phoneNumber,
+  //             description,
+  //             date,
+  //           }),
+  //         );
+  //         navigation.navigate('ProfilePictureScreen');
+  //       } else {
+  //         Toast.show({
+  //           type: 'error',
+  //           text1: 'We are Sorry!',
+  //           text2: 'Invalid OTP. Please try again.',
+  //         });
+  //       }
+
+  //       // navigation.navigate('ProfilePictureScreen');
+  //     })
+  //     .catch(error => {
+  //       console.error(error);
+  //     });
+  // };
   const resetStack = () => {
     navigation.reset({
       index: 0,
       routes: [{name: 'HomeScreen'}],
     });
   };
-  const handleResendOtp = () => {
+  const handleResend = () => {
     try {
       getPhoneOtp({
-        variables: {email},
+        variables: {phoneNumber},
       }).then(response => {
-        // console.log(response.data.getPhoneOTP.phoneNumber);
-        if (response?.data?.getPhoneOTP?.status !== '200') {
-          Alert.alert('OTP not sent');
+        if (response?.data?.getValidPhoneOtp?.status === '403') {
+          Toast.show({
+            type: 'error',
+            text1: 'We are Sorry!',
+            text2: 'This User is Blocked',
+          });
+        } else if (response?.data?.getValidPhoneOtp?.status !== '200') {
+          Toast.show({
+            type: 'error',
+            text1: 'OTP not sent!',
+            text2: 'We encountered a problem please try again',
+          });
         } else {
-          Alert.alert('Resent OTP');
+          Toast.show({
+            type: 'success',
+            text1: `OTP Sent on ${response.data.getValidPhoneOtp.phoneNumber}`,
+            text2: '',
+          });
         }
       });
     } catch (error) {
@@ -144,7 +225,7 @@ export default function SignPhoneVerification({route, navigation}) {
         <View style={{marginVertical: heightToDp(5)}}>
           <GradientButton
             Title="Verify OTP"
-            loading={verifyLoading || phoneLoading}
+            loading={verifyLoading || phoneLoading || Verifywithmobileloaing}
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
             onPress={() => handleOtpVerification()}
           />

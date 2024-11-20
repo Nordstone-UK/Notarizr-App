@@ -369,6 +369,8 @@ export default function AgentCard(props) {
                 ? 'Pending'
                 : props.status === 'rejected'
                 ? 'Rejected'
+                : props.status === 'paid'
+                ? 'Paid'
                 : props.status === 'payment_confirmed'
                 ? 'Payment Confirmed'
                 : props.status}

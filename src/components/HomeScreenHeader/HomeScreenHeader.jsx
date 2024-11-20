@@ -29,15 +29,15 @@ export default function HomeScreenHeader(props) {
         <View style={styles.topContainer}>
           <View style={styles.namebar}>
             {/* <View> */}
-            <TouchableOpacity>
-              <Image
-                source={{
-                  uri: userInfo?.profile_picture,
-                }}
-                style={styles.imagestyles}
-                onError={error => console.error('Image load error:', error)}
-              />
-            </TouchableOpacity>
+            {/* <TouchableOpacity> */}
+            <Image
+              source={{
+                uri: userInfo?.profile_picture,
+              }}
+              style={styles.imagestyles}
+              onError={error => console.error('Image load error:', error)}
+            />
+            {/* </TouchableOpacity> */}
             <Text
               style={[
                 styles.textHeading,

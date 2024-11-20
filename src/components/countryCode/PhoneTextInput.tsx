@@ -41,6 +41,7 @@ const PhoneTextInput = ({
       setIsFocused(false);
     }
   };
+  console.log("siscpvnfs", isFocused)
   return (
     <View
       style={[styles.container, isFocused && styles.InputFocused]}
@@ -63,7 +64,7 @@ const PhoneTextInput = ({
         }}
         textInputProps={{ placeholderTextColor: Colors.DisableColor, editable: editable }}
         disableArrowIcon={!editable}
-x
+        x
       />
       <Text
         style={[

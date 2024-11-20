@@ -59,13 +59,58 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     setCurrentStep(currentStep - 1);
   };
   const deletePhotoID = () => {
-    setphotoID(null);
+    Alert.alert(
+      'Delete Photo ID',
+      'Are you sure you want to delete this Photo ID?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => setphotoID(null),
+        },
+      ],
+      {cancelable: true},
+    );
   };
   const deleteSeal = () => {
-    setSeal(null);
+    Alert.alert(
+      'Delete Notary Seal',
+      'Are you sure you want to delete this Notary Seal?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => setSeal(null),
+        },
+      ],
+      {cancelable: true},
+    );
   };
   const deleteCertificate = () => {
-    setCertificate(null);
+    Alert.alert(
+      'Delete Notary Certificate',
+      'Are you sure you want to delete this Notary Certificate?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => setCertificate(null),
+        },
+      ],
+      {cancelable: true},
+    );
   };
   const selectPhotoID = async () => {
     const response = await uploadFiles();

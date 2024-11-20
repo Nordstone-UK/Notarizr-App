@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   SafeAreaView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import React, {useEffect, useState} from 'react';
@@ -152,7 +153,8 @@ export default function AddNewAddress({navigation, route}, props) {
     }
   };
   return (
-    <SafeAreaView style={styles.container}>
+    // <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView style={styles.container}>
       <NavigationHeader Title="Address" />
       <BottomSheetStyle>
         <ScrollView style={{marginTop: heightToDp(5)}}>
@@ -195,6 +197,8 @@ export default function AddNewAddress({navigation, route}, props) {
             Label={true}
             LabelTextInput={'State'}
             value={state?.label}
+            style={{zIndex: 10, marginBottom: heightToDp(5)}} // Ensures dropdown has proper spacing and layering
+            dropDownContainerStyle={{maxHeight: heightToDp(30), zIndex: 10}}
           />
 
           <LabelTextInput
@@ -218,7 +222,8 @@ export default function AddNewAddress({navigation, route}, props) {
           </View>
         </ScrollView>
       </BottomSheetStyle>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
+    // </SafeAreaView>
   );
 }
 

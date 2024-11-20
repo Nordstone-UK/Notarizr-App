@@ -110,7 +110,13 @@ export default function LabelTextInput(props) {
         /> */}
 
         {props.rightImageSoucre && (
-          <TouchableOpacity onPress={props.rightImagePress} style={{}}>
+          <TouchableOpacity
+            onPress={() => {
+              if (props.rightImagePress) {
+                props.rightImagePress();
+              }
+            }}
+            style={{}}>
             <Image source={props.rightImageSoucre} style={styles.iconLeft} />
           </TouchableOpacity>
         )}
