@@ -12,7 +12,7 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import PdfView from 'react-native-pdf';
 import Pdf from 'react-native-pdf';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -58,6 +58,7 @@ import {
 } from '../../../request/mutations/updateSessionClientDocs';
 import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import AddressCard from '../../components/AddressCard/AddressCard';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const token = useSelector(state => state.chats.chatToken);
@@ -102,6 +103,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [bookedByAddress, setBookedByAddress] = useState(null);
+  const snapPoints = useMemo(() => ['25%', '40%'], []);
+
+  const bottomSheetModalRef = useRef(null);
 
   // const pdfRef = React.useRef<Pdf>(null);
 
@@ -260,18 +264,23 @@ export default function MedicalBookingScreen({route, navigation}) {
         !bookingDetail.review &&
         !bookingDetail.rating
       ) {
-        setIsVisible(true);
+        bottomSheetModalRef.current?.present();
+        // setIsVisible(true);
       }
     }, [status]),
   );
   useEffect(() => {
+    // bottomSheetModalRef.current?.present();
+
     const unsubscribe = navigation.addListener('focus', () => {
       getBookingStatus();
     });
     return unsubscribe;
   }, [status]);
   const handleReduxPayment = async () => {
-    setIsVisible(false);
+    // setIsVisible(false);
+    bottomSheetModalRef.current?.close();
+
     dispatch(paymentCheck());
     if (bookingDetail.__typename === 'Booking') {
       const response = await handleReviewSubmit(
@@ -1502,16 +1511,16 @@ export default function MedicalBookingScreen({route, navigation}) {
               )}
           </View>
         </ScrollView>
-        {isVisible ? (
-          <BottomSheet modalProps={{}} isVisible={isVisible}>
-            <ReviewPopup
-              onPress={() => handleReduxPayment()}
-              rating={rating}
-              handleStarPress={handleStarPress}
-              handleReviewSubmit={handleReview}
-            />
-          </BottomSheet>
-        ) : null}
+        {/* {isVisible ? ( */}
+        <BottomSheetModal snapPoints={snapPoints} ref={bottomSheetModalRef}>
+          <ReviewPopup
+            onPress={() => handleReduxPayment()}
+            rating={rating}
+            handleStarPress={handleStarPress}
+            handleReviewSubmit={handleReview}
+          />
+        </BottomSheetModal>
+        {/* ) : null} */}
       </BottomSheetStyle>
       <ModalCheck
         modalVisible={modalShow}

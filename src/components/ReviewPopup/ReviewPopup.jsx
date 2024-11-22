@@ -45,20 +45,22 @@ const StarRating = ({rating, onStarPress}) => {
 };
 export default function ReviewPopup(props) {
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <View style={styles.container}>
       <View style={styles.bottonSheet}>
         <Text style={styles.text}>
           Please provide us with feedback for your agent
         </Text>
         <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
 
-        <LabelTextInput
+        <BottomSheetTextInput
           LabelTextInput={'Reveiw'}
-          labelStyle={{
+          style={{
             backgroundColor: Colors.PinkBackground,
             color: Colors.TextColor,
+            borderWidth: 1,
+            borderRadius: 20,
+            marginHorizontal: 25,
+            padding: 5,
           }}
           Label={true}
           onChangeText={text => props.handleReviewSubmit(text)}
@@ -71,7 +73,7 @@ export default function ReviewPopup(props) {
           />
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

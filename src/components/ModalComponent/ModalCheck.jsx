@@ -1,32 +1,54 @@
 import {
   Image,
+  KeyboardAvoidingView,
   Modal,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import GradientButton from '../MainGradientButton/GradientButton';
 import Colors from '../../themes/Colors';
 import MainButton from '../MainGradientButton/MainButton';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
-import {useDispatch, useSelector} from 'react-redux';
-import {serviceCheck} from '../../features/service/serviceSlice';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function ModalCheck(props) {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
   useEffect(() => {
-    // console.log('In Modal', props?.modalVisible);
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
   }, []);
+
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={props?.modalVisible}>
-      <View style={{flex: 1, justifyContent: 'center'}}>
+      <KeyboardAvoidingView
+        style={{flex: 1, justifyContent: 'center'}}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={keyboardVisible ? 100 : 0}>
         <View style={styles.container}>
           <Image
             source={require('../../../assets/question.png')}
@@ -65,74 +87,8 @@ export default function ModalCheck(props) {
               fontSize: widthToDp(3.5),
             }}
           />
-          {/* <MainButton
-            onPress={() => handleNavigation()}
-            Title="Yes"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              marginBottom: heightToDp(2),
-              paddingVertical: heightToDp(3),
-              borderRadius: 5,
-              width: widthToDp(50),
-            }}
-            styles={{
-              padding: heightToDp(0),
-              fontSize: widthToDp(3.5),
-            }}
-          />
-          <MainButton
-            Title="No"
-            onPress={() => closeServiceModal()}
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              paddingHorizontal: widthToDp(0),
-              marginBottom: heightToDp(2),
-              paddingVertical: heightToDp(3),
-              width: widthToDp(50),
-              borderRadius: 5,
-            }}
-            styles={{
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(0),
-              fontSize: widthToDp(3.5),
-            }}
-          />
-          <MainButton
-            Title="Client Cancelled"
-            onPress={() => closeServiceModal()}
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(3),
-              marginBottom: heightToDp(2),
-              width: widthToDp(50),
-              borderRadius: 5,
-            }}
-            styles={{
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(0),
-              fontSize: widthToDp(3.5),
-            }}
-          />
-          <MainButton
-            Title="Other"
-            onPress={() => closeServiceModal()}
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(3),
-              marginBottom: heightToDp(2),
-              borderRadius: 5,
-              width: widthToDp(50),
-            }}
-            styles={{
-              paddingHorizontal: widthToDp(0),
-              paddingVertical: heightToDp(0),
-              fontSize: widthToDp(3.5),
-            }}
-          /> */}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
