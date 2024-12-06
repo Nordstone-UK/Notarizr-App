@@ -14,7 +14,7 @@ import NavigationHeader from '../../components/Navigation Header/NavigationHeade
 import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   ChatClient,
   ChatOptions,
@@ -31,7 +31,14 @@ import {
   ChannelProfileType,
 } from 'react-native-agora';
 import useChatService from '../../hooks/useChatService';
+import { Token } from 'graphql';
+import { GET_CHAT_TOKEN } from '../../../request/mutations/getUserChatToken.mutation';
+import { useMutation } from '@apollo/client';
+import { setChatToken } from '../../features/chats/chatsSlice';
+import Toast from 'react-native-toast-message';
 export default function ChatScreen({ route, navigation }: any) {
+  const [getChatToken] = useMutation(GET_CHAT_TOKEN);
+  const dispatch = useDispatch();
   const getPermission = async () => {
     if (Platform.OS === 'android') {
       await PermissionsAndroid.requestMultiple([
@@ -43,12 +50,12 @@ export default function ChatScreen({ route, navigation }: any) {
   const token = useSelector(state => state.chats.chatToken);
   console.log("tokeren", token)
   const { sender, receiver, chat, channel, voiceToken } = route.params;
-  console.log("receiver", receiver)
+  console.log("sender", sender?._id)
   const appKey = '411048105#1224670';
   const uid = 0;
   const [channelName, setChannelName] = useState('');
   const [callToken, setCallToken] = useState('');
-  const [chatToken, setChatToken] = React.useState(token);
+  const [chatToken, setchatToken] = React.useState(token);
   const [targetId, setTargetId] = React.useState(receiver?._id);
   const [username, setUsername] = React.useState(sender?._id);
   const [content, setContent] = React.useState([]);
@@ -61,11 +68,11 @@ export default function ChatScreen({ route, navigation }: any) {
   const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
   const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
   const [message, setMessage] = useState('');
-  console.log("contentes", content)
+  // console.log("contentes", content)
   const getVoiceToken = async () => {
     try {
       const { channelName, token } = await getAgoraCallToken(receiver._id);
-      console.log("tkfdfdfd", channelName, token)
+      // console.log("tkfdfdfd", channelName, token)
       setChannelName(channelName);
       setCallToken(token);
     } catch (error) {
@@ -79,7 +86,9 @@ export default function ChatScreen({ route, navigation }: any) {
     chatManager
       .getAllConversations()
       .then(data => {
+        // console.log("getconversationdate", data)
         convID = data[0]?.convId;
+        console.log
         fetchHistoryMessages(convID, convType);
       })
       .catch(reason => {
@@ -96,7 +105,7 @@ export default function ChatScreen({ route, navigation }: any) {
         if (conversation) {
           const messages = await chatManager.fetchHistoryMessagesByOptions(conversation.convId, ChatConversationType.PeerChat, {
             cursor: '',
-            pageSize: 20, // Adjust pageSize as needed
+            pageSize: 100,
           });
           console.log("messsssagesss", messages.list.body)
           if (messages && messages.list) {
@@ -145,7 +154,7 @@ export default function ChatScreen({ route, navigation }: any) {
     };
     const init = () => {
       let o = new ChatOptions({
-        autoLogin: true,
+        autoLogin: false,
         appKey: appKey,
       });
       chatClient.removeAllConnectionListener();
@@ -182,8 +191,42 @@ export default function ChatScreen({ route, navigation }: any) {
     };
     init();
     getVoiceToken();
-  }, [chatClient, chatManager, appKey]);
-  const login = () => {
+  }, [chatClient, chatManager, appKey, getChatToken]);
+  const refreshChatTokenAndRetryLogin = async () => {
+    try {
+      const { data } = await getChatToken();
+      const newToken = data?.getUserChatToken?.token;
+
+      if (newToken) {
+        // Dispatch the new token
+        dispatch(setChatToken(newToken));
+
+        // Retry login
+        await chatClient.loginWithAgoraToken(username, token);
+        console.log('Login retry successful.');
+      } else {
+        console.error('Failed to fetch a new chat token.');
+      }
+    } catch (error) {
+      console.error('Error refreshing token and retrying login:', error);
+    }
+  };
+  const logout = () => {
+    if (this.isInitialized === false || this.isInitialized === undefined) {
+      console.log('Perform initialization first.');
+      return;
+    }
+    console.log('start logout ...');
+    chatClient
+      .logout()
+      .then(() => {
+        console.log('logout success.');
+      })
+      .catch(reason => {
+        console.log('logout fail:' + JSON.stringify(reason));
+      });
+  };
+  const login = async () => {
     if (this.isInitialized === false || this.isInitialized === undefined) {
       console.log('Perform initialization first.');
       return;
@@ -194,33 +237,106 @@ export default function ChatScreen({ route, navigation }: any) {
         console.log('login operation success.');
       })
       .catch(reason => {
+        if (reason.code === 108) {
+          logout()
+          refreshChatTokenAndRetryLogin();
+        }
+        else if (reason.code === 202) {
+          logout()
+          refreshChatTokenAndRetryLogin();
+        }
+        else if (reason.code === 104) {
+          logout()
+          refreshChatTokenAndRetryLogin();
+        }
+        else if (reason.code === 200) {
+          // User already logged in, log out and retry login
+          console.log('User already logged in, attempting to log out and retry login...');
+          try {
+            logout()
+            console.log('Logout successful, retrying login...');
+            login();
+          } catch (logoutError) {
+            console.error('Logout failed:', logoutError);
+          }
+        }
+        else {
+          console.error('Login failed for another reason:', reason);
+        }
         console.log('login fail: ' + JSON.stringify(reason));
       });
   };
-  const sendmsg = (newMessage: IMessage) => {
+  const sendmsg = (newMessage: string) => {
+
+    const chatType = ChatMessageChatType.PeerChat;
     const content = newMessage.text;
-    console.log('Sending message:sss', newMessage.text);
+    console.log('Sending message:sss', this.isInitialized);
 
     if (this.isInitialized === false || this.isInitialized === undefined) {
       console.log('Perform initialization first.');
       return;
     }
+    // const msg = ChatMessage.createSendMessage(content, targetId);
+
+    let msg: ChatMessage;
+
+    msg = ChatMessage.createTextMessage(targetId, content, chatType);
 
     // console.log('contentIIII', targetId);
-    let msg = ChatMessage.createTextMessage(
-      targetId,
-      content,
-      ChatMessageChatType.PeerChat,
-    );
-
+    // let msg = ChatMessage.createTextMessage(
+    //   targetId,
+    //   content,
+    //   ChatMessageChatType.PeerChat,
+    // );
     const callback = new (class {
       onProgress(locaMsgId: any, progress: any) {
         console.log(`send message process: ${locaMsgId}, ${progress}`);
+
       }
+
       onError(locaMsgId: any, error: any) {
         console.log(
           `send message fail: ${locaMsgId}, ${JSON.stringify(error)}`,
         );
+        if (error.code === 500) {
+          try {
+            // Perform relogin operation
+            refreshChatTokenAndRetryLogin();
+            Toast.show({
+              type: 'error',
+              text1: 'Message Failed',
+              text2: 'Failed to send the message. Please try again.',
+            });
+          }
+          // // Fetch the original message using locaMsgId or any stored reference
+          // const message = getMessageById(locaMsgId); // Implement this function to retrieve the original message
+          // console.log("messagere", message)
+          // if (message) {
+          //   message.status = 'pending';
+          //   const resendCallback = new (class {
+          //     onProgress(resendMsgId: string, resendProgress: any) {
+          //       console.log(
+          //         `Resending progress: ${resendMsgId}, ${resendProgress}`
+          //       );
+          //     }
+          //     onError(resendMsgId: string, resendError: any) {
+          //       console.error(
+          //         `Resending failed: ${resendMsgId}, ${JSON.stringify(resendError)}`
+          //       );
+          //     }
+          //     onSuccess(resendMsg: { localMsgId: string }) {
+          //       console.log(`Resent successfully: ${resendMsg.localMsgId}`);
+          //     }
+          //   })();
+
+          //   chatClient.chatManager.sendMessage(message, resendCallback);
+          // } else {
+          //   console.error(`Original message not found: ${localMsgId}`);
+          // }
+          catch (e) {
+            console.error(`Error during relogin or resend: ${e.message}`);
+          }
+        }
       }
       onSuccess(message: { localMsgId: string }) {
         console.log('send message success: ' + message.localMsgId);
@@ -251,6 +367,10 @@ export default function ChatScreen({ route, navigation }: any) {
         console.log('send fail: ' + JSON.stringify(reason));
       });
   };
+  function getMessageById(localMsgId: string): ChatMessage | undefined {
+    // Retrieve the original message from storage or memory using the local message ID.
+    return chatMessageCache[localMsgId]; // Replace with actual retrieval logic
+  }
   const formatMessages = (messageList: any[]) => {
     console.log('messageList', messageList);
 
@@ -262,7 +382,7 @@ export default function ChatScreen({ route, navigation }: any) {
       return {
         _id: message.msgId,
         text: message.body?.content || '', // Use optional chaining to avoid errors if content is missing
-        createdAt: new Date(message.localTime),
+        createdAt: new Date(message.serverTime),
         user: {
           _id: message.from,
         },

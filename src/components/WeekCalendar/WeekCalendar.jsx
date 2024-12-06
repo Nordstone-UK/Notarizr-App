@@ -18,6 +18,8 @@ export default function WeekCalendar({
   setSelectedDays,
   weekdays,
 }) {
+  const capitalize = day => day.charAt(0).toUpperCase() + day.slice(1);
+
   const handleChange = day => {
     if (selectedDays.includes(day)) {
       setSelectedDays(selectedDays.filter(d => d !== day));
@@ -53,7 +55,7 @@ export default function WeekCalendar({
                       ? styles.dateHeadingWhite
                       : styles.dateHeading
                   }>
-                  {day}
+                  {capitalize(day)}
                 </Text>
               </View>
             </LinearGradient>

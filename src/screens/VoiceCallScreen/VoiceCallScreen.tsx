@@ -47,6 +47,11 @@ export default function VoiceCallScreen({ route, navigation }: any) {
       console.log('Token:', token);
     } catch (error) {
       console.log('API Error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Token Error',
+        text2: 'Failed to fetch Agora call token. Please try again later.',
+      });
     }
   };
 
@@ -76,6 +81,14 @@ export default function VoiceCallScreen({ route, navigation }: any) {
           onUserOffline: (_connection: any, Uid: number) => {
             showMessage('Remote user left the channel. uid: ' + Uid);
             setRemoteUid(0);
+          },
+          onError: (err: any) => {
+            console.error('Agora Error:', err);
+            Toast.show({
+              type: 'error',
+              text1: 'Agora Error',
+              text2: `An error occurred: ${err.message || 'Unknown error'}`,
+            });
           },
         });
         agoraEngine.initialize({

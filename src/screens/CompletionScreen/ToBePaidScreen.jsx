@@ -43,9 +43,12 @@ export default function ToBePaidScreen({route, navigation}) {
     } else {
       await handleUpdateBookingStatus('accepted', bookingData._id);
     }
-    dispatch(setBookingInfoState(bookingData));
-    dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
-    dispatch(setUser(bookingData?.agent));
+
+    // dispatch(setBookingInfoState(bookingData));
+    // dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
+    // dispatch(setUser(bookingData?.agent));
+    navigation.navigate('AgentBookCompletion');
+    console.log('bookingdadfdasdfd', bookingData);
   };
 
   function calculateTotalPrice(documentObjects) {
@@ -101,8 +104,7 @@ export default function ToBePaidScreen({route, navigation}) {
       // navigation.navigate('HomeScreen');
     } else {
       let a = await init();
-      console.log('assssssssssssssssssssssssssss', a);
-      navigation.navigate('AgentBookCompletion');
+      // console.log('assssssssssssssssssssssssssss', a);
     }
     setLoading(false);
   };

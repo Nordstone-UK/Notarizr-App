@@ -6,7 +6,10 @@ import {
   View,
   Button,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import {useSelector} from 'react-redux';
+
 import React, {useState, useEffect} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
@@ -22,21 +25,52 @@ import useAgentService from '../../../hooks/useAgentService';
 import TimePicker from '../../../components/TimePicker/TimePicker';
 import moment from 'moment';
 import CheckBox from '@react-native-community/checkbox';
+import {SERVICE_BY_AGENT_AND_TYPE} from '../../../../request/queries/getserviceByAgent.query';
+import {useQuery} from '@apollo/client';
 
 export default function AgentMainAvailabilityScreen({navigation}, props) {
-  const [availability, setSelectedDays] = useState([]);
+  const serviceType = useSelector(state => state.agentService.serviceType);
+  console.log('servicltpe', serviceType);
+  const {data, loading, error} = useQuery(SERVICE_BY_AGENT_AND_TYPE, {
+    variables: {serviceType: serviceType || ''},
+  });
+
+  console.log('propsdfd', data);
+  const [selectedDays, setSelectedDays] = useState([]);
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
   const [canPrint, setCanPrint] = useState(false);
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
+  const weekdays = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
   const {dispatchAvailability} = useAgentService();
+
+  // const {serviceByAgentAndType} = data;
+  // useEffect(() => {
+  //   console.log(
+  //     'Start Time in Main screen',
+  //     moment(startTime).format('h:mm A'),
+  //     moment(endTime).format('h:mm A'),
+  //   );
+  // }, []);
+  console.log('seletedates', selectedDays);
   useEffect(() => {
-    console.log(
-      'Start Time in Main screen',
-      moment(startTime).format('h:mm A'),
-      moment(endTime).format('h:mm A'),
+    if (data?.serviceByAgentAndType?.service?.availability) {
+      const {weekdays, startTime, endTime} =
+        data.serviceByAgentAndType.service.availability;
+      setSelectedDays(weekdays || []);
+      setStartTime(moment(startTime, 'h:mm A').toDate());
+      setEndTime(moment(endTime, 'h:mm A').toDate());
+    }
+  }, [data]);
+
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color={Colors.Orange} />
+      </SafeAreaView>
     );
-  }, []);
+  }
+  const serviceData = data?.serviceByAgentAndType;
   return (
     <SafeAreaView style={styles.container}>
       <AgentHomeHeader />
@@ -58,7 +92,7 @@ export default function AgentMainAvailabilityScreen({navigation}, props) {
               marginHorizontal: widthToDp(2),
             }}>
             <WeekCalendar
-              selectedDays={availability}
+              selectedDays={selectedDays}
               weekdays={weekdays}
               setSelectedDays={setSelectedDays}
             />
@@ -131,10 +165,11 @@ export default function AgentMainAvailabilityScreen({navigation}, props) {
                 }}
                 onPress={() =>
                   dispatchAvailability(
-                    availability,
+                    selectedDays,
                     moment(startTime).format('h:mm A'),
                     moment(endTime).format('h:mm A'),
                     canPrint,
+                    serviceData,
                   )
                 }
               />

@@ -138,7 +138,7 @@ export default function LegalDocScreen({route, navigation}) {
     setLoading(true);
 
     let stateName = 'USA';
-
+    stateName = state;
     const locationResponse = await handleGetLocation();
     console.log('locationres', locationResponse);
     if (
@@ -232,7 +232,8 @@ export default function LegalDocScreen({route, navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag">
           <Text style={styles.selectorHeading}>
             Please select the documents you want to get notarized.
           </Text>

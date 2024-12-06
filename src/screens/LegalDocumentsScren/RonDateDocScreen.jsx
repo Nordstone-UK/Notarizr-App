@@ -231,7 +231,7 @@ export default function RonDateDocScreen({route, navigation}) {
                   padding: widthToDp(0),
                   fontSize: widthToDp(4),
                 }}
-                onPress={() => shareLinkViaEmail('https://example.com')}
+                onPress={() => shareLinkViaEmail('')}
                 fontSize={widthToDp(3.5)}
                 loading={loading}
               />

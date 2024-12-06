@@ -299,6 +299,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
               <TextInput
                 style={[styles.textInput, { fontFamily: selectedFontStyle }]}
                 placeholder="Type something..."
+                placeholderTextColor={Colors.DullTextColor}
                 onChangeText={setInputText}
                 value={inputText}
               />
@@ -382,6 +383,7 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
     marginVertical: 10,
+    color: Colors.Black
     // backgroundColor: 'black',
   },
   signatureContainer: {
@@ -426,6 +428,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 20,
+    color: Colors.Black
   },
   styledTextContainer: {
     width: '100%',
