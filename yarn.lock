@@ -3877,7 +3877,7 @@ __metadata:
     iconoir-react-native: ^7.3.0
     jest: ^29.2.1
     lodash: ^4.17.21
-    lottie-react-native: ^6.4.0
+    lottie-react-native: ^7.1.0
     metro-react-native-babel-preset: 0.76.8
     moment: ^2.29.4
     moment-timezone: ^0.5.43
@@ -3914,7 +3914,7 @@ __metadata:
     react-native-linear-gradient: ^2.8.3
     react-native-maps: ^1.8.0
     react-native-maps-directions: ^1.9.0
-    react-native-onesignal: ^4.5.1
+    react-native-onesignal: 4.5.2
     react-native-pdf: ^6.7.4
     react-native-phone-number-input: ^2.1.0
     react-native-picker-select: ^9.0.0
@@ -8636,23 +8636,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lottie-react-native@npm:^6.4.0":
-  version: 6.4.0
-  resolution: "lottie-react-native@npm:6.4.0"
+"lottie-react-native@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "lottie-react-native@npm:7.1.0"
   peerDependencies:
-    "@dotlottie/react-player": ^1.6.1
-    "@lottiefiles/react-lottie-player": ^3.5.3
+    "@lottiefiles/dotlottie-react": ^0.6.5
     react: "*"
     react-native: ">=0.46"
     react-native-windows: ">=0.63.x"
   peerDependenciesMeta:
-    "@dotlottie/react-player":
-      optional: true
-    "@lottiefiles/react-lottie-player":
+    "@lottiefiles/dotlottie-react":
       optional: true
     react-native-windows:
       optional: true
-  checksum: f6141b23120e5e7cd167ae2815db65f01c6cc858a32dc76960890128a6b8499838f2a77e98316b2fc9b0f4ad1c6b01ba1c47cda9217df6f5fe7cc4cb57e1596c
+  checksum: ee8d5661db33701b6f721271e385a8489c946de01d4488314e4cdfb7d3b4d79dcb9e155dda281a53bf3730497efd638da88f7ab2494b5f6e5014ea40bf3cc146
   languageName: node
   linkType: hard
 
@@ -10812,12 +10809,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-onesignal@npm:^4.5.1":
-  version: 4.5.1
-  resolution: "react-native-onesignal@npm:4.5.1"
+"react-native-onesignal@npm:4.5.2":
+  version: 4.5.2
+  resolution: "react-native-onesignal@npm:4.5.2"
   dependencies:
     invariant: ^2.2.2
-  checksum: 9e9a7ae81704050c4329bb94dd5df5304f5726261244b700d3005790fe17c34e1dc2ce4b0dccc46b11ccdc8aa48413c3e77dd93a65b179d6189b417702789eca
+  checksum: 0630a672b90f70aa0f5d6162e9f16d94f14cae0b5a8b629951920fe97cdb2644d97746b55356ab0c40db4b33662efc3239e1edc448bcc0a6677284931f2dea4a
   languageName: node
   linkType: hard
 

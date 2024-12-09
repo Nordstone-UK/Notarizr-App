@@ -37,6 +37,8 @@ def common_pods
   )
 end
 
+
+
 target 'Notarizr' do
    # pod 'Google-Maps-iOS-Utils', :git => '[https://github.com/Simon-TechForm/google-maps-ios-utils.git](https://github.com/Simon-TechForm/google-maps-ios-utils.git)', :branch => 'feat/support-apple-silicon'
 
@@ -90,11 +92,18 @@ post_install do |installer|
     end
   end
   
+
   react_native_post_install(
     installer,
     config[:reactNativePath],
     :mac_catalyst_enabled => false
   )
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
 end
+end
+
+
+target 'OneSignalNotificationServiceExtension' do
+  pod 'OneSignalXCFramework', '>= 3.0', '< 4.0'
 end
