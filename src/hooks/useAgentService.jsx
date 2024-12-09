@@ -11,9 +11,11 @@ import {CREATE_SERVICE} from '../../request/mutations/createService.mutation';
 import Toast from 'react-native-toast-message';
 import {UPDATE_AGENT_CURRENT_LOCATION} from '../../request/mutations/updateAgentLocation.mutation';
 import {GET_AGENT_LIVE_LOCATION} from '../../request/queries/getAgentLiveLocation.query';
+import {UPDATE_SERVICE_BY_ID} from '../../request/mutations/updateservice.mutation';
 
 const useAgentService = () => {
   const [createService] = useMutation(CREATE_SERVICE);
+  const [updateServiceById] = useMutation(UPDATE_SERVICE_BY_ID);
   const [updateLocation] = useMutation(UPDATE_AGENT_CURRENT_LOCATION);
   const [getLiveLocation] = useLazyQuery(GET_AGENT_LIVE_LOCATION);
   const {first_name, last_name, location} = useSelector(
@@ -38,10 +40,19 @@ const useAgentService = () => {
     navigation.navigate('AgentMainAvailabilityScreen');
     // navigation.navigate('AgentAvailabilitySetupScreen');
   };
-  const dispatchAvailability = async (weeks, startTime, endTime, canPrint) => {
+  const dispatchAvailability = async (
+    weeks,
+    startTime,
+    endTime,
+    canPrint,
+    serviceData,
+  ) => {
     const availability = orderWeekdays(weeks);
     dispatch(setAvailability({availability, startTime, endTime}));
-    navigation.navigate('AgentRONLocationScreen', {canPrint: canPrint});
+    navigation.navigate('AgentRONLocationScreen', {
+      canPrint: canPrint,
+      serviceData: serviceData,
+    });
   };
   const LocalNotaryRegister = async () => {
     const request = {
@@ -120,6 +131,34 @@ const useAgentService = () => {
       });
     }
   };
+  const handleUpdateService = async variables => {
+    const request = {
+      variables: {
+        ...variables,
+        // id: '667a81a49a4436e6b6702c7c',
+        name: first_name + ' ' + last_name,
+      },
+    };
+    console.log('reidfododofdo', request);
+
+    const {data} = await updateServiceById(request);
+    console.log('datafdfdfd', data);
+
+    if (data.updateServiceById.status === '200') {
+      navigation.navigate('ProfilePreferenceCompletion');
+    } else if (data?.updateServiceById?.status === '400') {
+      Toast.show({
+        type: 'error',
+        text1: 'Error updating service!',
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong!',
+        text2: 'Please try again later',
+      });
+    }
+  };
   function convertWeekdaysToLowerCase(weekdays) {
     return weekdays.map(weekday => weekday.toLowerCase());
   }
@@ -127,6 +166,7 @@ const useAgentService = () => {
     dispatchMobile,
     dispatchLocal,
     handleRegistration,
+    handleUpdateService,
     dispatchRON,
     dispatchAvailability,
     dispatchCategory,

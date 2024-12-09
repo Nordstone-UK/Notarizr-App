@@ -39,7 +39,10 @@ export default function ModalCheck(props) {
       keyboardDidShowListener.remove();
     };
   }, []);
-
+  const handleclose = () => {
+    props.setModalVisible(false);
+    // console.log('hldldld', props.setModalVisible(false));
+  };
   return (
     <Modal
       animationType="slide"
@@ -50,6 +53,14 @@ export default function ModalCheck(props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={keyboardVisible ? 100 : 0}>
         <View style={styles.container}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => handleclose()}>
+            <Image
+              source={require('../../../assets/close.png')} // Replace with your close icon asset
+              style={styles.closeIcon}
+            />
+          </TouchableOpacity>
           <Image
             source={require('../../../assets/question.png')}
             style={{
@@ -109,5 +120,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     marginTop: heightToDp(2),
     alignSelf: 'flex-start',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: heightToDp(2),
+    right: widthToDp(2),
+    zIndex: 1,
+  },
+  closeIcon: {
+    width: widthToDp(5),
+    height: widthToDp(5),
+    resizeMode: 'contain',
   },
 });

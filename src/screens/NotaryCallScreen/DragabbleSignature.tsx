@@ -104,7 +104,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   //     transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }],
   //   };
   // });
-  console.log("object.typere", object)
+  // console.log("object.typere", object)
   const renderContent = useCallback(() => {
     if (object.type === 'date') {
       return (

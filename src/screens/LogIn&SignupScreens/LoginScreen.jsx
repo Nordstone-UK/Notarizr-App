@@ -30,7 +30,7 @@ import CustomToast from '../../components/CustomToast/CustomToast';
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
-  const dispath = useDispatch();
+  const dispatch = useDispatch();
 
   const handleGetPhoneOtp = () => {
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -43,7 +43,8 @@ export default function LoginScreen({navigation}, props) {
       });
       return;
     } else {
-      dispath(emailSet(email));
+      dispatch(emailSet(email));
+      console.log('logiig');
       try {
         getPhoneOtp({
           variables: {email},

@@ -62,7 +62,7 @@ function useChatService() {
     const ongong = {
       variables: {
         ...clientBooking,
-        status: 'ongoing',
+        status: 'pending',
       },
     };
     const {data: Clientbook} = await getClientBooking(request);
@@ -96,7 +96,7 @@ function useChatService() {
     const ongong = {
       variables: {
         ...clientBooking,
-        status: 'ongoing',
+        status: 'pending',
       },
     };
     const {data: AgentBook} = await getAgentBooking(request);
@@ -104,19 +104,17 @@ function useChatService() {
     const {data: Agnetsess} = await getAgentSession(request);
     const {data: sessionOngoing} = await getAgentSession(ongong);
     const {data} = await getChatToken();
-    // console.log('agents', response.data, respond.data);
+    console.log('agents+==================', Agnetsess);
     const bookings = AgentBook?.getAgentBookings?.bookings;
     const ongoingBook = AgentOngoing?.getAgentBookings?.bookings;
-    // const sessions = Agnetsess?.getAgentSessions?.sessions || {data: 'null'};
-    // const sessonoging = sessionOngoing?.getAgentSessions?.sessions || {
-    //   data: 'null',
-    // };
+    const sessions = Agnetsess?.getAgentSessions?.sessions;
+    const sessonoging = sessionOngoing?.getAgentSessions?.sessions;
     console.log('agenttokenldfdfldld', data.getUserChatToken?.token);
     const mergedDetails = [
       ...bookings,
       ...ongoingBook,
-      // ...sessions,
-      // ...sessonoging,
+      ...sessions,
+      ...sessonoging,
     ];
     // console.log('merge', mergedDetails);
     const filteredChats = removeDuplicatesByClientName(mergedDetails);

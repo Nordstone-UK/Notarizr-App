@@ -1,12 +1,13 @@
-import gql from 'graphql-tag';
+import { gql } from '@apollo/client';
 
-export const FETCH_USER_INFO = gql`
-  query User {
-    user {
+// Define the mutation
+export const UPDATE_VERIFICATION = gql`
+  mutation UpdateVerification($_id: String!, $isVerified: Boolean!) {
+    updateVerification(_id: $_id, isVerified: $isVerified) {
       _id
-      date_of_birth
       first_name
       last_name
+      date_of_birth
       email
       phone_number
       profile_picture
@@ -16,30 +17,17 @@ export const FETCH_USER_INFO = gql`
       notarySeal
       photoId
       certificate_url
-      notarysigns{
-      signUrl
-      _id
-      }
       location
       rating
       subscriptionType
       isVerified
       account_type
       online_status
-      current_location {
-        type
-        coordinates
-      }
       description
       state
-      addresses {
-        _id
-        tag
-        location
-       location_coordinates
-      }
-      registered_for
       userAccessCode
+      isSubscribed
+      registered_for
     }
   }
 `;

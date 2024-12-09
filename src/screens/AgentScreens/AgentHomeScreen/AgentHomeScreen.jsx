@@ -232,7 +232,6 @@ export default function AgentHomeScreen({navigation}) {
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
-                      console.log('itemsd', item);
                       const addressId = item.address;
                       let addressdetail = null;
                       if (item?.booked_by?.addresses) {

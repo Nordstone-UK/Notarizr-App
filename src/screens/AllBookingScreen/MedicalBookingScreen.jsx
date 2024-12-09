@@ -103,9 +103,8 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [bookedByAddress, setBookedByAddress] = useState(null);
-  const snapPoints = useMemo(() => ['25%', '40%'], []);
-
   const bottomSheetModalRef = useRef(null);
+  const snapPoints = useMemo(() => [300, 350], []);
 
   // const pdfRef = React.useRef<Pdf>(null);
 
@@ -304,6 +303,10 @@ export default function MedicalBookingScreen({route, navigation}) {
       }
     }
   };
+  const handleClose = () => {
+    bottomSheetModalRef.current?.dismiss();
+  };
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     getBookingStatus();
@@ -1512,22 +1515,27 @@ export default function MedicalBookingScreen({route, navigation}) {
           </View>
         </ScrollView>
         {/* {isVisible ? ( */}
-        <BottomSheetModal snapPoints={snapPoints} ref={bottomSheetModalRef}>
+        <BottomSheetModal
+          ref={bottomSheetModalRef}
+          snapPoints={snapPoints}
+          index={1}>
           <ReviewPopup
             onPress={() => handleReduxPayment()}
             rating={rating}
             handleStarPress={handleStarPress}
             handleReviewSubmit={handleReview}
+            onClose={handleClose}
           />
         </BottomSheetModal>
-        {/* ) : null} */}
+
+        <ModalCheck
+          modalVisible={modalShow}
+          setModalVisible={setModalShow}
+          onSubmit={() => closeModal()}
+          onChangeText={text => setFeedback(text)}
+          defaultValue={feedback}
+        />
       </BottomSheetStyle>
-      <ModalCheck
-        modalVisible={modalShow}
-        onSubmit={() => closeModal()}
-        onChangeText={text => setFeedback(text)}
-        defaultValue={feedback}
-      />
     </SafeAreaView>
   );
 }

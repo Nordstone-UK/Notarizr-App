@@ -102,7 +102,22 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
       {cancelable: false},
     );
   };
+  const calculateAge = dob => {
+    const today = moment();
+    const birthDate = moment(dob);
+    return today.diff(birthDate, 'years');
+  };
   const submitRegister = async () => {
+    const age = calculateAge(date);
+
+    if (age < 18) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Date of Birth',
+        text2: 'You must be at least 18 years old.',
+      });
+      return;
+    }
     settempLoading(true);
     if (image) {
       const imageBlob = await handleCompression(image);
@@ -193,7 +208,7 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
                 Label={true}
                 labelStyle={emailValid && {color: Colors.Red}}
                 AdjustWidth={emailValid && {borderColor: Colors.Red}}
-                editable={profileEdit}
+                editable={false}
               />
               <PhoneTextInput
                 onChange={e => {

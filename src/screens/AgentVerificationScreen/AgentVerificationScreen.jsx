@@ -25,14 +25,18 @@ import {useSelector} from 'react-redux';
 import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
 import {UniqueDirectiveNamesRule} from 'graphql';
+import {UPDATE_VERIFICATION} from '../../../request/mutations/updateVerification.mutation';
+import {useMutation} from '@apollo/client';
 
 export default function AgentVerificationScreen({navigation, route}, props) {
-  const {onComplete = () => {}} = route.params || {};
-  console.log('c0mpletedfd', onComplete);
+  const [updateVerification] = useMutation(UPDATE_VERIFICATION);
+
+  const {user, onComplete = () => {}} = route.params || {};
+  // console.log('c0mpletedfd', user);
   const variables = useSelector(state => state.register);
-  const [photoID, setphotoID] = useState(null);
-  const [Certificate, setCertificate] = useState(null);
-  const [Seal, setSeal] = useState(null);
+  const [photoID, setphotoID] = useState(user?.photoId || null);
+  const [Certificate, setCertificate] = useState(user?.certificate_url || null);
+  const [Seal, setSeal] = useState(user?.notarySeal || null);
   const [loading, setLoading] = useState(false);
   const {
     uploadFiles,
@@ -152,30 +156,62 @@ export default function AgentVerificationScreen({navigation, route}, props) {
       setSeal(null);
     }
   };
+  const isValidUri = uri => {
+    if (!uri) return false;
+
+    // Check if the URI is a valid HTTPS URL
+    const isHttpsUrl = uri.startsWith('https://');
+
+    // Check if the URI is a valid Android content URI
+    const isContentUri = uri.startsWith(
+      'content://com.android.providers.media.documents',
+    );
+
+    if (isHttpsUrl) return 'https';
+    if (isContentUri) return 'content';
+    return false; // If neither, return false
+  };
+
   const submitRegister = async () => {
     setLoading(true);
     if (photoID && Certificate && Seal) {
-      const photeBlob = await uriToBlob(photoID);
-      console.log('====================================');
-      console.log('photoblob', photeBlob);
-      console.log('====================================');
-      const CertificateBlob = await uriToBlob(Certificate);
+      console.log('validldurldld', isValidUri(Certificate));
+      const isPhotoValid = isValidUri(photoID);
+      const isCertificateValid = isValidUri(Certificate);
+      const isSealValid = isValidUri(Seal);
+      if (!isPhotoValid || !isCertificateValid || !isSealValid) {
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid Input',
+          text2: 'Please provide valid URLs or content URIs for all documents.',
+        });
+        setLoading(false);
+        return;
+      }
 
-      console.log('====================================');
-      console.log('CertificateBlob', CertificateBlob);
-      console.log('====================================');
-      const SealBlob = await uriToBlob(Seal);
+      // Process `photoID`
+      const photeBlob =
+        isPhotoValid === 'content' ? await uriToBlob(photoID) : null;
+      const photoURL =
+        isPhotoValid === 'https'
+          ? photoID
+          : await uploadFilestoS3(photeBlob, variables.firstName);
 
-      console.log('====================================');
-      console.log('CertificateBlob', SealBlob);
-      console.log('====================================');
+      // Process `Certificate`
+      const CertificateBlob =
+        isCertificateValid === 'content' ? await uriToBlob(Certificate) : null;
+      const CertificateURL =
+        isCertificateValid === 'https'
+          ? Certificate
+          : await uploadFilestoS3(CertificateBlob, variables.firstName);
 
-      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
-      const CertificateURL = await uploadFilestoS3(
-        CertificateBlob,
-        variables.firstName,
-      );
-      const SealUrl = await uploadFilestoS3(SealBlob, variables.firstName);
+      // Process `Seal`
+      const SealBlob = isSealValid === 'content' ? await uriToBlob(Seal) : null;
+      const SealUrl =
+        isSealValid === 'https'
+          ? Seal
+          : await uploadFilestoS3(SealBlob, variables.firstName);
+
       const params = {
         ...variables,
         certificateUrl: CertificateURL,
@@ -183,7 +219,10 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         notarySeal: SealUrl,
       };
 
-      if (typeof onComplete === 'function' && onComplete.name !== '') {
+      if (
+        (typeof onComplete === 'function' && onComplete.name !== '') ||
+        (user && user.notarySeal)
+      ) {
         console.log(
           'ddddddddddddddff====================================',
           onComplete.name,
@@ -199,6 +238,13 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         let respose = await handleUpdatecertificate(certificateVariables);
         console.log('resopsonfdf', respose1, respose);
         await onComplete();
+        const {data} = await updateVerification({
+          variables: {
+            _id: user?._id,
+            isVerified: false,
+          },
+        });
+        console.log('dadlflfldfldfldfd', data);
         Toast.show({
           type: 'success',
           text1: 'Success',
@@ -234,7 +280,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
   return (
     <SafeAreaView style={styles.container}>
       <CompanyHeader
-        Header="Verification"
+        Header={user ? 'Edit Your Identity' : 'Verification'}
         subHeading="Please verify your identity"
         HeaderStyle={{alignSelf: 'center'}}
         subHeadingStyle={{
