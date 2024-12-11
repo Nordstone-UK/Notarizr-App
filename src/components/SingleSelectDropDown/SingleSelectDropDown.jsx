@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     width: '90%', // Set width to 90%
     alignSelf: 'center', // Center the component
     marginBottom: widthToDp(2), // Bottom margin
-    marginTop: widthToDp(3), // Top margin
+    marginTop: widthToDp(4), // Top margin
   },
   box: {
     borderColor: '#D3D5DA',

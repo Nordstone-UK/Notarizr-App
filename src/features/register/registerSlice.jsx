@@ -5,13 +5,11 @@ const initialState = {
   lastName: 'none',
   email: 'none',
   phoneNumber: 'none',
-  gender: '',
   profilePicture: 'none',
   certificateUrl: 'none',
   photoId: 'none',
   accountType: 'client',
   location: 'none',
-  dateOfBirth: 'none',
 };
 
 export const registerSlice = createSlice({

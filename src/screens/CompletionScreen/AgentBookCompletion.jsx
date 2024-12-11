@@ -27,19 +27,17 @@ export default function AgentBookCompletion({navigation}) {
       );
     };
   }, []);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(true);
 
   useEffect(() => {
-    setIsMounted(true);
-
-    const delay = 5000;
-
     const timer = setTimeout(() => {
       if (isMounted) {
-        console.log('unmounded');
-        navigation.navigate('MedicalBookingScreen');
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'MedicalBookingScreen'}],
+        });
       }
-    }, delay);
+    }, 5000);
 
     return () => {
       clearTimeout(timer);

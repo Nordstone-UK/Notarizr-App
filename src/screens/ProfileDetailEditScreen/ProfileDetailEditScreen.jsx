@@ -49,7 +49,10 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
     date_of_birth,
   } = useSelector(state => state.user.user);
   // const data = useSelector(state => state.user.user);
-  const dateOfBirth = moment.utc(date_of_birth, 'YYYY-MM-DD').toDate();
+
+  const dateOfBirth = date_of_birth
+    ? moment.utc(date_of_birth, 'YYYY-MM-DD').toDate()
+    : new Date();
 
   const [firstName, setfirstName] = useState(first_name);
   const [lastName, setlastName] = useState(last_name);
@@ -225,7 +228,7 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
                 onConfirm={date => setDate(date)}
                 Text="Date Of Birth"
                 mode="date"
-                date={date}
+                date={date || new Date()}
                 labelStyle={{}}
                 containerStyle={{
                   paddingVertical: widthToDp(4),

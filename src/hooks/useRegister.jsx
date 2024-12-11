@@ -80,7 +80,7 @@ const useRegister = () => {
           ...variables,
         },
       };
-
+      console.log('redfdldldfldfld', request);
       const {data} = await register(request);
       if (data?.register?.status === '201') {
         saveAccessTokenToStorage(data?.register?.access_token);

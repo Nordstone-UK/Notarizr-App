@@ -55,15 +55,7 @@ export default function SignUpDetailScreen({navigation}, props) {
   };
 
   const handleEmailValid = async () => {
-    if (
-      !email ||
-      !location ||
-      !phoneNumber ||
-      !firstName ||
-      !lastName ||
-      !gender ||
-      !date
-    ) {
+    if (!email || !location || !phoneNumber || !firstName || !lastName) {
       Toast.show({
         type: 'warning',
         text1: 'Warning!',
@@ -132,11 +124,11 @@ export default function SignUpDetailScreen({navigation}, props) {
             firstName,
             lastName,
             location,
-            gender,
+            // gender,
             email,
             phoneNumber,
             description,
-            date,
+            // date,
           });
         }
       });
@@ -197,7 +189,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 Label={true}
                 placeholder={'XXXXXXXXXXX'}
               />
-              <CustomDatePicker
+              {/* <CustomDatePicker
                 onConfirm={date => setDate(moment(date).format('DD-MM-YYYY'))}
                 Text="Date Of Birth"
                 mode="date"
@@ -209,7 +201,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                   alignSelf: 'center',
                 }}
                 textStyle={{}}
-              />
+              /> */}
               {variables == 'client' && (
                 <SingleSelectDropDown
                   data={statesData}
@@ -246,7 +238,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                 />
               )}
 
-              <View style={styles.GenderContainer}>
+              {/* <View style={styles.GenderContainer}>
                 <Picker
                   selectedValue={gender}
                   onValueChange={handleGenderChange}
@@ -257,7 +249,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                   <Picker.Item label="Female" value="female" />
                   <Picker.Item label="Other" value="other" />
                 </Picker>
-              </View>
+              </View> */}
               <View
                 style={{
                   marginTop: heightToDp(10),

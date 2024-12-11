@@ -132,6 +132,7 @@ export default function ProfilePictureScreen({navigation}) {
         ...variables,
         profilePicture: url,
       };
+      console.log('parmsfd', params);
       const isRegistered = await handleRegister(params);
       if (isRegistered) {
         settempLoading(false);
