@@ -73,19 +73,20 @@ PODS:
   - hermes-engine/Pre-built (0.72.5)
   - HyphenateChat (4.5.0)
   - libevent (2.1.12)
-  - lottie-ios (4.3.4)
-  - lottie-react-native (6.4.0):
-    - lottie-ios (~> 4.3.3)
+  - lottie-ios (4.5.0)
+  - lottie-react-native (7.1.0):
+    - lottie-ios (= 4.5.0)
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - OneSignalXCFramework (3.12.4):
-    - OneSignalXCFramework/OneSignalCore (= 3.12.4)
-    - OneSignalXCFramework/OneSignalExtension (= 3.12.4)
-    - OneSignalXCFramework/OneSignalOutcomes (= 3.12.4)
-  - OneSignalXCFramework/OneSignalCore (3.12.4)
-  - OneSignalXCFramework/OneSignalExtension (3.12.4):
+  - OneSignalXCFramework (3.12.6):
+    - OneSignalXCFramework/OneSignalCore (= 3.12.6)
+    - OneSignalXCFramework/OneSignalExtension (= 3.12.6)
+    - OneSignalXCFramework/OneSignalOutcomes (= 3.12.6)
+  - OneSignalXCFramework/OneSignalCore (3.12.6)
+  - OneSignalXCFramework/OneSignalExtension (3.12.6):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalOutcomes
-  - OneSignalXCFramework/OneSignalOutcomes (3.12.4):
+  - OneSignalXCFramework/OneSignalOutcomes (3.12.6):
     - OneSignalXCFramework/OneSignalCore
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -421,8 +422,8 @@ PODS:
     - React-Core
   - react-native-netinfo (9.4.1):
     - React-Core
-  - react-native-onesignal (4.5.1):
-    - OneSignalXCFramework (= 3.12.4)
+  - react-native-onesignal (4.5.2):
+    - OneSignalXCFramework (= 3.12.6)
     - React (< 1.0.0, >= 0.13.0)
   - react-native-pdf (6.7.4):
     - React-Core
@@ -626,6 +627,7 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - OneSignalXCFramework (< 4.0, >= 3.0)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -886,9 +888,9 @@ SPEC CHECKSUMS:
   hermes-engine: f6cf92a471053245614d9d8097736f6337d5b86c
   HyphenateChat: bf4cfa65a83ffa210803fdc91263b4891fb510ee
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
-  lottie-react-native: 3a3084faddd3891c276f23fd6e797b83f2021bbc
-  OneSignalXCFramework: 087934ab0d4d7445fcf1c015c7c782359e26c020
+  lottie-ios: a881093fab623c467d3bce374367755c272bdd59
+  lottie-react-native: 40f1d9678d41cf494ab711029c3bc7b4f51e0094
+  OneSignalXCFramework: ff1c970b7aeb4ac0fe48fb35393eb5d8bf378135
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: df81ab637d35fac9e6eb94611cfd20f0feb05455
   RCTTypeSafety: 4636e4a36c7c2df332bda6d59b19b41c443d4287
@@ -918,7 +920,7 @@ SPEC CHECKSUMS:
   react-native-immediate-phone-call: eb8a86325478db6c066eac6ecf8fa9ba3fbf66c5
   react-native-maps: f699e0753c22c4d5c3a44d03895b193a4dbca6c2
   react-native-netinfo: fefd4e98d75cbdd6e85fc530f7111a8afdf2b0c5
-  react-native-onesignal: 7bd44dbd031d8d57110c0203836ffc37ddead526
+  react-native-onesignal: ab800900cffeca4d9db70a05244013fc8a36ceb8
   react-native-pdf: 79aa75e39a80c1d45ffe58aa500f3cf08f267a2e
   react-native-safe-area-context: 7aa8e6d9d0f3100a820efb1a98af68aa747f9284
   react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
@@ -966,6 +968,6 @@ SPEC CHECKSUMS:
   StripeUICore: ce85e040a22bf0335061d14973d37757528b3d2d
   Yoga: 86fed2e4d425ee4c6eab3813ba1791101ee153c6
 
-PODFILE CHECKSUM: 703d6554dc2c3a9fec846c1eb0257d2492fa4ab3
+PODFILE CHECKSUM: 436bf8070ef49c515040399fc084b6a39d1f874b
 
 COCOAPODS: 1.15.2
