@@ -178,7 +178,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const shareLinkViaEmail = async link => {
     try {
       await Share.share({
-        message: `Hi,\n\nI wanted to share this link with you:\n\n${link}`,
+        message: `Hi,\n\nI wanted to share this link with you:\n\n${link} Download Notarizr from:\n\n https://apps.apple.com/us/app/notarizr/id6469320905`,
       });
     } catch (error) {
       alert(error.message);
