@@ -20,6 +20,10 @@ export const registerSlice = createSlice({
       state.email = action.payload;
       // console.log('Redux email', state.email);
     },
+    phoneSet: (state, action) => {
+      state.phoneNumber = action.payload;
+      // console.log('Redux email', state.email);
+    },
     ceredentailSet: (state, action) => {
       state.email = action.payload.email;
       state.firstName = action.payload.firstName;
@@ -42,7 +46,12 @@ export const registerSlice = createSlice({
   },
 });
 
-export const {emailSet, ceredentailSet, profilePictureSet, accountTypeSet} =
-  registerSlice.actions;
+export const {
+  emailSet,
+  phoneSet,
+  ceredentailSet,
+  profilePictureSet,
+  accountTypeSet,
+} = registerSlice.actions;
 
 export default registerSlice.reducer;

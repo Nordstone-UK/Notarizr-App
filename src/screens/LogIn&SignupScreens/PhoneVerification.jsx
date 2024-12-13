@@ -20,8 +20,9 @@ import Toast from 'react-native-toast-message';
 import CustomToast from '../../components/CustomToast/CustomToast';
 
 export default function PhoneVerification({route, navigation}) {
-  const email = useSelector(state => state.register.email);
-  // console.log(email);
+  // const email = useSelector(state => state.register.email);
+  const phone = useSelector(state => state.register.phoneNumber);
+
   const {message} = route.params;
   const [otp, setOTPcode] = useState('');
   const {handleOtpVerification, handleResendOtp} = useLogin();
@@ -39,13 +40,13 @@ export default function PhoneVerification({route, navigation}) {
       });
       setLoading(false);
     } else {
-      await handleOtpVerification(email, otp);
+      await handleOtpVerification(phone, otp);
       setLoading(false);
     }
   };
   const handleResend = async () => {
     setresendLoading(true);
-    await handleResendOtp(email);
+    await handleResendOtp(phone);
     setresendLoading(false);
   };
   useEffect(() => {

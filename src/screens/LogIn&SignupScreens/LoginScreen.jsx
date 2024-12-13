@@ -23,66 +23,68 @@ import {useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
-import {emailSet} from '../../features/register/registerSlice';
+import {phoneSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
 import CustomToast from '../../components/CustomToast/CustomToast';
+import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
   const dispatch = useDispatch();
 
   const handleGetPhoneOtp = () => {
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-    if (!emailRegex.test(email)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Invalid Email!',
-        text2: 'Please enter a valid email address',
+    // if (!emailRegex.test(email)) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Invalid Email!',
+    //     text2: 'Please enter a valid email address',
+    //   });
+    //   return;
+    //  } else {
+    dispatch(phoneSet(phone));
+    console.log('logiig');
+    try {
+      getPhoneOtp({
+        variables: {phone},
+      }).then(response => {
+        console.log('response', response.error);
+        if (response?.data?.getPhoneOTP?.status === '403') {
+          Toast.show({
+            type: 'error',
+            text1: 'We are Sorry!',
+            text2: 'This User is Blocked',
+          });
+        } else if (response?.data?.getPhoneOTP?.status === '401') {
+          Toast.show({
+            type: 'error',
+            text1: 'Email does not exist!',
+            text2: 'Please sign up for a new account',
+          });
+        } else if (response?.data?.getPhoneOTP?.status !== '200') {
+          Toast.show({
+            type: 'error',
+            text1: 'OTP not sent!',
+            text2: 'We encountered a problem please try again',
+          });
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
+            text2: '',
+          });
+          navigation.navigate('PhoneVerification', {
+            message: response.data.getPhoneOTP.phoneNumber,
+          });
+        }
       });
-      return;
-    } else {
-      dispatch(emailSet(email));
-      console.log('logiig');
-      try {
-        getPhoneOtp({
-          variables: {email},
-        }).then(response => {
-          console.log('response', response.error);
-          if (response?.data?.getPhoneOTP?.status === '403') {
-            Toast.show({
-              type: 'error',
-              text1: 'We are Sorry!',
-              text2: 'This User is Blocked',
-            });
-          } else if (response?.data?.getPhoneOTP?.status === '401') {
-            Toast.show({
-              type: 'error',
-              text1: 'Email does not exist!',
-              text2: 'Please sign up for a new account',
-            });
-          } else if (response?.data?.getPhoneOTP?.status !== '200') {
-            Toast.show({
-              type: 'error',
-              text1: 'OTP not sent!',
-              text2: 'We encountered a problem please try again',
-            });
-          } else {
-            Toast.show({
-              type: 'success',
-              text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
-              text2: '',
-            });
-            navigation.navigate('PhoneVerification', {
-              message: response.data.getPhoneOTP.phoneNumber,
-            });
-          }
-        });
-      } catch (error) {
-        console.log('#######', error);
-      }
+    } catch (error) {
+      console.log('#######', error);
     }
+    // }
   };
   useEffect(() => {
     requestPermissions();
@@ -180,14 +182,22 @@ export default function LoginScreen({navigation}, props) {
         />
         <BottomSheetStyle>
           <View style={{marginTop: heightToDp(5)}}>
-            <LabelTextInput
+            <PhoneTextInput
+              onChange={e => {
+                setPhone(e);
+              }}
+              LabelTextInput="Phone Number"
+              Label={true}
+              placeholder={'XXXXXXXXXXX'}
+            />
+            {/* <LabelTextInput
               leftImageSoucre={require('../../../assets/EmailIcon.png')}
               placeholder={'Enter your email address'}
               LabelTextInput={'Email Address'}
               onChangeText={text => setEmail(text)}
               keyboardType={'email-address'}
               Label={true}
-            />
+            /> */}
             <View
               style={{
                 marginTop: heightToDp(10),

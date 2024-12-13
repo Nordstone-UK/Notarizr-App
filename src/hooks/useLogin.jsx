@@ -18,9 +18,11 @@ const useLogin = () => {
   const {fetchBookingInfo} = useFetchBooking();
 
   // const user = useSelector(state => state.user.user);
-  const handleOtpVerification = async (email, otp) => {
+  const handleOtpVerification = async (phone, otp) => {
+    console.log(phone);
+
     await verifYOTP({
-      variables: {email, otp},
+      variables: {phone, otp},
     })
       .then(response => {
         console.log(response.data);
