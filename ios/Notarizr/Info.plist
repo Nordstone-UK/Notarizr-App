@@ -29,6 +29,7 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -51,6 +52,8 @@
 	<string>We will use your Bluetooth to access your Bluetooth headphones.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>We need access to your camera to capture photos for document notarization.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We require location information to help us better connect you with Agents.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>We require your location to provide personalized content based on your current location.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

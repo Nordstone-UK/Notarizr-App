@@ -10,6 +10,7 @@ import {
   Alert,
   SafeAreaView,
   PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -27,6 +28,7 @@ import {phoneSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
 import CustomToast from '../../components/CustomToast/CustomToast';
 import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
+import Geolocation from '@react-native-community/geolocation';
 
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
@@ -34,7 +36,29 @@ export default function LoginScreen({navigation}, props) {
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
   const dispatch = useDispatch();
 
+  const getCurrentLocation = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        Geolocation.getCurrentPosition(
+          position => {
+            const {latitude, longitude} = position.coords;
+            resolve({latitude, longitude});
+          },
+          error => {
+            reject(error);
+          },
+          Platform.OS === 'android'
+            ? {}
+            : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
   const handleGetPhoneOtp = () => {
+    getCurrentLocation();
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
     // if (!emailRegex.test(email)) {
@@ -65,11 +89,26 @@ export default function LoginScreen({navigation}, props) {
             text2: 'Please sign up for a new account',
           });
         } else if (response?.data?.getPhoneOTP?.status !== '200') {
-          Toast.show({
-            type: 'error',
-            text1: 'OTP not sent!',
-            text2: 'We encountered a problem please try again',
-          });
+          Alert.alert(
+            'Location service is disabled!',
+            'Please enable location to allow Agents to serve you better',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+              },
+              {
+                text: 'Settings',
+                onPress: () => Linking.openSettings(), // Open app settings
+              },
+            ],
+            {cancelable: false},
+          );
+          // Toast.show({
+          //   type: 'error',
+          //   text1: 'Location service is disabled!',
+          //   text2: 'Please enable location to allow Agents to serve you better',
+          // });
         } else {
           Toast.show({
             type: 'success',
