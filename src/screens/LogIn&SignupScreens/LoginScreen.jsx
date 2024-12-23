@@ -89,26 +89,26 @@ export default function LoginScreen({navigation}, props) {
             text2: 'Please sign up for a new account',
           });
         } else if (response?.data?.getPhoneOTP?.status !== '200') {
-          Alert.alert(
-            'Location service is disabled!',
-            'Please enable location to allow Agents to serve you better',
-            [
-              {
-                text: 'Cancel',
-                style: 'cancel',
-              },
-              {
-                text: 'Settings',
-                onPress: () => Linking.openSettings(), // Open app settings
-              },
-            ],
-            {cancelable: false},
-          );
-          // Toast.show({
-          //   type: 'error',
-          //   text1: 'Location service is disabled!',
-          //   text2: 'Please enable location to allow Agents to serve you better',
-          // });
+          // Alert.alert(
+          //   'Location service is disabled!',
+          //   'Please enable location to allow Agents to serve you better',
+          //   [
+          //     {
+          //       text: 'Cancel',
+          //       style: 'cancel',
+          //     },
+          //     {
+          //       text: 'Settings',
+          //       onPress: () => Linking.openSettings(), // Open app settings
+          //     },
+          //   ],
+          //   {cancelable: false},
+          // );
+          Toast.show({
+            type: 'error',
+            text1: 'Location service is disabled!',
+            text2: 'Please enable location to allow Agents to serve you better',
+          });
         } else {
           Toast.show({
             type: 'success',
@@ -172,32 +172,29 @@ export default function LoginScreen({navigation}, props) {
         }
       } else if (Platform.OS === 'ios') {
         // Request location permission
-        const locationPermissionStatus = await request(
-          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-        );
+        // const locationPermissionStatus = await request(
+        //   PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        // );
         // const PushNotificationPermission = await request(
         //   PERMISSIONS.IOS.NOTIFICATIONS,
         // );
-
         // Request camera permission
         // const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
-
         // Request photo library permission
         // const photoLibraryPermissionStatus = await request(
         //   PERMISSIONS.IOS.PHOTO_LIBRARY,
         // );
-
         // Check if permissions are granted
-        if (
-          locationPermissionStatus === 'granted'
-          // cameraPermissionStatus === 'granted' &&
-          // PushNotificationPermission === 'granted'
-          // photoLibraryPermissionStatus === 'granted'
-        ) {
-          console.log('All permissions granted');
-        } else {
-          console.log('Some permissions denied');
-        }
+        // if (
+        //   locationPermissionStatus === 'granted'
+        //   // cameraPermissionStatus === 'granted' &&
+        //   // PushNotificationPermission === 'granted'
+        //   // photoLibraryPermissionStatus === 'granted'
+        // ) {
+        //   console.log('All permissions granted');
+        // } else {
+        //   console.log('Some permissions denied');
+        // }
       }
     } catch (error) {
       console.log('Error requesting permissions:', error);
