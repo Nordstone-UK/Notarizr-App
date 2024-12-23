@@ -8,3 +8,4 @@ export const IS_EMAIL_VALID = gql`
     }
   }
 `;
+
