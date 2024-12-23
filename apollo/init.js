@@ -39,13 +39,16 @@ const init = () => {
 
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
-    const {latitude, longitude} = await getCurrentLocation();
+    const location = await getCurrentLocation();
+    console.log('tetsudf', location);
     return {
       headers: {
         ...headers,
         authorization: token ? `Bearer ${token}` : '',
         'X-User-Coordinates':
-          latitude && longitude ? `${longitude},${latitude}` : '',
+          location?.latitude && location?.longitude
+            ? `${location?.longitude},${location?.latitude}`
+            : '-119.417931,36.778259',
       },
     };
   });
@@ -82,20 +85,24 @@ const requestLocationPermission = async () => {
 const getCurrentLocation = () => {
   return new Promise(async (resolve, reject) => {
     try {
+      // resolve({latitude: 36.778259, longitude: -119.417931});
+      // return;
       Geolocation.getCurrentPosition(
         position => {
           const {latitude, longitude} = position.coords;
           resolve({latitude, longitude});
         },
         error => {
-          reject(error);
+          // reject(error);
+          resolve({latitude: 36.778259, longitude: -119.417931});
         },
         Platform.OS === 'android'
           ? {}
           : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
       );
     } catch (error) {
-      reject(error);
+      // reject(error);
+      resolve({latitude: 36.778259, longitude: -119.417931});
     }
   });
 };
