@@ -31,6 +31,7 @@ import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker
 import moment from 'moment';
 import {statesData} from '../../data/statesData';
 import SingleSelectDropDown from '../../components/SingleSelectDropDown/SingleSelectDropDown';
+import {IS_MOBILENO_VALID} from '../../../request/queries/isPhoneNoValid.query';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function SignUpDetailScreen({navigation}, props) {
@@ -42,9 +43,12 @@ export default function SignUpDetailScreen({navigation}, props) {
   const [state, setState] = useState(null);
   const [email, setEmail] = useState('');
   const [emailValid, setEmailValid] = useState();
+  const [mobilenoValid, setMobileNoValid] = useState();
   const [gender, setgender] = useState('');
   const [description, setDescription] = useState('');
   const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
+  const [isMobileNoValid, {loading: mobilenovalidLoading}] =
+    useLazyQuery(IS_MOBILENO_VALID);
   const [getPhoneOtp, {loading: PhoneLoading}] =
     useLazyQuery(GET_VALID_PHONE_OTP);
 
@@ -69,28 +73,39 @@ export default function SignUpDetailScreen({navigation}, props) {
       });
       return;
     } else {
-      return new Promise(() => {
-        try {
-          isEmailValid({
-            variables: {email},
-          }).then(response => {
-            setEmailValid(response?.data?.isEmailValid?.emailTaken);
+      try {
+        const emailResponse = await isEmailValid({variables: {email}});
+        const emailTaken = emailResponse?.data?.isEmailValid?.emailTaken;
+        setEmailValid(emailTaken);
 
-            if (response?.data?.isEmailValid?.emailTaken) {
-              Toast.show({
-                type: 'error',
-                text1: 'This email is already taken!',
-                text2: 'Please enter other email address',
-              });
-            } else {
-              setEmailValid(false);
-              handleGetPhoneOtp();
-            }
+        if (emailTaken) {
+          Toast.show({
+            type: 'error',
+            text1: 'This email is already taken!',
+            text2: 'Please enter another email address',
           });
-        } catch (error) {
-          console.log(error);
+          return;
         }
-      });
+
+        const phoneResponse = await isMobileNoValid({variables: {phoneNumber}});
+        const phoneTaken = phoneResponse?.data?.isMobileNoValid?.phoneNoTaken;
+        setMobileNoValid(phoneTaken);
+        console.log('phoneresinodf', phoneTaken);
+        if (phoneTaken) {
+          Toast.show({
+            type: 'error',
+            text1: 'This phone number is already taken!',
+            text2: 'Please enter another phone number',
+          });
+          return;
+        }
+
+        setEmailValid(false);
+        setMobileNoValid(false);
+        handleGetPhoneOtp();
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
   const handleGetPhoneOtp = () => {
@@ -260,7 +275,7 @@ export default function SignUpDetailScreen({navigation}, props) {
                     Colors.OrangeGradientEnd,
                   ]}
                   Title="Continue"
-                  loading={validLoading || PhoneLoading}
+                  loading={validLoading || mobilenovalidLoading || PhoneLoading}
                   onPress={() => handleEmailValid()}
                 />
               </View>
