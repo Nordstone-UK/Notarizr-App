@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import MainButton from '../MainGradientButton/MainButton';
 import {useNavigation} from '@react-navigation/native';
 import {EventRegister} from 'react-native-event-listeners';
+import {Icon} from '@rneui/base';
 export default function HomeScreenHeader(props) {
   const userInfo = useSelector(state => state.user.user);
   const navigation = useNavigation();
@@ -69,6 +70,7 @@ export default function HomeScreenHeader(props) {
             {justifyContent: 'space-between', alignItems: 'center'},
           ]}>
           <Text style={[styles.textHeading, props.HeaderStyle]}>Hi There,</Text>
+
           <MainButton
             colors={[Colors.OrangeGradientEnd, Colors.OrangeGradientEnd]}
             Title="Log In"
