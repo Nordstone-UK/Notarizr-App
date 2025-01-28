@@ -152,6 +152,22 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
+  const getTotalSessions = async () => {
+    const request = {
+      variables: {
+        status: 'completed',
+        page: 1,
+        pageSize: 1000,
+      },
+    };
+    try {
+      const {data} = await getAgentSession(request);
+
+      return data?.getAgentSessions?.totalDocs;
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleClientSessions = async status => {
     const request = {
       variables: {
@@ -226,6 +242,7 @@ const useFetchBooking = () => {
     fetchBookingByID,
     handleReviewSubmit,
     getTotalBookings,
+    getTotalSessions,
     handleClientSessions,
     handleAgentSessions,
     setBookingPrice,

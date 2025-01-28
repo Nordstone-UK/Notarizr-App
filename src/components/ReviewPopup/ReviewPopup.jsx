@@ -45,6 +45,13 @@ const StarRating = ({rating, onStarPress}) => {
   );
 };
 export default function ReviewPopup(props) {
+  const [inputValue, setInputValue] = useState('');
+  const handleInputChange = text => {
+    setInputValue(text);
+    if (props.handleReviewSubmit) {
+      props.handleReviewSubmit(text);
+    }
+  };
   return (
     <KeyboardAvoidingView style={styles.bottonSheet}>
       <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
@@ -69,7 +76,9 @@ export default function ReviewPopup(props) {
             padding: 5,
           }}
           Label={true}
-          onChangeText={text => props.handleReviewSubmit(text)}
+          value={inputValue}
+          onChangeText={handleInputChange}
+          // onChangeText={text => props.handleReviewSubmit(text)}
         />
       ) : (
         <BottomSheetTextInput
@@ -82,15 +91,21 @@ export default function ReviewPopup(props) {
             marginHorizontal: 25,
             padding: 5,
           }}
+          value={inputValue}
           Label={true}
-          onChangeText={text => props.handleReviewSubmit(text)}
+          onChangeText={handleInputChange}
         />
       )}
       <View style={styles.btn}>
         <GradientButton
           Title="Submit"
-          colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-          onPress={props.onPress}
+          colors={
+            inputValue.trim()
+              ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+              : [Colors.DullTextColor, Colors.DisableColor]
+          }
+          onPress={inputValue.trim() ? props.onPress : null}
+          disabled={!inputValue.trim()}
         />
       </View>
     </KeyboardAvoidingView>

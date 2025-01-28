@@ -10,7 +10,7 @@ import {
   RefreshControl,
   BackHandler,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
@@ -31,11 +31,16 @@ import OneSignal from 'react-native-onesignal';
 import {socket} from '../../utils/Socket';
 import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
 import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
+import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
 
 export default function HomeScreen({route, navigation}) {
   const user = useSelector(state => state.user.user);
+  const isBlocked = user?.isBlocked || false;
+  console.log('usssssssssssss', user);
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
+  const bottomSheetRef = useRef(null);
+
   const [Booking, setBooking] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -201,6 +206,36 @@ export default function HomeScreen({route, navigation}) {
           )}
         </ScrollView>
       </BottomSheetStyle>
+      {isBlocked && (
+        <BottomSheet
+          snapPoints={['45%', '45%']}
+          enableContentPanningGesture={false}
+          enableHandlePanningGesture={false}
+          enableOverDrag={false}
+          index={1}
+          backdropComponent={backdropProps => (
+            <BottomSheetBackdrop
+              {...backdropProps}
+              opacity={0.9}
+              enableTouchThrough={true}
+              pressBehavior={'none'}
+            />
+          )}
+          ref={bottomSheetRef}>
+          <View
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              paddingHorizontal: widthToDp(5),
+            }}>
+            <Text style={{fontSize: 16, color: 'black'}}>
+              Your account has been blocked. Please contact support for further
+              assistance.
+            </Text>
+          </View>
+        </BottomSheet>
+      )}
       <LoginBottomSheet
         isVisible={isModalVisible}
         onCloseModal={handleCloseModal}

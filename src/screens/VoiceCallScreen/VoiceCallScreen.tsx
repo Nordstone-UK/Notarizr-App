@@ -20,6 +20,7 @@ import {
   ChannelProfileType,
 } from 'react-native-agora';
 import useChatService from '../../hooks/useChatService';
+import { socket } from '../../utils/Socket';
 export default function VoiceCallScreen({ route, navigation }: any) {
   const { sender, receiver, channelName, token } = route.params;
   const { getAgoraCallToken } = useChatService();
@@ -34,9 +35,7 @@ export default function VoiceCallScreen({ route, navigation }: any) {
   const timerRef = useRef<any>(null);
   const uid = 0;
 
-  console.log('Channel Name:', channelName);
-  console.log('Token:', token);
-  console.log('joined:', isJoined);
+
   const getVoiceToken = async () => {
     try {
       const { channelName, token } = await getAgoraCallToken(receiver._id);
@@ -73,10 +72,19 @@ export default function VoiceCallScreen({ route, navigation }: any) {
             showMessage('Successfully joined the channel ' + channelName);
             setIsJoined(true);
             startTimer();
+            const data = {
+              receiverId: receiver?._id,
+              text: "Voice call initiated",
+              senderName: `${sender?.first_name} ${sender?.last_name}`,
+            }
+            socket.emit('voice-call', data);
           },
+
           onUserJoined: (_connection: any, Uid: number) => {
             showMessage('Remote user joined with uid ' + Uid);
             setRemoteUid(Uid);
+            console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
           },
           onUserOffline: (_connection: any, Uid: number) => {
             showMessage('Remote user left the channel. uid: ' + Uid);
@@ -170,8 +178,11 @@ export default function VoiceCallScreen({ route, navigation }: any) {
       <View style={styles.pictureContainer}>
         <View>
           <Image
-            source={{ uri: receiver?.profile_picture }}
-            style={{
+            source={
+              receiver?.profile_picture
+                ? { uri: receiver.profile_picture }
+                : require('../../../assets/UserIcon.png')
+            } style={{
               width: widthToDp(30),
               height: heightToDp(30),
               borderRadius: widthToDp(25),

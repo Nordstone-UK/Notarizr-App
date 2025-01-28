@@ -40,7 +40,6 @@ const init = () => {
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
     const location = await getCurrentLocation();
-    console.log('tetsudf', location);
     return {
       headers: {
         ...headers,

@@ -59,6 +59,7 @@ import {
 import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import AddressCard from '../../components/AddressCard/AddressCard';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import Toast from 'react-native-toast-message';
 
 export default function MedicalBookingScreen({route, navigation}) {
   const token = useSelector(state => state.chats.chatToken);
@@ -75,7 +76,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
-
+  console.log('boookingsdfdsddfd', bookingDetail);
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
 
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
@@ -87,6 +88,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [refreshing, setRefreshing] = React.useState(false);
   const [status, setStatus] = useState();
   const [loading, setLoading] = useState(false);
+  const [loadingStates, setLoadingStates] = useState({});
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [uploadingDocs, setUploadingDocs] = useState();
@@ -98,8 +100,9 @@ export default function MedicalBookingScreen({route, navigation}) {
   const [showIcon, setShowIcon] = useState(true);
   const [pdfUrl, setPdfUrl] = useState('');
   const [isPdfVisible, setIsPdfVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [price, setPrice] = useState(bookingDetail?.price);
+  console.log('pppppppppppppppppppppppppricee', price);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [bookedByAddress, setBookedByAddress] = useState(null);
@@ -407,6 +410,7 @@ export default function MedicalBookingScreen({route, navigation}) {
         address => address._id === addressId,
       );
       setBookedByAddress(address);
+      setPrice(bookingDetail?.price);
     }
   }, [bookingDetail]);
   const handleAddressPress = coordinates => {
@@ -499,25 +503,34 @@ export default function MedicalBookingScreen({route, navigation}) {
     }
   };
 
-  const handleNotarizrDocumentPress = async documents => {
-    console.log('documents', documents);
+  const handleNotarizrDocumentPress = async (documents, name) => {
     try {
+      setLoadingStates(prev => ({...prev, [name]: true}));
+      Toast.show({
+        type: 'info',
+        text1: 'Download Starting',
+        text2: 'Preparing to download documents...',
+      });
       const hasPermission = await requestStoragePermission();
       console.log('Permission status:', hasPermission);
       if (!hasPermission) {
-        Alert.alert(
-          'Permission Denied',
-          'Storage permission is required to download files.',
-        );
+        Toast.show({
+          type: 'error',
+          text1: 'Permission Denied',
+          text2: 'Storage permission is required to download files.',
+        });
+        setLoadingStates(prev => ({...prev, [name]: false}));
         return;
       }
 
       const downloadDirExists = await checkDownloadDirectory();
       if (!downloadDirExists) {
-        Alert.alert(
-          'Download Directory Not Found',
-          'The download directory does not exist or is not accessible.',
-        );
+        Toast.show({
+          type: 'error',
+          text1: 'Download Directory Not Found',
+          text2: 'The download directory does not exist or is not accessible.',
+        });
+        setLoadingStates(prev => ({...prev, [name]: false}));
         return;
       }
 
@@ -525,6 +538,7 @@ export default function MedicalBookingScreen({route, navigation}) {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
         let dirs = ReactNativeBlobUtil.fs.dirs;
         let downloadPath = `${dirs.DownloadDir}/${fileName}`;
+        setLoadingStates(prev => ({...prev, [name]: true}));
 
         try {
           const result = await ReactNativeBlobUtil.config({
@@ -534,22 +548,32 @@ export default function MedicalBookingScreen({route, navigation}) {
 
           if (result.info().status === 200) {
             console.log(`File ${fileName} downloaded to ${downloadPath}`);
-            Alert.alert(
-              'Download Successful',
-              `File downloaded to ${downloadPath}`,
-            );
+            Toast.show({
+              type: 'success',
+              text1: 'Download Successful',
+              text2: `File downloaded to ${downloadPath}`,
+            });
+            setLoadingStates(prev => ({...prev, [name]: false}));
           } else {
-            Alert.alert(
-              'Download Failed',
-              `Failed to download the file ${fileName}.`,
-            );
+            Toast.show({
+              type: 'error',
+              text1: 'Download Failed',
+              text2: `Failed to download the file ${fileName}.`,
+            });
+            setLoadingStates(prev => ({...prev, [name]: false}));
           }
         } catch (error) {
           console.error(`Failed to download ${fileName}:`, error);
-          Alert.alert(
-            'Download Error',
-            `An error occurred while downloading the file ${fileName}.`,
-          );
+          Toast.show({
+            type: 'error',
+            text1: 'Download Error',
+            text2: `An error occurred while downloading the file ${fileName}.`,
+          });
+
+          setLoadingStates(prev => ({...prev, [name]: false}));
+        } finally {
+          // Stop loading for this document
+          setLoadingStates(prev => ({...prev, [name]: false}));
         }
       };
 
@@ -568,10 +592,11 @@ export default function MedicalBookingScreen({route, navigation}) {
       }
     } catch (error) {
       console.error(error);
-      Alert.alert(
-        'Download Error',
-        'An error occurred while downloading the files.',
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'Download Error',
+        text2: 'An error occurred while downloading the files.',
+      });
     }
   };
   const handleReject = async () => {
@@ -600,7 +625,7 @@ export default function MedicalBookingScreen({route, navigation}) {
   const handleAccept = async () => {
     await handleStatusChange('payment_confirmed');
   };
-  console.log('setBookedByAddress', status);
+  console.log('setBookedByAddress', bookingDetail.payment_type);
   console.log('bookingdetails', bookingDetail);
   return (
     <SafeAreaView style={styles.container}>
@@ -903,10 +928,17 @@ export default function MedicalBookingScreen({route, navigation}) {
                 </Text>
                 <TouchableOpacity
                   onPress={() =>
-                    handleNotarizrDocumentPress(bookingDetail.documents)
+                    handleNotarizrDocumentPress(
+                      bookingDetail.documents,
+                      'printuploaded',
+                    )
                   }
                   style={styles.downloadButton}>
-                  <Text style={styles.downloadButtonText}>Download</Text>
+                  {loadingStates.printuploaded ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.downloadButtonText}>Download</Text>
+                  )}
                 </TouchableOpacity>
               </View>
               <View
@@ -999,7 +1031,7 @@ export default function MedicalBookingScreen({route, navigation}) {
                     : ''}
                 </Text>
               </View>
-              {bookingDetail.payment_type == 'on_notarizr' &&
+              {bookingDetail?.payment_type == 'on_notarizr' &&
                 status == 'To_be_paid' &&
                 price > 0 && (
                   <View style={styles.addressView}>
@@ -1045,22 +1077,6 @@ export default function MedicalBookingScreen({route, navigation}) {
                         }}
                       />
                     </View>
-                    {/* <TouchableOpacity
-                      style={styles.paymentbuttons}
-                      onPress={() => handleReject()}>
-                      <Text
-                        style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                        Reject
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.paymentbuttons}
-                      onPress={() => handleAccept()}>
-                      <Text
-                        style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                        Accept
-                      </Text>
-                    </TouchableOpacity> */}
                   </View>
                 )}
             </View>
@@ -1239,15 +1255,22 @@ export default function MedicalBookingScreen({route, navigation}) {
                     onPress={() =>
                       handleNotarizrDocumentPress(
                         bookingDetail.client_documents,
+                        'clientuploaded',
                       )
                     }
                     style={styles.downloadButton}>
-                    <Text style={styles.downloadButtonText}>Download</Text>
+                    {loadingStates.clientuploaded ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.downloadButtonText}>Download</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
                 <View style={styles.documentContainer}>
                   {Object.values(bookingDetail.client_documents)?.map(
                     (item, index) => {
+                      const url = typeof item === 'string' ? item : item;
+                      const isLoading = loadingStates[url];
                       return (
                         <TouchableOpacity
                           key={index}
@@ -1307,10 +1330,17 @@ export default function MedicalBookingScreen({route, navigation}) {
                   </View>
                   <TouchableOpacity
                     onPress={() =>
-                      handleNotarizrDocumentPress(bookingDetail.agent_document)
+                      handleNotarizrDocumentPress(
+                        bookingDetail.agent_document,
+                        'agentuploaded',
+                      )
                     }
                     style={styles.downloadButton}>
-                    <Text style={styles.downloadButtonText}>Download</Text>
+                    {loadingStates.agentuploaded ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.downloadButtonText}>Download</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
                 <View
@@ -1345,10 +1375,17 @@ export default function MedicalBookingScreen({route, navigation}) {
                   </View>
                   <TouchableOpacity
                     onPress={() =>
-                      handleNotarizrDocumentPress(bookingDetail.notarized_docs)
+                      handleNotarizrDocumentPress(
+                        bookingDetail.notarized_docs,
+                        'notarydocuments',
+                      )
                     }
                     style={styles.downloadButton}>
-                    <Text style={styles.downloadButtonText}>Download</Text>
+                    {loadingStates.notarydocuments ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.downloadButtonText}>Download</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
                 <View
@@ -1658,7 +1695,8 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   downloadButton: {
-    flex: 1,
+    // flex: 1,
+    width: 100,
     backgroundColor: Colors.Orange,
     padding: 10,
     borderRadius: 5,

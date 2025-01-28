@@ -1,153 +1,100 @@
-// import React, { useEffect, useState, useRef } from 'react';
-// import {
-//   SafeAreaView,
-//   StyleSheet,
-//   View,
-//   PermissionsAndroid,
-//   Platform,
-// } from 'react-native';
-// import { GiftedChat } from 'react-native-gifted-chat';
-// import { ChatClient } from 'react-native-agora-chat';
-// import {
-//   createAgoraRtcEngine,
-//   IRtcEngine,
-// } from 'react-native-agora';
-// import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-// import Colors from '../../themes/Colors';
+import React from 'react';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { GiftedChat, Actions } from 'react-native-gifted-chat';
+import { launchImageLibrary } from 'react-native-image-picker';
 
-// export default function ChatScreen({ route, navigation }: any) {
-//   const agoraEngineRef = useRef<IRtcEngine | null>(null);
-//   const chatClient = ChatClient.getInstance();
-//   const { sender, receiver, channel, voiceToken } = route.params;
+const ChatScreen = ({ navigation, receiver, sender, channel, voiceToken }) => {
+  const [content, setContent] = React.useState([]);
 
-//   const [content, setContent] = useState([]);
+  const sendmsg = async (newMessage) => {
+    // Your existing sendmsg logic here
+  };
 
-//   const logoutAgora = async () => {
-//     try {
-//       // Log off from Agora Chat
-//       await chatClient.logout();
-//       console.log('Successfully logged out from Agora.');
-//     } catch (error) {
-//       console.error('Failed to log out from Agora:', error);
-//     }
+  const pickImage = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
 
-//     // Release the Agora RTC Engine
-//     if (agoraEngineRef.current) {
-//       agoraEngineRef.current.leaveChannel();
-//       agoraEngineRef.current.release();
-//       console.log('Agora RTC Engine released.');
-//     }
-//   };
+      if (result.assets && result.assets.length > 0) {
+        const image = result.assets[0];
+        sendmsg({ image }); // Send the image as a message
+      }
+    } catch (error) {
+      console.error('Failed to pick image:', error);
+    }
+  };
 
-//   useEffect(() => {
-//     const getPermission = async () => {
-//       if (Platform.OS === 'android') {
-//         await PermissionsAndroid.requestMultiple([
-//           PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-//         ]);
-//       }
-//     };
+  const renderCustomActions = (props) => (
+    <Actions
+      {...props}
+      containerStyle={styles.actionContainer}
+      icon={() => (
+        <Image
+          source={require('../../../assets/imageIcon.png')} // Replace with your icon path
+          style={styles.imageIcon}
+        />
+      )}
+      onPressActionButton={pickImage}
+    />
+  );
 
-//     const initAgora = async () => {
-//       const agoraEngine = createAgoraRtcEngine();
-//       agoraEngineRef.current = agoraEngine;
+  return (
+    <SafeAreaView style={styles.container}>
+      <NavigationHeader
+        Title={receiver?.first_name + ' ' + receiver?.last_name}
+        ProfilePic={{ uri: receiver?.profile_picture }}
+        lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
+        lastImgPress={() =>
+          navigation.navigate('VoiceCallScreen', {
+            sender: sender,
+            receiver: receiver,
+            channelName: channel,
+            token: voiceToken,
+          })
+        }
+      />
+      <View style={styles.bottonSheet}>
+        <GiftedChat
+          messages={content}
+          onSend={(setContent) => sendmsg(setContent[0])}
+          user={{
+            _id: sender?._id,
+          }}
+          renderActions={renderCustomActions}
+          textInputProps={{
+            style: {
+              flex: 1,
+              marginHorizontal: 10,
+              color: 'black',
+              fontSize: 16,
+            },
+          }}
+        />
+      </View>
+    </SafeAreaView>
+  );
+};
 
-//       // Initialize Agora RTC Engine
-//       agoraEngine.initialize({
-//         appId: 'YOUR_AGORA_APP_ID', // Replace with your Agora App ID
-//         channelProfile: 0,
-//       });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  bottonSheet: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  actionContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  imageIcon: {
+    width: 28,
+    height: 28,
+  },
+});
 
-//       console.log('Agora RTC Engine initialized.');
-//     };
-
-//     getPermission();
-//     initAgora();
-
-//     const unsubscribeFocus = navigation.addListener('focus', () => {
-//       console.log('ChatScreen focused.');
-//     });
-
-//     const unsubscribeBlur = navigation.addListener('blur', () => {
-//       logoutAgora();
-//     });
-
-//     // Cleanup
-//     return () => {
-//       unsubscribeFocus();
-//       unsubscribeBlur();
-//       logoutAgora(); // Ensure Agora is logged off when component unmounts
-//     };
-//   }, [navigation]);
-
-//   const sendmsg = (newMessage: any) => {
-//     const content = newMessage.text;
-
-//     if (!chatClient.isInitialized) {
-//       console.log('Perform initialization first.');
-//       return;
-//     }
-
-//     let msg = ChatMessage.createTextMessage(
-//       receiver._id,
-//       content,
-//       ChatMessageChatType.PeerChat,
-//     );
-
-//     chatClient.chatManager
-//       .sendMessage(msg)
-//       .then(() => {
-//         const newMessages = [
-//           {
-//             _id: msg.localMsgId,
-//             text: content,
-//             createdAt: new Date(),
-//             user: { _id: sender._id },
-//           },
-//         ];
-//         setContent(previousMessages => GiftedChat.append(previousMessages, newMessages));
-//       })
-//       .catch(reason => {
-//         console.log('Send message failed:', reason);
-//       });
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <NavigationHeader
-//         Title={receiver?.first_name + ' ' + receiver?.last_name}
-//         ProfilePic={{ uri: receiver?.profile_picture }}
-//         lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
-//         lastImgPress={() =>
-//           navigation.navigate('VoiceCallScreen', {
-//             sender,
-//             receiver,
-//             channelName: channel,
-//             token: voiceToken,
-//           })
-//         }
-//       />
-//       <View style={styles.bottonSheet}>
-//         <GiftedChat
-//           messages={content}
-//           onSend={newMessages => sendmsg(newMessages[0])}
-//           user={{ _id: sender._id }}
-//         />
-//       </View>
-//     </SafeAreaView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     backgroundColor: Colors.PinkBackground,
-//     flex: 1,
-//   },
-//   bottonSheet: {
-//     marginTop: 20,
-//     backgroundColor: '#fff',
-//     borderRadius: 20,
-//     flex: 1,
-//     justifyContent: 'flex-end',
-//   },
-// });
+export default ChatScreen;

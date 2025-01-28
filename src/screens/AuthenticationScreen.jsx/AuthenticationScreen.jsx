@@ -55,9 +55,13 @@ export default function AuthenticationScreen({route, navigation}) {
   const {uploadUserPassport, uploadUserID, testAuth} = useAuthenticate();
   const {uploadFiles} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
-
+  console.log('countryrr', country);
   const getCountry = async () => {
     const reponse = await handleGetLocation();
+    console.log(
+      'getcountrycode',
+      reponse?.results[0]?.address_components[5].short_name,
+    );
     setCountry(reponse?.results[0]?.address_components[5]?.short_name);
   };
   useEffect(() => {
@@ -75,11 +79,12 @@ export default function AuthenticationScreen({route, navigation}) {
       } else {
         const front = await convertURIToBase64(IDFront);
         const back = await convertURIToBase64(IDBack);
-
+        console.log('heeeeeeeeeeeldd');
         await uploadUserID(userData?.userAccessCode, front, back, country)
           .then(async () => {
             try {
               const response = await testAuth();
+              console.log('resppnsdresdf', response);
               if (response == '204') {
                 Toast.show({
                   type: 'success',

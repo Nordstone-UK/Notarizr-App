@@ -35,7 +35,8 @@ import {IS_MOBILENO_VALID} from '../../../request/queries/isPhoneNoValid.query';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function SignUpDetailScreen({navigation}, props) {
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState('22-05-2010');
+  console.log('daterer', date);
   const [firstName, setfirstName] = useState('');
   const [lastName, setlastName] = useState('');
   const [phoneNumber, setNumber] = useState('');
@@ -57,7 +58,6 @@ export default function SignUpDetailScreen({navigation}, props) {
   const handleGenderChange = value => {
     setgender(value);
   };
-
   const handleEmailValid = async () => {
     if (!email || !location || !phoneNumber || !firstName || !lastName) {
       Toast.show({
@@ -90,7 +90,6 @@ export default function SignUpDetailScreen({navigation}, props) {
         const phoneResponse = await isMobileNoValid({variables: {phoneNumber}});
         const phoneTaken = phoneResponse?.data?.isMobileNoValid?.phoneNoTaken;
         setMobileNoValid(phoneTaken);
-        console.log('phoneresinodf', phoneTaken);
         if (phoneTaken) {
           Toast.show({
             type: 'error',
@@ -143,7 +142,7 @@ export default function SignUpDetailScreen({navigation}, props) {
             email,
             phoneNumber,
             description,
-            // date,
+            date,
           });
         }
       });

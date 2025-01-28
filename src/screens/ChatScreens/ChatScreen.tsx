@@ -8,12 +8,14 @@ import {
   SafeAreaView,
   Platform,
   PermissionsAndroid,
+  Alert,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import Colors from '../../themes/Colors';
-import { GiftedChat, IMessage } from 'react-native-gifted-chat';
+import { Actions, GiftedChat, IMessage } from 'react-native-gifted-chat';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   ChatClient,
@@ -36,7 +38,14 @@ import { GET_CHAT_TOKEN } from '../../../request/mutations/getUserChatToken.muta
 import { useMutation } from '@apollo/client';
 import { setChatToken } from '../../features/chats/chatsSlice';
 import Toast from 'react-native-toast-message';
+import { socket } from '../../utils/Socket';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { captureImage, chooseFile } from '../../utils/ImagePicker';
+import useRegister from '../../hooks/useRegister';
+import { Iconoir } from 'iconoir-react-native';
 export default function ChatScreen({ route, navigation }: any) {
+  const { handleCompression, uploadBlobToS3, handleRegister } = useRegister();
+
   const [getChatToken] = useMutation(GET_CHAT_TOKEN);
   const dispatch = useDispatch();
   const getPermission = async () => {
@@ -47,10 +56,9 @@ export default function ChatScreen({ route, navigation }: any) {
     }
   };
   const { getAgoraCallToken } = useChatService();
-  const token = useSelector(state => state.chats.chatToken);
+  const token = useSelector(state => state?.chats?.chatToken);
   console.log("tokeren", token)
   const { sender, receiver, chat, channel, voiceToken } = route.params;
-  console.log("sender", sender?._id)
   const appKey = '411048105#1224670';
   const uid = 0;
   const [channelName, setChannelName] = useState('');
@@ -68,7 +76,8 @@ export default function ChatScreen({ route, navigation }: any) {
   const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
   const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
   const [message, setMessage] = useState('');
-  // console.log("contentes", content)
+  const [selectedImage, setSelectedImage] = useState(null);
+
   const getVoiceToken = async () => {
     try {
       const { channelName, token } = await getAgoraCallToken(receiver._id);
@@ -136,6 +145,7 @@ export default function ChatScreen({ route, navigation }: any) {
                 },
               },
             ];
+            console.log('Generated new message:', newMessages);
             setContent((previousMessages: any) =>
               GiftedChat.append(previousMessages, newMessages),
             );
@@ -245,6 +255,11 @@ export default function ChatScreen({ route, navigation }: any) {
           logout()
           refreshChatTokenAndRetryLogin();
         }
+        else if (reason.code === 201) {
+
+          login();
+
+        }
         else if (reason.code === 104) {
           logout()
           refreshChatTokenAndRetryLogin();
@@ -266,28 +281,44 @@ export default function ChatScreen({ route, navigation }: any) {
         console.log('login fail: ' + JSON.stringify(reason));
       });
   };
-  const sendmsg = (newMessage: string) => {
+  const sendmsg = async (newMessage: string) => {
 
     const chatType = ChatMessageChatType.PeerChat;
-    const content = newMessage.text;
+    let content;
     console.log('Sending message:sss', this.isInitialized);
 
     if (this.isInitialized === false || this.isInitialized === undefined) {
       console.log('Perform initialization first.');
       return;
     }
-    // const msg = ChatMessage.createSendMessage(content, targetId);
 
     let msg: ChatMessage;
 
-    msg = ChatMessage.createTextMessage(targetId, content, chatType);
 
-    // console.log('contentIIII', targetId);
-    // let msg = ChatMessage.createTextMessage(
-    //   targetId,
-    //   content,
-    //   ChatMessageChatType.PeerChat,
-    // );
+    if (newMessage.text) {
+      // Sending text message
+      content = newMessage.text;
+      msg = ChatMessage.createTextMessage(targetId, content, chatType);
+    }
+    else if (newMessage.image) {
+      // Sending image message
+
+      let imageBlob = await handleCompression(newMessage.image.uri)
+      const url = await uploadBlobToS3(imageBlob);
+
+      const filePath = newMessage.image.uri; // Image file path
+      const fileName = newMessage.image.fileName || 'image.jpg'; // Default file name
+      const fileSize = newMessage.image.fileSize; // Optional file size
+      content = filePath;
+      console.log("filepath", filePath)
+      msg = ChatMessage.createImageMessage(
+        targetId,
+        filePath,
+        chatType,
+        fileName,
+        fileSize
+      );
+    }
     const callback = new (class {
       onProgress(locaMsgId: any, progress: any) {
         console.log(`send message process: ${locaMsgId}, ${progress}`);
@@ -339,18 +370,30 @@ export default function ChatScreen({ route, navigation }: any) {
         }
       }
       onSuccess(message: { localMsgId: string }) {
-        console.log('send message success: ' + message.localMsgId);
-
-        const newMessages = [
+        console.log('send message success: ' + content);
+        const data = {
+          receiverId: receiver?._id,
+          text: newMessage.text
+            ? newMessage.text
+            : "Image sent",
+          senderName: `${sender?.first_name} ${sender?.last_name}`,
+        }
+        socket.emit('send-message', data);
+        const newMessages = formatMessages([
           {
-            _id: message.localMsgId,
-            text: content,
-            createdAt: new Date(),
-            user: {
-              _id: sender?._id,
+            msgId: message.localMsgId,
+            serverTime: Date.now(),
+            from: sender?._id,
+            body: {
+              type: newMessage.text ? "txt" : "img",
+              content: content,
+              remotePath: content, // For images, this would be the uploaded URL
+              thumbnailRemotePath: newMessage.image?.thumbnail || "",
+              displayName: newMessage.image?.fileName || "image",
+              fileSize: newMessage.image?.fileSize || 0,
             },
           },
-        ];
+        ]);
 
         setContent((previousMessages: any) =>
           GiftedChat.append(previousMessages, newMessages),
@@ -379,17 +422,118 @@ export default function ChatScreen({ route, navigation }: any) {
     }
 
     return messageList.map(message => {
-      return {
+      // Determine if the message is an image or text
+      const isImage = message.body?.type === "img";
+      const isText = message.body?.type === "txt";
+
+      // Handle formatting for each type of message
+      const formattedMessage = {
         _id: message.msgId,
-        text: message.body?.content || '', // Use optional chaining to avoid errors if content is missing
         createdAt: new Date(message.serverTime),
         user: {
           _id: message.from,
         },
       };
+
+      if (isImage) {
+        // Image message
+        return {
+          ...formattedMessage,
+          image: message.body?.remotePath || "", // Use the remote path for the image
+          thumbnail: message.body?.thumbnailRemotePath || "", // Optional thumbnail path
+          fileName: message.body?.displayName || "image", // File name for display
+          fileSize: message.body?.fileSize || 0, // Size of the image
+        };
+      } else if (isText) {
+        // Text message
+        return {
+          ...formattedMessage,
+          text: message.body?.content || "", // Text content
+        };
+      } else {
+        // Default case for unsupported types
+        return {
+          ...formattedMessage,
+          text: "[Unsupported message type]",
+        };
+      }
     });
   };
+  const pickImage = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
 
+      if (result.assets && result.assets.length > 0) {
+        const image = result.assets[0];
+        setSelectedImage(image)
+
+      }
+    } catch (error) {
+      console.error('Failed to pick image:', error);
+    }
+  };
+  const renderCustomActions = (props) => (
+    <Actions
+      {...props}
+      containerStyle={styles.actionContainer}
+      icon={() => (
+        <Image
+          source={require('../../../assets/camera1.png')} // Replace with your icon path
+          style={styles.imageIcon}
+        />
+      )}
+      onPressActionButton={pickImage}
+    />
+  );
+  const handleCloseImage = () => {
+    setSelectedImage(null);
+  };
+  console.log("contennnnnte", content)
+  const handleSendImage = () => {
+    if (selectedImage) {
+
+      sendmsg({ image: selectedImage });
+      setSelectedImage(null);
+    }
+  };
+  const handleAction = async (content) => {
+    console.log('Sending image...', content);
+    try {
+      //   if (content?.image) {
+      //     // Handle image sending
+      //     console.log('Sending image...');
+      //     await uploadImage(content.image);
+      //   } else if (content?.text) {
+      //     // Handle text message sending
+      //     console.log('Sending text message...');
+      //     await sendMessage(content.text);
+      //   } else if (content?.audio) {
+      //     // Handle audio message sending
+      //     console.log('Sending audio message...');
+      //     await sendAudio(content.audio);
+      //   } else {
+      //     console.error('Unknown content type');
+      // }
+    } catch (error) {
+      console.error('Error in handleAction:', error);
+    }
+  };
+
+  const textInputStyle = selectedImage ? {
+    flex: 1,
+    marginHorizontal: 10,
+    color: 'black',
+    fontSize: 16,
+    height: heightToDp(15)
+  } : {
+    flex: 1,
+    marginHorizontal: 10,
+    color: 'black',
+    fontSize: 16,
+  }
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -405,21 +549,44 @@ export default function ChatScreen({ route, navigation }: any) {
           })
         }
       />
-      <View style={styles.bottonSheet}>
+      <View style={[styles.bottonSheet, { marginBottom: selectedImage ? widthToDp(2) : widthToDp(-10) }]}>
+
         <GiftedChat
           messages={content}
-          onSend={setContent => sendmsg(setContent[0])}
+          onSend={newMessages => sendmsg(newMessages[0])}
+          // onSend={(newMessages) => handleAction(newMessages)}
           user={{
             _id: sender?._id,
           }}
+          renderActions={renderCustomActions}
           textInputProps={{
-            style: {
-              flex: 1,
-              marginHorizontal: 10,
-              color: 'black',
-              fontSize: 16,
-            },
+            // style: {
+            //   flex: 1,
+            //   marginHorizontal: 10,
+            //   color: 'black',
+            //   fontSize: 16,
+            // },
+            style: textInputStyle,
           }}
+          renderAccessory={() => (
+            <View style={styles.accessoryContainer}>
+
+              {selectedImage ? (
+                <>
+                  <TouchableOpacity style={styles.closeButton} onPress={handleCloseImage}>
+                    <Text style={styles.closeButtonText}>X</Text>
+                  </TouchableOpacity>
+                  <Image source={{ uri: selectedImage?.uri }} style={styles.selectedImage} />
+
+                  <TouchableOpacity onPress={handleSendImage} style={styles.sendImageButton}>
+                    <Icon name="send" size={20} color="black" style={styles.sendImageIcon} />
+                  </TouchableOpacity>
+                </>
+              ) : null}
+
+            </View>
+
+          )}
         />
       </View>
     </SafeAreaView>
@@ -433,6 +600,7 @@ const styles = StyleSheet.create({
   },
   bottonSheet: {
     marginTop: widthToDp(2),
+
     backgroundColor: '#fff',
     borderRadius: 20,
     flex: 1,
@@ -460,5 +628,61 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: heightToDp(2),
     paddingHorizontal: heightToDp(2),
+  },
+  actionContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  imageIcon: {
+    width: 28,
+    height: 28,
+  },
+  accessoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+
+    height: 50,
+  },
+  selectedImage: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
+    borderRadius: 5,
+  },
+  sendImageButton: {
+    backgroundColor: Colors.Primary,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    position: 'absolute',
+    top: -5,
+    right: 10,
+
+    zIndex: 1,
+
+  },
+  sendImageIcon: {
+    width: 20,
+    height: 20
+  },
+  closeButton: {
+    position: 'absolute',
+    top: -5,
+    left: 45,
+    backgroundColor: Colors.Red,
+    borderRadius: 12,
+    zIndex: 1,
+    width: 25,
+    height: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 12,
   },
 });

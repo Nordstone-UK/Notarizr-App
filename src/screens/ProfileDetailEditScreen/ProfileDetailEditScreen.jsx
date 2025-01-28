@@ -112,7 +112,14 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
   };
   const submitRegister = async () => {
     const age = calculateAge(date);
-
+    if (!description.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Description',
+        text2: 'Please fill in the description before saving.',
+      });
+      return;
+    }
     if (age < 18) {
       Toast.show({
         type: 'error',
@@ -139,6 +146,7 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
       description: description,
       dateOfBirth: date,
     };
+    console.log('paramsddd', params);
     const isUpdated = await handleProfileUpdate(params);
     if (isUpdated) {
       await fetchUserInfo();
@@ -170,11 +178,13 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
           showsVerticalScrollIndicator={false}>
           <View>
             <Image source={{uri: profilePicture}} style={styles.picture} />
-            <TouchableOpacity
-              style={styles.camera}
-              onPress={() => showCameraGalleryAlert()}>
-              <Image source={require('../../../assets/cameraIcon.png')} />
-            </TouchableOpacity>
+            {profileEdit && (
+              <TouchableOpacity
+                style={styles.camera}
+                onPress={() => showCameraGalleryAlert()}>
+                <Image source={require('../../../assets/cameraIcon.png')} />
+              </TouchableOpacity>
+            )}
           </View>
           <Text style={styles.textheading}>
             {first_name} {last_name}
@@ -236,6 +246,7 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
                   alignSelf: 'center',
                 }}
                 textStyle={{}}
+                editable={profileEdit}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}
@@ -244,6 +255,7 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
                 defaultValue={oldLocation}
                 LabelTextInput={'Address'}
                 onChangeText={text => setlocation(text)}
+                editable={profileEdit}
               />
               {account_type !== 'client' && (
                 <MultiLineTextInput
@@ -252,22 +264,25 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
                   defaultValue={description}
                   LabelTextInput={'Description'}
                   onChangeText={text => setDescription(text)}
+                  editable={profileEdit}
                 />
               )}
-              <View
-                style={{
-                  marginTop: heightToDp(10),
-                }}>
-                <GradientButton
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  Title="Save Details"
-                  onPress={() => submitRegister()}
-                  loading={tempLoading}
-                />
-              </View>
+              {profileEdit && (
+                <View
+                  style={{
+                    marginTop: heightToDp(10),
+                  }}>
+                  <GradientButton
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    Title="Save Details"
+                    onPress={() => submitRegister()}
+                    loading={tempLoading}
+                  />
+                </View>
+              )}
             </View>
           </BottomSheetStyle>
         </ScrollView>

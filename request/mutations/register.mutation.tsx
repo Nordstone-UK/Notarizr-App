@@ -11,7 +11,7 @@ export const REGISTER_USER = gql`
     $photoId: String
     $certificateUrl: String
     $profilePicture: String
-    
+    $dateOfBirth:String!
     $description: String
     $state: String
     $notarySeal: String
@@ -22,6 +22,7 @@ export const REGISTER_USER = gql`
       last_name: $lastName
       email: $email
       phone_number: $phoneNumber
+      date_of_birth:$dateOfBirth
       location: $location
       account_type: $accountType
       photoId: $photoId

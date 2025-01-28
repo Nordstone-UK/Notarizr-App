@@ -46,8 +46,12 @@ export default function NavigationHeader(props) {
               />
             </TouchableOpacity>
           )}
+
           {props.ProfilePic && (
-            <Image source={props.ProfilePic} style={styles.profilePic} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ProfileDetailEditScreen')}>
+              <Image source={props.ProfilePic} style={styles.profilePic} />
+            </TouchableOpacity>
           )}
           <Text style={styles.naveheader}>{props?.Title}</Text>
         </View>

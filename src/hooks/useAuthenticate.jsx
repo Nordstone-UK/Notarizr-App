@@ -34,7 +34,7 @@ const useAuthenticate = () => {
   const testAuth = async () => {
     try {
       const response = await testAuthencation();
-      console.log(response?.data);
+      console.log('console.lorresdf', response?.data);
       return response?.data?.testAuthenticationResult?.status;
     } catch (error) {
       console.log(error);
@@ -50,10 +50,11 @@ const useAuthenticate = () => {
       },
     };
     try {
+      // console.log('requestttt', request);
       const response = await uploadAuthUserID(request);
       console.log(response?.data);
     } catch (error) {
-      console.log(error);
+      console.log('errrr', error);
     }
   };
   const uploadUserPassport = async (uesrID, Pic) => {

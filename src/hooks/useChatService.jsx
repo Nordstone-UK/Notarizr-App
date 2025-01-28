@@ -35,12 +35,11 @@ function useChatService() {
     };
 
     const response = await createChat(request);
-
-    console.log('Chat response', response.data);
   };
 
   const getAllChats = async () => {
     const response = await getallchats();
+
     return response.data;
   };
   const handleGetMessages = async id => {
@@ -61,8 +60,9 @@ function useChatService() {
     };
     const ongong = {
       variables: {
-        ...clientBooking,
         status: 'pending',
+        page: 1,
+        pageSize: 50,
       },
     };
     const {data: Clientbook} = await getClientBooking(request);
@@ -95,8 +95,9 @@ function useChatService() {
     };
     const ongong = {
       variables: {
-        ...clientBooking,
         status: 'pending',
+        page: 1,
+        pageSize: 50,
       },
     };
     const {data: AgentBook} = await getAgentBooking(request);
@@ -116,7 +117,7 @@ function useChatService() {
       ...sessions,
       ...sessonoging,
     ];
-    // console.log('merge', mergedDetails);
+    console.log('merge', mergedDetails);
     const filteredChats = removeDuplicatesByClientName(mergedDetails);
     console.log('agentfilterhattsdd', filteredChats);
     dispatch(setAllChats(filteredChats));
@@ -143,14 +144,22 @@ function useChatService() {
     const resultArray = [];
 
     for (const item of array) {
+      let firstName = '';
+      let lastName = '';
       if (item.booked_by) {
-        const clientName = item.booked_by.first_name + item.booked_by.last_name;
+        firstName = item.booked_by.first_name || '';
+        lastName = item.booked_by.last_name || '';
+      } else if (item.client) {
+        firstName = item.client.first_name || '';
+        lastName = item.client.last_name || '';
+      }
 
-        // Check if clientName is not in uniqueAgents, add it to uniqueAgents and push the item to the resultArray
-        if (!uniqueAgents[clientName]) {
-          uniqueAgents[clientName] = true;
-          resultArray.push(item);
-        }
+      const clientName = firstName + lastName;
+
+      // Check if clientName is not in uniqueAgents, add it to uniqueAgents and push the item to the resultArray
+      if (clientName && !uniqueAgents[clientName]) {
+        uniqueAgents[clientName] = true;
+        resultArray.push(item);
       }
     }
 

@@ -31,6 +31,9 @@ import PaymentUpdateScreen from '../PaymentUpdateScreen/PaymentUpdateScreen';
 import AddCardScreen from '../AddCardScreen/AddCardScreen';
 import AddressDetails from '../AddressDetails/AddressDetails';
 import SettingScreen from '../SettingScreen/settingScreen';
+import TermsAndConditionsScreen from '../SettingScreen/termsandConditionScreen';
+import PrivacyPolicyScreen from '../SettingScreen/privacypolicyScreen';
+
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -440,6 +443,16 @@ export default function AppNavigation() {
         />
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
+        <Stack.Screen
+          name="TermsAndCondition"
+          component={TermsAndConditionsScreen}
+        />
+
+        <Stack.Screen
+          name="PrivacyPolicyScreen"
+          component={PrivacyPolicyScreen}
+        />
+
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
         <Stack.Screen
           name="NearbyLoadingScreen"

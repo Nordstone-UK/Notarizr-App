@@ -19,6 +19,7 @@ import LabelTextInput from '../LabelTextInput/LabelTextInput';
 
 export default function ModalCheck(props) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -42,6 +43,10 @@ export default function ModalCheck(props) {
   const handleclose = () => {
     props.setModalVisible(false);
     // console.log('hldldld', props.setModalVisible(false));
+  };
+  const handleFeedbackChange = text => {
+    setFeedback(text);
+    props.onChangeText(text); // Pass the input back to the parent if needed
   };
   return (
     <Modal
@@ -79,20 +84,25 @@ export default function ModalCheck(props) {
             Label={true}
             defaultValue={props.defaultValue}
             LabelTextInput={'Feedback'}
-            onChangeText={props.onChangeText}
+            onChangeText={handleFeedbackChange}
             AdjustWidth={{width: widthToDp(80)}}
             InputStyles={{padding: widthToDp(4)}}
           />
           <MainButton
-            onPress={props.onSubmit}
+            onPress={feedback.trim() ? props.onSubmit : null}
             Title="Submit Feedback"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            colors={
+              feedback.trim()
+                ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                : [Colors.DullTextColor, Colors.DisableColor]
+            }
             GradiStyles={{
               marginBottom: heightToDp(2),
               paddingVertical: heightToDp(3),
               borderRadius: 5,
               width: widthToDp(50),
             }}
+            disabled={!feedback.trim()}
             styles={{
               padding: heightToDp(0),
               fontSize: widthToDp(3.5),

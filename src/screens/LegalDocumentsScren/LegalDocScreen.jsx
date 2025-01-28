@@ -77,11 +77,11 @@ export default function LegalDocScreen({route, navigation}) {
       const [name, price] = item?.split(' - $');
       return {name, price: parseFloat(price)};
     });
-    if (documentObjects.length === 0) {
+    if (!documentObjects || documentObjects.length === 0) {
       console.log('No documents found');
       // setTotalPrice(0);
       // setSelectedDocs([]);
-      return; // Exit the function early
+      return;
     }
     const highestPriceDocument = documentObjects.reduce(
       (max, doc) => (doc.price > max.price ? doc : max),

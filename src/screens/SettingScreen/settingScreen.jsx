@@ -46,25 +46,25 @@ export default function SettingScreen({navigation}, props) {
   const clearTokenFromStorage = async () => {
     try {
       await AsyncStorage.removeItem('token');
-      const token = await AsyncStorage.getItem('token');
+      // const token = await AsyncStorage.getItem('token');
       // console.log('Token cleared from AsyncStorage', token);
     } catch (error) {
       console.error('Error clearing token from AsyncStorage:', error);
     }
   };
-  const handleLogout = async () => {
-    if (User) {
-      clearTokenFromStorage();
-      dispatch(saveUserInfo(null));
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'HomeScreen'}],
-      });
-      if (chatClient && chatClient.isInitialized) {
-        await chatClient.logout();
-      }
-    }
-  };
+  // const handleLogout = async () => {
+  //   // if (User) {
+  //     clearTokenFromStorage();
+  //     dispatch(saveUserInfo(null));
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{name: 'HomeScreen'}],
+  //     });
+  //     if (chatClient && chatClient.isInitialized) {
+  //       await chatClient.logout();
+  //     }
+  //   // }
+  // };
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
@@ -82,11 +82,20 @@ export default function SettingScreen({navigation}, props) {
                 variables: {userId: User._id}, // Pass the user's ID to the mutation
               });
               if (data.deleteUserR.status === '200') {
+                await AsyncStorage.removeItem('token');
+                // dispatch(saveUserInfo(null));
+                if (chatClient && chatClient.isInitialized) {
+                  await chatClient.logout();
+                }
                 Alert.alert(
                   'Account Deleted',
                   'Your account has been deleted successfully.',
                 );
-                handleLogout();
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'LoginScreen'}],
+                });
+                // Navigate to the HomeScreen
               } else {
                 Alert.alert(
                   'Error',
@@ -179,14 +188,16 @@ export default function SettingScreen({navigation}, props) {
           <SettingOptions
             icon={require('../../../assets/privacy.png')}
             Title="Privacy Policy"
+            onPress={() => navigation.navigate('PrivacyPolicyScreen')}
           />
-          <SettingOptions
+          {/* <SettingOptions
             icon={require('../../../assets/security.png')}
             Title="Security"
-          />
+          /> */}
           <SettingOptions
             icon={require('../../../assets/terms.png')}
             Title="Terms & Conditions"
+            onPress={() => navigation.navigate('TermsAndCondition')}
           />
           <SettingOptions
             icon={require('../../../assets/delete.png')}

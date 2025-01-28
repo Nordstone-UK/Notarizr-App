@@ -1093,6 +1093,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             // value: { selectedItem },
             color: '#9EA0A4',
           }}
+          useNativeAndroidPickerStyle={false} // Important for custom styles on Android
+          Icon={() => {
+            return <Icon name="chevron-down" size={20} color={Colors.Black} />;
+          }}
         />
       </View>
       <View style={styles.container}>
@@ -1341,20 +1345,27 @@ const pickerSelectStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: 'gray',
+    borderColor: 'transparent',
     borderRadius: 4,
-    color: 'black',
+    color: Colors.Black,
     paddingRight: 30,
+    margin: 5,
   },
   inputAndroid: {
     fontSize: 16,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderWidth: 1.5,
-    borderColor: 'purple',
+    borderColor: 'transparent',
     borderRadius: 8,
-    color: 'black',
+    color: Colors.Black,
     paddingRight: 30,
+    margin: 5,
+  },
+  iconContainer: {
+    top: 10, // Adjust position as needed
+    right: 12,
+    color: Colors.Black, // Black color for the icon
   },
 });
 const styles = StyleSheet.create({

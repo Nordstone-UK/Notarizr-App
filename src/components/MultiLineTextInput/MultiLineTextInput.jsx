@@ -48,7 +48,7 @@ export default function MultiLineTextInput(props) {
           multiline={true}
           onContentSizeChange={handleContentSizeChange}
           onBlur={handleBlur}
-          editable={!props.editable || true}
+          editable={props.editable !== false}
           style={[styles.input, props.InputStyles, {height: inputHeight}]}
           keyboardType={props.keyboardType || 'default'}
           secureTextEntry={secureText || false}

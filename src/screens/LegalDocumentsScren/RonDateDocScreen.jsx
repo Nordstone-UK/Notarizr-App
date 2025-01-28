@@ -139,12 +139,17 @@ export default function RonDateDocScreen({route, navigation}) {
   };
   const showConfirmation = async () => {
     setLoading(true);
-    if (date) {
+    if (date && selectedClient) {
       submitAddressDetails();
-    } else {
+    } else if (!date) {
       Toast.show({
         type: 'error',
         text1: 'Please select Date & Time',
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select Agent',
       });
     }
     setLoading(false);

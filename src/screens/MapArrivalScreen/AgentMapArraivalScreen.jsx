@@ -36,9 +36,8 @@ export default function AgentMapArrivalScreen({navigation}) {
 
   const clientData = useSelector(state => state.booking);
   const coordinates = useSelector(state => state.booking?.coordinates);
-  console.log('cooofnalf', coordinates);
   const user = useSelector(state => state.user.user?.account_type);
-
+  console.log('distanceee', distance);
   // useEffect(() => {
   //   const intervalId = setInterval(() => {
   //     handleGetLocation();
@@ -52,7 +51,6 @@ export default function AgentMapArrivalScreen({navigation}) {
       setLoading(true);
       if (user === 'individual-agent') {
         const currentLocation = await getLocation();
-        console.log('currentlocadfddfd', currentLocation);
         setLocation(currentLocation);
         updateDirections(currentLocation);
         await updateAgentLocation(currentLocation);
@@ -126,6 +124,7 @@ export default function AgentMapArrivalScreen({navigation}) {
         apikey: GOOGLE_MAPS_APIKEY,
         mode: 'DRIVING',
         onReady: result => {
+          console.log('reisputdistance', result);
           setDistance(result.distance);
           setDuration(result.duration);
           checkHighValues(result.distance, result.duration);
@@ -240,6 +239,7 @@ export default function AgentMapArrivalScreen({navigation}) {
                         result.distance !== distance ||
                         result.duration !== duration
                       ) {
+                        console.log('reisputdistance', result);
                         setDistance(result.distance);
                         setDuration(result.duration);
                       }

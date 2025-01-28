@@ -70,7 +70,7 @@ export default function LoginScreen({navigation}, props) {
     //   return;
     //  } else {
     dispatch(phoneSet(phone));
-    console.log('logiig');
+
     try {
       getPhoneOtp({
         variables: {phone},
@@ -85,7 +85,7 @@ export default function LoginScreen({navigation}, props) {
         } else if (response?.data?.getPhoneOTP?.status === '401') {
           Toast.show({
             type: 'error',
-            text1: 'Email does not exist!',
+            text1: 'Account does not exist!',
             text2: 'Please sign up for a new account',
           });
         } else if (response?.data?.getPhoneOTP?.status !== '200') {
@@ -106,8 +106,8 @@ export default function LoginScreen({navigation}, props) {
           // );
           Toast.show({
             type: 'error',
-            text1: 'Location service is disabled!',
-            text2: 'Please enable location to allow Agents to serve you better',
+            text1: 'error',
+            text2: 'Failed to send OTP',
           });
         } else {
           Toast.show({

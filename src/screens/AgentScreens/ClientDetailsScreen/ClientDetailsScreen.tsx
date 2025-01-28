@@ -103,7 +103,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [showNotes, setShowNotes] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [loadingStates, setLoadingStates] = useState({});
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [loadingAccept, setLoadingAccept] = useState(false);
   const [loadingReject, setLoadingReject] = useState(false);
@@ -302,6 +302,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       } else {
         statusUpdate = await handlegetBookingStatus(clientDetail?._id);
       }
+      console.log("statusd", statusUpdate)
       setStatus(capitalizeFirstLetter(statusUpdate));
     } catch (error) {
       console.error('Error retrieving booking status:', error);
@@ -754,32 +755,44 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     }
   };
 
-  const handleNotarizrDocumentPress = async documents => {
-    console.log('documents', documents);
+  const handleNotarizrDocumentPress = async (documents, name) => {
+
     try {
+      setLoadingStates(prev => ({ ...prev, [name]: true }));
+      Toast.show({
+        type: 'info',
+        text1: 'Download Starting',
+        text2: 'Preparing to download documents...',
+      });
       const hasPermission = await requestStoragePermission();
       console.log('Permission status:', hasPermission);
       if (!hasPermission) {
-        Alert.alert(
-          'Permission Denied',
-          'Storage permission is required to download files.',
-        );
+        Toast.show({
+          type: 'error',
+          text1: 'Permission Denied',
+          text2: 'Storage permission is required to download files.',
+        });
+        setLoadingStates(prev => ({ ...prev, [name]: false }));
+
         return;
       }
 
       const downloadDirExists = await checkDownloadDirectory();
       if (!downloadDirExists) {
-        Alert.alert(
-          'Download Directory Not Found',
-          'The download directory does not exist or is not accessible.',
-        );
+        Toast.show({
+          type: 'error',
+          text1: 'Download Directory Not Found',
+          text2: 'The download directory does not exist or is not accessible.',
+        });
+        setLoadingStates(prev => ({ ...prev, [name]: false }));
+
         return;
       }
 
       const processDownload = async url => {
         const fileName = decodeURIComponent(url.split('/').pop()); // decodeURIComponent to handle encoded characters
-        let dirs = ReactNativeBlobUtil.fs.dirs;
-        let downloadPath = `${dirs.DownloadDir}/${fileName}`;
+        let dirs = '/storage/emulated/0/Download';
+        let downloadPath = `${dirs}/${fileName}`;
 
         try {
           const result = await ReactNativeBlobUtil.config({
@@ -789,22 +802,32 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
           if (result.info().status === 200) {
             console.log(`File ${fileName} downloaded to ${downloadPath}`);
-            Alert.alert(
-              'Download Successful',
-              `File downloaded to ${downloadPath}`,
-            );
+            Toast.show({
+              type: 'success',
+              text1: 'Download Successful',
+              text2: `File downloaded to ${downloadPath}`,
+            });
+            setLoadingStates(prev => ({ ...prev, [name]: false }));
+
           } else {
-            Alert.alert(
-              'Download Failed',
-              `Failed to download the file ${fileName}.`,
-            );
+            Toast.show({
+              type: 'error',
+              text1: 'Download Failed',
+              text2: `Failed to download the file ${fileName}.`,
+            });
+            setLoadingStates(prev => ({ ...prev, [name]: false }));
+
           }
         } catch (error) {
           console.error(`Failed to download ${fileName}:`, error);
-          Alert.alert(
-            'Download Error',
-            `An error occurred while downloading the file ${fileName}.`,
-          );
+          Toast.show({
+            type: 'error',
+            text1: 'Download Error',
+            text2: `An error occurred while downloading the file ${fileName}.`,
+          });
+        } finally {
+          setLoadingStates(prev => ({ ...prev, [name]: false }));
+
         }
       };
 
@@ -823,15 +846,16 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       }
     } catch (error) {
       console.error(error);
-      Alert.alert(
-        'Download Error',
-        'An error occurred while downloading the files.',
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'Download Error',
+        text2: 'An error occurred while downloading the files.',
+      });
     }
   };
 
   console.log("cliendetails", observers)
-  console.log("cliendetailssssssssssssssssssssssss", clientDetail?.status)
+  console.log("cliendetailssssssssssssssssssssssss", clientDetail?.status, clientDetail.observers)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
@@ -1409,10 +1433,14 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   </Text>
                   <TouchableOpacity
                     onPress={() =>
-                      handleNotarizrDocumentPress(clientDetail.documents)
+                      handleNotarizrDocumentPress(clientDetail.documents, 'printuploaded')
                     }
                     style={styles.downloadButton}>
-                    <Text style={styles.downloadButtonText}>Download</Text>
+                    {loadingStates.printuploaded ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.downloadButtonText}>Download</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
 
@@ -1701,11 +1729,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     <TouchableOpacity
                       onPress={() =>
                         handleNotarizrDocumentPress(
-                          clientDetail.client_documents,
+                          clientDetail.client_documents, 'clientuploaded'
                         )
                       }
                       style={styles.downloadButton}>
-                      <Text style={styles.downloadButtonText}>Download</Text>
+                      {loadingStates.clientuploaded ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <Text style={styles.downloadButtonText}>Download</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                   <View
@@ -1744,10 +1776,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     </View>
                     <TouchableOpacity
                       onPress={() =>
-                        handleNotarizrDocumentPress(clientDetail.agent_document)
+                        handleNotarizrDocumentPress(clientDetail.agent_document,
+                          'agentuploaded')
                       }
                       style={styles.downloadButton}>
-                      <Text style={styles.downloadButtonText}>Download</Text>
+                      {loadingStates.agentuploaded ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <Text style={styles.downloadButtonText}>Download</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                   <View
@@ -1782,10 +1819,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     </View>
                     <TouchableOpacity
                       onPress={() =>
-                        handleNotarizrDocumentPress(clientDetail.notarized_docs)
+                        handleNotarizrDocumentPress(clientDetail.notarized_docs,
+                          'notarydocuments')
                       }
                       style={styles.downloadButton}>
-                      <Text style={styles.downloadButtonText}>Download</Text>
+                      {loadingStates.notarydocuments ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <Text style={styles.downloadButtonText}>Download</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                   <View
@@ -2015,8 +2057,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
           <View style={[styles.buttonFlex, { marginTop: heightToDp(5) }]}>
             {
-              (clientDetail.observers.length === 0 ||
-                clientDetail.identity_authentication === null) &&
+              // (clientDetail.observers.length === 0 ||
+              //   clientDetail.identity_authentication === null) &&
               clientDetail.__typename !== 'Booking' &&
               status === "Paid" && (
                 <MainButton
@@ -2573,7 +2615,8 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   downloadButton: {
-    flex: 1,
+    width: 120,
+    // flex: 1,
     backgroundColor: Colors.Orange,
     padding: 10,
     borderRadius: 5,
