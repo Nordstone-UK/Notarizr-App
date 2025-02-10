@@ -1384,13 +1384,13 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
                 </View>
               )}
-            {clientDetail.__typename === 'Booking' && clientDetail.address && (
+            {(clientDetail.__typename === 'Booking' || clientDetail.__typename === 'Allocation') && clientDetail.address && (
               <View style={{ paddingHorizontal: widthToDp(3) }}>
                 <Text style={[styles.insideHeading, styles.addressMargin]}>
                   Booked For Location
                 </Text>
                 <AddressCard
-                  location={bookedByAddress?.location}
+                  location={bookedByAddress?.location || clientDetail.address}
                   onPress={handleStartNavigation}
                   booking="true"
                 />

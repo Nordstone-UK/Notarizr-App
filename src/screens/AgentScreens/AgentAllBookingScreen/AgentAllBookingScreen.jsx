@@ -242,13 +242,16 @@ export default function AgentAllBookingScreen({navigation}) {
                   const profileImageUri = isAllocation
                     ? 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png'
                     : item?.booked_by?.profile_picture ||
-                      item?.client?.profile_picture;
+                      item?.client?.profile_picture ||
+                      'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png';
                   const agentName = isAllocation
                     ? `${item.first_name} ${item.last_name}`
                     : item?.booked_by?.first_name && item?.booked_by?.last_name
                     ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
-                    : `${item?.client?.first_name || ''} ${
-                        item?.client?.last_name || ''
+                    : `${
+                        item?.client?.first_name || item?.booked_for?.first_name
+                      } ${
+                        item?.client?.last_name || item?.booked_for?.last_name
                       }`;
                   const agentAddress = isAllocation
                     ? item.address
