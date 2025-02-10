@@ -46,8 +46,11 @@ export default function NavigationHeader(props) {
               />
             </TouchableOpacity>
           )}
+
           {props.ProfilePic && (
-            <Image source={props.ProfilePic} style={styles.profilePic} />
+            <TouchableOpacity onPress={props.profileImgPress}>
+              <Image source={props.ProfilePic} style={styles.profilePic} />
+            </TouchableOpacity>
           )}
           <Text style={styles.naveheader}>{props?.Title}</Text>
         </View>
@@ -97,6 +100,7 @@ const styles = StyleSheet.create({
     marginLeft: widthToDp(2),
     alignItems: 'center',
     justifyContent: 'space-between',
+    // backgroundColor: 'red',
   },
   touchContainer: {
     flexDirection: 'row',

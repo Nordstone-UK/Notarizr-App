@@ -97,12 +97,12 @@ export default function AgentCompletedBooking({navigation}) {
                       agentName={
                         item?.booked_by?.first_name &&
                         item?.booked_by?.last_name
-                          ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
-                          : `${item.client.first_name} ${item.client.last_name}`
+                          ? `${item.booked_by?.first_name} ${item.booked_by.last_name}`
+                          : `${item.client?.first_name} ${item.client?.last_name}`
                       }
                       agentAddress={
                         item?.booked_by?.location
-                          ? `${item?.booked_by?.location}`
+                          ? `${item?.address}`
                           : `${item?.client?.location}`
                       }
                       status={item?.status}

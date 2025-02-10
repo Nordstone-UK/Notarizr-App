@@ -5,13 +5,13 @@ const initialState = {
   lastName: 'none',
   email: 'none',
   phoneNumber: 'none',
-  gender: '',
   profilePicture: 'none',
   certificateUrl: 'none',
   photoId: 'none',
   accountType: 'client',
   location: 'none',
-  dateOfBirth: 'none',
+  progress: 0,
+  filledCount: 0,
 };
 
 export const registerSlice = createSlice({
@@ -20,6 +20,10 @@ export const registerSlice = createSlice({
   reducers: {
     emailSet: (state, action) => {
       state.email = action.payload;
+      // console.log('Redux email', state.email);
+    },
+    phoneSet: (state, action) => {
+      state.phoneNumber = action.payload;
       // console.log('Redux email', state.email);
     },
     ceredentailSet: (state, action) => {
@@ -41,10 +45,23 @@ export const registerSlice = createSlice({
       state.accountType = action.payload;
       // console.log('Redux accountType', state.accountType);
     },
+    setProgress: (state, action) => {
+      state.progress = action.payload;
+    },
+    setFilledCount: (state, action) => {
+      state.filledCount = action.payload;
+    },
   },
 });
 
-export const {emailSet, ceredentailSet, profilePictureSet, accountTypeSet} =
-  registerSlice.actions;
+export const {
+  emailSet,
+  phoneSet,
+  ceredentailSet,
+  profilePictureSet,
+  accountTypeSet,
+  setProgress,
+  setFilledCount,
+} = registerSlice.actions;
 
 export default registerSlice.reducer;

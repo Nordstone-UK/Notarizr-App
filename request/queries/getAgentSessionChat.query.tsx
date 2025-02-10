@@ -14,13 +14,14 @@ export const GET_AGENT_SESSION_CHAT = gql`
           last_name
           profile_picture
         }
-        booked_by {
+        client {
           _id
           email
           first_name
           last_name
           profile_picture
         }
+       
       }
       totalDocs
       limit

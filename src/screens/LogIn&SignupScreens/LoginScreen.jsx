@@ -10,6 +10,7 @@ import {
   Alert,
   SafeAreaView,
   PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -23,65 +24,106 @@ import {useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
-import {emailSet} from '../../features/register/registerSlice';
+import {phoneSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
 import CustomToast from '../../components/CustomToast/CustomToast';
+import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
+import Geolocation from '@react-native-community/geolocation';
 
 export default function LoginScreen({navigation}, props) {
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
-  const dispath = useDispatch();
+  const dispatch = useDispatch();
+
+  const getCurrentLocation = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        Geolocation.getCurrentPosition(
+          position => {
+            const {latitude, longitude} = position.coords;
+            resolve({latitude, longitude});
+          },
+          error => {
+            reject(error);
+          },
+          Platform.OS === 'android'
+            ? {}
+            : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
 
   const handleGetPhoneOtp = () => {
+    getCurrentLocation();
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-    if (!emailRegex.test(email)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Invalid Email!',
-        text2: 'Please enter a valid email address',
+    // if (!emailRegex.test(email)) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Invalid Email!',
+    //     text2: 'Please enter a valid email address',
+    //   });
+    //   return;
+    //  } else {
+    dispatch(phoneSet(phone));
+
+    try {
+      getPhoneOtp({
+        variables: {phone},
+      }).then(response => {
+        console.log('responsessss', response);
+        if (response?.data?.getPhoneOTP?.status === '403') {
+          Toast.show({
+            type: 'error',
+            text1: 'We are Sorry!',
+            text2: 'This User is Blocked',
+          });
+        } else if (response?.data?.getPhoneOTP?.status === '401') {
+          Toast.show({
+            type: 'error',
+            text1: 'Account does not exist!',
+            text2: 'Please sign up for a new account',
+          });
+        } else if (response?.data?.getPhoneOTP?.status !== '200') {
+          // Alert.alert(
+          //   'Location service is disabled!',
+          //   'Please enable location to allow Agents to serve you better',
+          //   [
+          //     {
+          //       text: 'Cancel',
+          //       style: 'cancel',
+          //     },
+          //     {
+          //       text: 'Settings',
+          //       onPress: () => Linking.openSettings(), // Open app settings
+          //     },
+          //   ],
+          //   {cancelable: false},
+          // );
+          Toast.show({
+            type: 'error',
+            text1: 'error',
+            text2: 'Failed to send OTP',
+          });
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
+            text2: '',
+          });
+          navigation.navigate('PhoneVerification', {
+            message: response.data.getPhoneOTP.phoneNumber,
+          });
+        }
       });
-      return;
-    } else {
-      dispath(emailSet(email));
-      try {
-        getPhoneOtp({
-          variables: {email},
-        }).then(response => {
-          console.log('response', response.error);
-          if (response?.data?.getPhoneOTP?.status === '403') {
-            Toast.show({
-              type: 'error',
-              text1: 'We are Sorry!',
-              text2: 'This User is Blocked',
-            });
-          } else if (response?.data?.getPhoneOTP?.status === '401') {
-            Toast.show({
-              type: 'error',
-              text1: 'Email does not exist!',
-              text2: 'Please sign up for a new account',
-            });
-          } else if (response?.data?.getPhoneOTP?.status !== '200') {
-            Toast.show({
-              type: 'error',
-              text1: 'OTP not sent!',
-              text2: 'We encountered a problem please try again',
-            });
-          } else {
-            Toast.show({
-              type: 'success',
-              text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
-              text2: '',
-            });
-            navigation.navigate('PhoneVerification', {
-              message: response.data.getPhoneOTP.phoneNumber,
-            });
-          }
-        });
-      } catch (error) {
-        console.log('#######', error);
-      }
+    } catch (error) {
+      console.log('#######', error);
     }
+    // }
   };
   useEffect(() => {
     requestPermissions();
@@ -130,32 +172,29 @@ export default function LoginScreen({navigation}, props) {
         }
       } else if (Platform.OS === 'ios') {
         // Request location permission
-        const locationPermissionStatus = await request(
-          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-        );
+        // const locationPermissionStatus = await request(
+        //   PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        // );
         // const PushNotificationPermission = await request(
         //   PERMISSIONS.IOS.NOTIFICATIONS,
         // );
-
         // Request camera permission
         // const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
-
         // Request photo library permission
         // const photoLibraryPermissionStatus = await request(
         //   PERMISSIONS.IOS.PHOTO_LIBRARY,
         // );
-
         // Check if permissions are granted
-        if (
-          locationPermissionStatus === 'granted'
-          // cameraPermissionStatus === 'granted' &&
-          // PushNotificationPermission === 'granted'
-          // photoLibraryPermissionStatus === 'granted'
-        ) {
-          console.log('All permissions granted');
-        } else {
-          console.log('Some permissions denied');
-        }
+        // if (
+        //   locationPermissionStatus === 'granted'
+        //   // cameraPermissionStatus === 'granted' &&
+        //   // PushNotificationPermission === 'granted'
+        //   // photoLibraryPermissionStatus === 'granted'
+        // ) {
+        //   console.log('All permissions granted');
+        // } else {
+        //   console.log('Some permissions denied');
+        // }
       }
     } catch (error) {
       console.log('Error requesting permissions:', error);
@@ -179,14 +218,22 @@ export default function LoginScreen({navigation}, props) {
         />
         <BottomSheetStyle>
           <View style={{marginTop: heightToDp(5)}}>
-            <LabelTextInput
+            <PhoneTextInput
+              onChange={e => {
+                setPhone(e);
+              }}
+              LabelTextInput="Phone Number"
+              Label={true}
+              placeholder={'XXXXXXXXXXX'}
+            />
+            {/* <LabelTextInput
               leftImageSoucre={require('../../../assets/EmailIcon.png')}
               placeholder={'Enter your email address'}
               LabelTextInput={'Email Address'}
               onChangeText={text => setEmail(text)}
               keyboardType={'email-address'}
               Label={true}
-            />
+            /> */}
             <View
               style={{
                 marginTop: heightToDp(10),

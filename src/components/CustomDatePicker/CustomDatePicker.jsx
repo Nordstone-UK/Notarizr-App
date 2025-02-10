@@ -9,7 +9,7 @@ export default function CustomDatePicker(props) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(props.date);
 
-  console.log('datarere', selectedDate);
+  const isEditable = props.editable !== false; // Default is editable unless explicitly set to false.
   const handleCancel = () => {
     setOpen(false);
   };
@@ -18,7 +18,11 @@ export default function CustomDatePicker(props) {
   return (
     <View>
       <TouchableOpacity
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          if (isEditable) {
+            setOpen(true);
+          }
+        }}
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -64,7 +68,7 @@ export default function CustomDatePicker(props) {
         }}
         onCancel={handleCancel}
         mode="date"
-        // maximumDate={new Date(2020, 11, 31)}
+        maximumDate={new Date()}
         // minimumDate={new Date(1950, 11, 31)}
         date={selectedDate}
       />

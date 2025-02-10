@@ -31,7 +31,8 @@ import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 
 export default function ServiceDetailScreen({route, navigation}) {
-  const {serviceType} = route.params;
+  const {serviceType, address} = route.params;
+  console.log('routerparamssdf', route);
   const {fetchUserInfo} = useFetchUser();
   const dispatch = useDispatch();
   const {addresses} = useSelector(state => state.user.user);
@@ -47,10 +48,24 @@ export default function ServiceDetailScreen({route, navigation}) {
   // const [isEnabled, setIsEnabled] = useState(false);
   // const [documents, setDocuments] = useState();
   // const [startTime, setStartTime] = useState(new Date());
-  console.log('adsddress', selectAddress);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(null);
   const [open, setOpen] = useState(false);
-  console.log('date', date);
+  const [mode, setMode] = useState('date');
+  console.log('locatondfdf', location);
+  let initialDate = new Date();
+  useEffect(() => {
+    if (address) {
+      // Loop through the addresses to check for a match with address.location
+      const matchingItem = addresses.find(
+        item => item.location === address.location,
+      );
+      if (matchingItem) {
+        setSelectedAddress(matchingItem.location);
+        setlocation(matchingItem._id); // Set the matching address _id
+      }
+    }
+  }, [address, addresses]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
@@ -70,12 +85,13 @@ export default function ServiceDetailScreen({route, navigation}) {
       setServiceFor(string);
     }
   };
-  console.log('Srvie', serviceFor);
+
   const submitAddressDetails = () => {
+    console.log('loatonaddress', selectAddress);
     dispatch(
       setBookingInfoState({
         serviceType: serviceType,
-        service: null,
+        service: serviceFor,
         timeOfBooking: moment(date).format('h:mm A'),
         dateOfBooking: moment(date).format('MM-DD-YYYY'),
         agent: null,
@@ -84,7 +100,7 @@ export default function ServiceDetailScreen({route, navigation}) {
           price: null,
         },
 
-        address: selectAddress,
+        address: location,
         bookedFor: {
           email: email,
           first_name: firstName,
@@ -97,7 +113,11 @@ export default function ServiceDetailScreen({route, navigation}) {
         preferenceAnalysis: 'distance',
       }),
     );
-    navigation.navigate('LegalDocScreen');
+    navigation.navigate('LegalDocScreen', {address: selectAddress});
+  };
+  const handleOpenPicker = pickermode => {
+    setMode(pickermode);
+    setOpen(true);
   };
   const showConfirmation = async () => {
     setLoading(true);
@@ -106,8 +126,8 @@ export default function ServiceDetailScreen({route, navigation}) {
       (date && email && firstName && lastName && phoneNumber && location)
     ) {
       Alert.alert(
-        'Disclaimer',
-        'We may contact you to modify the time based on local agent availability and time of day..',
+        'Please Note:',
+        'We may contact you to adjust the time based on agent availability and time of day.',
         [
           {
             text: 'OK',
@@ -205,7 +225,7 @@ export default function ServiceDetailScreen({route, navigation}) {
 
   //   setLoading(false);
   // };
-  console.log('addressslist', date);
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -222,6 +242,33 @@ export default function ServiceDetailScreen({route, navigation}) {
               <View style={{marginVertical: heightToDp(2)}}>
                 <Text style={styles.headingContainer}>Date & Time:</Text>
                 <View style={styles.buttonFlex}>
+                  <TouchableOpacity onPress={() => handleOpenPicker('date')}>
+                    <Text style={styles.dateText}>
+                      {moment(date || initialDate).format('MM-DD-YYYY')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleOpenPicker('time')}>
+                    <Text style={styles.dateText}>
+                      {moment(date || initialDate).format(' hh:mm A')}
+                    </Text>
+                  </TouchableOpacity>
+                  <DatePicker
+                    modal
+                    mode={mode}
+                    // minimumDate={date}
+                    open={open}
+                    date={date || initialDate}
+                    onConfirm={selectedDate => {
+                      setOpen(false); // Close the modal
+                      setDate(selectedDate); // Update the state with the new selected date or time
+                    }}
+                    onCancel={() => {
+                      setOpen(false);
+                    }}
+                    locale="en"
+                  />
+                </View>
+                {/* <View style={styles.buttonFlex}>
                   <TouchableOpacity onPress={() => setOpen(true)}>
                     <Text
                       style={{
@@ -251,10 +298,10 @@ export default function ServiceDetailScreen({route, navigation}) {
                       setOpen(false);
                     }}
                   />
-                </View>
+                </View> */}
               </View>
               <Text style={styles.insideHeading}>
-                To whom are you booking this service for:
+                Who are you booking this service for?
               </Text>
 
               <View style={styles.buttonFlex}>
@@ -303,8 +350,11 @@ export default function ServiceDetailScreen({route, navigation}) {
                     <AddressCard
                       key={index}
                       location={item.location}
-                      onPress={() => setSelectedAddress(item._id)}
-                      Show={selectAddress === item._id}
+                      onPress={() => {
+                        setSelectedAddress(item.location);
+                        setlocation(item._id);
+                      }}
+                      Show={selectAddress === item.location}
                       booking="true"
                     />
                   ))}
@@ -344,12 +394,42 @@ export default function ServiceDetailScreen({route, navigation}) {
                     Label={true}
                     placeholder={'XXXXXXXXXXX'}
                   />
-                  <LabelTextInput
-                    leftImageSoucre={require('../../../assets/locationIcon.png')}
-                    Label={true}
-                    placeholder={'Enter your address'}
-                    LabelTextInput={'Address'}
-                    onChangeText={text => setlocation(text)}
+                  {location && (
+                    <LabelTextInput
+                      leftImageSoucre={require('../../../assets/locationIcon.png')}
+                      Label={true}
+                      placeholder={'Enter your address'}
+                      LabelTextInput={'Address'}
+                      value={address?.location}
+                      onChangeText={text => setlocation(text)}
+                    />
+                  )}
+                  <GradientButton
+                    Title="Add Your Address"
+                    colors={
+                      !selectAddress
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.DisableColor, Colors.DisableColor]
+                    }
+                    GradiStyles={{
+                      paddingBottom: widthToDp(1),
+                      // width: widthToDp(45),
+                      // height: heightToDp(20),
+                    }}
+                    styles={
+                      {
+                        // padding: widthToDp(40),
+                        // marginbottom: -10,
+                        // fontSize: widthToDp(2),
+                      }
+                    }
+                    // buttonFontSize={widthToDp(5)}
+                    onPress={() =>
+                      navigation.navigate('CurrentLocationScreen', {
+                        previousScreen: 'ServiceDetailScreen',
+                        service: 'others',
+                      })
+                    }
                   />
                 </View>
               )}
@@ -455,6 +535,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     marginTop: heightToDp(5),
+  },
+  dateText: {
+    color: Colors.Orange,
+    fontFamily: 'Manrope-Bold',
+    fontSize: widthToDp(5),
+    borderWidth: 1,
+    borderColor: Colors.Orange,
+    paddingHorizontal: widthToDp(2),
+    borderRadius: widthToDp(2),
+    marginRight: widthToDp(2),
   },
 });
 {

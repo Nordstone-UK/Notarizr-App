@@ -44,24 +44,49 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.72.5)
   - fmt (6.2.1)
   - glog (0.3.5)
+  - Google-Maps-iOS-Utils (4.1.0):
+    - Google-Maps-iOS-Utils/Clustering (= 4.1.0)
+    - Google-Maps-iOS-Utils/Geometry (= 4.1.0)
+    - Google-Maps-iOS-Utils/GeometryUtils (= 4.1.0)
+    - Google-Maps-iOS-Utils/Heatmap (= 4.1.0)
+    - Google-Maps-iOS-Utils/QuadTree (= 4.1.0)
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/Clustering (4.1.0):
+    - Google-Maps-iOS-Utils/QuadTree
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/Geometry (4.1.0):
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/GeometryUtils (4.1.0):
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/Heatmap (4.1.0):
+    - Google-Maps-iOS-Utils/QuadTree
+    - GoogleMaps
+  - Google-Maps-iOS-Utils/QuadTree (4.1.0):
+    - GoogleMaps
+  - GoogleMaps (7.4.0):
+    - GoogleMaps/Maps (= 7.4.0)
+  - GoogleMaps/Base (7.4.0)
+  - GoogleMaps/Maps (7.4.0):
+    - GoogleMaps/Base
   - hermes-engine (0.72.5):
     - hermes-engine/Pre-built (= 0.72.5)
   - hermes-engine/Pre-built (0.72.5)
-  - HyphenateChat (4.1.1)
+  - HyphenateChat (4.5.0)
   - libevent (2.1.12)
-  - lottie-ios (4.3.4)
-  - lottie-react-native (6.4.0):
-    - lottie-ios (~> 4.3.3)
+  - lottie-ios (4.5.0)
+  - lottie-react-native (7.1.0):
+    - lottie-ios (= 4.5.0)
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - OneSignalXCFramework (3.12.4):
-    - OneSignalXCFramework/OneSignalCore (= 3.12.4)
-    - OneSignalXCFramework/OneSignalExtension (= 3.12.4)
-    - OneSignalXCFramework/OneSignalOutcomes (= 3.12.4)
-  - OneSignalXCFramework/OneSignalCore (3.12.4)
-  - OneSignalXCFramework/OneSignalExtension (3.12.4):
+  - OneSignalXCFramework (3.12.6):
+    - OneSignalXCFramework/OneSignalCore (= 3.12.6)
+    - OneSignalXCFramework/OneSignalExtension (= 3.12.6)
+    - OneSignalXCFramework/OneSignalOutcomes (= 3.12.6)
+  - OneSignalXCFramework/OneSignalCore (3.12.6)
+  - OneSignalXCFramework/OneSignalExtension (3.12.6):
     - OneSignalXCFramework/OneSignalCore
     - OneSignalXCFramework/OneSignalOutcomes
-  - OneSignalXCFramework/OneSignalOutcomes (3.12.4):
+  - OneSignalXCFramework/OneSignalOutcomes (3.12.6):
     - OneSignalXCFramework/OneSignalCore
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -370,8 +395,8 @@ PODS:
     - React-Core
   - react-native-blob-util (0.19.9):
     - React-Core
-  - react-native-chat-sdk (1.2.0):
-    - HyphenateChat (= 4.1.1)
+  - react-native-chat-sdk (1.3.0-alpha.0):
+    - HyphenateChat (= 4.5.0)
     - React-Core
   - react-native-date-picker (4.3.3):
     - React-Core
@@ -383,6 +408,10 @@ PODS:
     - React-Core
   - react-native-geolocation-service (5.3.1):
     - React
+  - react-native-google-maps (1.8.0):
+    - Google-Maps-iOS-Utils (= 4.1.0)
+    - GoogleMaps (= 7.4.0)
+    - React-Core
   - react-native-image-picker (7.0.0):
     - React-Core
   - react-native-image-resizer (1.4.5):
@@ -393,14 +422,16 @@ PODS:
     - React-Core
   - react-native-netinfo (9.4.1):
     - React-Core
-  - react-native-onesignal (4.5.1):
-    - OneSignalXCFramework (= 3.12.4)
+  - react-native-onesignal (4.5.2):
+    - OneSignalXCFramework (= 3.12.6)
     - React (< 1.0.0, >= 0.13.0)
   - react-native-pdf (6.7.4):
     - React-Core
   - react-native-safe-area-context (4.7.2):
     - React-Core
   - react-native-splash-screen (3.3.0):
+    - React-Core
+  - react-native-view-shot (3.8.0):
     - React-Core
   - react-native-webview (13.10.0):
     - RCT-Folly (= 2021.07.22.00)
@@ -524,7 +555,7 @@ PODS:
     - React-Core
   - RNCMaskedView (0.2.9):
     - React-Core
-  - RNCPicker (2.5.1):
+  - RNCPicker (2.8.0):
     - React-Core
   - RNFS (2.20.0):
     - React-Core
@@ -537,6 +568,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - RNScreens (3.27.0):
     - RCT-Folly (= 2021.07.22.00)
+    - React-Core
+  - RNShare (10.2.1):
     - React-Core
   - RNSketchCanvas (0.8.0):
     - React
@@ -590,9 +623,11 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GoogleMaps
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - OneSignalXCFramework (< 4.0, >= 3.0)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -617,6 +652,7 @@ DEPENDENCIES:
   - react-native-document-scanner-plugin (from `../node_modules/react-native-document-scanner-plugin`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
+  - react-native-google-maps (from `../node_modules/react-native-maps`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-immediate-phone-call (from `../node_modules/react-native-immediate-phone-call`)
@@ -626,6 +662,7 @@ DEPENDENCIES:
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
+  - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -653,6 +690,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNShare (from `../node_modules/react-native-share`)
   - "RNSketchCanvas (from `../node_modules/@terrylinla/react-native-sketch-canvas`)"
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -665,6 +703,8 @@ SPEC REPOS:
     - AgoraRtcEngine_iOS
     - BEMCheckBox
     - fmt
+    - Google-Maps-iOS-Utils
+    - GoogleMaps
     - HyphenateChat
     - libevent
     - lottie-ios
@@ -743,6 +783,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-geolocation-service:
     :path: "../node_modules/react-native-geolocation-service"
+  react-native-google-maps:
+    :path: "../node_modules/react-native-maps"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-image-resizer:
@@ -761,6 +803,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-splash-screen:
     :path: "../node_modules/react-native-splash-screen"
+  react-native-view-shot:
+    :path: "../node_modules/react-native-view-shot"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-NativeModulesApple:
@@ -815,6 +859,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSketchCanvas:
     :path: "../node_modules/@terrylinla/react-native-sketch-canvas"
   RNSVG:
@@ -837,12 +883,14 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: 448e08a759d29a96e15725ae532445bf4343567c
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  Google-Maps-iOS-Utils: 3343332b18dfd5be8f1f44edd7d481ace3da4d9a
+  GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: f6cf92a471053245614d9d8097736f6337d5b86c
-  HyphenateChat: 95aa4abbad0e763f513acbe21ff9543f50b886cd
+  HyphenateChat: bf4cfa65a83ffa210803fdc91263b4891fb510ee
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
-  lottie-react-native: 3a3084faddd3891c276f23fd6e797b83f2021bbc
-  OneSignalXCFramework: 087934ab0d4d7445fcf1c015c7c782359e26c020
+  lottie-ios: a881093fab623c467d3bce374367755c272bdd59
+  lottie-react-native: 40f1d9678d41cf494ab711029c3bc7b4f51e0094
+  OneSignalXCFramework: ff1c970b7aeb4ac0fe48fb35393eb5d8bf378135
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: df81ab637d35fac9e6eb94611cfd20f0feb05455
   RCTTypeSafety: 4636e4a36c7c2df332bda6d59b19b41c443d4287
@@ -860,21 +908,23 @@ SPEC CHECKSUMS:
   React-logger: 2e4aee3e11b3ec4fa6cfd8004610bbb3b8d6cca4
   react-native-agora: 7026292738f2de759f532938db629c7acda377af
   react-native-blob-util: 18b510205c080a453574a7d2344d64673d0ad9af
-  react-native-chat-sdk: 1e1af99a4026aa7ec6e386587d7871de515ec2b3
+  react-native-chat-sdk: 18065000895bba6cb157e170005d71457524fd90
   react-native-date-picker: 1d61c76315098a6ad4c643a356f005916c7d4875
   react-native-document-picker: 2b8f18667caee73a96708a82b284a4f40b30a156
   react-native-document-scanner-plugin: bcb4b5a6770ebb10080c8f051de1e9c1bb81afac
   react-native-geolocation: ef66fb798d96284c6043f0b16c15d9d1d4955db4
   react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
+  react-native-google-maps: 356b9d01da0920be13e4c4dc83673b30e8a22c16
   react-native-image-picker: ddbbe4d226d9c82a82360f5de66bf71a657a42e6
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-immediate-phone-call: eb8a86325478db6c066eac6ecf8fa9ba3fbf66c5
   react-native-maps: f699e0753c22c4d5c3a44d03895b193a4dbca6c2
   react-native-netinfo: fefd4e98d75cbdd6e85fc530f7111a8afdf2b0c5
-  react-native-onesignal: 7bd44dbd031d8d57110c0203836ffc37ddead526
+  react-native-onesignal: ab800900cffeca4d9db70a05244013fc8a36ceb8
   react-native-pdf: 79aa75e39a80c1d45ffe58aa500f3cf08f267a2e
   react-native-safe-area-context: 7aa8e6d9d0f3100a820efb1a98af68aa747f9284
   react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
+  react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: 90153193e679163ec257011fa457d02765120210
   React-NativeModulesApple: 797bc6078d566eef3fb3f74127e6e1d2e945a15f
   React-perflogger: cd8886513f68e1c135a1e79d20575c6489641597
@@ -897,11 +947,12 @@ SPEC CHECKSUMS:
   RNCCheckbox: 75255b03e604bbcc26411eb31c4cbe3e3865f538
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
-  RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
+  RNCPicker: 0173dedc74776227ec6dcc61bb85cd9f07bbb2ac
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 6e46dde1f87e5f018a54fe5d40cd0e0b942b49ee
   RNReanimated: fdbaa9c964bbab7fac50c90862b6cc5f041679b9
   RNScreens: 3c2d122f5e08c192e254c510b212306da97d2581
+  RNShare: 0fad69ae2d71de9d1f7b9a43acf876886a6cb99c
   RNSketchCanvas: 9c28adb5381543ed55cc98ce6de46479cb3cb12c
   RNSVG: d00c8f91c3cbf6d476451313a18f04d220d4f396
   RNVectorIcons: 8b5bb0fa61d54cd2020af4f24a51841ce365c7e9
@@ -917,6 +968,6 @@ SPEC CHECKSUMS:
   StripeUICore: ce85e040a22bf0335061d14973d37757528b3d2d
   Yoga: 86fed2e4d425ee4c6eab3813ba1791101ee153c6
 
-PODFILE CHECKSUM: 2effe170c7de71c3c0c1c3ed6d52657ce90b9d80
+PODFILE CHECKSUM: 436bf8070ef49c515040399fc084b6a39d1f874b
 
 COCOAPODS: 1.15.2

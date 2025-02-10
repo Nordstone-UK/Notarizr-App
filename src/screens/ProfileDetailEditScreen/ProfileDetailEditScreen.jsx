@@ -34,7 +34,9 @@ import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTex
 import {removeCountryCode} from '../../utils/CountryCode';
 import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
 
-export default function ProfileDetailEditScreen({navigation}, props) {
+export default function ProfileDetailEditScreen({navigation, route}, props) {
+  const {profileEdit} = route.params || {profileEdit: false};
+  console.log('profileedit', profileEdit);
   const {
     gender: oldGender,
     first_name,
@@ -47,8 +49,10 @@ export default function ProfileDetailEditScreen({navigation}, props) {
     date_of_birth,
   } = useSelector(state => state.user.user);
   // const data = useSelector(state => state.user.user);
-  // console.log('dattttt', data);
-  const dateOfBirth = moment(date_of_birth, 'DD-MM-YYYY').toDate();
+
+  const dateOfBirth = date_of_birth
+    ? moment.utc(date_of_birth, 'YYYY-MM-DD').toDate()
+    : new Date();
 
   const [firstName, setfirstName] = useState(first_name);
   const [lastName, setlastName] = useState(last_name);
@@ -66,7 +70,6 @@ export default function ProfileDetailEditScreen({navigation}, props) {
   const {account_type} = useSelector(state => state.user.user);
   const {fetchUserInfo} = useFetchUser();
   const {countryCode, phoneNumberWithoutCode} = removeCountryCode(phoneNumber);
-  console.log(countryCode);
   const {handleCompression, uploadBlobToS3} = useRegister();
   const {handleProfileUpdate} = useUpdate();
   const showCameraGalleryAlert = () => {
@@ -102,7 +105,29 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       {cancelable: false},
     );
   };
+  const calculateAge = dob => {
+    const today = moment();
+    const birthDate = moment(dob);
+    return today.diff(birthDate, 'years');
+  };
   const submitRegister = async () => {
+    const age = calculateAge(date);
+    if (!description.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Description',
+        text2: 'Please fill in the description before saving.',
+      });
+      return;
+    }
+    if (age < 18) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Date of Birth',
+        text2: 'You must be at least 18 years old.',
+      });
+      return;
+    }
     settempLoading(true);
     if (image) {
       const imageBlob = await handleCompression(image);
@@ -119,7 +144,9 @@ export default function ProfileDetailEditScreen({navigation}, props) {
       profilePicture: image,
       gender: gender,
       description: description,
+      dateOfBirth: date,
     };
+    console.log('paramsddd', params);
     const isUpdated = await handleProfileUpdate(params);
     if (isUpdated) {
       await fetchUserInfo();
@@ -151,11 +178,13 @@ export default function ProfileDetailEditScreen({navigation}, props) {
           showsVerticalScrollIndicator={false}>
           <View>
             <Image source={{uri: profilePicture}} style={styles.picture} />
-            <TouchableOpacity
-              style={styles.camera}
-              onPress={() => showCameraGalleryAlert()}>
-              <Image source={require('../../../assets/cameraIcon.png')} />
-            </TouchableOpacity>
+            {profileEdit && (
+              <TouchableOpacity
+                style={styles.camera}
+                onPress={() => showCameraGalleryAlert()}>
+                <Image source={require('../../../assets/cameraIcon.png')} />
+              </TouchableOpacity>
+            )}
           </View>
           <Text style={styles.textheading}>
             {first_name} {last_name}
@@ -169,7 +198,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultValue={first_name}
                 LabelTextInput={'First Name'}
                 onChangeText={text => setfirstName(text)}
-                editable={false}
+                editable={profileEdit}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/profileTabIcon.png')}
@@ -178,7 +207,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 Label={true}
                 LabelTextInput={'Last Name'}
                 onChangeText={text => setlastName(text)}
-                editable={false}
+                editable={profileEdit}
               />
 
               <LabelTextInput
@@ -203,13 +232,13 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultCode={countryCode}
                 value={phoneNumberWithoutCode}
                 placeholder={'XXXXXXXXXXX'}
-                editable={false}
+                editable={profileEdit}
               />
               <CustomDatePicker
                 onConfirm={date => setDate(date)}
                 Text="Date Of Birth"
                 mode="date"
-                date={date}
+                date={date || new Date()}
                 labelStyle={{}}
                 containerStyle={{
                   paddingVertical: widthToDp(4),
@@ -217,6 +246,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                   alignSelf: 'center',
                 }}
                 textStyle={{}}
+                editable={profileEdit}
               />
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/locationIcon.png')}
@@ -225,6 +255,7 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                 defaultValue={oldLocation}
                 LabelTextInput={'Address'}
                 onChangeText={text => setlocation(text)}
+                editable={profileEdit}
               />
               {account_type !== 'client' && (
                 <MultiLineTextInput
@@ -233,22 +264,25 @@ export default function ProfileDetailEditScreen({navigation}, props) {
                   defaultValue={description}
                   LabelTextInput={'Description'}
                   onChangeText={text => setDescription(text)}
+                  editable={profileEdit}
                 />
               )}
-              <View
-                style={{
-                  marginTop: heightToDp(10),
-                }}>
-                <GradientButton
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  Title="Save Details"
-                  onPress={() => submitRegister()}
-                  loading={tempLoading}
-                />
-              </View>
+              {profileEdit && (
+                <View
+                  style={{
+                    marginTop: heightToDp(10),
+                  }}>
+                  <GradientButton
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    Title="Save Details"
+                    onPress={() => submitRegister()}
+                    loading={tempLoading}
+                  />
+                </View>
+              )}
             </View>
           </BottomSheetStyle>
         </ScrollView>

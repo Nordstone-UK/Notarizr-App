@@ -11,15 +11,16 @@ export default function SignupButton(props) {
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
         style={styles.gradientstyles}>
-        <View>
-          <View style={{paddingVertical: widthToDp(5)}}>
-            <Text style={[styles.buttonText, props.TextStyle]}>
-              {props.Title}
-            </Text>
-            <View style={styles.TextView} />
-          </View>
+        <View style={styles.textContainer}>
+          <Text style={[styles.buttonText, props.TextStyle]}>
+            {props.Title}
+          </Text>
+          <View style={styles.TextView} />
         </View>
-        <Image source={props.picture} style={styles.image} />
+
+        <View style={styles.imageContainer}>
+          <Image source={props.picture} style={styles.image} />
+        </View>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -32,13 +33,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: widthToDp(90),
     alignSelf: 'center',
-    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: widthToDp(3),
   },
-  buttonToucableOpacity: {},
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: widthToDp(2),
+  },
   buttonText: {
-    paddingHorizontal: widthToDp(5),
-    fontSize: 25,
+    flexShrink: 1,
+    fontSize: 22,
     textAlign: 'left',
+  },
+  imageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: widthToDp(3),
   },
   image: {
     marginTop: heightToDp(3),
@@ -48,7 +59,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   TextView: {
-    marginLeft: widthToDp(5),
+    marginTop: widthToDp(1),
+
     borderBottomWidth: 5,
     borderBottomColor: '#FF7A28',
     width: widthToDp(10),

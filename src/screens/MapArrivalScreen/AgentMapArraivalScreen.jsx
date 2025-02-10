@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   Alert,
   SafeAreaView,
@@ -7,6 +7,7 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
+import {throttle} from 'lodash';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
@@ -19,6 +20,7 @@ import {GET_AGENT_LIVE_LOCATION} from '../../../request/queries/getAgentLiveLoca
 import {useQuery} from '@apollo/client';
 import {setNavigationStatus} from '../../features/booking/bookingSlice';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
+import {Button} from 'react-native';
 const GOOGLE_MAPS_APIKEY = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
 
 export default function AgentMapArrivalScreen({navigation}) {
@@ -30,24 +32,25 @@ export default function AgentMapArrivalScreen({navigation}) {
   const [distance, setDistance] = useState(null);
   const [duration, setDuration] = useState(null);
   const [showInfo, setShowInfo] = useState(true);
+  const [highAccuracy, setHighAccuracy] = useState(false);
+
   const clientData = useSelector(state => state.booking);
   const coordinates = useSelector(state => state.booking?.coordinates);
   const user = useSelector(state => state.user.user?.account_type);
+  console.log('distanceee', distance);
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //     handleGetLocation();
+  //   }, 9000);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      handleGetLocation();
-    }, 9000);
+  //   return () => clearInterval(intervalId);
+  // }, []);
 
-    return () => clearInterval(intervalId); // Clear interval on component unmount
-  }, []);
-
-  const handleGetLocation = async () => {
+  const handleGetLocation = useCallback(async () => {
     try {
       setLoading(true);
       if (user === 'individual-agent') {
         const currentLocation = await getLocation();
-        console.log('currentlocadfddfd', currentLocation);
         setLocation(currentLocation);
         updateDirections(currentLocation);
         await updateAgentLocation(currentLocation);
@@ -74,8 +77,16 @@ export default function AgentMapArrivalScreen({navigation}) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientData, user, updateAgentLocation, updateDirections, getLocation]);
+  const handleGetLocationThrottled = throttle(handleGetLocation, 10000);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      handleGetLocationThrottled();
+    }, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [handleGetLocationThrottled]);
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
@@ -87,7 +98,7 @@ export default function AgentMapArrivalScreen({navigation}) {
           reject(error);
         },
         {
-          enableHighAccuracy: true,
+          enableHighAccuracy: highAccuracy,
           timeout: 20000,
           maximumAge: 10000,
         },
@@ -113,6 +124,7 @@ export default function AgentMapArrivalScreen({navigation}) {
         apikey: GOOGLE_MAPS_APIKEY,
         mode: 'DRIVING',
         onReady: result => {
+          console.log('reisputdistance', result);
           setDistance(result.distance);
           setDuration(result.duration);
           checkHighValues(result.distance, result.duration);
@@ -145,7 +157,7 @@ export default function AgentMapArrivalScreen({navigation}) {
       console.log('Error updating location:', error);
     }
   };
-  const showConfirmation = () => {
+  const showConfirmation = useCallback(() => {
     Alert.alert('Are you at the location?', '', [
       {
         text: 'No',
@@ -160,8 +172,7 @@ export default function AgentMapArrivalScreen({navigation}) {
         style: 'cancel',
       },
     ]);
-  };
-
+  }, [dispatch, navigation]);
   return (
     <SafeAreaView style={styles.container}>
       {loading ? (
@@ -185,9 +196,10 @@ export default function AgentMapArrivalScreen({navigation}) {
                 </Text>
               )}
             </View>
+
             <MapView
               zoomEnabled={true}
-              region={{
+              initialRegion={{
                 latitude: location?.latitude,
                 longitude: location?.longitude,
                 latitudeDelta: 0.0922,
@@ -211,16 +223,7 @@ export default function AgentMapArrivalScreen({navigation}) {
                     }
                     description={clientData?.user?.location}
                   />
-                  {/* <Marker.Animated ref={markerRef} coordinate={coordinate}>
-                  <Image
-                    source={imagePath.icBike}
-                    style={{
-                      ...styles.markerImage,
-                      transform: [{rotate: `${heading}deg`}],
-                    }}
-                    resizeMode="contain"
-                  />
-                </Marker.Animated> */}
+
                   <MapViewDirections
                     origin={location}
                     destination={{
@@ -232,10 +235,14 @@ export default function AgentMapArrivalScreen({navigation}) {
                     strokeColor="#4285F4"
                     mode="DRIVING"
                     onReady={result => {
-                      setDistance(result.distance);
-                      setDuration(result.duration);
-                      console.log(`Distance: ${result.distance} km`);
-                      console.log(`Duration: ${result.duration} min.`);
+                      if (
+                        result.distance !== distance ||
+                        result.duration !== duration
+                      ) {
+                        console.log('reisputdistance', result);
+                        setDistance(result.distance);
+                        setDuration(result.duration);
+                      }
                     }}
                     onError={errorMessage => {
                       console.log('GOT AN ERROR', errorMessage);
@@ -274,14 +281,19 @@ export default function AgentMapArrivalScreen({navigation}) {
         }
       />
       {user !== 'client' && (
-        <View style={styles.button}>
-          <GradientButton
-            Title="Arrived"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            loading={loading}
-            onPress={() => showConfirmation()}
-          />
-        </View>
+        <>
+          {/* <View style={{backgroundColor: 'red'}}>
+            <Text>hsllfldfldl</Text>
+          </View> */}
+          <View style={styles.button}>
+            <GradientButton
+              Title="Arrived"
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              loading={loading}
+              onPress={() => showConfirmation()}
+            />
+          </View>
+        </>
       )}
     </SafeAreaView>
   );

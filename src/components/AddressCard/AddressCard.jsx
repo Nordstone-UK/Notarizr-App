@@ -9,7 +9,6 @@ import {
 } from '../../utils/Responsive';
 
 export default function AddressCard(props) {
-  console.log('props.shoe', props.Show);
   const OrangeGradient = string => {
     return (
       <LinearGradient
@@ -23,15 +22,15 @@ export default function AddressCard(props) {
   };
   return (
     <TouchableOpacity style={styles.flexContainer} onPress={props.onPress}>
-      <Image source={require('../../../assets/addressPic.png')} />
+      {/* <Image source={require('../../../assets/addressPic.png')} /> */}
+      <Image
+        style={[styles.icon, {tintColor: Colors.Orange, marginTop: 20}]}
+        source={require('../../../assets/locationIcon.png')}
+      />
       <View style={styles.textContainer}>
         <Text style={styles.text}>
           {splitStringBefore2ndWord(props.location)}
         </Text>
-        {/* <Image
-          style={[styles.icon, {tintColor: Colors.Red, marginTop: 20}]}
-          source={require('../../../assets/locationIcon.png')}
-        /> */}
       </View>
       {props.Show && (
         <Image source={require('../../../assets/checkIcon.png')} />

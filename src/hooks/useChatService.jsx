@@ -35,12 +35,11 @@ function useChatService() {
     };
 
     const response = await createChat(request);
-
-    console.log('Chat response', response.data);
   };
 
   const getAllChats = async () => {
     const response = await getallchats();
+
     return response.data;
   };
   const handleGetMessages = async id => {
@@ -61,8 +60,9 @@ function useChatService() {
     };
     const ongong = {
       variables: {
-        ...clientBooking,
-        status: 'ongoing',
+        status: 'pending',
+        page: 1,
+        pageSize: 50,
       },
     };
     const {data: Clientbook} = await getClientBooking(request);
@@ -80,7 +80,6 @@ function useChatService() {
       ...sessions,
       ...sessonoging,
     ];
-
     const filteredChats = removeDuplicatesByAgentName(mergedDetails);
 
     dispatch(setAllChats(filteredChats));
@@ -94,8 +93,9 @@ function useChatService() {
     };
     const ongong = {
       variables: {
-        ...clientBooking,
-        status: 'ongoing',
+        status: 'pending',
+        page: 1,
+        pageSize: 50,
       },
     };
     const {data: AgentBook} = await getAgentBooking(request);
@@ -103,22 +103,21 @@ function useChatService() {
     const {data: Agnetsess} = await getAgentSession(request);
     const {data: sessionOngoing} = await getAgentSession(ongong);
     const {data} = await getChatToken();
-    // console.log('agents', response.data, respond.data);
+    console.log('agents+==================', Agnetsess);
     const bookings = AgentBook?.getAgentBookings?.bookings;
     const ongoingBook = AgentOngoing?.getAgentBookings?.bookings;
-    // const sessions = Agnetsess?.getAgentSessions?.sessions || {data: 'null'};
-    // const sessonoging = sessionOngoing?.getAgentSessions?.sessions || {
-    //   data: 'null',
-    // };
-
+    const sessions = Agnetsess?.getAgentSessions?.sessions;
+    const sessonoging = sessionOngoing?.getAgentSessions?.sessions;
+    console.log('agenttokenldfdfldld', data.getUserChatToken?.token);
     const mergedDetails = [
       ...bookings,
       ...ongoingBook,
-      // ...sessions,
-      // ...sessonoging,
+      ...sessions,
+      ...sessonoging,
     ];
-    // console.log('merge', mergedDetails);
+    console.log('merge', mergedDetails);
     const filteredChats = removeDuplicatesByClientName(mergedDetails);
+    console.log('agentfilterhattsdd', filteredChats);
     dispatch(setAllChats(filteredChats));
     dispatch(setChatToken(data?.getUserChatToken?.token));
   };
@@ -143,10 +142,20 @@ function useChatService() {
     const resultArray = [];
 
     for (const item of array) {
-      const clientName = item.booked_by.first_name + item.booked_by.last_name;
+      let firstName = '';
+      let lastName = '';
+      if (item.booked_by) {
+        firstName = item.booked_by.first_name || '';
+        lastName = item.booked_by.last_name || '';
+      } else if (item.client) {
+        firstName = item.client.first_name || '';
+        lastName = item.client.last_name || '';
+      }
+
+      const clientName = firstName + lastName;
 
       // Check if clientName is not in uniqueAgents, add it to uniqueAgents and push the item to the resultArray
-      if (!uniqueAgents[clientName]) {
+      if (clientName && !uniqueAgents[clientName]) {
         uniqueAgents[clientName] = true;
         resultArray.push(item);
       }

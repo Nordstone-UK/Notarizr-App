@@ -8,6 +8,9 @@ import {
   SafeAreaView,
 } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChatClient
+} from 'react-native-agora-chat';
 import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
@@ -19,7 +22,10 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
 import { saveUserInfo } from '../../features/user/userSlice';
+import { Alert } from 'react-native';
 export default function ProfileInfoScreen({ navigation }: any) {
+  const chatClient = ChatClient.getInstance();
+
   const user = useSelector(state => state.user.user);
   const { fetchUserInfo } = useFetchUser();
   const dispatch = useDispatch();
@@ -33,14 +39,34 @@ export default function ProfileInfoScreen({ navigation }: any) {
       console.error('Error clearing token from AsyncStorage:', error);
     }
   };
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (user) {
-      clearTokenFromStorage();
-      dispatch(saveUserInfo(null));
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'HomeScreen' }],
-      });
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to log out?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: async () => {
+              clearTokenFromStorage();
+              dispatch(saveUserInfo(null));
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'HomeScreen' }],
+              });
+              if (chatClient && chatClient.isInitialized) {
+                await chatClient.logout();
+              }
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+
     }
   };
   useEffect(() => {
@@ -85,8 +111,12 @@ export default function ProfileInfoScreen({ navigation }: any) {
               <TouchableOpacity
                 onPress={
                   user?.account_type === 'client'
-                    ? () => navigation.navigate('ProfileDetailEditScreen')
-                    : () => navigation.navigate('ProfileDetailEditScreen')
+                    ? () => navigation.navigate('ProfileDetailEditScreen', {
+                      profileEdit: true,
+                    })
+                    : () => navigation.navigate('ProfileDetailEditScreen', {
+                      profileEdit: true,
+                    })
                   // navigation.navigate('AgentProfileEditScreen')
                 }>
                 <Image
@@ -135,17 +165,19 @@ export default function ProfileInfoScreen({ navigation }: any) {
             {user != null && user?.account_type !== 'client' && (
               <SettingOptions
                 icon={require('../../../assets/license.png')}
-                Title="Update License and Notary Seals"
-              // onPress={() => navigation.navigate('PasswordEditScreen')}
+                Title="Update Certificate and Notary Stamp"
+                onPress={() => navigation.navigate('AgentVerificationScreen', {
+                  user: user, // Pass user details here
+                })}
               />
             )}
-            {user != null && user?.account_type !== 'client' && (
+            {/* {user != null && user?.account_type !== 'client' && (
               <SettingOptions
                 icon={require('../../../assets/training.png')}
                 Title="Trainings"
               // onPress={() => navigation.navigate('PasswordEditScreen')}
               />
-            )}
+            )} */}
             {user != null && (
               <SettingOptions
                 icon={require('../../../assets/logout.png')}

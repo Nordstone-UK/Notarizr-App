@@ -38,14 +38,24 @@ export default function ToBePaidScreen({route, navigation}) {
 
   const init = async () => {
     console.log('iniiiiiiii');
-    if (bookingData?.__typename === 'Session') {
-      await updateSession('accepted', bookingData._id);
-    } else {
-      await handleUpdateBookingStatus('accepted', bookingData._id);
+    try {
+      if (bookingData?.__typename === 'Session') {
+        await updateSession('paid', bookingData._id);
+      } else {
+        await handleUpdateBookingStatus('accepted', bookingData._id);
+      }
+
+      // Add a small delay to ensure state updates are complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      navigation.navigate('AgentBookCompletion');
+    } catch (error) {
+      console.error('Error in init:', error);
+      Alert.alert(
+        'Error',
+        'There was a problem processing your payment. Please try again.',
+      );
     }
-    dispatch(setBookingInfoState(bookingData));
-    dispatch(setCoordinates(bookingData?.agent?.current_location?.coordinates));
-    dispatch(setUser(bookingData?.agent));
   };
 
   function calculateTotalPrice(documentObjects) {
@@ -93,18 +103,24 @@ export default function ToBePaidScreen({route, navigation}) {
   };
   const openPaymentSheet = async () => {
     setLoading(true);
-    const {error} = await presentPaymentSheet();
+    try {
+      const {error} = await presentPaymentSheet();
 
-    if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('error.message', error.message);
-      // navigation.navigate('HomeScreen');
-    } else {
-      let a = await init();
-      console.log('assssssssssssssssssssssssssss', a);
-      navigation.navigate('AgentBookCompletion');
+      if (error) {
+        Alert.alert(`Error code: ${error.code}`, error.message);
+        console.log('error.message', error.message);
+      } else {
+        await init();
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      Alert.alert(
+        'Error',
+        'There was a problem processing your payment. Please try again.',
+      );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   useEffect(() => {
     initializePaymentSheet().then(() => {

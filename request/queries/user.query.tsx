@@ -14,6 +14,8 @@ export const FETCH_USER_INFO = gql`
       isBlocked
       chatPrivacy
       notarySeal
+      photoId
+      certificate_url
       notarysigns{
       signUrl
       _id

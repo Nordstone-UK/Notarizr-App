@@ -34,10 +34,12 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Toast from 'react-native-toast-message';
 
 export default function LegalDocScreen({route, navigation}) {
+  const {address} = route.params;
+
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
   const [documentArray, setDocumentArray] = useState();
-  const [Limit, setLimit] = useState(20);
+  const [Limit, setLimit] = useState(2000);
   const [page, setPage] = useState(1);
   const {fetchDocumentTypes} = useFetchUser();
   const [totalDocs, setTotalDocs] = useState();
@@ -52,6 +54,7 @@ export default function LegalDocScreen({route, navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [additionalSignatures, setAdditionalSignatures] = useState(0);
+  console.log('boookingdatea', bookingData.address);
   useEffect(() => {
     // const fetchData = async () => {
     //   setLoading(true);
@@ -74,22 +77,26 @@ export default function LegalDocScreen({route, navigation}) {
       const [name, price] = item?.split(' - $');
       return {name, price: parseFloat(price)};
     });
-    if (documentObjects.length === 0) {
+    if (!documentObjects || documentObjects.length === 0) {
       console.log('No documents found');
       // setTotalPrice(0);
       // setSelectedDocs([]);
-      return; // Exit the function early
+      return;
     }
-    const highestPriceDocument = documentObjects.reduce(
-      (max, doc) => (doc.price > max.price ? doc : max),
-      documentObjects[0], // Initialize with the first document if the array is not empty
-    );
+
+    const highestPriceDocument =
+      Array.isArray(documentObjects) && documentObjects.length > 0
+        ? documentObjects.reduce(
+            (max, doc) => (doc.price > max.price ? doc : max),
+            documentObjects[0],
+          )
+        : null;
 
     console.log('Highest Price Document:', highestPriceDocument);
     setTotalPrice(highestPriceDocument?.price);
     setSelectedDocs(documentObjects);
   }
-  console.log('documentarray', documentArray);
+  // console.log('documentarray', documentArray);
   const additionalSignaturePrice = 10;
 
   const calculateAdditionalSignaturesCost = additionalSignatures => {
@@ -130,12 +137,13 @@ export default function LegalDocScreen({route, navigation}) {
     setLoading(false);
   };
   const getState = async query => {
+    const state = extractState(address);
+    console.log('ssssssssssssssssssssssss', state);
     setLoading(true);
 
     let stateName = 'USA';
-
+    stateName = state;
     const locationResponse = await handleGetLocation();
-    console.log('locationres', locationResponse);
     if (
       locationResponse &&
       locationResponse.results &&
@@ -144,7 +152,8 @@ export default function LegalDocScreen({route, navigation}) {
       const addressComponents = locationResponse.results[0]?.address_components;
       console.log('addresscomop;nent', addressComponents);
       if (addressComponents && addressComponents.length >= 5) {
-        stateName = addressComponents[4]?.long_name || 'USA'; // Use state name if available, otherwise fallback to 'USA'
+        stateName = state || addressComponents[4]?.long_name || 'USA';
+        console.log('statenamere', stateName);
       } else {
         console.warn(
           'Address components not found or incomplete:',
@@ -156,13 +165,13 @@ export default function LegalDocScreen({route, navigation}) {
     }
 
     const data = await fetchDocumentTypes(page, Limit, stateName, query);
+
     const modifiedDocuments = data.documentTypes.map(doc => ({
       ...doc,
       key: doc._id,
       value: `${doc.name} - $${doc.statePrices[0].price}`, // Use _id as the unique key for each document
     }));
-    setDocumentArray(modifiedDocuments);
-    console.log('doumntsfdffdfd', data);
+    console.log('doumntsfdffdfd', modifiedDocuments);
     setTotalDocs(data.totalDocs);
     setDocumentArray(modifiedDocuments);
     setLoading(false);
@@ -170,6 +179,22 @@ export default function LegalDocScreen({route, navigation}) {
       setLimit(Limit + DOCUMENTS_PER_LOAD);
     }
   };
+  function extractState(address) {
+    if (!address) {
+      console.warn('Address is undefined or null:', address);
+      return null; // or return a default state if applicable
+    }
+
+    const parts = address.split(' ');
+    if (parts.length >= 2) {
+      const state = parts[parts.length - 2];
+      console.log('ststere===========', state);
+      return state;
+    } else {
+      return parts[0].trim();
+    }
+    return null;
+  }
 
   const handleSearchInput = query => {
     console.log('qure', query);
@@ -210,7 +235,8 @@ export default function LegalDocScreen({route, navigation}) {
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag">
           <Text style={styles.selectorHeading}>
             Please select the documents you want to get notarized.
           </Text>
@@ -314,9 +340,8 @@ export default function LegalDocScreen({route, navigation}) {
                   fontFamily: 'Manrope-Regular',
                   fontSize: widthToDp(3.5),
                 }}>
-                Any additional signatures would cost
-                <Text style={{fontFamily: 'Manrope-Bold'}}> +$10 </Text>per each
-                .
+                Any additional signature will be
+                <Text style={{fontFamily: 'Manrope-Bold'}}> +$10 </Text>.
               </Text>
             </View>
             <View

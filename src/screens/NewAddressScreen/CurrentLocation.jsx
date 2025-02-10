@@ -44,7 +44,8 @@ const getAddressFromCoordinates = async (latitude, longitude) => {
   }
 };
 export default function CurrentLocationScreen({route}) {
-  const {previousScreen, address} = route?.params || {};
+  const {previousScreen, address, service} = route?.params || {};
+  console.log('routessss', route?.params);
   const navigation = useNavigation();
 
   console.log('navigation', navigation.navigate);
@@ -128,30 +129,7 @@ export default function CurrentLocationScreen({route}) {
     const currentlocation = await getLocation();
     setLocation(currentlocation);
     const {latitude, longitude} = currentlocation;
-
-    console.log('loctieofd', latitude);
-    console.log('curentlocat', currentlocation);
   };
-  // useEffect(() => {
-  //  const locationResponse = await handleGetLocation();
-  //  console.log("loctieofd",locationResponse)
-  // }, []);
-
-  // const getLocation = () => {
-  //   return new Promise((resolve, reject) => {
-  //     Geolocation.getCurrentPosition(
-  //       position => {
-  //         const {latitude, longitude} = position.coords;
-  //         console.log('llllllll', latitude);
-  //         resolve({latitude, longitude});
-  //       },
-  //       error => {
-  //         reject(error);
-  //       },
-  //       {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
-  //     );
-  //   });
-  // };
 
   const handlePlaceSelected = (data, details) => {
     const {lat, lng} = details.geometry.location;
@@ -169,10 +147,32 @@ export default function CurrentLocationScreen({route}) {
     setMarkerLocation({latitude, longitude});
     setLatitude(latitude);
     setLongitude(longitude);
-
+    console.log('latidid and longitusd', event.nativeEvent);
     try {
       const address = await getAddressFromCoordinates(latitude, longitude);
       setSelectedAddress(address);
+      const {results} = address;
+      console.log('adddress', address);
+      if (results.length > 0) {
+        const addressComponents = results[0].address_components;
+        let country = null;
+        let state = null;
+
+        // Loop through address components to find country and state
+        addressComponents.forEach(component => {
+          if (component.types.includes('country')) {
+            country = component.long_name;
+          }
+          if (component.types.includes('administrative_area_level_1')) {
+            state = component.long_name;
+          }
+        });
+
+        console.log('Country:', country);
+        console.log('State:', state);
+      } else {
+        console.log('Address not found');
+      }
     } catch (error) {
       console.log(error);
     }
@@ -180,8 +180,10 @@ export default function CurrentLocationScreen({route}) {
 
   const handleConfirmLocation = () => {
     if (markerLocation) {
+      console.log('selectred address', selectedAddress);
       navigation.navigate('AddNewAddress', {
         previousScreen: previousScreen,
+        service: service,
         address: address,
         location: selectedAddress,
         location_coordinates: [
@@ -218,8 +220,10 @@ export default function CurrentLocationScreen({route}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Select Location" />
-      {loading ? ( // Show loading indicator if loading is true
+      <View style={{zIndex: 999}}>
+        {navigation && <NavigationHeader Title="Select Location" />}
+      </View>
+      {loading ? (
         <ActivityIndicator
           size="large"
           color={Colors.Primary}
@@ -311,11 +315,11 @@ export default function CurrentLocationScreen({route}) {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    // ...StyleSheet.absoluteFillObject,
     flex: 1,
   },
   searchContainer: {
-    position: 'absolute',
+    // position: 'absolute',
     width: '100%',
     zIndex: 1,
   },

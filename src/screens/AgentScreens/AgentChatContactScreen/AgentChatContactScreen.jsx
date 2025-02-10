@@ -6,7 +6,7 @@ import {
   View,
   FlatList,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import ChatContacts from '../../../components/ChatContacts/ChatContacts';
 import Colors from '../../../themes/Colors';
@@ -14,13 +14,28 @@ import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader
 import {useSelector} from 'react-redux';
 import {heightToDp, widthToDp} from '../../../utils/Responsive';
 import {Image} from 'react-native';
+import useChatService from '../../../hooks/useChatService';
 
 export default function AgentChatContactScreen({navigation}) {
+  const {getAgentChats} = useChatService();
+
   const chats = useSelector(state => state.chats.allChats || []);
-  console.log('remdereote,', chats);
+  console.log('chatsdfdfd', chats);
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        console.log('hdelllerldllddownld');
+        let a = await getAgentChats();
+      } catch (error) {
+        console.error('Failed to fetch agent chats:', error);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
   const renderItem = ({item}) => {
-    console.log('itemssssss', item);
-    const user = item.booked_by; // Assuming either "agent" or "client" property exists in each item
+    const user = item.booked_by || item.client;
     if (!user) {
       return null; // Handle case where user data is missing
     }

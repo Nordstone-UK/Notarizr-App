@@ -18,29 +18,33 @@ export default function RequestPayment(props) {
     //   behavior={Platform.OS === 'ios' ? 'height' : 'height'}>
     <View style={styles.bottonSheet}>
       <Text style={styles.text}>
-        Mention the charges to complete this service
+        {/* Mention the charges to complete this service */}
+        How much do you want to charge the client?
       </Text>
       <View style={styles.input}>
-        <Text style={styles.smallText}>$</Text>
+        {/* <Text style={styles.smallText}>$</Text> */}
         {Platform.OS === 'android' ? (
           <TextInput
+            value={props.amount !== undefined ? props.amount.toString() : ''}
             keyboardType="numeric"
             style={styles.TextInput}
             onChangeText={props.onChangeText}
             placeholder="Enter amount"
             placeholderTextColor={Colors.InputTextColor}
+            placeholderStyle={styles.placeholderText}
           />
         ) : (
           <BottomSheetTextInput
+            value={props.amount}
             keyboardType="numeric"
             style={styles.TextInput}
             onChangeText={props.onChangeText}
             placeholder="Enter amount"
             placeholderTextColor={Colors.InputTextColor}
+            placeholderStyle={styles.placeholderText}
           />
         )}
       </View>
-
       <TouchableOpacity onPress={props.onPress}>
         <Text style={[styles.text, {color: Colors.Red}]}>Send Request</Text>
       </TouchableOpacity>
@@ -71,12 +75,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
   },
   TextInput: {
+    width: '100%',
     fontSize: widthToDp(4.5),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Regular',
     paddingHorizontal: widthToDp(1),
   },
-
+  placeholderText: {
+    fontSize: widthToDp(2),
+  },
   input: {
     // flex: 1,
     flexDirection: 'row',

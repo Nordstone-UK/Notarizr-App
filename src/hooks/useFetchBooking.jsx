@@ -12,10 +12,12 @@ import {GET_AGENT_SESSION} from '../../request/queries/getAgentSessions.query';
 import {UPDATE_BOOKING_PRICE} from '../../request/mutations/updateBookingPrice.mutation';
 import {UPDATE_SESSION_PRICEDOCS} from '../../request/mutations/updateSessionPriceDocs.mutation';
 import {UPDATE_SESSION_AGENTDOCS} from '../../request/mutations/updateSessionAgentdocs';
+import {GET_ADMIN_ALLOCATIONS} from '../../request/queries/getAdminAllocation.query';
 
 const useFetchBooking = () => {
   const [getClientBooking] = useLazyQuery(GET_CLIENT_BOOKING);
   const [getAgentBooking] = useLazyQuery(GET_AGENT_BOOKING);
+  const [getAdminAllocation] = useLazyQuery(GET_ADMIN_ALLOCATIONS);
   const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID);
   const [updateBookingInfo] = useMutation(UPDATE_BOOKING_INFO);
   const [getClientSession] = useLazyQuery(GET_CLIENT_SESSION);
@@ -56,6 +58,23 @@ const useFetchBooking = () => {
       const {data} = await getAgentBooking(request);
       // console.log('Agent Booking iNfo', data);
       return sortBookingByDate(data?.getAgentBookings?.bookings);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const fetchAdminAllocations = async status => {
+    const request = {
+      variables: {
+        page: 1,
+        pageSize: 50,
+        agentRequestStatus: status,
+      },
+    };
+    try {
+      console.log('requestdat', request);
+      const {data} = await getAdminAllocation(request);
+      console.log('Admin alloction iiiiiiiiii iNfo', data);
+      return sortBookingByDate(data?.getAdminAllocations?.allocation);
     } catch (error) {
       console.log(error);
     }
@@ -152,6 +171,22 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
+  const getTotalSessions = async () => {
+    const request = {
+      variables: {
+        status: 'completed',
+        page: 1,
+        pageSize: 1000,
+      },
+    };
+    try {
+      const {data} = await getAgentSession(request);
+
+      return data?.getAgentSessions?.totalDocs;
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleClientSessions = async status => {
     const request = {
       variables: {
@@ -222,10 +257,12 @@ const useFetchBooking = () => {
   return {
     fetchBookingInfo,
     fetchAgentBookingInfo,
+    fetchAdminAllocations,
     handleupdateBookingInfo,
     fetchBookingByID,
     handleReviewSubmit,
     getTotalBookings,
+    getTotalSessions,
     handleClientSessions,
     handleAgentSessions,
     setBookingPrice,

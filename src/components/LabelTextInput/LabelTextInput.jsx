@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Animated,
   View,
-  TextInput,
 } from 'react-native';
 import React, {useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
@@ -14,6 +13,8 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import Colors from '../../themes/Colors';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import {TextInput} from 'react-native-gesture-handler';
+import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
 
 export default function LabelTextInput(props) {
   const [isFocused, setIsFocused] = useState(false);
@@ -26,7 +27,6 @@ export default function LabelTextInput(props) {
       setIsFocused(false);
     }
   };
-
   return (
     <View style={[styles.container, props.container]}>
       <View
@@ -110,7 +110,13 @@ export default function LabelTextInput(props) {
         /> */}
 
         {props.rightImageSoucre && (
-          <TouchableOpacity onPress={props.rightImagePress} style={{}}>
+          <TouchableOpacity
+            onPress={() => {
+              if (props.rightImagePress) {
+                props.rightImagePress();
+              }
+            }}
+            style={{}}>
             <Image source={props.rightImageSoucre} style={styles.iconLeft} />
           </TouchableOpacity>
         )}

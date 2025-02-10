@@ -159,14 +159,16 @@ export default function WaitingRoomScreen({route, navigation}) {
             </View>
           ) : (
             <View style={styles.SecondContainer}>
-              <Text style={styles.textSession}>Notary Session has started</Text>
+              <Text style={styles.textSession}>
+                Online Notary Session has started
+              </Text>
               <Image
                 source={require('../../../assets/Support.png')}
                 style={styles.HourGlass}
               />
               <MainButton
                 colors={['#fff', '#fff']}
-                Title="Notary Officer"
+                Title="Notary Agent"
                 GradiStyles={{
                   borderWidth: 2,
                   borderColor: Colors.OrangeGradientEnd,
@@ -183,7 +185,7 @@ export default function WaitingRoomScreen({route, navigation}) {
               <View style={styles.btnContainer}>
                 {!isStorageLoading && (
                   <GradientButton
-                    Title="Join your session now"
+                    Title="Join Session"
                     colors={[
                       Colors.OrangeGradientStart,
                       Colors.OrangeGradientEnd,
@@ -317,6 +319,7 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(10),
     fontSize: widthToDp(6),
     fontFamily: 'Manrope-Bold',
+    paddingHorizontal: 20,
   },
   sessionDesc: {
     color: Colors.DullTextColor,

@@ -7,9 +7,13 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Linking,
+  Modal,
+  Share,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 
 import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -45,9 +49,10 @@ export default function RonDateDocScreen({route, navigation}) {
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState();
   const [isVisible, setIsVisible] = useState('');
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(null);
   const DOCUMENTS_PER_LOAD = 5;
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState('date');
   const [value, setValue] = useState([]);
   const [selected, setSelected] = React.useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -58,6 +63,7 @@ export default function RonDateDocScreen({route, navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [fileResponse, setFileResponse] = useState([]);
+  let initialDate = new Date();
   console.log('searchuser', selectedClient);
   const [isYes, setIsYes] = useState(true);
   const {uploadMultipleFiles} = useRegister();
@@ -131,6 +137,24 @@ export default function RonDateDocScreen({route, navigation}) {
 
     setLoading(false);
   };
+  const showConfirmation = async () => {
+    setLoading(true);
+    if (date && selectedClient) {
+      submitAddressDetails();
+    } else if (!date) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select Date & Time',
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select Agent',
+      });
+    }
+    setLoading(false);
+  };
+
   const getState = async query => {
     const reponse = await handleGetLocation();
     const data = await fetchDocumentTypes(page, Limit, reponse, query);
@@ -156,55 +180,196 @@ export default function RonDateDocScreen({route, navigation}) {
     setSearchedUser(response);
     setisLoading(false);
   };
-  console.log('seracedusere', searchedUser);
+  const shareLinkViaEmail = async link => {
+    try {
+      await Share.share({
+        message: `Hi,\n\nI wanted to share this link with you:\n\n${link} Download Notarizr from:\n\n https://apps.apple.com/us/app/notarizr/id6469320905`,
+      });
+    } catch (error) {
+      alert(error.message);
+    }
+    // const subject = 'Check out this link!';
+    // const body = `Hi,\n\nI wanted to share this link with you:\n\n${link}`;
+    // const email = `mailto:?subject=${encodeURIComponent(
+    //   subject,
+    // )}&body=${encodeURIComponent(body)}`;
+
+    // Linking.openURL(email).catch(err =>
+    //   console.error('Error opening email client', err),
+    // );
+  };
+  const handleOpenPicker = pickermode => {
+    setMode(pickermode);
+    setOpen(true);
+  };
+  console.log('seracedusere', date);
+
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Select Date and Time" />
+      <NavigationHeader Title="Book RON" />
 
       <BottomSheetStyle>
         <ScrollView
           // scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
-          <View style={{marginVertical: heightToDp(2)}}>
-            <Text style={styles.Heading}>Date & Time:</Text>
-            <View style={styles.buttonFlex}>
-              <TouchableOpacity onPress={() => setOpen(true)}>
+          <View
+            style={{
+              marginVertical: heightToDp(2),
+              display: 'flex',
+              // flexDirection: 'row',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly',
+                // marginTop: heightToDp(3),
+              }}>
+              <GradientButton
+                Title="Share link"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  width: widthToDp(37),
+                  paddingVertical: widthToDp(4),
+                  marginTop: widthToDp(10),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => shareLinkViaEmail('')}
+                fontSize={widthToDp(3.5)}
+                loading={loading}
+              />
+              <GradientButton
+                Title={' Invite New Agent'}
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                GradiStyles={{
+                  width: widthToDp(37),
+                  paddingVertical: widthToDp(4),
+                  marginTop: widthToDp(10),
+                }}
+                styles={{
+                  padding: widthToDp(0),
+                  fontSize: widthToDp(4),
+                }}
+                onPress={() => submitAddressDetails(selectedDocs)}
+                fontSize={widthToDp(3.5)}
+                loading={loading}
+              />
+              {/* <TouchableOpacity
+                style={[
+                  styles.yesnocontainer,
+                  {
+                    width: widthToDp(25),
+                    backgroundColor: isYes ? Colors.Orange : Colors.white,
+                    marginLeft: widthToDp(2),
+                  },
+                ]}
+                onPress={() => shareLinkViaEmail('https://example.com')}>
                 <Text
                   style={{
-                    color: Colors.Orange,
-                    fontFamily: 'Manrope-Bold',
-                    fontSize: widthToDp(5),
-                    borderWidth: 1,
-                    borderColor: Colors.Orange,
-                    paddingHorizontal: widthToDp(2),
-                    borderRadius: widthToDp(2),
+                    paddingHorizontal: 2,
+                    fontFamily: 'Poppins-Regular',
+                    color: isYes ? 'white' : 'black',
                   }}>
-                  {moment(date).format('MM-DD-YYYY hh:mm A')}
+                  Share Link
+                </Text>
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity
+                style={[
+                  styles.yesnocontainer,
+                  {
+                    width: widthToDp(25),
+                    backgroundColor: isYes ? Colors.Orange : Colors.white,
+                    marginLeft: widthToDp(2),
+                  },
+                ]}
+                onPress={() => submitAddressDetails(selectedDocs)}>
+                <Text
+                  style={{
+                    paddingHorizontal: 2,
+                    fontFamily: 'Poppins-Regular',
+                    color: isYes ? 'white' : 'black',
+                  }}>
+                  Invite New Agent
+                </Text>
+              </TouchableOpacity> */}
+
+              {/* {isYes && (
+                <View
+                  style={[
+                    styles.buttonFlex,
+                    {
+                      justifyContent: 'space-between',
+                      // marginLeft: 50,
+                    },
+                  ]}>
+                  <GradientButton
+                    Title="Invite New Agent"
+                    colors={[
+                      Colors.OrangeGradientStart,
+                      Colors.OrangeGradientEnd,
+                    ]}
+                    GradiStyles={{
+                      borderRadius: 15,
+                      marginTop: heightToDp(0),
+                      width: widthToDp(90),
+                    }}
+                    onPress={() => submitAddressDetails(selectedDocs)}
+                  />
+                </View>
+              )} */}
+              {/* </View> */}
+            </View>
+
+            <View
+              style={{
+                flex: 1, // Takes the full height of the screen
+                justifyContent: 'center', // Centers vertically
+                alignItems: 'center', // Centers horizontally
+                padding: widthToDp(0),
+              }}>
+              {isYes && <Text style={styles.text}>OR</Text>}
+            </View>
+
+            <Text style={styles.Heading}>Date & Time:</Text>
+            <View style={styles.buttonFlex}>
+              <TouchableOpacity onPress={() => handleOpenPicker('date')}>
+                <Text style={styles.dateText}>
+                  {moment(date || initialDate).format('MM-DD-YYYY')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleOpenPicker('time')}>
+                <Text style={styles.dateText}>
+                  {moment(date || initialDate).format(' hh:mm A')}
                 </Text>
               </TouchableOpacity>
               <DatePicker
                 modal
-                mode="datetime"
-                minimumDate={date}
+                mode={mode}
+                // minimumDate={date}
                 open={open}
-                date={date}
-                onConfirm={date => {
-                  setOpen(false);
-                  setDate(date);
+                date={date || initialDate}
+                onConfirm={selectedDate => {
+                  setOpen(false); // Close the modal
+                  setDate(selectedDate); // Update the state with the new selected date or time
                 }}
                 onCancel={() => {
                   setOpen(false);
                 }}
+                locale="en"
               />
             </View>
           </View>
 
           <View style={{paddingHorizontal: widthToDp(5)}}>
-            <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+            {/* <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
               Do you want to invite your known Agent to get your documents
               Notarised?
+            </Text> */}
+            <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
+              Would you like to invite your agent to notarize your document?
             </Text>
-
             <View
               style={{
                 flexDirection: 'row',
@@ -213,16 +378,12 @@ export default function RonDateDocScreen({route, navigation}) {
               }}>
               <TouchableOpacity
                 onPress={() => setIsYes(true)}
-                style={{
-                  borderWidth: 1,
-                  width: widthToDp(16),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderRadius: 5,
-                  borderColor: Colors.Orange,
-                  paddingVertical: 5,
-                  backgroundColor: isYes ? Colors.Orange : Colors.white,
-                }}>
+                style={[
+                  styles.yesnocontainer,
+                  {
+                    backgroundColor: isYes ? Colors.Orange : Colors.white,
+                  },
+                ]}>
                 <Text
                   style={{
                     fontFamily: 'Poppins-Regular',
@@ -233,17 +394,13 @@ export default function RonDateDocScreen({route, navigation}) {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setIsYes(false)}
-                style={{
-                  borderWidth: 1,
-                  width: widthToDp(16),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderRadius: 5,
-                  borderColor: Colors.Orange,
-                  paddingVertical: 5,
-                  backgroundColor: !isYes ? Colors.Orange : Colors.white,
-                  marginLeft: widthToDp(2),
-                }}>
+                style={[
+                  styles.yesnocontainer,
+                  {
+                    backgroundColor: !isYes ? Colors.Orange : Colors.white,
+                    marginLeft: widthToDp(2),
+                  },
+                ]}>
                 <Text
                   style={{
                     fontFamily: 'Poppins-Regular',
@@ -258,7 +415,7 @@ export default function RonDateDocScreen({route, navigation}) {
             </Text>
             <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
               {isYes
-                ? 'We will provide you a invite link, which you can share it with Agent or search for a registered agent on Notarizr'
+                ? 'We’ll provide an invite link to share with your agent or let you search for a registered agent on Notarizr.'
                 : 'We will allocate our best agent for getting your documents notarized'}
             </Text>
           </View>
@@ -274,7 +431,7 @@ export default function RonDateDocScreen({route, navigation}) {
                 rightImagePress={() => {}}
               /> */}
               <LabelTextInput
-                placeholder="Search client by email"
+                placeholder="Invite Notarizr agent "
                 defaultValue={selectedClient}
                 onChangeText={text => {
                   SearchUser(text);
@@ -327,12 +484,15 @@ export default function RonDateDocScreen({route, navigation}) {
                   </View>
                   <View>
                     <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
-                      {selectedClientData?.email}
-                    </Text>
-                    <Text
-                      style={{color: 'black', fontFamily: 'Poppins-Regular'}}>
                       {selectedClientData.first_name}{' '}
                       {selectedClientData.last_name}
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontFamily: 'Poppins-Regular',
+                      }}>
+                      {selectedClientData?.email}
                     </Text>
                   </View>
 
@@ -529,26 +689,9 @@ export default function RonDateDocScreen({route, navigation}) {
                 marginTop: heightToDp(2),
                 width: widthToDp(90),
               }}
-              onPress={() => submitAddressDetails(selectedDocs)}
+              onPress={() => showConfirmation(selectedDocs)}
             />
-            {isYes && <Text style={styles.text}>OR</Text>}
-            <View>
-              {isYes && (
-                <GradientButton
-                  Title="Invite Agent"
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  GradiStyles={{
-                    borderRadius: 15,
-                    marginTop: heightToDp(3),
-                    width: widthToDp(90),
-                  }}
-                  onPress={() => submitAddressDetails(selectedDocs)}
-                />
-              )}
-            </View>
+            {/* {isYes && <Text style={styles.text}>OR</Text>} */}
           </View>
           {/* </View> */}
         </ScrollView>
@@ -569,7 +712,7 @@ const styles = StyleSheet.create({
   buttonFlex: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     marginTop: heightToDp(4),
   },
   Heading: {
@@ -605,11 +748,48 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
+  yesnocontainer: {
+    borderWidth: 1,
+    width: widthToDp(16),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+    borderColor: Colors.Orange,
+    paddingVertical: 5,
+  },
   gradientButtonContainer: {
     flexDirection: 'column',
     rowGap: 15,
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 20,
+  },
+  dateText: {
+    color: Colors.Orange,
+    fontFamily: 'Manrope-Bold',
+    fontSize: widthToDp(5),
+    borderWidth: 1,
+    borderColor: Colors.Orange,
+    paddingHorizontal: widthToDp(2),
+    borderRadius: widthToDp(2),
+    marginRight: widthToDp(2),
+  },
+  shareContainer: {
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    marginBottom: 25,
+  },
+  shareIconContainer: {
+    backgroundColor: Colors.OrangeGradientEnd,
+    borderRadius: 50, // Adjust this based on the container size
+    width: 40, // Width of the container
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+  },
+  iconImage: {
+    width: 25,
+    height: 25,
   },
 });

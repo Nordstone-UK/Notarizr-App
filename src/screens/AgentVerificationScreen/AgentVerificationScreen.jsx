@@ -8,7 +8,10 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Dimensions,
 } from 'react-native';
+import ProgressBar from 'react-native-progress/Bar';
+
 import React, {useCallback, useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,21 +22,33 @@ import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
 import SplashScreen from 'react-native-splash-screen';
+import {
+  setProgress,
+  setFilledCount,
+} from '../../features/register/registerSlice';
 import useRegister from '../../hooks/useRegister';
 import useLogin from '../../hooks/useLogin';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
 import {UniqueDirectiveNamesRule} from 'graphql';
+import {UPDATE_VERIFICATION} from '../../../request/mutations/updateVerification.mutation';
+import {useMutation} from '@apollo/client';
 
 export default function AgentVerificationScreen({navigation, route}, props) {
-  const {onComplete = () => {}} = route.params || {};
-  console.log('c0mpletedfd', onComplete);
+  const [updateVerification] = useMutation(UPDATE_VERIFICATION);
+  const dispatch = useDispatch();
+  const {user, onComplete = () => {}} = route.params || {};
+  // console.log('c0mpletedfd', user);
   const variables = useSelector(state => state.register);
-  const [photoID, setphotoID] = useState(null);
-  const [Certificate, setCertificate] = useState(null);
-  const [Seal, setSeal] = useState(null);
+  const registerData = useSelector(state => state.register);
+  const totalFields = registerData.accountType === 'client' ? 8 : 12;
+  const {width} = Dimensions.get('window');
+  const [photoID, setphotoID] = useState(user?.photoId || null);
+  const [Certificate, setCertificate] = useState(user?.certificate_url || null);
+  const [Seal, setSeal] = useState(user?.notarySeal || null);
   const [loading, setLoading] = useState(false);
+
   const {
     uploadFiles,
     handleCompression,
@@ -48,24 +63,90 @@ export default function AgentVerificationScreen({navigation, route}, props) {
   const {resetStack} = useLogin();
   console.log('fdfdfdfd', onComplete);
   const handleUpload = documentType => {
-    setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
-    setCurrentStep(currentStep + 1);
+    if (!uploadedDocuments.includes(documentType)) {
+      console.log('insisididd');
+      setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
+      setCurrentStep(currentStep + 1);
+      const progressValue = (registerData.filledCount + 1) / totalFields;
+      dispatch(setFilledCount(registerData.filledCount + 1));
+      dispatch(setProgress(progressValue));
+    }
   };
 
   const handleDelete = documentType => {
-    setUploadedDocuments(prevDocuments =>
-      prevDocuments.filter(doc => doc !== documentType),
-    );
-    setCurrentStep(currentStep - 1);
+    if (uploadedDocuments.includes(documentType)) {
+      setUploadedDocuments(prevDocuments =>
+        prevDocuments.filter(doc => doc !== documentType),
+      );
+      setCurrentStep(currentStep - 1);
+      const progressValue = (registerData.filledCount - 1) / totalFields;
+      dispatch(setFilledCount(registerData.filledCount - 1));
+      dispatch(setProgress(progressValue));
+    }
   };
+
   const deletePhotoID = () => {
-    setphotoID(null);
+    Alert.alert(
+      'Delete Photo ID',
+      'Are you sure you want to delete this Photo ID?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            setphotoID(null);
+            handleDelete('photoID');
+          },
+        },
+      ],
+      {cancelable: true},
+    );
   };
   const deleteSeal = () => {
-    setSeal(null);
+    Alert.alert(
+      'Delete Notary Seal',
+      'Are you sure you want to delete this Notary Seal?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            setSeal(null);
+            handleDelete('Seal');
+          },
+        },
+      ],
+      {cancelable: true},
+    );
   };
   const deleteCertificate = () => {
-    setCertificate(null);
+    Alert.alert(
+      'Delete Notary Certificate',
+      'Are you sure you want to delete this Notary Certificate?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            setCertificate(null);
+            handleDelete('Certificate');
+          },
+        },
+      ],
+      {cancelable: true},
+    );
   };
   const selectPhotoID = async () => {
     const response = await uploadFiles();
@@ -73,6 +154,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     if (response) {
       console.log('Send: ', response);
       setphotoID(response);
+      handleUpload('photoID');
     } else {
       Toast.show({
         type: 'error',
@@ -86,6 +168,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     if (response) {
       console.log('Send: ', response);
       setCertificate(response);
+      handleUpload('Certificate');
     } else {
       Toast.show({
         type: 'error',
@@ -99,6 +182,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     if (response) {
       console.log('Send: ', response);
       setSeal(response);
+      handleUpload('Seal');
     } else {
       Toast.show({
         type: 'error',
@@ -107,30 +191,62 @@ export default function AgentVerificationScreen({navigation, route}, props) {
       setSeal(null);
     }
   };
+  const isValidUri = uri => {
+    if (!uri) return false;
+
+    // Check if the URI is a valid HTTPS URL
+    const isHttpsUrl = uri.startsWith('https://');
+
+    // Check if the URI is a valid Android content URI
+    const isContentUri = uri.startsWith(
+      'content://com.android.providers.media.documents',
+    );
+
+    if (isHttpsUrl) return 'https';
+    if (isContentUri) return 'content';
+    return false; // If neither, return false
+  };
+
   const submitRegister = async () => {
     setLoading(true);
     if (photoID && Certificate && Seal) {
-      const photeBlob = await uriToBlob(photoID);
-      console.log('====================================');
-      console.log('photoblob', photeBlob);
-      console.log('====================================');
-      const CertificateBlob = await uriToBlob(Certificate);
+      console.log('validldurldld', isValidUri(Certificate));
+      const isPhotoValid = isValidUri(photoID);
+      const isCertificateValid = isValidUri(Certificate);
+      const isSealValid = isValidUri(Seal);
+      if (!isPhotoValid || !isCertificateValid || !isSealValid) {
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid Input',
+          text2: 'Please provide valid URLs or content URIs for all documents.',
+        });
+        setLoading(false);
+        return;
+      }
 
-      console.log('====================================');
-      console.log('CertificateBlob', CertificateBlob);
-      console.log('====================================');
-      const SealBlob = await uriToBlob(Seal);
+      // Process `photoID`
+      const photeBlob =
+        isPhotoValid === 'content' ? await uriToBlob(photoID) : null;
+      const photoURL =
+        isPhotoValid === 'https'
+          ? photoID
+          : await uploadFilestoS3(photeBlob, variables.firstName);
 
-      console.log('====================================');
-      console.log('CertificateBlob', SealBlob);
-      console.log('====================================');
+      // Process `Certificate`
+      const CertificateBlob =
+        isCertificateValid === 'content' ? await uriToBlob(Certificate) : null;
+      const CertificateURL =
+        isCertificateValid === 'https'
+          ? Certificate
+          : await uploadFilestoS3(CertificateBlob, variables.firstName);
 
-      const photoURL = await uploadFilestoS3(photeBlob, variables.firstName);
-      const CertificateURL = await uploadFilestoS3(
-        CertificateBlob,
-        variables.firstName,
-      );
-      const SealUrl = await uploadFilestoS3(SealBlob, variables.firstName);
+      // Process `Seal`
+      const SealBlob = isSealValid === 'content' ? await uriToBlob(Seal) : null;
+      const SealUrl =
+        isSealValid === 'https'
+          ? Seal
+          : await uploadFilestoS3(SealBlob, variables.firstName);
+
       const params = {
         ...variables,
         certificateUrl: CertificateURL,
@@ -138,7 +254,10 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         notarySeal: SealUrl,
       };
 
-      if (typeof onComplete === 'function' && onComplete.name !== '') {
+      if (
+        (typeof onComplete === 'function' && onComplete.name !== '') ||
+        (user && user.notarySeal)
+      ) {
         console.log(
           'ddddddddddddddff====================================',
           onComplete.name,
@@ -154,6 +273,13 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         let respose = await handleUpdatecertificate(certificateVariables);
         console.log('resopsonfdf', respose1, respose);
         await onComplete();
+        const {data} = await updateVerification({
+          variables: {
+            _id: user?._id,
+            isVerified: false,
+          },
+        });
+        console.log('dadlflfldfldfldfd', data);
         Toast.show({
           type: 'success',
           text1: 'Success',
@@ -189,7 +315,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
   return (
     <SafeAreaView style={styles.container}>
       <CompanyHeader
-        Header="Verification"
+        Header={user ? 'Edit Your Identity' : 'Verification'}
         subHeading="Please verify your identity"
         HeaderStyle={{alignSelf: 'center'}}
         subHeadingStyle={{
@@ -199,6 +325,18 @@ export default function AgentVerificationScreen({navigation, route}, props) {
           color: '#121826',
         }}
       />
+      <View style={styles.progressContainer}>
+        <ProgressBar
+          progress={registerData.progress}
+          width={width * 0.9}
+          color={Colors.OrangeGradientEnd}
+          unfilledColor={Colors.OrangeGradientStart}
+          borderWidth={0}
+        />
+        <Text style={styles.percentageText}>
+          {Math.round(registerData.progress * 100)}%
+        </Text>
+      </View>
       <BottomSheetStyle>
         <ScrollView
           style={{marginTop: heightToDp(5)}}
@@ -326,5 +464,21 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4.5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
+  },
+  progressContainer: {
+    marginTop: 25,
+    alignItems: 'center',
+    width: '100%', // Adjust as needed
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  percentageText: {
+    position: 'absolute',
+    top: -30,
+    left: '47%',
+    // transform: [{translateX: -50}],
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'orange',
   },
 });

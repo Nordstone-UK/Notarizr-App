@@ -38,25 +38,26 @@ import BottomSheet, {
 import useAgentService from '../../../hooks/useAgentService';
 
 export default function AgentHomeScreen({navigation}) {
-  const {_id, isVerified} = useSelector(state => state.user.user);
+  const {_id, isVerified, isBlocked} = useSelector(state => state.user.user);
   const data = useSelector(state => state.user.user);
-
   const {dispatchMobile, dispatchLocal, dispatchRON} = useAgentService();
   const bottomSheetRef = useRef(null);
 
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
-  const {fetchAgentBookingInfo, getTotalBookings} = useFetchBooking();
+  const {fetchAgentBookingInfo, getTotalBookings, getTotalSessions} =
+    useFetchBooking();
   const {checkUserStipeAccount} = useStripeApi();
   const [Booking, setBooking] = useState([]);
   const [totalBooking, setTotalBooknig] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingButton, setLoadingButton] = useState(null);
-
   const init = async status => {
     const bookingDetail = await fetchAgentBookingInfo(status);
     const totalBookings = await getTotalBookings();
-    setTotalBooknig(totalBookings);
+    const totalSessions = await getTotalSessions();
+
+    setTotalBooknig(totalBookings + totalSessions);
     setBooking(bookingDetail);
   };
   const onRefresh = React.useCallback(() => {
@@ -142,7 +143,7 @@ export default function AgentHomeScreen({navigation}) {
     },
     [isVerified],
   );
-  console.log('stinper', isVerified);
+
   useEffect(() => {
     if (isVerified) {
       handleStripeAccount();
@@ -232,20 +233,27 @@ export default function AgentHomeScreen({navigation}) {
                     keyExtractor={item => item._id}
                     style={{marginBottom: heightToDp(50)}}
                     renderItem={({item}) => {
-                      // console.log("items",item)
+                      const addressId = item.address;
+                      let addressdetail = null;
+                      if (item?.booked_by?.addresses) {
+                        addressdetail = item.booked_by.addresses.find(
+                          address => address._id == addressId,
+                        );
+                      }
+                      // console.log('addfesdfd', addressdetail);
                       return (
                         <ClientServiceCard
                           image={require('../../../../assets/agentLocation.png')}
                           calendarImage={require('../../../../assets/calenderIcon.png')}
-                          source={{uri: item.booked_by.profile_picture}}
+                          source={{uri: item.booked_by?.profile_picture}}
                           bottomRightText={item.document_type}
                           bottomLeftText="Total"
                           agentName={
-                            item.booked_by.first_name +
+                            item.booked_by?.first_name +
                             ' ' +
-                            item.booked_by.last_name
+                            item.booked_by?.last_name
                           }
-                          agentAddress={item.booked_by.location}
+                          agentAddress={addressdetail?.location}
                           status={item?.status}
                           OrangeText="At Home"
                           Button={true}
@@ -308,6 +316,36 @@ export default function AgentHomeScreen({navigation}) {
             <Text style={{fontSize: 16, color: 'black'}}>
               Thank you for signing up for Notarizr. We are reviewing your
               profile and get back to you soon
+            </Text>
+          </View>
+        </BottomSheet>
+      )}
+      {isBlocked && (
+        <BottomSheet
+          snapPoints={['45%', '45%']}
+          enableContentPanningGesture={false}
+          enableHandlePanningGesture={false}
+          enableOverDrag={false}
+          index={1}
+          backdropComponent={backdropProps => (
+            <BottomSheetBackdrop
+              {...backdropProps}
+              opacity={0.9}
+              enableTouchThrough={true}
+              pressBehavior={'none'}
+            />
+          )}
+          ref={bottomSheetRef}>
+          <View
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              paddingHorizontal: widthToDp(5),
+            }}>
+            <Text style={{fontSize: 16, color: 'black'}}>
+              Your account has been blocked. Please contact support for further
+              assistance.
             </Text>
           </View>
         </BottomSheet>

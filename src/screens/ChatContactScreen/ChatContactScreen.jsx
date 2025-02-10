@@ -10,8 +10,22 @@ import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {Image} from 'react-native';
 
 export default function ChatContactScreen({navigation}) {
+  const {getClientChats} = useChatService();
+
   const user = useSelector(state => state.user.user);
   const chats = useSelector(state => state.chats.allChats);
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        await getClientChats();
+      } catch (error) {
+        console.error('Failed to fetch agent chats:', error);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
   const renderItem = ({item}) => {
     const user = item.agent;
     return (

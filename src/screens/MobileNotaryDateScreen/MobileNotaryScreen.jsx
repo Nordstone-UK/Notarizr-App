@@ -41,7 +41,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
   // const [startTime, setStartTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
   // const [date, setDate] = useState(new Date());
-  console.log('isenaglere', bookingData?.totalPrice);
+  console.log('isenaglere', bookingData);
   let urlResponse;
   const {uploadMultipleFiles, uploadAllDocuments} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
@@ -99,7 +99,7 @@ export default function MobileNotaryDateScreen({route, navigation}) {
         Title="Booking"
         midImg={require('../../../assets/supportIcon.png')}
         midImgPress={() => handleCallSupport()}
-        lastImg={require('../../../assets/bellIcon.png')}
+        // lastImg={require('../../../assets/bellIcon.png')}
       />
       <Text style={styles.heading}>Please select a Document</Text>
       <BottomSheetStyle>

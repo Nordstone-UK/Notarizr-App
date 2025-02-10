@@ -33,6 +33,7 @@ export default function AllBookingScreen({route, navigation}) {
   const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
   const [refreshing, setRefreshing] = useState(false);
   const [mergerData, setMergerData] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const init = async status => {
@@ -72,6 +73,7 @@ export default function AllBookingScreen({route, navigation}) {
   };
   const handleAgentData = item => {
     navigation.navigate('MedicalBookingScreen');
+    console.log('itemmmmsdf', item);
     dispatch(setBookingInfoState(item));
     dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
     dispatch(setUser(item?.agent));
@@ -101,7 +103,7 @@ export default function AllBookingScreen({route, navigation}) {
                 marginHorizontal: widthToDp(5),
               }}>
               <MainButton
-                Title="Active"
+                Title="Accepted"
                 colors={
                   isFocused === 'accepted'
                     ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]

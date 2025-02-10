@@ -5,12 +5,15 @@ import {
   Image,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import LabelTextInput from '../LabelTextInput/LabelTextInput';
 import GradientButton from '../MainGradientButton/GradientButton';
+import {TextInput} from 'react-native-gesture-handler';
+import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
 
 const StarRating = ({rating, onStarPress}) => {
   return (
@@ -18,7 +21,7 @@ const StarRating = ({rating, onStarPress}) => {
       style={{
         flexDirection: 'row',
         alignSelf: 'center',
-        marginVertical: widthToDp(2),
+        marginVertical: widthToDp(5),
       }}>
       {[1, 2, 3, 4, 5].map(star => (
         <TouchableOpacity
@@ -42,47 +45,92 @@ const StarRating = ({rating, onStarPress}) => {
   );
 };
 export default function ReviewPopup(props) {
+  const [inputValue, setInputValue] = useState('');
+  const handleInputChange = text => {
+    setInputValue(text);
+    if (props.handleReviewSubmit) {
+      props.handleReviewSubmit(text);
+    }
+  };
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.bottonSheet}>
-        <Text style={styles.text}>
-          Please provide us with feedback for your agent
-        </Text>
-        <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
-        <LabelTextInput
+    <KeyboardAvoidingView style={styles.bottonSheet}>
+      <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
+        <Image
+          source={require('../../../assets/close.png')} // Replace with your close icon asset
+          style={styles.closeIcon}
+        />
+      </TouchableOpacity>
+      <Text style={styles.text}>
+        Please provide us with feedback for your agent
+      </Text>
+      <StarRating onStarPress={props.handleStarPress} rating={props.rating} />
+      {Platform.OS === 'android' ? (
+        <TextInput
           LabelTextInput={'Reveiw'}
-          labelStyle={{
+          style={{
             backgroundColor: Colors.PinkBackground,
             color: Colors.TextColor,
+            borderWidth: 1,
+            borderRadius: 20,
+            marginHorizontal: 25,
+            padding: 5,
           }}
           Label={true}
-          onChangeText={text => props.handleReviewSubmit(text)}
+          value={inputValue}
+          onChangeText={handleInputChange}
+          // onChangeText={text => props.handleReviewSubmit(text)}
         />
-        <View style={styles.btn}>
-          <GradientButton
-            Title="Submit"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={props.onPress}
-          />
-        </View>
+      ) : (
+        <BottomSheetTextInput
+          LabelTextInput={'Reveiw'}
+          style={{
+            backgroundColor: Colors.PinkBackground,
+            color: Colors.TextColor,
+            borderWidth: 1,
+            borderRadius: 20,
+            marginHorizontal: 25,
+            padding: 5,
+          }}
+          value={inputValue}
+          Label={true}
+          onChangeText={handleInputChange}
+        />
+      )}
+      <View style={styles.btn}>
+        <GradientButton
+          Title="Submit"
+          colors={
+            inputValue.trim()
+              ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+              : [Colors.DullTextColor, Colors.DisableColor]
+          }
+          onPress={inputValue.trim() ? props.onPress : null}
+          disabled={!inputValue.trim()}
+        />
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   bottonSheet: {
     flex: 1,
     // justifyContent: 'flex-end',
     backgroundColor: Colors.PinkBackground,
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
-    justifyContent: 'center',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: heightToDp(2),
+    right: widthToDp(5),
+    zIndex: 1,
+  },
+  closeIcon: {
+    height: heightToDp(4),
+    width: widthToDp(4),
   },
   btn: {
     marginVertical: heightToDp(5),
@@ -95,7 +143,7 @@ const styles = StyleSheet.create({
     // marginVertical: heightToDp(5),
   },
   text: {
-    marginTop: heightToDp(5),
+    marginTop: heightToDp(6),
     fontSize: widthToDp(6),
     color: Colors.TextColor,
     fontFamily: 'Manrope-Bold',

@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-export const GET_DOCUMENT_TYPES= gql`
+export const GET_DOCUMENT_TYPES = gql`
   query GetPaginatedDocumentTypes(
     $page: Int!
     $limit: Int!
@@ -18,7 +18,6 @@ export const GET_DOCUMENT_TYPES= gql`
       documentTypes {
         _id
         name
-        price
         image
         createdAt
         updatedAt

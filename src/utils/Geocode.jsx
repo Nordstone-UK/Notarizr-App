@@ -2,7 +2,7 @@ import axios from 'axios';
 import Geolocation from '@react-native-community/geolocation';
 const apiKey = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
 const MAX_RETRIES = 3;
-const TIMEOUT = 5000; // 5 seconds
+const TIMEOUT = 5000;
 
 export async function callGeocodingAPI(lat, long) {
   console.log('Requesting geocoding for:', lat, long);
