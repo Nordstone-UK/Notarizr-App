@@ -69,6 +69,7 @@ import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
 import { UPDATE_SESSION_PRICEDOCS } from '../../../../request/mutations/updateSessionPriceDocs.mutation';
 import { Alert } from 'react-native';
+import { ACCEPT_ALLOCATION_REQUEST, REJECT_ALLOCATION_REQUEST } from '../../../../request/mutations/updateAllocationRequest.mutation';
 
 export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const downloadPdf = useRef(null);
@@ -96,6 +97,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const { proof_documents } = clientDetail;
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
+  const [allocationStatus, setAllocationStatus] = useState();
   const [isVisible, setIsVisible] = useState(false);
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
@@ -289,6 +291,44 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     }
     setLoadingUpdate(false);
   };
+
+  const [acceptAllocation, { data: acceptData, loading: acceptLoading, error: acceptError }] =
+    useMutation(ACCEPT_ALLOCATION_REQUEST, {
+      onCompleted: (data) => {
+        console.log('Allocation accepted:', data);
+        if (data?.acceptAllocationRequest.status === "success") {
+          setAllocationStatus("To_be_paid")
+        }
+      },
+      onError: (error) => {
+        console.error('Error accepting allocation:', error);
+      },
+    });
+  const [
+    rejectAllocation,
+    { data: rejectData, loading: rejectLoading, error: rejectError },
+  ] = useMutation(REJECT_ALLOCATION_REQUEST, {
+
+    onCompleted: (data) => {
+      console.log('Allocation rejected:', data);
+      if (data?.rejectAllocationRequest.status === "success") {
+        setAllocationStatus("Rejected")
+      }
+    },
+    onError: (error) => {
+      console.error('Error rejecting allocation:', error);
+    },
+  });
+  const handleAllocationAccept = async (allocationId) => {
+    acceptAllocation({
+      variables: { allocationId },
+    });
+  }
+  const handleAllocationReject = async (allocationId) => {
+    rejectAllocation({
+      variables: { allocationId },
+    });
+  }
   const handleUpdateClientStatus = async (updatestatus: string) => {
     console.log('sttererer', updatestatus);
     // return;
@@ -523,13 +563,20 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       }
     }
   };
-  const highestPriceDocument = clientDetail.document_type.reduce(
-    (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
-    clientDetail.document_type[0],
-  );
+  const highestPriceDocument = clientDetail.document_type?.length
+    ? clientDetail.document_type.reduce(
+      (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
+      clientDetail.document_type[0]
+    )
+    : {};
+
   const additionalSignatureCharges =
     clientDetail.total_signatures_required * 10;
   const handleDocumentPress = (documentUri: string) => {
+    if (!documentUri) {
+      console.warn("Document URI is empty");
+      return;
+    }
     console.log('documentur', documentUri);
     navigation.navigate('NotaryDocumentDownloadScreen', {
       document: documentUri,
@@ -854,12 +901,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     }
   };
 
-  console.log("cliendetails", observers)
+  console.log("cliendetails", allocationStatus)
   console.log("cliendetailssssssssssssssssssssssss", clientDetail?.status, clientDetail.observers)
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
-        Title="Booking"
+        Title={clientDetail?.__typename === "Allocation" ? "Allocation" : "Booking"}
         lastImg={require('../../../../assets/chatIcon.png')}
         lastImgPress={() =>
           navigation.navigate('ChatScreen', {
@@ -881,10 +928,10 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
         }}>
         <View style={styles.headingContainer}>
           {/* <Text style={styles.lightHeading}>Selected Service</Text> */}
-          {clientDetail?.service_type === 'mobile_notary' && (
+          {(clientDetail?.service?.service_type || clientDetail?.service_type) === 'mobile_notary' && (
             <Text style={styles.Heading}>Mobile Notary</Text>
           )}
-          {clientDetail?.service_type !== 'mobile_notary' && (
+          {(clientDetail?.service?.service_type || clientDetail?.service_type) !== 'mobile_notary' && (
             <>
               <Text style={styles.Heading}>Remote Online Notary</Text>
               <Text style={[styles.Heading, { fontSize: widthToDp(3), fontStyle: 'italic' }]}>Your fee to Notarizr for this session is $2.99</Text>
@@ -945,6 +992,27 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   {status === 'Payment_confirmed' ? 'Payment Confirmed' : status}
                 </Text>
               )}
+              {clientDetail?.agentResquesStatus === "pending" && (
+                allocationStatus === "To_be_paid" ? (
+                  <>
+                    <Image
+                      source={require('../../../../assets/greenIcon.png')}
+                      style={styles.greenIcon}
+                    />
+                    <Text style={styles.insideText}>To Be Paid</Text>
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      source={require('../../../../assets/pending.png')}
+                      style={styles.greenIcon}
+                    />
+                    <Text style={styles.insideText}>{allocationStatus == null ? "Pending" : allocationStatus}</Text>
+                  </>
+                )
+              )}
+
+
             </View>
           </View>
 
@@ -1021,7 +1089,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   <View style={{ marginRight: 10 }}>
                     <Image
                       source={{
-                        uri: 'https://notarizr-app-data.s3.us-east-2.amazonaws.com/images/Profile%20Pictures/aa1e15ff-46d1-4c5d-95fe-569e6f2239f8.JPEG',
+                        uri: 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
                       }}
                       style={{
                         width: widthToDp(14),
@@ -1032,18 +1100,19 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   </View>
                   <View>
                     <Text style={{ color: 'black', fontFamily: 'Poppins-Bold' }}>
-                      {clientDetail.booked_by.email}
+                      {clientDetail?.booked_for?.email || clientDetail?.booked_by?.email || clientDetail?.email}
                     </Text>
                     <Text
                       style={{ color: 'black', fontFamily: 'Poppins-Regular' }}>
-                      {clientDetail.booked_by.first_name}{' '}
-                      {clientDetail.booked_by.last_name}
+                      {clientDetail?.booked_for?.first_name || clientDetail?.booked_by?.first_name || clientDetail?.first_name}
+                      {clientDetail.booked_for?.last_name || clientDetail.booked_by?.last_name || clientDetail?.last_name}
                     </Text>
                     {/* Render other alternative client details here */}
                   </View>
                 </View>
               </View>
             )}
+
             {clientDetail.observers && clientDetail.observers.length > 0 && (
               <View>
                 <Text style={[styles.insideHeading]}>Observers </Text>
@@ -1379,6 +1448,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     at {clientDetail.time_of_booking}
                   </Text>
                 )}
+                {clientDetail?.preferredDate && (
+                  <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
+                    {moment(clientDetail?.preferredDate).format('MM/DD/YYYY')}{' '}
+                    at {clientDetail.preferredTime}
+                  </Text>
+                )}
               </View>
             </View>
             {/* )} */}
@@ -1704,6 +1779,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
+                      flexWrap: 'wrap',
+                      gap: widthToDp(3),
                     }}>
                     {clientDetail.documents.map((item, index) => (
                       <TouchableOpacity key={index}>
@@ -1746,6 +1823,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
+                      flexWrap: 'wrap',
+                      gap: widthToDp(3),
                     }}>
                     {Object.values(clientDetail.client_documents)?.map(
                       (item, index) => (
@@ -1793,6 +1872,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
+                      flexWrap: 'wrap',
+                      gap: widthToDp(3),
                     }}>
                     {clientDetail.agent_document?.map((item, index) => (
                       <TouchableOpacity
@@ -1836,6 +1917,8 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                       marginTop: heightToDp(4),
                       marginLeft: widthToDp(5),
                       columnGap: widthToDp(3),
+                      flexWrap: 'wrap',
+                      gap: widthToDp(3),
                     }}>
                     {clientDetail.notarized_docs?.map((item, index) => (
                       <TouchableOpacity
@@ -2068,6 +2151,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     Colors.OrangeGradientEnd,
                   ]}
                   onPress={() => {
+
                     handleClientData();
                     handleStatusChange('accepted');
                   }}
@@ -2084,7 +2168,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   }}
                 />
               )}
-            {status === 'Pending' && (
+            {allocationStatus == null && (clientDetail?.__typename == "Allocation" || status === 'Pending') && (
               <>
 
                 <MainButton
@@ -2094,8 +2178,13 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     Colors.OrangeGradientEnd,
                   ]}
                   onPress={() => {
-                    handleStatusChange('to_be_paid');
-                    handleClientData();
+                    if (clientDetail?.__typename !== "Allocation") {
+                      handleStatusChange('to_be_paid');
+                      handleClientData();
+                    } else {
+                      handleAllocationAccept(clientDetail?._id)
+                    }
+
 
 
                   }}
@@ -2118,9 +2207,16 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     Colors.OrangeGradientEnd,
                   ]}
                   onPress={
-                    () => handleStatusChange('rejected')
-                    // handleUpdateBookingStatus('rejected', clientDetail._id)
-                  }
+                    () => {
+                      if (clientDetail?.__typename !== "Allocation") {
+                        handleStatusChange('rejected')
+                      }
+                      else {
+                        handleAllocationReject(clientDetail?._id)
+                      }
+
+                      // handleUpdateBookingStatus('rejected', clientDetail._id)
+                    }}
                   GradiStyles={{
                     width: widthToDp(30),
                     paddingHorizontal: widthToDp(0),
@@ -2135,6 +2231,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                 />
               </>
             )}
+
           </View>
           <View style={[styles.buttonFlex]}>
             {clientDetail?.service_type !== 'mobile_notary' &&

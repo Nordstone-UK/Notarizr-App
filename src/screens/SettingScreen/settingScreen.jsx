@@ -211,6 +211,11 @@ export default function SettingScreen({navigation}, props) {
             }`}
             onPress={toggleAccountType}
           />
+          <SettingOptions
+            icon={require('../../../assets/question.png')}
+            Title="FAQ"
+            onPress={() => navigation.navigate('FaqScreen')}
+          />
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>

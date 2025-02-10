@@ -26,7 +26,8 @@ import {
 
 export default function AgentAllBookingScreen({navigation}) {
   const [isFocused, setIsFocused] = useState('accepted');
-  const {fetchAgentBookingInfo, handleAgentSessions} = useFetchBooking();
+  const {fetchAgentBookingInfo, handleAgentSessions, fetchAdminAllocations} =
+    useFetchBooking();
   const [Booking, setBooking] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [mergerData, setMergerData] = useState([]);
@@ -39,7 +40,21 @@ export default function AgentAllBookingScreen({navigation}) {
     setLoading(true);
     const bookingDetail = await fetchAgentBookingInfo(status);
     const sessionDetail = await handleAgentSessions(status);
-    const mergedDetails = [...bookingDetail, ...sessionDetail];
+
+    let mergedDetails = [...bookingDetail, ...sessionDetail];
+    if (status === 'pending') {
+      console.log('rpnsfffffffffff', status);
+      const adminAllocationDetail = await fetchAdminAllocations(status);
+      console.log('ad,inallocation', adminAllocationDetail);
+      if (Array.isArray(adminAllocationDetail)) {
+        mergedDetails = [...mergedDetails, ...adminAllocationDetail];
+      } else {
+        console.warn(
+          'adminAllocationDetail is not an array:',
+          adminAllocationDetail,
+        );
+      }
+    }
     const sortedDetails = mergedDetails.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
@@ -220,34 +235,50 @@ export default function AgentAllBookingScreen({navigation}) {
                 data={mergerData}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => {
+                  const isAllocation = item.__typename === 'Allocation';
+                  const serviceType = isAllocation
+                    ? item.service?.service_type
+                    : item.service_type;
+                  const profileImageUri = isAllocation
+                    ? 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png'
+                    : item?.booked_by?.profile_picture ||
+                      item?.client?.profile_picture;
+                  const agentName = isAllocation
+                    ? `${item.first_name} ${item.last_name}`
+                    : item?.booked_by?.first_name && item?.booked_by?.last_name
+                    ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
+                    : `${item?.client?.first_name || ''} ${
+                        item?.client?.last_name || ''
+                      }`;
+                  const agentAddress = isAllocation
+                    ? item.address
+                    : item?.booked_by
+                    ? `${addressdetail?.location}`
+                    : `${item?.client?.location}`;
+
                   const addressId = item.address;
+
                   let addressdetail = null;
                   if (item?.booked_by?.addresses) {
                     addressdetail = item.booked_by.addresses.find(
                       address => address._id == addressId,
                     );
                   }
-                  console.log('sssssssssssf', addressdetail);
                   return (
                     <ClientServiceCard
                       image={require('../../../../assets/agentLocation.png')}
                       calendarImage={require('../../../../assets/calenderIcon.png')}
-                      servicetype={item.service_type}
+                      servicetype={serviceType}
                       source={{
-                        uri: item?.booked_by?.profile_picture
-                          ? `${item?.booked_by?.profile_picture}`
-                          : `${item?.client?.profile_picture}`,
+                        uri: profileImageUri,
                       }}
                       bottomRightText={item?.document_type}
                       bottomLeftText="Total"
-                      agentName={
-                        item?.booked_by?.first_name &&
-                        item?.booked_by?.last_name
-                          ? `${item?.booked_by.first_name} ${item?.booked_by.last_name}`
-                          : `${item?.client?.first_name} ${item?.client?.last_name}`
-                      }
+                      agentName={agentName}
                       agentAddress={
-                        item?.booked_by
+                        isAllocation
+                          ? item.address
+                          : item?.booked_by
                           ? `${addressdetail?.location}`
                           : `${item?.client?.location}`
                       }
@@ -261,8 +292,12 @@ export default function AgentAllBookingScreen({navigation}) {
                       }
                       paymentType={item?.payment_type}
                       datetimesession={item?.date_time_session}
-                      dateofBooking={item?.date_of_booking}
-                      timeofBooking={item?.time_of_booking}
+                      dateofBooking={
+                        item.preferredDate || item?.date_of_booking
+                      }
+                      timeofBooking={
+                        item.preferredTime || item?.time_of_booking
+                      }
                       createdAt={item?.createdAt}
                     />
                   );

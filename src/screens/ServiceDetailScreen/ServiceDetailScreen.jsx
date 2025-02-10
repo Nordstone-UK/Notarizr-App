@@ -31,7 +31,8 @@ import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 
 export default function ServiceDetailScreen({route, navigation}) {
-  const {serviceType} = route.params;
+  const {serviceType, address} = route.params;
+  console.log('routerparamssdf', route);
   const {fetchUserInfo} = useFetchUser();
   const dispatch = useDispatch();
   const {addresses} = useSelector(state => state.user.user);
@@ -50,7 +51,21 @@ export default function ServiceDetailScreen({route, navigation}) {
   const [date, setDate] = useState(null);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('date');
+  console.log('locatondfdf', location);
   let initialDate = new Date();
+  useEffect(() => {
+    if (address) {
+      // Loop through the addresses to check for a match with address.location
+      const matchingItem = addresses.find(
+        item => item.location === address.location,
+      );
+      if (matchingItem) {
+        setSelectedAddress(matchingItem.location);
+        setlocation(matchingItem._id); // Set the matching address _id
+      }
+    }
+  }, [address, addresses]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUserInfo();
@@ -70,12 +85,13 @@ export default function ServiceDetailScreen({route, navigation}) {
       setServiceFor(string);
     }
   };
-  console.log('Srvie', serviceFor);
+
   const submitAddressDetails = () => {
+    console.log('loatonaddress', selectAddress);
     dispatch(
       setBookingInfoState({
         serviceType: serviceType,
-        service: null,
+        service: serviceFor,
         timeOfBooking: moment(date).format('h:mm A'),
         dateOfBooking: moment(date).format('MM-DD-YYYY'),
         agent: null,
@@ -209,7 +225,7 @@ export default function ServiceDetailScreen({route, navigation}) {
 
   //   setLoading(false);
   // };
-  console.log('addressslist', date);
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Booking" />
@@ -378,12 +394,42 @@ export default function ServiceDetailScreen({route, navigation}) {
                     Label={true}
                     placeholder={'XXXXXXXXXXX'}
                   />
-                  <LabelTextInput
-                    leftImageSoucre={require('../../../assets/locationIcon.png')}
-                    Label={true}
-                    placeholder={'Enter your address'}
-                    LabelTextInput={'Address'}
-                    onChangeText={text => setlocation(text)}
+                  {location && (
+                    <LabelTextInput
+                      leftImageSoucre={require('../../../assets/locationIcon.png')}
+                      Label={true}
+                      placeholder={'Enter your address'}
+                      LabelTextInput={'Address'}
+                      value={address?.location}
+                      onChangeText={text => setlocation(text)}
+                    />
+                  )}
+                  <GradientButton
+                    Title="Add Your Address"
+                    colors={
+                      !selectAddress
+                        ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
+                        : [Colors.DisableColor, Colors.DisableColor]
+                    }
+                    GradiStyles={{
+                      paddingBottom: widthToDp(1),
+                      // width: widthToDp(45),
+                      // height: heightToDp(20),
+                    }}
+                    styles={
+                      {
+                        // padding: widthToDp(40),
+                        // marginbottom: -10,
+                        // fontSize: widthToDp(2),
+                      }
+                    }
+                    // buttonFontSize={widthToDp(5)}
+                    onPress={() =>
+                      navigation.navigate('CurrentLocationScreen', {
+                        previousScreen: 'ServiceDetailScreen',
+                        service: 'others',
+                      })
+                    }
                   />
                 </View>
               )}

@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   PermissionsAndroid,
 } from 'react-native';
+import ProgressBar from 'react-native-progress/Bar';
 import React, {useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -22,14 +23,22 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {captureImage, chooseFile} from '../../utils/ImagePicker';
 
-import {profilePictureSet} from '../../features/register/registerSlice';
+import {
+  profilePictureSet,
+  setProgress,
+  setFilledCount,
+} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
 import useRegister from '../../hooks/useRegister';
 import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
 import useAuthenticate from '../../hooks/useAuthenticate';
 import useFetchUser from '../../hooks/useFetchUser';
+import {Dimensions} from 'react-native';
 
 export default function ProfilePictureScreen({navigation}) {
+  const registerData = useSelector(state => state.register);
+  const totalFields = registerData.accountType === 'client' ? 8 : 12;
+  const {width} = Dimensions.get('window');
   const [image, setImage] = useState();
   const [errorMessage, setErrorMessage] = useState('');
   const [tempLoading, settempLoading] = useState(false);
@@ -40,7 +49,8 @@ export default function ProfilePictureScreen({navigation}) {
   const [skip, setSkip] = useState(false);
   const dispatch = useDispatch();
   const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
-  const {registerAuthUser, consentAuth} = useAuthenticate();
+  const {registerAuthUser, conAgentVerificationScreensentAuth} =
+    useAuthenticate();
   const {fetchUserInfo} = useFetchUser();
   const showCameraGalleryAlert = () => {
     Alert.alert(
@@ -55,6 +65,9 @@ export default function ProfilePictureScreen({navigation}) {
           onPress: async () => {
             const uri = await chooseFile('photo');
             setImage(uri);
+            const progressValue = (registerData.filledCount + 1) / totalFields;
+            dispatch(setFilledCount(registerData.filledCount + 1));
+            dispatch(setProgress(progressValue));
           },
         },
         {
@@ -62,6 +75,9 @@ export default function ProfilePictureScreen({navigation}) {
           onPress: async () => {
             const uri = await captureImage('photo');
             setImage(uri);
+            const progressValue = (registerData.filledCount + 1) / totalFields;
+            dispatch(setFilledCount(registerData.filledCount + 1));
+            dispatch(setProgress(progressValue));
           },
           style: 'cancel',
         },
@@ -76,7 +92,7 @@ export default function ProfilePictureScreen({navigation}) {
     setVisible(true);
 
     // if (state) {
-    if (skip) {
+    if (state == 'skip') {
       console.log('Skipping');
       await skipPciture();
       setVisible(false);
@@ -152,6 +168,9 @@ export default function ProfilePictureScreen({navigation}) {
           .catch(error => {
             console.log('Registering user Auth', error);
           });
+        const progressValue = (registerData.filledCount + 1) / totalFields;
+        dispatch(setFilledCount(registerData.filledCount + 1));
+        dispatch(setProgress(progressValue));
         navigation.navigate('RegisterCompletionScreen');
       } else {
         Toast.show({
@@ -164,8 +183,22 @@ export default function ProfilePictureScreen({navigation}) {
     } else {
       settempLoading(false);
       dispatch(profilePictureSet(url));
+      const progressValue = (registerData.filledCount + 1) / totalFields;
+      dispatch(setFilledCount(registerData.filledCount + 1));
+      dispatch(setProgress(progressValue));
       navigation.navigate('AgentVerificationScreen');
     }
+  };
+  const handleUpload = () => {
+    const progressValue = (registerData.filledCount + 1) / totalFields;
+    dispatch(setFilledCount(registerData.filledCount + 1));
+    dispatch(setProgress(progressValue));
+  };
+
+  const handleDelete = () => {
+    const progressValue = (registerData.filledCount - 1) / totalFields;
+    dispatch(setFilledCount(registerData.filledCount - 1));
+    dispatch(setProgress(progressValue));
   };
   const skipPciture = async () => {
     settempLoading(true);
@@ -195,6 +228,7 @@ export default function ProfilePictureScreen({navigation}) {
           .catch(error => {
             console.log('Registering user Auth', error);
           });
+        await handleUpload();
         navigation.navigate('RegisterCompletionScreen');
       } else {
         Toast.show({
@@ -207,6 +241,7 @@ export default function ProfilePictureScreen({navigation}) {
     } else {
       settempLoading(false);
       // dispatch(profilePictureSet(url));
+      await handleUpload();
       navigation.navigate('AgentVerificationScreen');
     }
   };
@@ -214,6 +249,7 @@ export default function ProfilePictureScreen({navigation}) {
     <SafeAreaView style={styles.container}>
       <CompanyHeader
         Header="Profile Image"
+        reset="true"
         subHeading="Please provide us with your profile image"
         HeaderStyle={{alignSelf: 'center'}}
         subHeadingStyle={{
@@ -223,9 +259,25 @@ export default function ProfilePictureScreen({navigation}) {
           color: '#121826',
         }}
       />
+      <View style={styles.progressContainer}>
+        <ProgressBar
+          progress={registerData.progress}
+          width={width * 0.9}
+          color={Colors.OrangeGradientEnd}
+          unfilledColor={Colors.OrangeGradientStart}
+          borderWidth={0}
+        />
+        <Text style={styles.percentageText}>
+          {Math.round(registerData.progress * 100)}%
+        </Text>
+      </View>
       <BottomSheetStyle>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <TouchableOpacity onPress={() => setImage('')}>
+          <TouchableOpacity
+            onPress={() => {
+              setImage('');
+              handleDelete();
+            }}>
             <Text style={styles.textRemove}>Remove</Text>
           </TouchableOpacity>
           {image ? (
@@ -267,7 +319,7 @@ export default function ProfilePictureScreen({navigation}) {
           />
           <SkipButton
             Title="Skip"
-            onPress={() => handleAuthPermission(true)}
+            onPress={() => handleAuthPermission('skip')}
             loading={tempLoading}
           />
         </ScrollView>
@@ -318,5 +370,21 @@ const styles = StyleSheet.create({
     marginTop: heightToDp(15),
     paddingVertical: heightToDp(2),
     width: widthToDp(80),
+  },
+  progressContainer: {
+    marginVertical: 25,
+    alignItems: 'center',
+    width: '100%', // Adjust as needed
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  percentageText: {
+    position: 'absolute',
+    top: -30,
+    left: '47%',
+    // transform: [{translateX: -50}],
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'orange',
   },
 });

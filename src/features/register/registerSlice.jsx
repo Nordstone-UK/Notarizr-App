@@ -10,6 +10,8 @@ const initialState = {
   photoId: 'none',
   accountType: 'client',
   location: 'none',
+  progress: 0,
+  filledCount: 0,
 };
 
 export const registerSlice = createSlice({
@@ -43,6 +45,12 @@ export const registerSlice = createSlice({
       state.accountType = action.payload;
       // console.log('Redux accountType', state.accountType);
     },
+    setProgress: (state, action) => {
+      state.progress = action.payload;
+    },
+    setFilledCount: (state, action) => {
+      state.filledCount = action.payload;
+    },
   },
 });
 
@@ -52,6 +60,8 @@ export const {
   ceredentailSet,
   profilePictureSet,
   accountTypeSet,
+  setProgress,
+  setFilledCount,
 } = registerSlice.actions;
 
 export default registerSlice.reducer;

@@ -83,10 +83,14 @@ export default function LegalDocScreen({route, navigation}) {
       // setSelectedDocs([]);
       return;
     }
-    const highestPriceDocument = documentObjects.reduce(
-      (max, doc) => (doc.price > max.price ? doc : max),
-      documentObjects[0], // Initialize with the first document if the array is not empty
-    );
+
+    const highestPriceDocument =
+      Array.isArray(documentObjects) && documentObjects.length > 0
+        ? documentObjects.reduce(
+            (max, doc) => (doc.price > max.price ? doc : max),
+            documentObjects[0],
+          )
+        : null;
 
     console.log('Highest Price Document:', highestPriceDocument);
     setTotalPrice(highestPriceDocument?.price);
@@ -140,7 +144,6 @@ export default function LegalDocScreen({route, navigation}) {
     let stateName = 'USA';
     stateName = state;
     const locationResponse = await handleGetLocation();
-    console.log('locationres', locationResponse);
     if (
       locationResponse &&
       locationResponse.results &&

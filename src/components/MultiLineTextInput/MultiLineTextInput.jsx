@@ -58,6 +58,7 @@ export default function MultiLineTextInput(props) {
             Colors.DisableColor || props.placeholderTextColor
           }
           onChangeText={props.onChangeText}
+          value={props.value}
         />
         {props.rightImageSoucre && (
           <TouchableOpacity onPress={props.rightImagePress}>

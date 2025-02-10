@@ -30,7 +30,8 @@ import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyl
 import SingleSelectDropDown from '../../components/SingleSelectDropDown/SingleSelectDropDown';
 
 export default function AddNewAddress({navigation, route}, props) {
-  const {location_coordinates, previousScreen, location} = route?.params || {};
+  const {location_coordinates, previousScreen, location, service} =
+    route?.params || {};
   const {fetchUserInfo} = useFetchUser();
   console.log('routere', route.params);
   console.log('padddddddddramss', previousScreen);
@@ -77,7 +78,7 @@ export default function AddNewAddress({navigation, route}, props) {
       }
     }
   }, [route.params?.address, location]);
-  console.log('sttttttttttdd', state);
+  console.log('sttttttttttdd', route.params?.service);
   const submitRegister = async () => {
     if (building && street && address && pin && state) {
       settempLoading(true);
@@ -93,7 +94,7 @@ export default function AddNewAddress({navigation, route}, props) {
         pin;
       const params = {
         location: newLocation,
-        tag: 'Home',
+        tag: route.params?.service === 'others' ? 'Others' : 'Home',
         lat: lat.toString(),
         lng: lng.toString(),
       };
@@ -118,6 +119,29 @@ export default function AddNewAddress({navigation, route}, props) {
             type: 'error',
             text1: 'Error',
             text2: 'Problem while editing',
+          });
+          settempLoading(false);
+        }
+      } else if (route.params?.service === 'others') {
+        const isUpdated = await hadleUpdateAddress(params);
+        console.log('isupdateddddd', isUpdated);
+        if (isUpdated) {
+          fetchUserInfo();
+          settempLoading(false);
+          Toast.show({
+            type: 'success',
+            text1: 'Address Updated!',
+            text2: 'Your address has been updated successfully.',
+          });
+          navigation.navigate(previousScreen, {
+            serviceType: 'mobile_notary',
+            address: params,
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Problem while updating',
           });
           settempLoading(false);
         }

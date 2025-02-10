@@ -44,7 +44,8 @@ const getAddressFromCoordinates = async (latitude, longitude) => {
   }
 };
 export default function CurrentLocationScreen({route}) {
-  const {previousScreen, address} = route?.params || {};
+  const {previousScreen, address, service} = route?.params || {};
+  console.log('routessss', route?.params);
   const navigation = useNavigation();
 
   console.log('navigation', navigation.navigate);
@@ -182,6 +183,7 @@ export default function CurrentLocationScreen({route}) {
       console.log('selectred address', selectedAddress);
       navigation.navigate('AddNewAddress', {
         previousScreen: previousScreen,
+        service: service,
         address: address,
         location: selectedAddress,
         location_coordinates: [

@@ -44,10 +44,8 @@ const useFetchUser = () => {
         searchString: Search,
       },
     };
-    console.log('variivf', request);
     try {
       const response = await getDocuments(request);
-      console.log('lobaionfdfdfdfd', response.data.getPaginatedDocumentTypes);
       return response.data.getPaginatedDocumentTypes;
     } catch (err) {
       console.log(err);

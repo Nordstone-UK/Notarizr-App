@@ -75,7 +75,7 @@ export default function LoginScreen({navigation}, props) {
       getPhoneOtp({
         variables: {phone},
       }).then(response => {
-        console.log('response', response.error);
+        console.log('responsessss', response);
         if (response?.data?.getPhoneOTP?.status === '403') {
           Toast.show({
             type: 'error',

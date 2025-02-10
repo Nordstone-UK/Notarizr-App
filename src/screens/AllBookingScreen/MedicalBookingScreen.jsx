@@ -352,10 +352,14 @@ export default function MedicalBookingScreen({route, navigation}) {
     );
   }
 
-  const highestPriceDocument = bookingDetail.document_type.reduce(
-    (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
-    bookingDetail.document_type[0],
-  );
+  const highestPriceDocument =
+    Array.isArray(bookingDetail.document_type) &&
+    bookingDetail.document_type.length > 0
+      ? bookingDetail.document_type.reduce(
+          (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
+          bookingDetail.document_type[0], // Initialize with the first document if the array is not empty
+        )
+      : null; // Return null or some default value if document_type is undefined or empty
 
   // console.log(highestPriceDocument);
 
@@ -1349,6 +1353,8 @@ export default function MedicalBookingScreen({route, navigation}) {
                     marginTop: heightToDp(4),
                     marginLeft: widthToDp(5),
                     columnGap: widthToDp(3),
+                    flexWrap: 'wrap',
+                    gap: widthToDp(3),
                   }}>
                   {bookingDetail.agent_document?.map((item, index) => (
                     <TouchableOpacity
@@ -1394,6 +1400,8 @@ export default function MedicalBookingScreen({route, navigation}) {
                     marginTop: heightToDp(4),
                     marginLeft: widthToDp(5),
                     columnGap: widthToDp(3),
+                    flexWrap: 'wrap',
+                    gap: widthToDp(3),
                   }}>
                   {bookingDetail.notarized_docs?.map((item, index) => (
                     <TouchableOpacity

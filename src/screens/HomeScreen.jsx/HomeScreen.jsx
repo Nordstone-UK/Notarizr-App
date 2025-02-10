@@ -36,7 +36,6 @@ import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
 export default function HomeScreen({route, navigation}) {
   const user = useSelector(state => state.user.user);
   const isBlocked = user?.isBlocked || false;
-  console.log('usssssssssssss', user);
   const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
   const bottomSheetRef = useRef(null);
@@ -55,8 +54,6 @@ export default function HomeScreen({route, navigation}) {
   const init = async status => {
     const bookingDetail = await fetchBookingInfo(status);
     setBooking(bookingDetail);
-
-    console.log('bookingidfdfdfdfd', bookingDetail);
   };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);

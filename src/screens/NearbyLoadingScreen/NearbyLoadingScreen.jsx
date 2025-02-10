@@ -35,7 +35,7 @@ export default function NearbyLoadingScreen({route, navigation}) {
     try {
       const response = await FetchMobileNotary(serviceType);
       console.log('responsdfdfdfd', serviceType);
-      console.log('usere');
+      console.log('usere', response);
       const {user} = response;
       const {service} = user;
 

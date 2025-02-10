@@ -6,6 +6,8 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+import ProgressBar from 'react-native-progress/Bar';
+
 import React, {useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, width, widthToDp} from '../../utils/Responsive';
@@ -19,7 +21,11 @@ import {useLazyQuery} from '@apollo/client';
 import {useDispatch, useSelector} from 'react-redux';
 import {VERIFY_PHONE_OTP} from '../../../request/queries/verifyPhoneOTP.query';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
-import {ceredentailSet} from '../../features/register/registerSlice';
+import {
+  ceredentailSet,
+  setProgress,
+  setFilledCount,
+} from '../../features/register/registerSlice';
 import {SafeAreaView} from 'react-native';
 import {VERIFY_SIGNUP_WITH_OTP} from '../../../request/queries/verifySignupotp.query';
 import Toast from 'react-native-toast-message';
@@ -35,6 +41,7 @@ export default function SignPhoneVerification({route, navigation}) {
     gender,
     phoneNumber,
     date,
+    filledFieldsCount,
   } = route.params;
   // console.log('route.params', route.params);
   // const Statemail = useSelector(state => state.register.email);
@@ -56,6 +63,12 @@ export default function SignPhoneVerification({route, navigation}) {
   });
 
   const dispatch = useDispatch();
+  const registerData = useSelector(state => state.register); // Access progress from Redux store
+  const totalFields = registerData.accountType === 'client' ? 8 : 12;
+
+  const handleNavigateToBackScreen = () => {
+    navigation.goBack();
+  };
   const handleOtpVerification = async () => {
     try {
       const response = await verifyOTPWithMobileNo({
@@ -76,6 +89,10 @@ export default function SignPhoneVerification({route, navigation}) {
             date,
           }),
         );
+        const progressValue = (registerData.filledCount + 1) / totalFields;
+        dispatch(setFilledCount(registerData.filledCount + 1));
+        dispatch(setProgress(progressValue));
+
         navigation.navigate('ProfilePictureScreen');
       } else {
         // OTP verification failed
@@ -169,8 +186,28 @@ export default function SignPhoneVerification({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
+        <TouchableOpacity
+          onPress={() => handleNavigateToBackScreen()}
+          style={styles.touchContainer}>
+          <Image
+            source={require('../../../assets/backIcon.png')}
+            style={styles.backIcon}
+          />
+        </TouchableOpacity>
         <View style={styles.subContainer}>
           <Text style={styles.heading}>Enter OTP to Verify</Text>
+          <View style={styles.progressContainer}>
+            <ProgressBar
+              progress={registerData.progress}
+              width={width * 0.9}
+              color={Colors.OrangeGradientEnd}
+              unfilledColor={Colors.OrangeGradientStart}
+              borderWidth={0}
+            />
+            <Text style={styles.percentageText}>
+              {Math.round(registerData?.progress * 100)}%
+            </Text>
+          </View>
           <Image source={require('../../../assets/otp.png')} />
           <Text style={styles.subheading}>
             We have sent an OTP on this number:
@@ -239,6 +276,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
+  },
+  touchContainer: {
+    position: 'absolute', // Position it at the top left
+    left: widthToDp(4), // Space from the left edge
+    top: heightToDp(2), // Space from the top
+    zIndex: 1, // Ensure it stays above other elements
+  },
+  backIcon: {
+    width: widthToDp(6),
+    height: heightToDp(6),
+    // marginLeft: widthToDp(2),
+  },
+  progressContainer: {
+    marginTop: heightToDp(7),
+    alignItems: 'center',
+    width: '100%', // Adjust as needed
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  percentageText: {
+    position: 'absolute',
+    top: -30,
+    left: '47%',
+    // transform: [{translateX: -50}],
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'orange',
   },
   borderStyleHighLighted: {
     borderColor: Colors.Orange,

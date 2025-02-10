@@ -22,6 +22,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
 import { saveUserInfo } from '../../features/user/userSlice';
+import { Alert } from 'react-native';
 export default function ProfileInfoScreen({ navigation }: any) {
   const chatClient = ChatClient.getInstance();
 
@@ -40,16 +41,32 @@ export default function ProfileInfoScreen({ navigation }: any) {
   };
   const handleLogout = async () => {
     if (user) {
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to log out?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: async () => {
+              clearTokenFromStorage();
+              dispatch(saveUserInfo(null));
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'HomeScreen' }],
+              });
+              if (chatClient && chatClient.isInitialized) {
+                await chatClient.logout();
+              }
+            },
+          },
+        ],
+        { cancelable: false }
+      );
 
-      clearTokenFromStorage();
-      dispatch(saveUserInfo(null));
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'HomeScreen' }],
-      });
-      if (chatClient && chatClient.isInitialized) {
-        await chatClient.logout();
-      }
     }
   };
   useEffect(() => {

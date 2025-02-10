@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
   bottonSheet: {
     flex: 1,
     marginTop: widthToDp(2),
+    paddingBottom: widthToDp(4),
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

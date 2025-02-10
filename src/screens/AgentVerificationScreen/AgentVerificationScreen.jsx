@@ -8,7 +8,10 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Dimensions,
 } from 'react-native';
+import ProgressBar from 'react-native-progress/Bar';
+
 import React, {useCallback, useEffect, useState} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -19,9 +22,13 @@ import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import DocumentComponent from '../../components/DocumentComponent/DocumentComponent';
 import SplashScreen from 'react-native-splash-screen';
+import {
+  setProgress,
+  setFilledCount,
+} from '../../features/register/registerSlice';
 import useRegister from '../../hooks/useRegister';
 import useLogin from '../../hooks/useLogin';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {uriToBlob} from '../../utils/ImagePicker';
 import Toast from 'react-native-toast-message';
 import {UniqueDirectiveNamesRule} from 'graphql';
@@ -30,14 +37,18 @@ import {useMutation} from '@apollo/client';
 
 export default function AgentVerificationScreen({navigation, route}, props) {
   const [updateVerification] = useMutation(UPDATE_VERIFICATION);
-
+  const dispatch = useDispatch();
   const {user, onComplete = () => {}} = route.params || {};
   // console.log('c0mpletedfd', user);
   const variables = useSelector(state => state.register);
+  const registerData = useSelector(state => state.register);
+  const totalFields = registerData.accountType === 'client' ? 8 : 12;
+  const {width} = Dimensions.get('window');
   const [photoID, setphotoID] = useState(user?.photoId || null);
   const [Certificate, setCertificate] = useState(user?.certificate_url || null);
   const [Seal, setSeal] = useState(user?.notarySeal || null);
   const [loading, setLoading] = useState(false);
+
   const {
     uploadFiles,
     handleCompression,
@@ -52,16 +63,28 @@ export default function AgentVerificationScreen({navigation, route}, props) {
   const {resetStack} = useLogin();
   console.log('fdfdfdfd', onComplete);
   const handleUpload = documentType => {
-    setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
-    setCurrentStep(currentStep + 1);
+    if (!uploadedDocuments.includes(documentType)) {
+      console.log('insisididd');
+      setUploadedDocuments(prevDocuments => [...prevDocuments, documentType]);
+      setCurrentStep(currentStep + 1);
+      const progressValue = (registerData.filledCount + 1) / totalFields;
+      dispatch(setFilledCount(registerData.filledCount + 1));
+      dispatch(setProgress(progressValue));
+    }
   };
 
   const handleDelete = documentType => {
-    setUploadedDocuments(prevDocuments =>
-      prevDocuments.filter(doc => doc !== documentType),
-    );
-    setCurrentStep(currentStep - 1);
+    if (uploadedDocuments.includes(documentType)) {
+      setUploadedDocuments(prevDocuments =>
+        prevDocuments.filter(doc => doc !== documentType),
+      );
+      setCurrentStep(currentStep - 1);
+      const progressValue = (registerData.filledCount - 1) / totalFields;
+      dispatch(setFilledCount(registerData.filledCount - 1));
+      dispatch(setProgress(progressValue));
+    }
   };
+
   const deletePhotoID = () => {
     Alert.alert(
       'Delete Photo ID',
@@ -74,7 +97,10 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => setphotoID(null),
+          onPress: () => {
+            setphotoID(null);
+            handleDelete('photoID');
+          },
         },
       ],
       {cancelable: true},
@@ -92,7 +118,10 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => setSeal(null),
+          onPress: () => {
+            setSeal(null);
+            handleDelete('Seal');
+          },
         },
       ],
       {cancelable: true},
@@ -110,7 +139,10 @@ export default function AgentVerificationScreen({navigation, route}, props) {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => setCertificate(null),
+          onPress: () => {
+            setCertificate(null);
+            handleDelete('Certificate');
+          },
         },
       ],
       {cancelable: true},
@@ -122,6 +154,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     if (response) {
       console.log('Send: ', response);
       setphotoID(response);
+      handleUpload('photoID');
     } else {
       Toast.show({
         type: 'error',
@@ -135,6 +168,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     if (response) {
       console.log('Send: ', response);
       setCertificate(response);
+      handleUpload('Certificate');
     } else {
       Toast.show({
         type: 'error',
@@ -148,6 +182,7 @@ export default function AgentVerificationScreen({navigation, route}, props) {
     if (response) {
       console.log('Send: ', response);
       setSeal(response);
+      handleUpload('Seal');
     } else {
       Toast.show({
         type: 'error',
@@ -290,6 +325,18 @@ export default function AgentVerificationScreen({navigation, route}, props) {
           color: '#121826',
         }}
       />
+      <View style={styles.progressContainer}>
+        <ProgressBar
+          progress={registerData.progress}
+          width={width * 0.9}
+          color={Colors.OrangeGradientEnd}
+          unfilledColor={Colors.OrangeGradientStart}
+          borderWidth={0}
+        />
+        <Text style={styles.percentageText}>
+          {Math.round(registerData.progress * 100)}%
+        </Text>
+      </View>
       <BottomSheetStyle>
         <ScrollView
           style={{marginTop: heightToDp(5)}}
@@ -417,5 +464,21 @@ const styles = StyleSheet.create({
     fontSize: widthToDp(4.5),
     fontFamily: 'Manrope-Bold',
     color: Colors.TextColor,
+  },
+  progressContainer: {
+    marginTop: 25,
+    alignItems: 'center',
+    width: '100%', // Adjust as needed
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  percentageText: {
+    position: 'absolute',
+    top: -30,
+    left: '47%',
+    // transform: [{translateX: -50}],
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'orange',
   },
 });

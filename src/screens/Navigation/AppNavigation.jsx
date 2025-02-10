@@ -26,6 +26,7 @@ import WaitingRoomScreen from '../CallRoomScreen/WaitingRoomScreen';
 import FinalBookingScreen from '../FinalBookingScreen/FinalBookingScreen';
 import ProfileInfoScreen from '../ProfileInfoScreen/ProfileInfoScreen';
 import ProfileDetailEditScreen from '../ProfileDetailEditScreen/ProfileDetailEditScreen';
+import ChatingProfiledetailScreen from '../ChatingProfiledetailScreen/ChatingProfiledetailScreen';
 import PasswordEditScreen from '../PasswordEditScreen/PasswordEditScreen';
 import PaymentUpdateScreen from '../PaymentUpdateScreen/PaymentUpdateScreen';
 import AddCardScreen from '../AddCardScreen/AddCardScreen';
@@ -33,6 +34,7 @@ import AddressDetails from '../AddressDetails/AddressDetails';
 import SettingScreen from '../SettingScreen/settingScreen';
 import TermsAndConditionsScreen from '../SettingScreen/termsandConditionScreen';
 import PrivacyPolicyScreen from '../SettingScreen/privacypolicyScreen';
+import FaqScreen from '../SettingScreen/Faqscreen';
 
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
@@ -331,7 +333,6 @@ export default function AppNavigation() {
           component={SignPhoneVerification}
         />
         <Stack.Screen name="PhoneVerification" component={PhoneVerification} />
-
         <Stack.Screen name="AddNewAddress" component={AddNewAddress} />
         <Stack.Screen
           name="CurrentLocationScreen"
@@ -429,6 +430,11 @@ export default function AppNavigation() {
           component={ProfileDetailEditScreen}
         />
         <Stack.Screen
+          name="ChatingProfiledetailScreen"
+          component={ChatingProfiledetailScreen}
+        />
+
+        <Stack.Screen
           name="PasswordEditScreen"
           component={PasswordEditScreen}
         />
@@ -447,12 +453,11 @@ export default function AppNavigation() {
           name="TermsAndCondition"
           component={TermsAndConditionsScreen}
         />
-
         <Stack.Screen
           name="PrivacyPolicyScreen"
           component={PrivacyPolicyScreen}
         />
-
+        <Stack.Screen name="FaqScreen" component={FaqScreen} />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
         <Stack.Screen
           name="NearbyLoadingScreen"

@@ -80,9 +80,7 @@ function useChatService() {
       ...sessions,
       ...sessonoging,
     ];
-    console.log('{{{{{{{{{{fdfdddfdfd', data);
     const filteredChats = removeDuplicatesByAgentName(mergedDetails);
-    console.log('clientfilterhattsdd', filteredChats);
 
     dispatch(setAllChats(filteredChats));
     dispatch(setChatToken(data?.getUserChatToken?.token));

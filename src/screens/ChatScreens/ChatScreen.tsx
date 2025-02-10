@@ -46,6 +46,9 @@ import { Iconoir } from 'iconoir-react-native';
 export default function ChatScreen({ route, navigation }: any) {
   const { handleCompression, uploadBlobToS3, handleRegister } = useRegister();
 
+
+
+
   const [getChatToken] = useMutation(GET_CHAT_TOKEN);
   const dispatch = useDispatch();
   const getPermission = async () => {
@@ -76,7 +79,11 @@ export default function ChatScreen({ route, navigation }: any) {
   const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
   const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
   const [message, setMessage] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [inputMessage, setInputMessage] = useState("");
+  const [selectedImages, setSelectedImages] = useState([]);
+
+
+
 
   const getVoiceToken = async () => {
     try {
@@ -111,6 +118,9 @@ export default function ChatScreen({ route, navigation }: any) {
       if (convList && convList.length > 0) {
         const conversation = convList.find(conv => conv.convType === ChatConversationType.PeerChat && conv.convId === targetId);
 
+
+
+
         if (conversation) {
           const messages = await chatManager.fetchHistoryMessagesByOptions(conversation.convId, ChatConversationType.PeerChat, {
             cursor: '',
@@ -129,6 +139,9 @@ export default function ChatScreen({ route, navigation }: any) {
     }
   };
   useEffect(() => {
+
+
+
 
     const setMessageListener = () => {
       let msgListener = {
@@ -207,9 +220,15 @@ export default function ChatScreen({ route, navigation }: any) {
       const { data } = await getChatToken();
       const newToken = data?.getUserChatToken?.token;
 
+
+
+
       if (newToken) {
         // Dispatch the new token
         dispatch(setChatToken(newToken));
+
+
+
 
         // Retry login
         await chatClient.loginWithAgoraToken(username, token);
@@ -257,7 +276,13 @@ export default function ChatScreen({ route, navigation }: any) {
         }
         else if (reason.code === 201) {
 
+
+
+
           login();
+
+
+
 
         }
         else if (reason.code === 104) {
@@ -283,16 +308,31 @@ export default function ChatScreen({ route, navigation }: any) {
   };
   const sendmsg = async (newMessage: string) => {
 
+    console.log("newmessagere", newMessage)
+
+
     const chatType = ChatMessageChatType.PeerChat;
     let content;
-    console.log('Sending message:sss', this.isInitialized);
+    console.log('Sending message:sss', newMessage);
+
+
+
 
     if (this.isInitialized === false || this.isInitialized === undefined) {
       console.log('Perform initialization first.');
       return;
     }
 
+
+
+
     let msg: ChatMessage;
+
+
+
+
+
+
 
 
     if (newMessage.text) {
@@ -303,8 +343,14 @@ export default function ChatScreen({ route, navigation }: any) {
     else if (newMessage.image) {
       // Sending image message
 
+
+
+
       let imageBlob = await handleCompression(newMessage.image.uri)
       const url = await uploadBlobToS3(imageBlob);
+
+
+
 
       const filePath = newMessage.image.uri; // Image file path
       const fileName = newMessage.image.fileName || 'image.jpg'; // Default file name
@@ -323,7 +369,13 @@ export default function ChatScreen({ route, navigation }: any) {
       onProgress(locaMsgId: any, progress: any) {
         console.log(`send message process: ${locaMsgId}, ${progress}`);
 
+
+
+
       }
+
+
+
 
       onError(locaMsgId: any, error: any) {
         console.log(
@@ -360,6 +412,9 @@ export default function ChatScreen({ route, navigation }: any) {
           //     }
           //   })();
 
+
+
+
           //   chatClient.chatManager.sendMessage(message, resendCallback);
           // } else {
           //   console.error(`Original message not found: ${localMsgId}`);
@@ -395,11 +450,17 @@ export default function ChatScreen({ route, navigation }: any) {
           },
         ]);
 
+
+
+
         setContent((previousMessages: any) =>
           GiftedChat.append(previousMessages, newMessages),
         );
       }
     })();
+
+
+
 
     chatClient.chatManager
       .sendMessage(msg, callback)
@@ -417,14 +478,23 @@ export default function ChatScreen({ route, navigation }: any) {
   const formatMessages = (messageList: any[]) => {
     console.log('messageList', messageList);
 
+
+
+
     if (!messageList || !Array.isArray(messageList)) {
       return [];
     }
+
+
+
 
     return messageList.map(message => {
       // Determine if the message is an image or text
       const isImage = message.body?.type === "img";
       const isText = message.body?.type === "txt";
+
+
+
 
       // Handle formatting for each type of message
       const formattedMessage = {
@@ -434,6 +504,9 @@ export default function ChatScreen({ route, navigation }: any) {
           _id: message.from,
         },
       };
+
+
+
 
       if (isImage) {
         // Image message
@@ -459,22 +532,10 @@ export default function ChatScreen({ route, navigation }: any) {
       }
     });
   };
-  const pickImage = async () => {
-    try {
-      const result = await launchImageLibrary({
-        mediaType: 'photo',
-        quality: 0.8,
-      });
 
-      if (result.assets && result.assets.length > 0) {
-        const image = result.assets[0];
-        setSelectedImage(image)
 
-      }
-    } catch (error) {
-      console.error('Failed to pick image:', error);
-    }
-  };
+
+
   const renderCustomActions = (props) => (
     <Actions
       {...props}
@@ -488,57 +549,116 @@ export default function ChatScreen({ route, navigation }: any) {
       onPressActionButton={pickImage}
     />
   );
-  const handleCloseImage = () => {
-    setSelectedImage(null);
-  };
-  console.log("contennnnnte", content)
-  const handleSendImage = () => {
-    if (selectedImage) {
-
-      sendmsg({ image: selectedImage });
-      setSelectedImage(null);
-    }
-  };
-  const handleAction = async (content) => {
-    console.log('Sending image...', content);
-    try {
-      //   if (content?.image) {
-      //     // Handle image sending
-      //     console.log('Sending image...');
-      //     await uploadImage(content.image);
-      //   } else if (content?.text) {
-      //     // Handle text message sending
-      //     console.log('Sending text message...');
-      //     await sendMessage(content.text);
-      //   } else if (content?.audio) {
-      //     // Handle audio message sending
-      //     console.log('Sending audio message...');
-      //     await sendAudio(content.audio);
-      //   } else {
-      //     console.error('Unknown content type');
-      // }
-    } catch (error) {
-      console.error('Error in handleAction:', error);
-    }
+  const handleCloseImage = (index) => {
+    const updatedImages = [...selectedImages];
+    updatedImages.splice(index, 1); // Remove image at the given index
+    setSelectedImages(updatedImages); // Update the selected images state
   };
 
-  const textInputStyle = selectedImage ? {
+
+
+
+
+
+
+
+  const pickImage = () => {
+    launchImageLibrary(
+      { mediaType: 'photo', selectionLimit: 5 }, // Adjust limit as needed
+      (response) => {
+        if (!response.didCancel && response.assets) {
+          setSelectedImages([...selectedImages, ...response.assets.map(asset => asset)]);
+        }
+      }
+    );
+  };
+
+
+
+
+  // Function to send multiple images
+  const handleSendImage = async () => {
+    if (selectedImages.length > 0) {
+      for (const image of selectedImages) {
+        try {
+          console.log("imagesssssss", image)
+          // Assuming sendmsg is an async function
+          await sendmsg({ image: image });
+        } catch (error) {
+          console.error('Error sending image:', error);
+        }
+      }
+
+
+
+
+      // Clear selected images after sending
+      setSelectedImages([]);
+    } else {
+      console.log('No images to send.');
+    }
+  };
+
+
+
+  const textInputStyle = {
     flex: 1,
     marginHorizontal: 10,
     color: 'black',
     fontSize: 16,
-    height: heightToDp(15)
-  } : {
-    flex: 1,
-    marginHorizontal: 10,
-    color: 'black',
-    fontSize: 16,
-  }
+    height: selectedImages.length > 0 ? heightToDp(15) : heightToDp(10), // Default height when no images are selected
+  };
+  console.log("newmessagerer", inputMessage)
+  const handleSend = async () => {
+    // console.log("newmessage", newmessage)
+    const messageToSend = {
+      _id: Math.random().toString(),
+      text: inputMessage, // The text input content
+      createdAt: new Date(),
+      user: {
+        _id: sender?._id, // Sender ID
+        name: sender?.name, // Sender name
+      },
+    };
+    sendmsg(messageToSend);
+    // setInputMessage(newmessage)
+    if (selectedImages.length > 0) {
+      for (const image of selectedImages) {
+        try {
+          console.log("imagesssssss", image)
+          // Assuming sendmsg is an async function
+          await sendmsg({ image: image });
+        } catch (error) {
+          console.error('Error sending image:', error);
+        }
+      }
+      text: ""
+    }
+
+
+    setInputMessage("")
+    setSelectedImages([]);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
         Title={receiver?.first_name + ' ' + receiver?.last_name}
-        ProfilePic={{ uri: receiver?.profile_picture }}
+        ProfilePic={receiver?.profile_picture
+          ? { uri: receiver.profile_picture }
+          : require('../../../assets/UserIcon.png')}
+        profileImgPress={() =>
+          navigation.navigate('ChatingProfiledetailScreen', {
+
+
+
+
+            receiver: receiver,
+
+
+
+
+          })
+        }
         lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
         lastImgPress={() =>
           navigation.navigate('VoiceCallScreen', {
@@ -549,42 +669,70 @@ export default function ChatScreen({ route, navigation }: any) {
           })
         }
       />
-      <View style={[styles.bottonSheet, { marginBottom: selectedImage ? widthToDp(2) : widthToDp(-10) }]}>
+      <View style={[styles.bottonSheet, { marginBottom: selectedImages.length > 0 ? heightToDp(2) : heightToDp(-9) }]}>
+
+
+
 
         <GiftedChat
-          messages={content}
-          onSend={newMessages => sendmsg(newMessages[0])}
+          messages={content.map((msg, index) => ({
+            ...msg,
+            _id: msg._id || index.toString(), // Ensure unique key
+          }))}
+          onSend={newMessages => handleSend(newMessages[0])}
           // onSend={(newMessages) => handleAction(newMessages)}
           user={{
             _id: sender?._id,
           }}
           renderActions={renderCustomActions}
           textInputProps={{
-            // style: {
-            //   flex: 1,
-            //   marginHorizontal: 10,
-            //   color: 'black',
-            //   fontSize: 16,
-            // },
+            value: inputMessage,  // Control the text input value
+            onChangeText: setInputMessage,  // Update the state when typing
             style: textInputStyle,
           }}
+
+          // renderMessage={(props) => {
+          //   return (
+          //     <View>
+          //       {props.currentMessage?.image && (
+          //         <Image
+          //           source={{ uri: props.currentMessage.image }}
+          //           style={{ width: 200, height: 200, borderRadius: 10 }}
+          //         />
+          //       )}
+          //       {/* Render other message components if needed */}
+          //     </View>
+          //   );
+          // }}
           renderAccessory={() => (
             <View style={styles.accessoryContainer}>
-
-              {selectedImage ? (
-                <>
-                  <TouchableOpacity style={styles.closeButton} onPress={handleCloseImage}>
+              {selectedImages.map((assert, index) => (
+                <View key={index} style={styles.imageContainer}>
+                  <Image source={{ uri: assert.uri }} style={styles.selectedImage} />
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => handleCloseImage(index)} // Pass index to identify the image to close
+                  >
                     <Text style={styles.closeButtonText}>X</Text>
                   </TouchableOpacity>
-                  <Image source={{ uri: selectedImage?.uri }} style={styles.selectedImage} />
+                </View>
+              ))}
+              {(inputMessage || selectedImages.length > 0) && (
+                <TouchableOpacity onPress={handleSend} style={styles.sendImageButton}>
+                  <Icon name="send" size={20} color="black" style={styles.sendImageIcon} />
+                </TouchableOpacity>
+              )}
 
-                  <TouchableOpacity onPress={handleSendImage} style={styles.sendImageButton}>
-                    <Icon name="send" size={20} color="black" style={styles.sendImageIcon} />
-                  </TouchableOpacity>
-                </>
-              ) : null}
+
+
+
+
 
             </View>
+
+
+
 
           )}
         />
@@ -593,6 +741,9 @@ export default function ChatScreen({ route, navigation }: any) {
   );
 }
 
+
+
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.PinkBackground,
@@ -600,6 +751,9 @@ const styles = StyleSheet.create({
   },
   bottonSheet: {
     marginTop: widthToDp(2),
+
+
+
 
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -643,6 +797,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
 
+
+
+
     height: 50,
   },
   selectedImage: {
@@ -650,6 +807,10 @@ const styles = StyleSheet.create({
     height: 50,
     marginRight: 10,
     borderRadius: 5,
+  },
+  imageContainer: {
+    position: 'relative',
+    marginBottom: 10,
   },
   sendImageButton: {
     backgroundColor: Colors.Primary,
@@ -659,10 +820,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 20,
     position: 'absolute',
-    top: -5,
+    top: -42,
     right: 10,
 
+
+
+
     zIndex: 1,
+
+
+
 
   },
   sendImageIcon: {
@@ -672,12 +839,12 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: -5,
-    left: 45,
+    left: 40,
     backgroundColor: Colors.Red,
     borderRadius: 12,
     zIndex: 1,
-    width: 25,
-    height: 25,
+    width: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -686,3 +853,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
+
+
+
+
+
+
+
+
+
+
+
