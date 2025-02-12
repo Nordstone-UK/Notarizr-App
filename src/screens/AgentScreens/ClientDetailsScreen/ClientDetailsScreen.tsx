@@ -1442,7 +1442,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     at {moment(clientDetail.date_time_session).format('h:mm a')}
                   </Text>
                 )}
-                {clientDetail?.date_of_booking && (
+                {(clientDetail?.date_of_booking || clientDetail?.time_of_booking) && (
                   <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
                     {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')}{' '}
                     at {clientDetail.time_of_booking}
