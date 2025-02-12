@@ -1384,13 +1384,13 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
                 </View>
               )}
-            {clientDetail.__typename === 'Booking' && clientDetail.address && (
+            {(clientDetail.__typename === 'Booking' || clientDetail.__typename === 'Allocation') && clientDetail.address && (
               <View style={{ paddingHorizontal: widthToDp(3) }}>
                 <Text style={[styles.insideHeading, styles.addressMargin]}>
                   Booked For Location
                 </Text>
                 <AddressCard
-                  location={bookedByAddress?.location}
+                  location={bookedByAddress?.location || clientDetail.address}
                   onPress={handleStartNavigation}
                   booking="true"
                 />
@@ -1442,7 +1442,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     at {moment(clientDetail.date_time_session).format('h:mm a')}
                   </Text>
                 )}
-                {clientDetail?.date_of_booking && (
+                {(clientDetail?.date_of_booking || clientDetail?.time_of_booking) && (
                   <Text style={{ fontFamily: 'Poppins-Regular', color: 'black' }}>
                     {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')}{' '}
                     at {clientDetail.time_of_booking}
