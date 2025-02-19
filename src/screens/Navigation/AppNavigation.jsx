@@ -114,6 +114,7 @@ import NotaryDocumentDownloadScreen from '../AgentScreens/NotaryDocumentDownload
 import CurrentLocationScreen from '../NewAddressScreen/CurrentLocation';
 import AgentMapArrivalScreen from '../MapArrivalScreen/AgentMapArraivalScreen';
 import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
+import NotarizrDocScreen from '../LegalDocumentsScren/notarizrDocumentsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -347,6 +348,7 @@ export default function AppNavigation() {
           component={SignUpDetailScreen}
         />
         <Stack.Screen name="LegalDocScreen" component={LegalDocScreen} />
+        <Stack.Screen name="NotarizrDocScreen" component={NotarizrDocScreen} />
         <Stack.Screen name="TransactionScreen" component={TransactionScreen} />
         <Stack.Screen
           name="ServiceDetailScreen"

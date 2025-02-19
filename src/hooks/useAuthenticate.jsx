@@ -15,7 +15,7 @@ const useAuthenticate = () => {
   const registerAuthUser = async () => {
     try {
       const response = await createAuthentication();
-      console.log(response);
+      console.log('respondfd', response);
     } catch (error) {
       console.log(error);
     }

@@ -36,13 +36,15 @@ import {
 import useAuthenticate from '../../hooks/useAuthenticate';
 import {handleGetLocation} from '../../utils/Geocode';
 import Toast from 'react-native-toast-message';
+import useFetchUser from '../../hooks/useFetchUser';
 
 export default function AuthenticationScreen({route, navigation}) {
   const {uid, channel, token} = route.params;
   const dispatch = useDispatch();
 
   const bookingDetail = useSelector(state => state.booking.booking);
-  console.log('bookingdfdfdfd', bookingDetail.identity_authentication);
+  const {registerAuthUser} = useAuthenticate();
+  const {fetchUserInfo} = useFetchUser();
   const userData = useSelector(state => state.user.user);
   const [isFocused, setIsFocused] = useState('ID Card');
   const [isEnabled, setIsEnabled] = useState(false);
@@ -94,6 +96,33 @@ export default function AuthenticationScreen({route, navigation}) {
                   uid: uid,
                   channel: channel,
                   token: token,
+                });
+              } else if (response == '400') {
+                let a = await registerAuthUser();
+                const retryResponse = await testAuth();
+                console.log('Retry Response:', retryResponse);
+
+                if (retryResponse === '204') {
+                  Toast.show({
+                    type: 'success',
+                    text1: 'Authentication Successful',
+                  });
+                  navigation.navigate('NotaryCallScreen', {
+                    uid: uid,
+                    channel: channel,
+                    token: token,
+                  });
+                } else {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Authentication Failed',
+                  });
+                }
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Unexpected Response',
+                  text2: response,
                 });
               }
             } catch (e) {

@@ -33,10 +33,9 @@ import {MultipleSelectList} from 'react-native-dropdown-select-list';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import Toast from 'react-native-toast-message';
 import {color} from '@rneui/base';
-import {bookingInfoSlice} from '../../features/bookingInfo/bookingInfoSlice';
 
-export default function LegalDocScreen({route, navigation}) {
-  const {address} = route?.params ?? {};
+export default function NotarizrDocScreen({route, navigation}) {
+  const {address} = route.params;
 
   const dispatch = useDispatch();
   const bookingData = useSelector(state => state.booking.booking);
@@ -56,7 +55,7 @@ export default function LegalDocScreen({route, navigation}) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [additionalSignatures, setAdditionalSignatures] = useState(0);
-  console.log('boookingdatea', bookingData);
+  console.log('boookingdatea', bookingData?.address);
   useEffect(() => {
     // const fetchData = async () => {
     //   setLoading(true);
@@ -112,8 +111,7 @@ export default function LegalDocScreen({route, navigation}) {
   const totalAdditionalSignaturesCost = calculateAdditionalSignaturesCost(
     parseInt(additionalSignatures),
   );
-  const totalPriceWithSignatures =
-    bookingData?.totalPrice + totalAdditionalSignaturesCost || 0;
+  const totalPriceWithSignatures = totalPrice + totalAdditionalSignaturesCost;
   const handleAdditionalSignaturesChange = text => {
     const newValue = text === '' || isNaN(parseInt(text)) ? 0 : parseInt(text);
     setAdditionalSignatures(newValue);
@@ -121,7 +119,7 @@ export default function LegalDocScreen({route, navigation}) {
 
   const submitAddressDetails = async docArray => {
     setLoading(true);
-    if (bookingData.documentType.length === 0) {
+    if (selectedDocs.length === 0) {
       Toast.show({
         type: 'error',
         text1: 'Please select at least one document',
@@ -135,7 +133,7 @@ export default function LegalDocScreen({route, navigation}) {
           totalSignaturesRequired: parseInt(additionalSignatures),
         }),
       );
-      navigation.navigate('MobileNotaryDateScreen');
+      navigation.navigate('LegalDocScreen', {address: address});
     }
     setLoading(false);
   };
@@ -220,7 +218,7 @@ export default function LegalDocScreen({route, navigation}) {
       source={require('../../../assets/legalDoc.png')}
       key={index}
       Title={item.name}
-      Price={item.price}
+      Price={item.statePrices[0].price}
       onPress={() => submitAddressDetails(item.name, item.statePrices[0].price)}
     />
   );
@@ -228,7 +226,7 @@ export default function LegalDocScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
-        Title="All Documents"
+        Title="Notarize Documents"
         // midImg={require('../../../assets/Search.png')}
         // midImgPress={() => setIsVisible(!isVisible)}
       />
@@ -243,49 +241,8 @@ export default function LegalDocScreen({route, navigation}) {
           <Text style={styles.selectorHeading}>
             Select documents to notarize.
           </Text>
-          <GradientButton
-            Title="Browse Documents"
-            colors={[Colors.OrangeGradientEnd, Colors.OrangeGradientEnd]}
-            GradiStyles={{borderRadius: 15}}
-            onPress={() =>
-              navigation.navigate('NotarizrDocScreen', {address: address})
-            }
-          />
-          {bookingData.documentType ? (
-            bookingData.documentType.length !== 0 ? (
-              <FlatList
-                data={bookingData.documentType}
-                renderItem={renderItem}
-                keyExtractor={item => item._id}
-                onScroll={handleScroll}
-                scrollEventThrottle={16}
-              />
-            ) : (
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  height: heightToDp(100),
-                  justifyContent: 'center',
-                }}>
-                <Image
-                  source={require('../../../assets/emptyBox.png')}
-                  style={styles.picture}
-                />
-                <Text style={styles.subheading}>No Documents Found...</Text>
-              </View>
-            )
-          ) : (
-            <View
-              style={{
-                // borderWidth: 1,
-                height: heightToDp(100),
-                justifyContent: 'center',
-              }}>
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            </View>
-          )}
-          {/* <View
+
+          <View
             style={{
               marginTop: widthToDp(2),
               paddingHorizontal: widthToDp(2),
@@ -344,56 +301,11 @@ export default function LegalDocScreen({route, navigation}) {
                 }
               />
             )}
-          </View> */}
+          </View>
           <View
             style={{
               marginVertical: widthToDp(15),
             }}>
-            <View
-              style={{
-                // flexDirection: 'row',
-                // justifyContent: 'space-between',
-                // alignItems: 'center',
-                marginBottom: widthToDp(2),
-                marginHorizontal: widthToDp(5),
-                marginVertical: widthToDp(2),
-              }}>
-              <Text style={styles.smalltext}>
-                Additional signatures needed?
-              </Text>
-              {/* <TextInput
-                style={styles.input}
-                value={additionalSignatures}
-                onChangeText={handleAdditionalSignaturesChange}
-                placeholder="signs"
-                keyboardType="numeric"
-              /> */}
-
-              <View style={styles.signatureContainer}>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() =>
-                    setAdditionalSignatures(prev => Math.max(0, prev - 1))
-                  }>
-                  <Text style={styles.buttonText}>-</Text>
-                </TouchableOpacity>
-
-                <TextInput
-                  style={styles.input}
-                  value={additionalSignatures.toString()}
-                  onChangeText={handleAdditionalSignaturesChange}
-                  placeholder="Signs"
-                  keyboardType="numeric"
-                  textAlign="center"
-                />
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => setAdditionalSignatures(prev => prev + 1)}>
-                  <Text style={styles.buttonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
             {additionalSignatures >= 1 && (
               <View style={styles.dashedContainer}>
                 <Text
@@ -450,7 +362,7 @@ export default function LegalDocScreen({route, navigation}) {
               GradiStyles={{borderRadius: 15}}
               onPress={() => submitAddressDetails(selectedDocs)}
             />
-            <View
+            {/* <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -458,7 +370,7 @@ export default function LegalDocScreen({route, navigation}) {
               }}>
               <Text style={styles.Heading}>Total:</Text>
               <Text style={styles.Heading}>${totalPriceWithSignatures}</Text>
-            </View>
+            </View> */}
           </View>
         </ScrollView>
       </BottomSheetStyle>
@@ -540,15 +452,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  // input: {
-  //   width: 60,
-  //   height: 40,
-  //   borderWidth: 1,
-  //   borderColor: Colors.Orange,
-  //   textAlign: 'center',
-  //   marginHorizontal: 10,
-  //   borderRadius: 5,
-  // },
+
   dashedContainer: {
     marginHorizontal: widthToDp(5),
     borderWidth: 3,
@@ -579,40 +483,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-{
-  /* {documentArray ? (
-            documentArray.length !== 0 ? (
-              <FlatList
-                data={documentArray}
-                renderItem={renderItem}
-                keyExtractor={item => item._id}
-                onScroll={handleScroll}
-                scrollEventThrottle={16}
-              />
-            ) : (
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  height: heightToDp(100),
-                  justifyContent: 'center',
-                }}>
-                <Image
-                  source={require('../../../assets/emptyBox.png')}
-                  style={styles.picture}
-                />
-                <Text style={styles.subheading}>No Documents Found...</Text>
-              </View>
-            )
-          ) : (
-            <View
-              style={{
-                // borderWidth: 1,
-                height: heightToDp(100),
-                justifyContent: 'center',
-              }}>
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            </View>
-          )} */
-}
