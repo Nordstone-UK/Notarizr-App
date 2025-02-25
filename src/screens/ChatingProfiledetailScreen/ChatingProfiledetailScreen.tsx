@@ -12,60 +12,62 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import moment from 'moment';
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import { heightToDp, widthToDp } from '../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 import Toast from 'react-native-toast-message';
-import { useLazyQuery } from '@apollo/client';
-import { IS_EMAIL_VALID } from '../../../request/queries/isEmailValid.query';
-import { captureImage, chooseFile } from '../../utils/ImagePicker';
+import {useLazyQuery} from '@apollo/client';
+import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
+import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import useUpdate from '../../hooks/useUpdate';
 import useRegister from '../../hooks/useRegister';
 import useFetchUser from '../../hooks/useFetchUser';
 import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
-import { removeCountryCode } from '../../utils/CountryCode';
+import {removeCountryCode} from '../../utils/CountryCode';
 import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
 
-export default function ChatingProfiledetailScreen({ navigation, route }, props) {
-
-  console.log("routeeeee", route)
-  const { receiver } = route.params
+export default function ChatingProfiledetailScreen({navigation, route}, props) {
+  console.log('routeeeee', route);
+  const {receiver} = route.params;
   let profileEdit = false;
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Profile Details" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, paddingBottom: heightToDp(10) }}>
+        style={{flex: 1, paddingBottom: heightToDp(10)}}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <View>
-            <Image source={receiver?.profile_picture
-              ? { uri: receiver.profile_picture }
-              : require('../../../assets/UserIcon.png')} style={styles.picture} />
-
+            <Image
+              source={
+                receiver?.profile_picture
+                  ? {uri: receiver.profile_picture}
+                  : require('../../../assets/UserIcon.png')
+              }
+              style={styles.picture}
+            />
           </View>
           <Text style={styles.textheading}>
             {receiver.first_name} {receiver.last_name}
           </Text>
           <Text style={styles.textsubheading}>{receiver.email}</Text>
           <BottomSheetStyle>
-            <View style={{ paddingBottom: widthToDp(5) }}>
+            <View style={{paddingBottom: widthToDp(5)}}>
               <LabelTextInput
                 leftImageSoucre={require('../../../assets/profileTabIcon.png')}
                 Label={true}
                 defaultValue={receiver.first_name}
                 LabelTextInput={'First Name'}
-
                 editable={profileEdit}
               />
               <LabelTextInput
@@ -78,15 +80,11 @@ export default function ChatingProfiledetailScreen({ navigation, route }, props)
               />
 
               <LabelTextInput
-                leftImageSoucre={require('../../../assets/EmailIcon.png')}
+                leftImageSoucre={require('../../../assets/emailIcon.png')}
                 placeholder={'Enter your email address'}
-                LabelTextInput={
-                  'Email Address'
-                }
+                LabelTextInput={'Email Address'}
                 defaultValue={receiver.email}
                 Label={true}
-
-
                 editable={false}
               />
 
@@ -123,7 +121,6 @@ export default function ChatingProfiledetailScreen({ navigation, route }, props)
                   editable={profileEdit}
                 />
               )} */}
-
             </View>
           </BottomSheetStyle>
         </ScrollView>

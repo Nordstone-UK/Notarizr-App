@@ -85,16 +85,16 @@ export default function CurrentLocationScreen({route}) {
         },
       );
 
-      const backgroundLocationGranted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        {
-          title: 'Background Location Permission',
-          message: 'This app needs access to your location in the background.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
+      // const backgroundLocationGranted = await PermissionsAndroid.request(
+      //   PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+      //   {
+      //     title: 'Background Location Permission',
+      //     message: 'This app needs access to your location in the background.',
+      //     buttonNeutral: 'Ask Me Later',
+      //     buttonNegative: 'Cancel',
+      //     buttonPositive: 'OK',
+      //   },
+      // );
 
       if (
         fineLocationGranted === PermissionsAndroid.RESULTS.GRANTED &&
