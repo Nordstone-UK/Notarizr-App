@@ -1605,7 +1605,7 @@ const styles = StyleSheet.create({
     marginBottom: heightToDp(2),
   },
   insideHeading: {
-    flex: 3,
+    // flex: 3,
     color: Colors.TextColor,
     fontSize: widthToDp(4),
     fontFamily: 'Manrope-Bold',
@@ -1703,7 +1703,7 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   downloadButton: {
-    // flex: 1,
+    flex: 1,
     width: 100,
     backgroundColor: Colors.Orange,
     padding: 10,

@@ -183,9 +183,9 @@ export default function ProfilePictureScreen({navigation}) {
     } else {
       settempLoading(false);
       dispatch(profilePictureSet(url));
-      const progressValue = (registerData.filledCount + 1) / totalFields;
-      dispatch(setFilledCount(registerData.filledCount + 1));
-      dispatch(setProgress(progressValue));
+      // const progressValue = (registerData.filledCount + 1) / totalFields;
+      // dispatch(setFilledCount(registerData.filledCount + 1));
+      // dispatch(setProgress(progressValue));
       navigation.navigate('AgentVerificationScreen');
     }
   };

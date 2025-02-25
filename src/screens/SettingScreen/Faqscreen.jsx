@@ -185,7 +185,7 @@ const Faqscreen = () => {
           onPress={() => setShowModal(true)}>
           <Text style={styles.createButtonText}>Create FAQ</Text>
         </TouchableOpacity> */}
-        <GradientButton
+        {/* <GradientButton
           colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           Title="Create FAQ"
           style={styles.createButton}
@@ -193,26 +193,32 @@ const Faqscreen = () => {
             setShowModal(true);
             setIsEditing(false);
           }}
-        />
+        /> */}
         <FlatList
           data={allFaqs}
-          keyExtractor={item => item._id}
-          renderItem={({item}) => (
-            <View style={styles.faqItem}>
-              <View>
-                <Text style={styles.faqQuestion}>{item.question}</Text>
-                <Text style={styles.faqAnswer}>{item.answer}</Text>
-                <Text style={styles.faqPriority}>
-                  Priority: {item.priority}
-                </Text>
-              </View>
-              {/* <TouchableOpacity
+          keyExtractor={(item, index) => item._id || index.toString()}
+          renderItem={({item, index}) => {
+            const questionText = item.question.trim().endsWith('?')
+              ? item.question.trim()
+              : `${item.question.trim()}?`; // Ensure it ends with '?'
+            return (
+              <View style={styles.faqItem}>
+                <View>
+                  <Text style={styles.faqQuestion}>
+                    {index + 1}. {questionText}
+                  </Text>
+                  <Text style={styles.faqAnswer}>{item.answer}</Text>
+                  <Text style={styles.faqPriority}>
+                    Priority: {item.priority}
+                  </Text>
+                </View>
+                {/* <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => handleEdit(item)}>
                 <Text style={styles.editButtonText}>Edit</Text>
               </TouchableOpacity> */}
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
+                <View style={styles.buttonContainer}>
+                  {/* <TouchableOpacity
                   style={styles.button}
                   onPress={() => handleEdit(item)}>
                   <Image
@@ -227,10 +233,11 @@ const Faqscreen = () => {
                     source={require('../../../assets/deleteIcon.png')}
                     style={[styles.icon, {tintColor: Colors.Orange}]}
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                </View>
               </View>
-            </View>
-          )}
+            );
+          }}
         />
       </BottomSheetStyle>
 
@@ -346,28 +353,30 @@ const styles = StyleSheet.create({
   dropdownText: {
     color: '#000',
   },
-
   faqItem: {
-    backgroundColor: '#fff',
-    padding: 15,
-    marginVertical: 5,
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+    marginVertical: 8,
+    marginHorizontal: 16,
     borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
     shadowOffset: {width: 0, height: 2},
-    elevation: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Android shadow effect
   },
   faqQuestion: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 6,
   },
   faqAnswer: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 22,
   },
+
   faqPriority: {
     fontSize: 12,
     color: '#777',
