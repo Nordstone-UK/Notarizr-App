@@ -2168,6 +2168,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   }}
                 />
               )}
+            {clientDetail.review ? (
+              <View style={styles.reviewwholecontainer}>
+                <View style={styles.reviewContainer}>
+                  <Text style={styles.heading}>Customer Review</Text>
+                  <Text style={styles.rating}>⭐ {clientDetail.rating}/5</Text>
+                  <Text style={styles.reviewText}>{clientDetail.review}</Text>
+                </View>
+              </View>
+            ) : null}
             {allocationStatus == null && (clientDetail?.__typename == "Allocation" || status === 'Pending') && (
               <>
 
@@ -2722,5 +2731,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+  },
+
+  reviewwholecontainer: {
+    marginVertical: 10,
+    padding: 10,
+  },
+  reviewContainer: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 6,
+  },
+  rating: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#555',
   },
 });

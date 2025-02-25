@@ -6,6 +6,7 @@ import { notificationCache } from '../cache/notification';
 import { EventRegister } from 'react-native-event-listeners';
 import { setNotification } from '../features/user/userSlice';
 import { store } from '../app/store';
+// import CallKeepService from './CallKeepService';
 // import {ringtone} from "../../assets/"
 const ONESIGNAL_APP_ID = 'dc4e3a66-402e-41d7-832d-25b70c16fdea';
 let ringtone = null;
@@ -20,6 +21,7 @@ const initializeOneSignal = () => {
     console.log("Dattttttttttttttttta", data)
     if (data?.type === "voice_call" && data?.callStatus === "ringing") {
       playRingtone();
+      // CallKeepService.displayIncomingCall(data.type, data.callerId);
     }
     console.log("dateddddddddddd", data)
     store.dispatch(setNotification(notification));
