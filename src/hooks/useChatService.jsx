@@ -103,7 +103,7 @@ function useChatService() {
     const {data: Agnetsess} = await getAgentSession(request);
     const {data: sessionOngoing} = await getAgentSession(ongong);
     const {data} = await getChatToken();
-    console.log('agents+==================', Agnetsess);
+    console.log('agents+==================', AgentOngoing);
     const bookings = AgentBook?.getAgentBookings?.bookings;
     const ongoingBook = AgentOngoing?.getAgentBookings?.bookings;
     const sessions = Agnetsess?.getAgentSessions?.sessions;
@@ -117,7 +117,6 @@ function useChatService() {
     ];
     console.log('merge', mergedDetails);
     const filteredChats = removeDuplicatesByClientName(mergedDetails);
-    console.log('agentfilterhattsdd', filteredChats);
     dispatch(setAllChats(filteredChats));
     dispatch(setChatToken(data?.getUserChatToken?.token));
   };

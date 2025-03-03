@@ -603,10 +603,13 @@ export default function ChatScreen({ route, navigation }: any) {
 
   const textInputStyle = {
     flex: 1,
+    // backgroundColor: "#f2f2f2",
     marginHorizontal: 10,
     color: 'black',
     fontSize: 16,
-    height: selectedImages.length > 0 ? heightToDp(15) : heightToDp(10), // Default height when no images are selected
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    height: selectedImages.length > 0 ? heightToDp(15) : heightToDp(10),
   };
   console.log("newmessagerer", inputMessage)
   const handleSend = async () => {
@@ -684,6 +687,7 @@ export default function ChatScreen({ route, navigation }: any) {
           user={{
             _id: sender?._id,
           }}
+          inverted={false}
           renderActions={renderCustomActions}
           textInputProps={{
             value: inputMessage,  // Control the text input value

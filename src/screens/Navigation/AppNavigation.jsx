@@ -115,6 +115,7 @@ import CurrentLocationScreen from '../NewAddressScreen/CurrentLocation';
 import AgentMapArrivalScreen from '../MapArrivalScreen/AgentMapArraivalScreen';
 import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
 import NotarizrDocScreen from '../LegalDocumentsScren/notarizrDocumentsScreen';
+import ContactDetailScreen from '../SettingScreen/contactUsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -460,6 +461,10 @@ export default function AppNavigation() {
           component={PrivacyPolicyScreen}
         />
         <Stack.Screen name="FaqScreen" component={FaqScreen} />
+        <Stack.Screen
+          name="ContactDetailScreen"
+          component={ContactDetailScreen}
+        />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
         <Stack.Screen
           name="NearbyLoadingScreen"

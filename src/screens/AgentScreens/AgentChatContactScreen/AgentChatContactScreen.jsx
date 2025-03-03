@@ -39,7 +39,7 @@ export default function AgentChatContactScreen({navigation}) {
     if (!user) {
       return null; // Handle case where user data is missing
     }
-
+    // console.log('itmsssssssssssssssssssss', item);
     return (
       <ChatContacts
         image={{uri: user?.profile_picture}}
@@ -48,7 +48,7 @@ export default function AgentChatContactScreen({navigation}) {
           navigation.navigate('ChatScreen', {
             sender: item?.agent,
             receiver: user,
-            chat: item._id, // Assuming "_id" is the unique identifier for each booking/session
+            chat: item._id,
           })
         }
       />

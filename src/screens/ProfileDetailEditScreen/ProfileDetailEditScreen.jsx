@@ -112,7 +112,7 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
   };
   const submitRegister = async () => {
     const age = calculateAge(date);
-    if (!description.trim()) {
+    if (!description.trim() && account_type !== 'client') {
       Toast.show({
         type: 'error',
         text1: 'Invalid Description',

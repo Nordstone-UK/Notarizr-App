@@ -86,7 +86,13 @@ export default function ModalCheck(props) {
             LabelTextInput={'Feedback'}
             onChangeText={handleFeedbackChange}
             AdjustWidth={{width: widthToDp(80)}}
-            InputStyles={{padding: widthToDp(4)}}
+            InputStyles={{
+              padding: widthToDp(4),
+              maxHeight: heightToDp(30),
+              textAlignVertical: 'top',
+            }}
+            multiline={true}
+            scrollEnabled={true}
           />
           <MainButton
             onPress={feedback.trim() ? props.onSubmit : null}

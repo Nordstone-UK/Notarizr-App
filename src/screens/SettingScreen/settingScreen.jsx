@@ -216,6 +216,11 @@ export default function SettingScreen({navigation}, props) {
             Title="FAQ"
             onPress={() => navigation.navigate('FaqScreen')}
           />
+          <SettingOptions
+            icon={require('../../../assets/Support.png')}
+            Title="Contact Us"
+            onPress={() => navigation.navigate('ContactDetailScreen')}
+          />
         </ScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
