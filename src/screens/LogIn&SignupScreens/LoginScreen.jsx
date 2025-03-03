@@ -135,9 +135,9 @@ export default function LoginScreen({navigation}, props) {
         const locationPermission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
-        const locationPermission14 = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        );
+        // const locationPermission14 = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+        // );
         // Request camera permission
         // const cameraPermission = await PermissionsAndroid.request(
         //   PermissionsAndroid.PERMISSIONS.CAMERA,
@@ -227,7 +227,7 @@ export default function LoginScreen({navigation}, props) {
               placeholder={'XXXXXXXXXXX'}
             />
             {/* <LabelTextInput
-              leftImageSoucre={require('../../../assets/EmailIcon.png')}
+              leftImageSoucre={require('../../../assets/emailIcon.png')}
               placeholder={'Enter your email address'}
               LabelTextInput={'Email Address'}
               onChangeText={text => setEmail(text)}

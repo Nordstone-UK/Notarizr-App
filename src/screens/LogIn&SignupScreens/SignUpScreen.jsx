@@ -12,11 +12,12 @@ import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
+// import LabelTextInput from '../../componepnts/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch, useSelector} from 'react-redux';
 import {emailSet} from '../../features/register/registerSlice';
+import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 
 export default function SignUpScreen({navigation}, props) {
   const dispatch = useDispatch();
@@ -42,7 +43,7 @@ export default function SignUpScreen({navigation}, props) {
       <BottomSheetStyle>
         <View style={{marginTop: heightToDp(5)}}>
           <LabelTextInput
-            leftImageSoucre={require('../../../assets/EmailIcon.png')}
+            leftImageSoucre={require('../../../assets/emailIcon.png')}
             placeholder={'Enter your email address'}
             LabelTextInput={'Email Address'}
             onChangeText={text => setEmail(text)}

@@ -58,7 +58,7 @@ export default function ObserversModal(props) {
               Label={true}
               defaultValue={email}
               onChangeText={text => setEmail(text)}
-              leftImageSoucre={require('../../../assets/EmailIcon.png')}
+              leftImageSoucre={require('../../../assets/emailIcon.png')}
               AdjustWidth={{
                 width: widthToDp(80),
               }}
