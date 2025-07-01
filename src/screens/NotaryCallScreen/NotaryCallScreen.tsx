@@ -77,6 +77,7 @@ import { UPDATE_OR_CREATE_SESSION_CLIENT_DOCS } from '../../../request/mutations
 import DrawSignTypeModal from './Signature';
 import { TouchableWithoutFeedback } from 'react-native';
 
+
 export default function NotaryCallScreen({ route, navigation }: any) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['25%', '40%'], []);
@@ -157,6 +158,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     return 0; // Default fitPolicy
   };
   const { updateAgentdocs } = useFetchBooking();
+  const { liveblocks } = useLiveblocks();
+  useEffect(() => {
+    liveblocks.enterRoom('notary-signing-room');
+    return () => {
+      liveblocks.leaveRoom();
+    };
+  }, []);
   useEffect(() => {
     const extractFileName = url => {
       return url.split('/').pop();

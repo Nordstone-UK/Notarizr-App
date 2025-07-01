@@ -31,11 +31,8 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       selectedObjectId: null,
       pdfFilePath: "https://notarizr-app-data.s3.us-east-2.amazonaws.com/signed-documents/1716495800641.pdf",
       isPdfSaved: false,
-      setCurrentPage: page => {
-        set({ currentPage: page });
-      },
+      setCurrentPage: page => set({ currentPage: page }),
       insertObject: (id, object) => {
-         console.log("Inserting object:", { id, object });
         set({
           objects: {
             ...get().objects,
@@ -57,18 +54,10 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         const { [id]: _, ...remainingObjects } = get().objects;
         set({ objects: remainingObjects, selectedObjectId: null });
       },
-      setSelectedObjectId: id => {
-        set({ selectedObjectId: id });
-      },
-      deleteAllObjects: () => {
-        set({ objects: {} });
-      },
-      setPdfFilePath: path => {
-        set({ pdfFilePath: path });
-      },
-      setIsPdfSaved: isSaved => {
-        set({ isPdfSaved: isSaved });
-      },
+      setSelectedObjectId: id => set({ selectedObjectId: id }),
+      deleteAllObjects: () => set({ objects: {} }),
+      setPdfFilePath: path => set({ pdfFilePath: path }),
+      setIsPdfSaved: isSaved => set({ isPdfSaved: isSaved }),
     }),
     {
       client,
