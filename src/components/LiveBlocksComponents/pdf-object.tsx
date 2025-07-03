@@ -75,12 +75,16 @@ export default function PdfObject({ id, object, selected }: PdfObjectProps) {
       return <Text>{object.text}</Text>;
     }
 
-    if (object.type === 'image') {
-      return <Image style={styles.image} source={{ uri: object.sourceUrl }} />;
+    if (object.type === 'image' || object.type === 'signature') {
+      if (object.content) {
+        return <Image style={styles.image} source={{ uri: object.content }} />;
+      } else {
+        return <Text>No image</Text>;
+      }
     }
 
     return null;
-  }, [object.sourceUrl, object.text, object.type]);
+  }, [object.content, object.text, object.type]);
 
   const renderResize = useCallback(() => {
     if (!selected) {

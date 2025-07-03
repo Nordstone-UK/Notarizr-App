@@ -22,6 +22,7 @@ type PdfObjectProps = {
   id: string;
   object: PdfObject;
   selected: boolean;
+  onSignatureChange?: (signatureInfo: any) => void;
 };
 export default function DraggableSignature({ id, object, selected, onSignatureChange }: PdfObjectProps) {
   const updateObject = useLiveblocks(state => state.updateObject);
@@ -124,12 +125,16 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         </View>
       )
     }
-    if (object.type === 'image') {
-      return <Image style={styles.image} source={{ uri: object.sourceUrl }} />;
+    if (object.type === 'image' || object.type === 'signature') {
+      if (object.content) {
+        return <Image style={styles.image} source={{ uri: object.content }} />;
+      } else {
+        return <Text>No image</Text>;
+      }
     }
 
     return null;
-  }, [object.sourceUrl, object.text, object.type]);
+  }, [object.content, object.text, object.type]);
 
   return (
     <View style={styles.container}>

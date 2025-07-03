@@ -182,11 +182,6 @@ export default function AuthenticationScreen({route, navigation}) {
       }
     }
     setLoading(false);
-    navigation.navigate('NotaryCallScreen', {
-      uid: uid,
-      channel: channel,
-      token: token,
-    });
   };
   const handleFocusChange = value => {
     setIsFocused(value);

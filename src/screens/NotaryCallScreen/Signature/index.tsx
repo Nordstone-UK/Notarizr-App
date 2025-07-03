@@ -82,12 +82,14 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
     }
     setSignatureData(uri);
     insertObject(new Date().toISOString(), {
-      type: 'image',
-      sourceUrl: signaturesigns,
+      id: new Date().toISOString(),
+      type: 'signature',
+      content: signaturesigns,
       position: {
         x: 100,
         y: 100,
       },
+      page: 1,
     });
     // insertObject(new Date().toISOString(), {
     //   type: 'text',
@@ -110,12 +112,14 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
       }
       setSignatureData(signature);
       insertObject(new Date().toISOString(), {
-        type: 'image',
-        sourceUrl: signature,
+        id: new Date().toISOString(),
+        type: 'signature',
+        content: signaturesigns,
         position: {
           x: 100,
           y: 100,
         },
+        page: 1,
       });
       setSignaturePadVisible(false);
     } catch (error) {
@@ -145,12 +149,14 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
         const s3Url = await uploadimageToS3(uri);
         setUploadedImageUri(s3Url);
         insertObject(new Date().toISOString(), {
-          type: 'image',
-          sourceUrl: s3Url,
+          id: new Date().toISOString(),
+          type: 'signature',
+          content: s3Url,
           position: {
             x: 100,
             y: 100,
           },
+          page: 1,
         });
       }
     } catch (error) {

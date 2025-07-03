@@ -160,11 +160,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const { updateAgentdocs } = useFetchBooking();
   const { liveblocks } = useLiveblocks();
   useEffect(() => {
-    liveblocks.enterRoom('notary-signing-room');
+    console.log('liveblocks', liveblocks.room?.events)
+  }, [liveblocks])
+  
+  useEffect(() => {
+    liveblocks.enterRoom(bookingData._id);
     return () => {
       liveblocks.leaveRoom();
     };
-  }, []);
+  }, [bookingData?._id]);
   useEffect(() => {
     const extractFileName = url => {
       return url.split('/').pop();
@@ -358,13 +362,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         setPdfEditMode(true);
         setSignatureData(signature);
         insertObject(new Date().toISOString(), {
-          type: 'image',
-          sourceUrl: signaturesigns,
+          id: new Date().toISOString(),
+          type: 'signature',
+          content: signaturesigns,
+          position: { x: 100, y: 100 },
           page: currentPage,
-          position: {
-            x: 100,
-            y: 100,
-          },
         });
       } catch (error) {
         console.error('Error handling signature:', error);
@@ -381,37 +383,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       });
       const s3Url = await uploadimageToS3(result.assets[0].uri);
       if (result && result.assets && result.assets.length > 0) {
-        if (isStamp) {
-          setStampBase64(result.assets[0].base64);
-          setSignatureImageMimeType(result.assets[0].type);
-          setSignatureData(s3Url);
-          setSignaturePad(false);
-          setPdfEditMode(true);
-          insertObject(new Date().toISOString(), {
-            type: 'image',
-            sourceUrl: s3Url,
-            page: currentPage,
-            position: {
-              x: 100,
-              y: 100,
-            },
-          });
-        } else {
-          setSignatureBase64(result.assets[0].base64);
-          setSignatureData(s3Url);
-          setSignatureImageMimeType(result.assets[0].type);
-          setSignaturePad(false);
-          setPdfEditMode(true);
-          insertObject(new Date().toISOString(), {
-            type: 'image',
-            sourceUrl: s3Url,
-            page: currentPage,
-            position: {
-              x: 100,
-              y: 100,
-            },
-          });
-        }
+        setSignatureData(s3Url);
+        setSignaturePad(false);
+        setPdfEditMode(true);
+        insertObject(new Date().toISOString(), {
+          id: new Date().toISOString(),
+          type: 'signature',
+          content: s3Url,
+          position: { x: 100, y: 100 },
+          page: currentPage,
+        });
       }
     } catch (error) {
       console.log('error', error);
@@ -1133,7 +1114,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                       showsVerticalScrollIndicator={false}
                       showsHorizontalScrollIndicator={false}
                       horizontal={true}
-                      // vertical={false}
                       enablePaging={false}
                       minScale={1.0}
                       maxScale={3.0}
@@ -1152,7 +1132,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                       }}
                       onPageChanged={(page, numberOfPages) => {
                         setCurrentPage(page);
-                        // setRemoteCurrentPage(page);
                       }}
                       onPageSingleTap={(page, x, y) => {
                         handleSingleTap(page, x, y);

@@ -12,6 +12,8 @@ import { UPDATE_OR_CREATE_SESSION_CLIENT_DOCS } from '@/graphql/mutations/update
 import useRegister from '@/hooks/useRegister';
 import LiveblocksSignDocumentScreen from './LiveblocksSignDocumentScreen';
 import { RoomProvider } from '@liveblocks/react';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import 'pdfjs-dist/web/pdf_viewer.css';
 
 // Constants
 const APP_ID = "abd7df71ee024625b2cc979e12aec405";
@@ -50,8 +52,12 @@ const MeetingScreen: React.FC<MeetingProps> = ({  onCallEnd }) => {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const signatureRef = useRef<any>(null);
   const [numPages, setNumPages] = useState<number>(1);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState(1.0);
+  const [pdfThumbnails, setPdfThumbnails] = useState<string[]>([]);
+  const [selectedDocIdx, setSelectedDocIdx] = useState(0);
+  const [pageCanvases, setPageCanvases] = useState<HTMLCanvasElement[]>([]);
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
   
   // Refs
   const agoraClient = useRef<any>(null);
@@ -377,6 +383,49 @@ const MeetingScreen: React.FC<MeetingProps> = ({  onCallEnd }) => {
     }
   };
 
+  // Find all documents
+  const docsObj = sessionData?.getSession?.session?.client_documents || sessionData?.getSessionById?.client_documents;
+  const docs = docsObj
+    ? (Array.isArray(docsObj)
+        ? docsObj
+        : Object.entries(docsObj).map(([key, value]) => ({ key, value })))
+    : [];
+  const currentDocUrl = docs.length > 0 ? (docs[selectedDocIdx].value || docs[selectedDocIdx]) : null;
+
+  // Render all pages of the selected PDF
+  useEffect(() => {
+    const renderAllPages = async () => {
+      if (!currentDocUrl) {
+        setNumPages(1);
+        setPageCanvases([]);
+        return;
+      }
+      try {
+        const loadingTask = pdfjsLib.getDocument(currentDocUrl);
+        const pdf = await loadingTask.promise;
+        setNumPages(pdf.numPages);
+        const canvases: HTMLCanvasElement[] = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const vp = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          canvas.width = vp.width;
+          canvas.height = vp.height;
+          const context = canvas.getContext('2d');
+          if (context) {
+            await page.render({ canvasContext: context, viewport: vp }).promise;
+            canvases.push(canvas);
+          }
+        }
+        setPageCanvases(canvases);
+      } catch (err) {
+        setNumPages(1);
+        setPageCanvases([]);
+      }
+    };
+    renderAllPages();
+  }, [currentDocUrl]);
+
   // Initialize on mount
   useEffect(() => {
     const setup = async () => {
@@ -397,77 +446,11 @@ const MeetingScreen: React.FC<MeetingProps> = ({  onCallEnd }) => {
   }, [channelName, token]);
 
   return (
-    <div className="h-screen w-full flex bg-[#f7f7fa]">
-      {/* Center Video Area */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="relative w-[700px] max-w-full flex flex-col items-center">
-          {/* Participant Count */}
-          <div className="absolute top-0 right-0 mt-2 mr-2 z-10 bg-gray-800 text-white text-xs px-3 py-1 rounded shadow">
-            <span>👥 {1 + remoteUsers.length} participant{remoteUsers.length ? 's' : ''}</span>
-          </div>
-          {/* Video Panels */}
-          <div className="relative flex justify-center items-center mt-8 mb-6 w-full min-h-[320px]" style={{ minHeight: '320px' }}>
-            {/* If remote screen sharing is active and the current user is NOT the sharer, show remote screen as main, camera as PiP */}
-            {remoteScreenTrack && remoteScreenSharer && remoteScreenSharer.uid !== userData?.uid ? (
-              <>
-                {/* Main big screen (remote screen) */}
-                <div className="w-full h-[400px] bg-black rounded-lg overflow-hidden shadow flex items-center justify-center">
-                  <div
-                    className="w-full h-full"
-                    ref={el => {
-                      if (el) {
-                        remoteScreenTrack.play(el);
-                      }
-                    }}
-                  />
-                </div>
-                {/* PiP camera video (remote camera) */}
-                <div className="absolute bottom-4 right-4 w-40 h-28 bg-black rounded-lg overflow-hidden shadow-lg border-2 border-white flex items-end">
-                  <div
-                    className="w-full h-full"
-                    ref={el => {
-                      if (el && remoteScreenSharer && remoteScreenSharer.videoTrack) {
-                        remoteScreenSharer.videoTrack.play(el);
-                      }
-                    }}
-                  />
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
-                    Remote User
-                  </div>
-                </div>
-              </>
-            ) : isScreenSharing && screenTrack ? (
-              <>
-                {/* Main big screen (local screen) */}
-                <div className="w-full h-[400px] bg-black rounded-lg overflow-hidden shadow flex items-center justify-center">
-                  <div
-                    className="w-full h-full"
-                    ref={el => {
-                      if (el) {
-                        screenTrack.play(el);
-                      }
-                    }}
-                  />
-                </div>
-                {/* PiP camera video (local camera) */}
-                <div className="absolute bottom-4 right-4 w-40 h-28 bg-black rounded-lg overflow-hidden shadow-lg border-2 border-white flex items-end">
-                  <div
-                    className="w-full h-full"
-                    ref={el => {
-                      if (el && localVideoTrack) {
-                        localVideoTrack.play(el);
-                      }
-                    }}
-                  />
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
-                    You
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Default layout: local and remote videos side by side */}
-                <div className="w-80 h-60 bg-black rounded-lg overflow-hidden shadow relative flex items-end mr-6">
+    <div className="h-screen w-full flex flex-col bg-[#f7f7fa]">
+      {/* User video row at the top */}
+      <div className="flex flex-row gap-4 mt-4 justify-center">
+        {/* Local video as first box */}
+        <div className="w-32 h-24 bg-black rounded-lg overflow-hidden shadow flex items-end relative">
                   {localVideoTrack && (
                     <div
                       id="local-video"
@@ -479,34 +462,76 @@ const MeetingScreen: React.FC<MeetingProps> = ({  onCallEnd }) => {
                       }}
                     />
                   )}
-                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
+          <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
                     You
                   </div>
                 </div>
-                {remoteUsers.length > 0 ? (
-                  <div className="w-80 h-60 bg-black rounded-lg overflow-hidden shadow relative flex items-end">
+        {/* All remote users as boxes */}
+        {remoteUsers.map((user, idx) => (
+          <div key={user.uid || idx} className="w-32 h-24 bg-black rounded-lg overflow-hidden shadow flex items-end relative">
                     <div
                       className="w-full h-full"
                       ref={el => {
-                        if (el && remoteUsers[0].videoTrack) {
-                          remoteUsers[0].videoTrack.play(el);
+                if (el && user.videoTrack) {
+                  user.videoTrack.play(el);
                         }
                       }}
                     />
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
+            <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
                       Remote User
                     </div>
                   </div>
-                ) : (
-                  <div className="w-80 h-60 bg-gray-900 rounded-lg flex items-center justify-center text-gray-400 text-lg shadow">
-                    Waiting for participant...
+        ))}
+      </div>
+      {/* Document selector dropdown if multiple docs */}
+      {docs.length > 1 && (
+        <div className="flex justify-center mt-4">
+          <select
+            className="border border-gray-300 rounded px-4 py-2"
+            value={selectedDocIdx}
+            onChange={e => setSelectedDocIdx(Number(e.target.value))}
+          >
+            {docs.map((doc, idx) => (
+              <option key={doc.key || idx} value={idx}>
+                {doc.key || `Document ${idx + 1}`}
+              </option>
+            ))}
+          </select>
                   </div>
                 )}
-              </>
+      {/* Upload Section */}
+      <div className="p-4 border-b border-gray-200 flex flex-col items-center">
+        <div className="mb-4 text-gray-700 font-semibold text-lg">Upload Document</div>
+        <input
+          type="file"
+          accept="application/pdf"
+          onChange={handleClientUpload}
+          className="mb-4"
+          disabled={uploading}
+        />
+      </div>
+      {/* Collaborative PDF Signing Section */}
+      <RoomProvider id={'xxx-786'}>
+        <LiveblocksSignDocumentScreen
+          docUrl={currentDocUrl}
+          sessionId={sessionId}
+        />
+      </RoomProvider>
+      {/* Main PDF Area: scrollable, all pages */}
+      <div className="flex-1 overflow-auto flex flex-col items-center" ref={pdfContainerRef} style={{ background: '#fff' }}>
+        {pageCanvases.length > 0 ? (
+          pageCanvases.map((canvas, idx) => (
+            <div key={idx} className="my-4 flex justify-center">
+              {/* Render the canvas as an image for React rendering */}
+              <img src={canvas.toDataURL('image/png')} alt={`Page ${idx + 1}`} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: 8, maxWidth: '90vw' }} />
+            </div>
+          ))
+        ) : (
+          <div className="text-gray-500 p-4">No documents uploaded yet.</div>
             )}
           </div>
-          {/* Controls */}
-          <div className="flex justify-center gap-6 p-4 bg-white rounded-full shadow-lg mt-2">
+      {/* Controls below PDF */}
+      <div className="flex justify-center gap-6 p-4 bg-white rounded-full shadow-lg mt-6">
             <button
               onClick={toggleAudio}
               className={`p-4 rounded-full flex items-center justify-center transition-colors text-white text-xl ${
@@ -545,63 +570,6 @@ const MeetingScreen: React.FC<MeetingProps> = ({  onCallEnd }) => {
             >
               <Phone className="w-6 h-6 transform rotate-135" />
             </button>
-          </div>
-        </div>
-      </div>
-      {/* Right Document Panel */}
-      <div className="w-[600px] bg-white border-l border-gray-200 flex flex-col overflow-hidden">
-        {/* Upload Section */}
-        <div className="p-4 border-b border-gray-200">
-        <div className="mb-4 text-gray-700 font-semibold text-lg">Upload Document</div>
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handleClientUpload}
-          className="mb-4"
-          disabled={uploading}
-        />
-        </div>
-
-        {/* Documents List and Signing Area */}
-        <div className="flex-1 overflow-auto">
-        {(sessionData?.getSession?.session?.client_documents || sessionData?.getSessionById?.client_documents) ? (
-          (() => {
-            const docsObj = sessionData?.getSession?.session?.client_documents || sessionData?.getSessionById?.client_documents;
-            const docs = Array.isArray(docsObj)
-              ? docsObj
-              : Object.entries(docsObj).map(([key, value]) => ({ key, value }));
-            return (
-                <div className="space-y-2 p-4">
-                {docs.map((doc: any, idx: number) => (
-                  <div key={doc.key || idx} className="flex items-center gap-2 border p-2 rounded">
-                    <span className="truncate flex-1">{doc.key || `Document ${idx + 1}`}</span>
-                      {(userRole === 'agent' || userRole === 'client') && (
-                        <RoomProvider
-                          id={'notary-signing-room'}
-                        >
-                          <LiveblocksSignDocumentScreen
-                            docUrl={doc.value}
-                            sessionId={'notary-signing-room'}
-                          />
-                        </RoomProvider>
-                      )}
-                    <a
-                      href={typeof doc.value === 'string' ? doc.value : ''}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded ml-2"
-                    >
-                      View
-                    </a>
-                  </div>
-                ))}
-              </div>
-            );
-          })()
-        ) : (
-            <div className="text-gray-500 p-4">No documents uploaded yet.</div>
-        )}
-        </div>
       </div>
       {/* Permission Error Modal */}
       {permissionError && (
