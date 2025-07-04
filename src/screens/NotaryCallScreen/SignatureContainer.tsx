@@ -8,9 +8,11 @@ import { useLiveblocks } from '../../store/liveblocks';
 
 type SignatureContainerProps = {
   onSignatureChange?: (signatureInfo: any) => void;
+  pageWidth: number;
+  pageHeight: number;
 };
 
-export default function SignatureContainer({ onSignatureChange }: SignatureContainerProps) {
+export default function SignatureContainer({ onSignatureChange, pageWidth, pageHeight }: SignatureContainerProps) {
   const objects = useLiveblocks(state => state.objects);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const currentPage = useLiveblocks(state => state.currentPage);
@@ -20,7 +22,7 @@ export default function SignatureContainer({ onSignatureChange }: SignatureConta
   // console.log("pdflivepathfile", pdfFilePath)
   // console.log('Signatures:', signatures.length);
   const handleSignatureChange = (signatureInfo) => {
-    onSignatureChange(signatureInfo);
+    if (onSignatureChange) onSignatureChange(signatureInfo);
   };
   // Only render signatures for the current page
   const filteredSignatures = Object.entries(objects).filter(([, obj]) => (obj.type === 'signature') && obj.page === currentPage);
@@ -33,6 +35,8 @@ export default function SignatureContainer({ onSignatureChange }: SignatureConta
           object={object}
           selected={selectedObjectId === objectId}
           onSignatureChange={handleSignatureChange}
+          pageWidth={pageWidth}
+          pageHeight={pageHeight}
         />
       ))}
     </View>

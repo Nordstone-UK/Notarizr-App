@@ -446,7 +446,14 @@ export default function AuthenticationScreen({route, navigation}) {
             styles={{
               fontSize: widthToDp(5),
             }}
-            onPress={() => submitAddressDetails()}
+            // onPress={() => submitAddressDetails()}
+            onPress={()=>{
+              navigation.navigate('NotaryCallScreen', {
+                uid: uid,
+                channel: channel,
+                token: token,
+              });
+            }}
             loading={loading}
           />
         </ScrollView>

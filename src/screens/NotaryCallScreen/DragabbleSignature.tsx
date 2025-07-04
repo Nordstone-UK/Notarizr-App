@@ -23,33 +23,48 @@ type PdfObjectProps = {
   object: PdfObject;
   selected: boolean;
   onSignatureChange?: (signatureInfo: any) => void;
+  pageWidth: number;
+  pageHeight: number;
 };
-export default function DraggableSignature({ id, object, selected, onSignatureChange }: PdfObjectProps) {
+export default function DraggableSignature({ id, object, selected, onSignatureChange, pageWidth, pageHeight }: PdfObjectProps) {
   const updateObject = useLiveblocks(state => state.updateObject);
   const setSelectedObjectId = useLiveblocks(state => state.setSelectedObjectId);
   const deleteObject = useLiveblocks(state => state.deleteObject);
   const dispatch = useDispatch();
+
+  // Use percentage-based positioning and sizing
+  const xPct = (object.position && 'xPct' in object.position && typeof object.position.xPct === 'number') ? object.position.xPct : 0.1;
+  const yPct = (object.position && 'yPct' in object.position && typeof object.position.yPct === 'number') ? object.position.yPct : 0.1;
+  const widthPct = (object.position && 'widthPct' in object.position && typeof object.position.widthPct === 'number') ? object.position.widthPct : 0.15;
+  const heightPct = (object.position && 'heightPct' in object.position && typeof object.position.heightPct === 'number') ? object.position.heightPct : 0.08;
+
+  // Convert to pixel values for rendering
+  const initialX = xPct * pageWidth;
+  const initialY = yPct * pageHeight;
+  const initialWidth = widthPct * pageWidth;
+  const initialHeight = heightPct * pageHeight;
+
   const scale = useSharedValue(1);
-  const translationX = useSharedValue(0);
-  const translationY = useSharedValue(0);
-  const prevTranslationX = useRef(0);
-  const prevTranslationY = useRef(0);
-  const start = useSharedValue({ x: 0, y: 0 });
-  const offset = useSharedValue({ x: object.position.x, y: object.position.y });
+  const translationX = useSharedValue(initialX);
+  const translationY = useSharedValue(initialY);
+  const prevTranslationX = useRef(initialX);
+  const prevTranslationY = useRef(initialY);
+
+  useEffect(() => {
+    translationX.value = initialX;
+    translationY.value = initialY;
+    prevTranslationX.current = initialX;
+    prevTranslationY.current = initialY;
+  }, [initialX, initialY]);
 
   const onPinchGestureEvent = ({ nativeEvent }) => {
     scale.value = nativeEvent.scale;
   };
 
   const onPanGestureEvent = ({ nativeEvent }) => {
-    translationX.value = clamp(prevTranslationX.current + nativeEvent.translationX, 0, screenWidth - FIXED_IMAGE_SIZE);
-    translationY.value = clamp(prevTranslationY.current + nativeEvent.translationY, 0, screenHeight - FIXED_IMAGE_SIZE);
+    translationX.value = clamp(prevTranslationX.current + nativeEvent.translationX, 0, pageWidth - initialWidth);
+    translationY.value = clamp(prevTranslationY.current + nativeEvent.translationY, 0, pageHeight - initialHeight);
   };
-  useEffect(() => {
-    // Update offset value when object position changes
-    translationX.value = object.position.x;
-    translationY.value = object.position.y;
-  }, [object.position]);
 
   const onPanGestureStateChange = ({ nativeEvent }) => {
     if (nativeEvent.state === State.END) {
@@ -64,48 +79,57 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         damping: 10,
         stiffness: 100,
       });
-      let newOffset = {
-        x: translationX.value,
-        y: translationY.value,
-      };
+      // Update position as percentage of page size
+      const newXPct = translationX.value / pageWidth;
+      const newYPct = translationY.value / pageHeight;
+      const newPosition = { ...object.position } as any;
+      newPosition.xPct = newXPct;
+      newPosition.yPct = newYPct;
       updateObject(id, {
         ...object,
-        position: newOffset,
+        position: newPosition,
       });
       const signatureData = object.type === 'image' ? object.sourceUrl : object.text;
       const fontFamily = object.type === 'text' ? object.fontfamily : undefined;
 
-      onSignatureChange({
-        width: FIXED_IMAGE_SIZE * scale.value,
-        height: FIXED_IMAGE_SIZE * scale.value,
-        x: translationX.value,
-        y: translationY.value,
-        type: object.type,
-        signatureData: signatureData,
-        fontFamily: fontFamily,
-      });
+      if (onSignatureChange) {
+        onSignatureChange({
+          width: initialWidth * scale.value,
+          height: initialHeight * scale.value,
+          x: translationX.value,
+          y: translationY.value,
+          type: object.type,
+          signatureData: signatureData,
+          fontFamily: fontFamily,
+        });
+      }
     }
   };
 
+  // Clamp and default transform values to prevent NaN/undefined errors
+  const safeTranslateX = typeof translationX.value === 'number' && !isNaN(translationX.value) ? translationX.value : 0;
+  const safeTranslateY = typeof translationY.value === 'number' && !isNaN(translationY.value) ? translationY.value : 0;
+  const safeScale = typeof scale.value === 'number' && !isNaN(scale.value) ? scale.value : 1;
+
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translationX.value },
-      { translateY: translationY.value },
-      { scale: scale.value },
-    ],
+    position: 'absolute',
+    left: safeTranslateX,
+    top: safeTranslateY,
+    width: initialWidth * safeScale,
+    height: initialHeight * safeScale,
+    zIndex: 999,
+    borderWidth: 0,
+    borderColor: 'transparent',
+    transform: [],
   }));
 
   const handleDelete = () => {
     deleteObject(id); // Use the deleteObject action
-    onSignatureChange({ delete: true });
+    if (onSignatureChange) {
+      onSignatureChange({ delete: true });
+    }
   };
 
-  // const animatedStyle = useAnimatedStyle(() => {
-  //   return {
-  //     transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }],
-  //   };
-  // });
-  // console.log("object.typere", object)
   const renderContent = useCallback(() => {
     if (object.type === 'date') {
       return (
@@ -147,11 +171,6 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         >
           <Animated.View style={[styles.box, animatedStyle, selected && styles.containerSelected,]}>
             {renderContent()}
-            {/* <Text style={styles.text}>{object.text}</Text> */}
-            {/* <Image
-              source={{ uri: object.sourceUrl }} // Assuming signatureData is a URI
-              style={styles.image}
-            /> */}
             <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
               <View style={styles.deleteIcon} />
             </TouchableOpacity>

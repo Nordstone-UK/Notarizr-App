@@ -1100,226 +1100,183 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             />
           ) : (
             fileDownloaded && (
-              <>
-                {filePath ? (
-                  <>
-                    <PdfView
-                      ref={pdfRef}
-                      style={[
-                        styles.pdfView,
-                        isInteractionBlocked && { pointerEvents: 'none' },
-                      ]}
-                      source={{ uri: filePath }}
-                      trustAllCerts={false}
-                      showsVerticalScrollIndicator={false}
-                      showsHorizontalScrollIndicator={false}
-                      horizontal={true}
-                      enablePaging={false}
-                      minScale={1.0}
-                      maxScale={3.0}
-                      scale={1.0}
-                      spacing={0}
-                      fitPolicy={getFitPolicy()}
-                      onLoadComplete={(
-                        numberOfPages,
-                        filePath,
-                        { width, height },
-                      ) => {
-                        setCurrentPage(1);
-                        setTotalPages(numberOfPages);
-                        setPageWidth(width);
-                        setPageHeight(height);
-                      }}
-                      onPageChanged={(page, numberOfPages) => {
-                        setCurrentPage(page);
-                      }}
-                      onPageSingleTap={(page, x, y) => {
-                        handleSingleTap(page, x, y);
-                      }}
-                      onError={error => console.error(error)}
-                    />
-                    {/* </View> */}
-                    {User.account_type !== 'client' && (
-                      <TouchableOpacity onPress={toggleDrawingMode} style={[styles.penIconContainer, drawingMode && styles.activePenIconContainer]}>
-                        <Icon name="edit" size={30} style={[styles.editIcon, drawingMode && styles.activeeditIcon]} />
-                      </TouchableOpacity>
-                    )}
-                    {drawingMode && User.account_type != 'client' && (
-                      <SketchCanvasComponent
-                        onPathsChange={handlePathsChange}
-                        stamps={User}
-                        onStampChanges={handleSavedStamp}
-                        saveToPdf={saveToPdf}
-                      />
-                    )}
-                    <View style={styles.currentPageTextContainer}>
-                      <RNText style={styles.currentPageText}>
-                        {currentPage}
-                      </RNText>
-                    </View>
-                  </>
-                ) : (
-                  <View
-                    style={{
-                      width: widthToDp(100),
-                      flex: 1,
-                      height: height,
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 999,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <ActivityIndicator
-                      size="large"
-                      color={Colors.Orange}
-                      style={{ marginTop: -200 }}
-                    />
-                    <RNText
-                      style={{
-                        color: Colors.Orange,
-                        fontSize: 20,
-                        fontWeight: 'bold',
-                        marginTop: 20,
-                      }}>
-                      Saving the Pdf file
-                    </RNText>
-                  </View>
-                )}
-              </>
+              filePath ? (
+                <View style={{ width: 400, height: 600, position: 'relative' }}>
+                  <PdfView
+                    ref={pdfRef}
+                    style={[
+                      styles.pdfView,
+                      isInteractionBlocked && { pointerEvents: 'none' },
+                    ]}
+                    source={{ uri: filePath }}
+                    trustAllCerts={false}
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
+                    horizontal={true}
+                    enablePaging={false}
+                    minScale={1.0}
+                    maxScale={3.0}
+                    scale={1.0}
+                    spacing={0}
+                    fitPolicy={getFitPolicy()}
+                    onLoadComplete={(
+                      numberOfPages,
+                      filePath,
+                      { width, height },
+                    ) => {
+                      setCurrentPage(1);
+                      setTotalPages(numberOfPages);
+                      setPageWidth(width);
+                      setPageHeight(height);
+                    }}
+                    onPageChanged={(page, numberOfPages) => {
+                      setCurrentPage(page);
+                    }}
+                    onPageSingleTap={(page, x, y) => {
+                      handleSingleTap(page, x, y);
+                    }}
+                    onError={error => console.error(error)}
+                  />
+                  <SignatureContainer
+                    signatureData={signatureData}
+                    onSignatureChange={handleDragabbleSignatureData}
+                    pageWidth={400}
+                    pageHeight={600}
+                  />
+                </View>
+              ) : (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color={Colors.Orange} />
+                  <RNText>Loading PDF...</RNText>
+                </View>
+              )
             )
           )}
-          <SignatureContainer
-            signatureData={signatureData}
-            onSignatureChange={handleDragabbleSignatureData}
-          />
-        </View>
-        <View style={styles.actions}>
-          <MainButton
-            Title="Add Signature"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            styles={{
-              paddingHorizontal: widthToDp(3),
-              paddingVertical: widthToDp(2),
-            }}
-            onPress={() => {
-              // onSignatureAdd();
-              // getSignature();
-              handleSignPress();
-            }}
-          />
-          {User.account_type === 'client' && (
+          <View style={styles.actions}>
             <MainButton
-              Title="Upload Document"
+              Title="Add Signature"
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
               styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => clientDocumentsUpload()}
-            />
-          )}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Upload Document"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => selectDocuments()}
-            />
-            // <MainButton
-            //   Title="Add stamp"
-            //   colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            //   styles={{
-            //     paddingHorizontal: widthToDp(1),
-            //     paddingVertical: widthToDp(2),
-            //   }}
-            //   onPress={() => {
-            //     onAddSignatureImage(true);
-            //   }}
-            // />
-          )}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Add Text"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
+                paddingHorizontal: widthToDp(3),
                 paddingVertical: widthToDp(2),
               }}
               onPress={() => {
-                handlePresentModalPress();
+                // onSignatureAdd();
+                // getSignature();
+                handleSignPress();
               }}
             />
-          )}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Add Date"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => {
-                setOpen(true);
-              }}
-            />
-            // </View>
-          )}
-          {/* </View> */}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Complete call"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(4),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => {
-                leave();
-              }}
-            />
-          )}
-          <BottomSheetModal
-            ref={bottomSheetModalRef}
-            index={1}
-            snapPoints={snapPoints}
-          // onChange={handleSheetChanges}
-          >
-            <AddText
-              text={documentText}
-              onChangeText={(text: string) => setDocumentText(text)}
-              onPress={() => handleTextonLiveblock()}
-            />
-          </BottomSheetModal>
-          <DrawSignTypeModal
-            isVisible={isDrawTypeModalVisible}
-            onClose={handleSignCloseModal}
-            signs={User}
-            onStampChanges={handleSavedStamp}
+            {User.account_type === 'client' && (
+              <MainButton
+                Title="Upload Document"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                styles={{
+                  paddingHorizontal: widthToDp(1),
+                  paddingVertical: widthToDp(2),
+                }}
+                onPress={() => clientDocumentsUpload()}
+              />
+            )}
+            {User.account_type != 'client' && (
+              <MainButton
+                Title="Upload Document"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                styles={{
+                  paddingHorizontal: widthToDp(1),
+                  paddingVertical: widthToDp(2),
+                }}
+                onPress={() => selectDocuments()}
+              />
+              // <MainButton
+              //   Title="Add stamp"
+              //   colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+              //   styles={{
+              //     paddingHorizontal: widthToDp(1),
+              //     paddingVertical: widthToDp(2),
+              //   }}
+              //   onPress={() => {
+              //     onAddSignatureImage(true);
+              //   }}
+              // />
+            )}
+            {User.account_type != 'client' && (
+              <MainButton
+                Title="Add Text"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                styles={{
+                  paddingHorizontal: widthToDp(1),
+                  paddingVertical: widthToDp(2),
+                }}
+                onPress={() => {
+                  handlePresentModalPress();
+                }}
+              />
+            )}
+            {User.account_type != 'client' && (
+              <MainButton
+                Title="Add Date"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                styles={{
+                  paddingHorizontal: widthToDp(1),
+                  paddingVertical: widthToDp(2),
+                }}
+                onPress={() => {
+                  setOpen(true);
+                }}
+              />
+              // </View>
+            )}
+            {/* </View> */}
+            {User.account_type != 'client' && (
+              <MainButton
+                Title="Complete call"
+                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+                styles={{
+                  paddingHorizontal: widthToDp(4),
+                  paddingVertical: widthToDp(2),
+                }}
+                onPress={() => {
+                  leave();
+                }}
+              />
+            )}
+            <BottomSheetModal
+              ref={bottomSheetModalRef}
+              index={1}
+              snapPoints={snapPoints}
+            // onChange={handleSheetChanges}
+            >
+              <AddText
+                text={documentText}
+                onChangeText={(text: string) => setDocumentText(text)}
+                onPress={() => handleTextonLiveblock()}
+              />
+            </BottomSheetModal>
+            <DrawSignTypeModal
+              isVisible={isDrawTypeModalVisible}
+              onClose={handleSignCloseModal}
+              signs={User}
+              onStampChanges={handleSavedStamp}
 
-            onSelectOption={handleSelectDrawType}
-          />
-          <View style={styles.buttonFlex}>
-            <DatePicker
-              modal
-              mode="datetime"
-              minimumDate={new Date()}
-              open={open}
-              date={date}
-              onConfirm={date => {
-                setOpen(false);
-                setDate(date);
-                handleDateonLiveblock();
-              }}
-              onCancel={() => {
-                setOpen(false);
-              }}
+              onSelectOption={handleSelectDrawType}
             />
+            <View style={styles.buttonFlex}>
+              <DatePicker
+                modal
+                mode="datetime"
+                minimumDate={new Date()}
+                open={open}
+                date={date}
+                onConfirm={date => {
+                  setOpen(false);
+                  setDate(date);
+                  handleDateonLiveblock();
+                }}
+                onCancel={() => {
+                  setOpen(false);
+                }}
+              />
+            </View>
           </View>
         </View>
       </View>
