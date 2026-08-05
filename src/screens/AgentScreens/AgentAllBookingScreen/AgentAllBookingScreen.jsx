@@ -1,375 +1,183 @@
+import React, {useCallback, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  FlatList,
-  SafeAreaView,
-  Image,
-  RefreshControl,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import MainButton from '../../../components/MainGradientButton/MainButton';
-import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
-import Colors from '../../../themes/Colors';
+import {useFocusEffect} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useDispatch} from 'react-redux';
+import Toast from 'react-native-toast-message';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
-import useFetchBooking from '../../../hooks/useFetchBooking';
-import {ScrollView} from 'react-native-virtualized-view';
-import {useDispatch, useSelector} from 'react-redux';
+import BookingCard from '../../../components/Bookings/BookingCard';
+import BookingEmptyState from '../../../components/Bookings/BookingEmptyState';
+import BookingHeader from '../../../components/Bookings/BookingHeader';
 import {
   setBookingInfoState,
   setCoordinates,
   setUser,
 } from '../../../features/booking/bookingSlice';
+import useFetchBooking from '../../../hooks/useFetchBooking';
+import {
+  getBookingClient,
+  getBookingServiceType,
+  normalizeAgentBooking,
+} from '../../../utils/agentBookingPresentation';
+
+const AGENT_TABS = [
+  {label: 'Accepted', value: 'accepted'},
+  {label: 'Pending', value: 'pending'},
+  {label: 'Cancelled', value: 'rejected'},
+];
 
 export default function AgentAllBookingScreen({navigation}) {
-  const [isFocused, setIsFocused] = useState('accepted');
-  const {fetchAgentBookingInfo, handleAgentSessions, fetchAdminAllocations} =
+  const {fetchAdminAllocations, fetchAgentBookingInfo, handleAgentSessions} =
     useFetchBooking();
-  const [Booking, setBooking] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [mergerData, setMergerData] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const account_type = useSelector(state => state.user.user.account_type);
+  const fetchAllocationsRef = useRef(fetchAdminAllocations);
+  const fetchBookingsRef = useRef(fetchAgentBookingInfo);
+  const fetchSessionsRef = useRef(handleAgentSessions);
+  const activeStatusRef = useRef('accepted');
   const dispatch = useDispatch();
-  const init = async status => {
-    console.log('astssdfdfff', status);
-    setLoading(true);
-    const bookingDetail = await fetchAgentBookingInfo(status);
-    const sessionDetail = await handleAgentSessions(status);
+  const [activeStatus, setActiveStatus] = useState('accepted');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-    let mergedDetails = [...bookingDetail, ...sessionDetail];
-    if (status === 'pending') {
-      console.log('rpnsfffffffffff', status);
-      const adminAllocationDetail = await fetchAdminAllocations(status);
-      console.log('ad,inallocation', adminAllocationDetail);
-      if (Array.isArray(adminAllocationDetail)) {
-        mergedDetails = [...mergedDetails, ...adminAllocationDetail];
-      } else {
-        console.warn(
-          'adminAllocationDetail is not an array:',
-          adminAllocationDetail,
-        );
-      }
-    }
-    const sortedDetails = mergedDetails.sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-    );
-    setMergerData(sortedDetails);
-    setLoading(false);
-  };
+  fetchAllocationsRef.current = fetchAdminAllocations;
+  fetchBookingsRef.current = fetchAgentBookingInfo;
+  fetchSessionsRef.current = handleAgentSessions;
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      // console.log('sending...');
-      init('accepted');
-      setIsFocused('accepted');
-    });
-    return unsubscribe;
-  }, [navigation]);
-  const callBookingsAPI = async status => {
-    setBooking(null);
-    setIsFocused(status);
-    init(status);
-  };
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setBooking(null);
-    init('accepted');
-    setIsFocused('accepted');
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
-  const checkStatusNavigation = (status, item) => {
-    if (status === 'accepted' && item?.__typename === 'mobile_notary') {
-      dispatch(setBookingInfoState(item));
-      dispatch(setUser(item?.booked_by));
-      dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
-      navigation.navigate('MapArrivalScreen');
-    } else {
-      dispatch(setBookingInfoState(item));
-      navigation.navigate('ClientDetailsScreen', {
-        clientDetail: item,
+  const loadBookings = useCallback(async (status, isRefresh = false) => {
+    isRefresh ? setRefreshing(true) : setLoading(true);
+    try {
+      const [bookingData, sessionData, allocationData] = await Promise.all([
+        fetchBookingsRef.current(status),
+        fetchSessionsRef.current(status),
+        status === 'pending' ? fetchAllocationsRef.current(status) : [],
+      ]);
+      const merged = [
+        ...(Array.isArray(bookingData) ? bookingData : []),
+        ...(Array.isArray(sessionData) ? sessionData : []),
+        ...(Array.isArray(allocationData) ? allocationData : []),
+      ]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(normalizeAgentBooking);
+
+      setBookings(merged);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Bookings could not refresh',
+        text2: 'Check your connection and try again.',
       });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBookings(activeStatusRef.current);
+    }, [loadBookings]),
+  );
+
+  const changeStatus = status => {
+    activeStatusRef.current = status;
+    setActiveStatus(status);
+    setBookings([]);
+    loadBookings(status);
+  };
+
+  const openBooking = booking => {
+    const item = booking.raw;
+    const client = getBookingClient(item);
+    dispatch(setBookingInfoState(item));
+    dispatch(setUser(client));
+    dispatch(setCoordinates(client?.current_location?.coordinates || []));
+
+    if (
+      item?.status === 'accepted' &&
+      getBookingServiceType(item) === 'mobile_notary'
+    ) {
+      navigation.navigate('MapArrivalScreen');
+      return;
+    }
+
+    navigation.navigate('ClientDetailsScreen', {clientDetail: item});
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AgentHomeHeader
-        Title="Bookings"
-        // SearchEnabled={true}
-        Switch={true}
-      />
-      <BottomSheetStyle>
-        <ScrollView
-          scrollEnabled={true}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={styles.contentContainer}>
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{}}>
-            <View
-              style={{
-                flexDirection: 'row',
-                columnGap: widthToDp(5),
-                marginHorizontal: widthToDp(10),
-                alignSelf: 'center',
-              }}>
-              <MainButton
-                Title="Accepted"
-                colors={
-                  isFocused === 'accepted'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'accepted'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                }
-                onPress={() => callBookingsAPI('accepted')}
-              />
-              <MainButton
-                Title="Pending"
-                colors={
-                  isFocused === 'pending'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'pending'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                }
-                onPress={() => callBookingsAPI('pending')}
-              />
-              {account_type === 'client' && (
-                <MainButton
-                  Title="Completed"
-                  colors={
-                    isFocused === 'completed'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  styles={
-                    isFocused === 'completed'
-                      ? {
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                      : {
-                          color: Colors.TextColor,
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                  }
-                  onPress={() => callBookingsAPI('completed')}
-                />
-              )}
-              <MainButton
-                Title="Rejected / Cancelled"
-                colors={
-                  isFocused === 'rejected'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'rejected'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(5),
-                      }
-                }
-                onPress={() => callBookingsAPI('rejected')}
-              />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AgentHomeHeader Switch />
+      <FlatList
+        contentContainerStyle={[
+          styles.listContent,
+          !loading && bookings.length === 0 && styles.emptyListContent,
+        ]}
+        data={bookings}
+        keyExtractor={item => item._id}
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator color="#D65322" size="small" />
+              <Text style={styles.loadingText}>Loading bookings...</Text>
             </View>
-          </ScrollView>
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              marginVertical: widthToDp(3),
-            }}>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.Orange} />
-              </View>
-            ) : mergerData.length !== 0 ? (
-              <FlatList
-                data={mergerData}
-                keyExtractor={item => item._id}
-                renderItem={({item}) => {
-                  const isAllocation = item.__typename === 'Allocation';
-                  const serviceType = isAllocation
-                    ? item.service?.service_type
-                    : item.service_type;
-                  const profileImageUri = isAllocation
-                    ? 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png'
-                    : item?.booked_by?.profile_picture ||
-                      item?.client?.profile_picture ||
-                      'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png';
-                  const agentName = isAllocation
-                    ? `${item.first_name} ${item.last_name}`
-                    : item?.booked_by?.first_name && item?.booked_by?.last_name
-                    ? `${item.booked_by.first_name} ${item.booked_by.last_name}`
-                    : `${
-                        item?.client?.first_name || item?.booked_for?.first_name
-                      } ${
-                        item?.client?.last_name || item?.booked_for?.last_name
-                      }`;
-                  const agentAddress = isAllocation
-                    ? item.address
-                    : item?.booked_by
-                    ? `${addressdetail?.location}`
-                    : `${item?.client?.location}`;
-
-                  const addressId = item.address;
-
-                  let addressdetail = null;
-                  if (item?.booked_by?.addresses) {
-                    addressdetail = item.booked_by.addresses.find(
-                      address => address._id == addressId,
-                    );
-                  }
-                  return (
-                    <ClientServiceCard
-                      image={require('../../../../assets/agentLocation.png')}
-                      calendarImage={require('../../../../assets/calenderIcon.png')}
-                      servicetype={serviceType}
-                      source={{
-                        uri: profileImageUri,
-                      }}
-                      bottomRightText={item?.document_type}
-                      bottomLeftText="Total"
-                      agentName={agentName}
-                      agentAddress={
-                        isAllocation
-                          ? item.address
-                          : item?.booked_by
-                          ? `${addressdetail?.location}`
-                          : `${item?.client?.location}`
-                      }
-                      status={item?.status}
-                      OrangeText="At Home"
-                      onPress={
-                        () => checkStatusNavigation(item?.status, item)
-                        // navigation.navigate('ClientDetailsScreen', {
-                        //   clientDetail: item,
-                        // })
-                      }
-                      paymentType={item?.payment_type}
-                      datetimesession={item?.date_time_session}
-                      dateofBooking={
-                        item.preferredDate || item?.date_of_booking
-                      }
-                      timeofBooking={
-                        item.preferredTime || item?.time_of_booking
-                      }
-                      createdAt={item?.createdAt}
-                    />
-                  );
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  height: heightToDp(100),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Image
-                  source={require('../../../../assets/emptyBox.png')}
-                  style={[styles.picture]}
-                />
-                <Text style={styles.subheading}>No Booking Found...</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </BottomSheetStyle>
+          ) : (
+            <BookingEmptyState status={activeStatus} />
+          )
+        }
+        ListHeaderComponent={
+          <BookingHeader
+            activeStatus={activeStatus}
+            count={bookings.length}
+            onChangeStatus={changeStatus}
+            subtitle="Review requests and manage upcoming appointments"
+            tabs={AGENT_TABS}
+          />
+        }
+        refreshControl={
+          <RefreshControl
+            colors={['#D65322']}
+            onRefresh={() => loadBookings(activeStatus, true)}
+            refreshing={refreshing}
+            tintColor="#D65322"
+          />
+        }
+        renderItem={({item}) => (
+          <BookingCard booking={item} onPress={() => openBooking(item)} />
+        )}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
-    // justifyContent: 'center',
-    // alignContent: 'center',
+    backgroundColor: '#FFFFFF',
   },
-  Heading: {
-    fontSize: widthToDp(6.5),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    paddingLeft: widthToDp(2),
+  listContent: {
+    paddingBottom: 28,
+    backgroundColor: '#F6F7F9',
   },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
+  emptyListContent: {
+    flexGrow: 1,
   },
-  subheading: {
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-    paddingRight: widthToDp(2),
-  },
-  CategoryBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
-  },
-  PictureBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
-  },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
-  },
-  picture: {
-    width: widthToDp(20),
-    height: heightToDp(20),
-  },
-  loadingContainer: {
-    height: heightToDp(100),
-    justifyContent: 'center',
+  loadingState: {
     alignItems: 'center',
+    paddingTop: 86,
+  },
+  loadingText: {
+    marginTop: 9,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
   },
 });

@@ -12,28 +12,11 @@ export const GET_ALL_CHATS = gql`
       }
       latestMessage {
         _id
-        mediaUrl
-        chat {
-          _id
-          latestMessage {
-            _id
-            mediaUrl
-            text
-            sent
-            received
-            pending
-            createdAt
-          }
-          isRead
-          isReadSendTo {
-            _id
-          }
-        }
         text
-        sent
-        received
-        pending
         createdAt
+        user {
+          _id
+        }
       }
       isRead
       isReadSendTo {

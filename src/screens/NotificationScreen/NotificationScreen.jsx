@@ -1,152 +1,306 @@
+import React, {useEffect, useMemo, useState} from 'react';
 import {
-  Image,
+  RefreshControl,
+  SafeAreaView,
+  SectionList,
+  StatusBar,
   StyleSheet,
   Text,
-  ScrollView,
-  View,
-  ImageBackground,
-  SafeAreaView,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import Colors from '../../themes/Colors';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import {EventRegister} from 'react-native-event-listeners';
-import {useDispatch, useSelector} from 'react-redux';
+import {useMutation, useQuery} from '@apollo/client';
 import moment from 'moment';
-import {GET_NOTIFICATIONS_BY_ID} from '../../../request/queries/getNotificationsbyId.query';
-import {store} from '../../app/store';
-import {useQuery} from '@apollo/client';
-export default function NotificationScreen({navigation}) {
-  // const notifications = useSelector(state => state.user.notifications);
-  const [notifications, setNotification] = useState([]);
-  console.log('notifidfdfdfd', notifications);
-  const dispatch = useDispatch();
+import Feather from 'react-native-vector-icons/Feather';
+import {useSelector} from 'react-redux';
+import NotificationHeader from '../../components/Notifications/NotificationHeader';
+import NotificationRow from '../../components/Notifications/NotificationRow';
+import {
+  GET_NOTIFICATIONS_BY_ID,
+  MARK_ALL_NOTIFICATIONS_READ,
+  MARK_NOTIFICATION_READ,
+} from '../../../request/queries/getNotificationsbyId.query';
 
-  const userInfo = store.getState().user.user; // Get the user info from Redux store
-  const {loading, error, data} = useQuery(GET_NOTIFICATIONS_BY_ID, {
-    variables: {
-      receiverId: userInfo?._id,
-      page: 1,
-      limit: 300,
-    },
-    skip: !userInfo?._id, // Skip the query if user ID is not available
+const PREVIEW_NOTIFICATIONS = [
+  {
+    id: 'notification-1',
+    type: 'booking',
+    title: 'Appointment confirmed',
+    description: 'Maya Chen accepted your mobile notary request for tomorrow.',
+    displayTime: '2 minutes ago',
+    group: 'Today',
+    read: false,
+  },
+  {
+    id: 'notification-2',
+    type: 'message',
+    title: 'New message from Maya',
+    description: 'Please have your photo ID ready when I arrive.',
+    displayTime: '18 minutes ago',
+    group: 'Today',
+    read: false,
+  },
+  {
+    id: 'notification-3',
+    type: 'document',
+    title: 'Documents received',
+    description: 'Your power of attorney file was uploaded successfully.',
+    displayTime: '1 hour ago',
+    group: 'Today',
+    read: true,
+  },
+  {
+    id: 'notification-4',
+    type: 'payment',
+    title: 'Payment method verified',
+    description: 'Your card ending in 2048 is ready for future bookings.',
+    displayTime: 'Yesterday',
+    group: 'Earlier',
+    read: true,
+  },
+  {
+    id: 'notification-5',
+    type: 'system',
+    title: 'Account protected',
+    description: 'Phone verification was completed for your Notarizr account.',
+    displayTime: 'Aug 2',
+    group: 'Earlier',
+    read: true,
+  },
+];
+
+const normalizeNotification = item => {
+  const numericDate = Number(item.createdAt);
+  const date = moment(Number.isNaN(numericDate) ? item.createdAt : numericDate);
+
+  return {
+    id: item._id || item.id,
+    type: item.type || 'system',
+    title: item.title || 'Notarizr update',
+    description: item.description || item.body || '',
+    displayTime: date.isValid() ? date.fromNow() : 'Recently',
+    group: date.isValid() && date.isSame(moment(), 'day') ? 'Today' : 'Earlier',
+    read: Boolean(item.read || item.isRead),
+  };
+};
+
+export default function NotificationScreen({navigation}) {
+  const user = useSelector(state => state.user.user);
+  const previewMode = Boolean(user?.isHomePreview);
+  const [filter, setFilter] = useState('all');
+  const [previewItems, setPreviewItems] = useState(PREVIEW_NOTIFICATIONS);
+  const [markNotificationRead] = useMutation(MARK_NOTIFICATION_READ);
+  const [markAllNotificationsRead] = useMutation(MARK_ALL_NOTIFICATIONS_READ);
+
+  const {data, loading, refetch} = useQuery(GET_NOTIFICATIONS_BY_ID, {
+    variables: {page: 1, limit: 300},
+    skip: previewMode || !user?._id,
+    fetchPolicy: 'cache-and-network',
   });
 
+  const fetchedItems = useMemo(
+    () =>
+      (data?.getNotificationById?.notifications || []).map(
+        normalizeNotification,
+      ),
+    [data],
+  );
+  const [remoteItems, setRemoteItems] = useState([]);
+
   useEffect(() => {
-    if (data && data.getNotificationById) {
-      const fetchedNotifications = data.getNotificationById.notifications;
+    setRemoteItems(fetchedItems);
+  }, [fetchedItems]);
 
-      setNotification(fetchedNotifications); // Dispatch the fetched notifications to the Redux store
-      console.log('Fetched notifications:', fetchedNotifications);
+  const items = previewMode ? previewItems : remoteItems;
+  const setItems = previewMode ? setPreviewItems : setRemoteItems;
+  const unreadCount = items.filter(item => !item.read).length;
+  const visibleItems = items.filter(item => filter === 'all' || !item.read);
+  const sections = ['Today', 'Earlier']
+    .map(title => ({
+      title,
+      data: visibleItems.filter(item => item.group === title),
+    }))
+    .filter(section => section.data.length > 0);
+
+  const markRead = async id => {
+    setItems(current =>
+      current.map(item => (item.id === id ? {...item, read: true} : item)),
+    );
+    if (!previewMode) {
+      await markNotificationRead({variables: {notificationId: id}});
     }
-  }, [data, dispatch]);
+  };
 
-  if (loading) {
-    return <Text>Loading...</Text>; // Optional: You can create a loading component
-  }
+  const markAllRead = async () => {
+    setItems(current => current.map(item => ({...item, read: true})));
+    if (!previewMode) {
+      try {
+        await markAllNotificationsRead();
+      } catch (error) {
+        await refetch();
+      }
+    }
+  };
 
-  if (error) {
-    console.error('Error fetching notifications:', error);
-    return <Text>Error fetching notifications.</Text>; // Handle the error case
-  }
+  const openNotification = item => {
+    markRead(item.id).catch(() => refetch());
+    if (item.type === 'booking' || item.type === 'payment') {
+      navigation.navigate('HomeScreen', {screen: 'AllBookingScreen'});
+    } else if (item.type === 'message') {
+      navigation.navigate('HomeScreen', {screen: 'ChatContactScreen'});
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Notifications" />
-      <BottomSheetStyle>
-        {notifications.length > 0 ? (
-          <ScrollView scrollEnabled={true}>
-            {notifications.map((notification, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.notificationCard}
-                onPress={() => {
-                  // Handle navigation or action when notification card is pressed
-                  console.log('Notification pressed:', notification);
-                }}>
-                <View style={styles.notificationContent}>
-                  <Text style={styles.notificationTitle}>
-                    {notification?.title}
-                  </Text>
-                  <Text style={styles.notificationMessage}>
-                    {notification?.description}{' '}
-                    {/* Use description instead of body */}
-                  </Text>
-                  <Text style={styles.notificationTime}>
-                    {notification?.createdAt
-                      ? moment(Number(notification.createdAt)).format(
-                          'MMMM Do YYYY, h:mm:ss a',
-                        )
-                      : 'Unknown date'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        ) : (
-          <ImageBackground
-            source={require('../../../assets/Group.png')}
-            style={styles.backImage}>
-            <Image
-              source={require('../../../assets/completedIcon.png')}
-              style={styles.image}
-            />
-            <Text style={styles.HeadingText}>
-              Hooray! You have no new notifications.
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <NotificationHeader
+        navigation={navigation}
+        onMarkAllRead={markAllRead}
+        unreadCount={unreadCount}
+      />
+      <View style={styles.filters}>
+        {[
+          {id: 'all', label: 'All'},
+          {
+            id: 'unread',
+            label: `Unread${unreadCount ? ` ${unreadCount}` : ''}`,
+          },
+        ].map(option => (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            key={option.id}
+            onPress={() => setFilter(option.id)}
+            style={[
+              styles.filterButton,
+              filter === option.id && styles.filterButtonActive,
+            ]}>
+            <Text
+              style={[
+                styles.filterText,
+                filter === option.id && styles.filterTextActive,
+              ]}>
+              {option.label}
             </Text>
-          </ImageBackground>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <SectionList
+        contentContainerStyle={
+          sections.length ? styles.listContent : styles.emptyContent
+        }
+        keyExtractor={item => item.id}
+        refreshControl={
+          <RefreshControl
+            enabled={!previewMode}
+            onRefresh={refetch}
+            refreshing={!previewMode && loading}
+            tintColor="#FD6D1F"
+          />
+        }
+        renderItem={({item, index, section}) => (
+          <NotificationRow
+            item={item}
+            last={index === section.data.length - 1}
+            onPress={() => openNotification(item)}
+          />
         )}
-      </BottomSheetStyle>
+        renderSectionHeader={({section}) => (
+          <Text style={styles.sectionTitle}>{section.title}</Text>
+        )}
+        sections={sections}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Feather name="bell-off" size={28} color="#FD6D1F" />
+            </View>
+            <Text style={styles.emptyTitle}>
+              {filter === 'unread'
+                ? 'No unread notifications'
+                : 'No notifications yet'}
+            </Text>
+            <Text style={styles.emptyText}>
+              Booking, document, and message updates will appear here.
+            </Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
+  emptyContent: {
+    flexGrow: 1,
   },
-  backImage: {
-    flex: 1,
+  emptyIcon: {
     alignItems: 'center',
-    resizeMode: 'contain',
+    backgroundColor: '#FFF0E8',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    width: 60,
   },
-  image: {
-    width: widthToDp(50),
-    height: heightToDp(50),
-    marginTop: heightToDp(25),
+  emptyState: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 44,
   },
-  HeadingText: {
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    fontSize: widthToDp(7),
+  emptyText: {
+    color: '#8B919C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 8,
     textAlign: 'center',
   },
-  notificationCard: {
-    backgroundColor: Colors.white,
-    elevation: 10,
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: widthToDp(2),
-    marginHorizontal: heightToDp(5),
+  emptyTitle: {
+    color: '#202632',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+    marginTop: 16,
   },
-  notificationContent: {
+  filterButton: {
+    alignItems: 'center',
+    borderRadius: 7,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 18,
+  },
+  filterButtonActive: {
+    backgroundColor: '#FFF0E8',
+  },
+  filterText: {
+    color: '#7D8490',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
+  filterTextActive: {
+    color: '#E95E16',
+  },
+  filters: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  listContent: {
+    paddingBottom: 28,
+  },
+  safeArea: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
   },
-  notificationTitle: {
-    color: Colors.TextColor,
-    fontFamily: 'Poppins-Bold',
-  },
-  notificationMessage: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(3.5),
-    fontFamily: 'Poppins-Regular',
-  },
-  notificationTime: {
-    fontSize: widthToDp(3.5),
-    color: Colors.OrangeGradientEnd,
-    marginTop: 5,
+  sectionTitle: {
+    backgroundColor: '#F5F6F8',
+    color: '#8B919C',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    textTransform: 'uppercase',
   },
 });

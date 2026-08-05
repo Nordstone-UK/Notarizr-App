@@ -1,113 +1,70 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+import {SafeAreaView, StatusBar, StyleSheet} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import Colors from '../../themes/Colors';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
-import OTPInputView from '@twotalltotems/react-native-otp-input';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import {ScrollView} from 'react-native';
 import {useSelector} from 'react-redux';
 import useLogin from '../../hooks/useLogin';
 import SplashScreen from 'react-native-splash-screen';
 import Toast from 'react-native-toast-message';
-import CustomToast from '../../components/CustomToast/CustomToast';
+import AuthOtpVerificationView from '../../components/AuthFlow/AuthOtpVerificationView';
+import AuthProgressHeader from '../../components/AuthFlow/AuthProgressHeader';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
 
 export default function PhoneVerification({route, navigation}) {
   // const email = useSelector(state => state.register.email);
   const phone = useSelector(state => state.register.phoneNumber);
 
-  const {message} = route.params;
+  const {message} = route.params || {};
   const [otp, setOTPcode] = useState('');
   const {handleOtpVerification, handleResendOtp} = useLogin();
   const [loading, setLoading] = useState(false);
   const [resendloading, setresendLoading] = useState(false);
-  const [refresh, setRefresh] = useState(true);
 
   const verifyOTP = async () => {
-    setLoading(true);
-    if (!otp) {
+    if (otp.length !== 4) {
       Toast.show({
         type: 'warning',
-        text1: 'Warning!',
-        text2: 'Please enter OTP',
+        text1: 'Enter the complete code',
+        text2: 'The verification code contains four digits.',
       });
-      setLoading(false);
-    } else {
+      return;
+    }
+
+    setLoading(true);
+    try {
       await handleOtpVerification(phone, otp);
+    } finally {
       setLoading(false);
     }
   };
+
   const handleResend = async () => {
     setresendLoading(true);
-    await handleResendOtp(phone);
-    setresendLoading(false);
+    try {
+      await handleResendOtp(phone);
+    } finally {
+      setresendLoading(false);
+    }
   };
+
   useEffect(() => {
     SplashScreen.hide();
   }, []);
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <View style={styles.subContainer}>
-          <Text style={styles.heading}>Enter OTP to Verify</Text>
-          <Image source={require('../../../assets/otp.png')} />
-
-          <Text style={styles.subheading}>
-            We have sent an OTP on this number:
-          </Text>
-          <Text style={styles.subheading}>{message}</Text>
-          <OTPInputView
-            style={{
-              width: widthToDp(80),
-              height: heightToDp(50),
-              color: Colors.TextColor,
-            }}
-            code={otp}
-            autoFocusOnLoad={false}
-            editable={true}
-            pinCount={4}
-            onCodeChanged={code => {
-              setOTPcode(code);
-            }}
-            codeInputFieldStyle={styles.underlineStyleBase}
-            codeInputHighlightStyle={styles.underlineStyleHighLighted}
-          />
-
-          <View style={{marginVertical: heightToDp(5)}}>
-            <MainButton
-              Title="Resend OTP"
-              colors={['transparent', 'transparent']}
-              GradiStyles={{
-                width: widthToDp(40),
-                marginTop: heightToDp(2),
-                paddingVertical: heightToDp(2),
-              }}
-              loading={resendloading}
-              styles={{
-                padding: 0,
-                fontSize: widthToDp(4),
-                color: Colors.OrangeGradientStart,
-              }}
-              onPress={() => handleResend()}
-            />
-          </View>
-        </View>
-        <View style={{marginVertical: heightToDp(5)}}>
-          <GradientButton
-            Title="Verify OTP"
-            loading={loading}
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            onPress={() => verifyOTP()}
-          />
-        </View>
-      </ScrollView>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AuthProgressHeader
+        title="Phone verification"
+        onBack={() => goBackOrNavigate(navigation, 'LoginScreen')}
+      />
+      <AuthOtpVerificationView
+        phoneNumber={message || phone || 'your phone number'}
+        otp={otp}
+        onChangeOtp={setOTPcode}
+        onResend={handleResend}
+        onVerify={verifyOTP}
+        resendLoading={resendloading}
+        verifyLoading={loading}
+      />
     </SafeAreaView>
   );
 }
@@ -115,36 +72,6 @@ export default function PhoneVerification({route, navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
-  },
-  borderStyleHighLighted: {
-    borderColor: Colors.Orange,
-  },
-  underlineStyleBase: {
-    width: widthToDp(12),
-    height: heightToDp(12),
-    borderWidth: 1,
-    borderRadius: 5,
-    color: Colors.TextColor,
-    borderColor: Colors.Black,
-  },
-  underlineStyleHighLighted: {
-    borderColor: Colors.Orange,
-  },
-  heading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(7),
-    fontFamily: 'Manrope-Bold',
-  },
-  subheading: {
-    color: Colors.OTPSubHeadingColor,
-    fontSize: widthToDp(4),
-    marginHorizontal: widthToDp(5),
-    fontFamily: 'Manrope-SemiBold',
-    textAlign: 'center',
-  },
-  subContainer: {
-    marginTop: heightToDp(15),
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
 });

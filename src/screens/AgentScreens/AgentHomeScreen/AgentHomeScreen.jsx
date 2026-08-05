@@ -1,412 +1,483 @@
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
-  Image,
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
-import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
-import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import AgentCard from '../../../components/AgentCard/AgentCard';
-import Colors from '../../../themes/Colors';
-import {height, heightToDp, widthToDp} from '../../../utils/Responsive';
-import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
-import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
-import GradientButton from '../../../components/MainGradientButton/GradientButton';
-import useFetchBooking from '../../../hooks/useFetchBooking';
+import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView} from 'react-native-virtualized-view';
 import {useDispatch, useSelector} from 'react-redux';
+import Feather from 'react-native-vector-icons/Feather';
+import OneSignal from 'react-native-onesignal';
+import Toast from 'react-native-toast-message';
+import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
+import AgentMetricCard from '../../../components/AgentHome/AgentMetricCard';
+import AgentRequestCard from '../../../components/AgentHome/AgentRequestCard';
+import AgentServiceAction from '../../../components/AgentHome/AgentServiceAction';
 import {
   setBookingInfoState,
   setCoordinates,
   setUser,
 } from '../../../features/booking/bookingSlice';
-import WebView from 'react-native-webview';
-import useStripeApi from '../../../hooks/useStripeApi';
-import BigButton from '../../../components/BigButton/BigButton';
-import OneSignal from 'react-native-onesignal';
-import BottomSheet, {
-  BottomSheetModal,
-  BottomSheetBackdrop,
-} from '@gorhom/bottom-sheet';
 import useAgentService from '../../../hooks/useAgentService';
+import useFetchBooking from '../../../hooks/useFetchBooking';
+import useStripeApi from '../../../hooks/useStripeApi';
+
+const renderAccountBackdrop = props => (
+  <BottomSheetBackdrop
+    {...props}
+    appearsOnIndex={0}
+    disappearsOnIndex={-1}
+    opacity={0.45}
+    pressBehavior="none"
+  />
+);
 
 export default function AgentHomeScreen({navigation}) {
-  const {_id, isVerified, isBlocked} = useSelector(state => state.user.user);
-  const data = useSelector(state => state.user.user);
-  const {dispatchMobile, dispatchLocal, dispatchRON} = useAgentService();
-  const bottomSheetRef = useRef(null);
-
-  const [refreshing, setRefreshing] = useState(false);
+  const user = useSelector(state => state.user.user);
   const dispatch = useDispatch();
-  const {fetchAgentBookingInfo, getTotalBookings, getTotalSessions} =
-    useFetchBooking();
+  const {dispatchMobile, dispatchRON} = useAgentService();
+  const {fetchAgentBookingInfo, handleAgentSessions} = useFetchBooking();
   const {checkUserStipeAccount} = useStripeApi();
-  const [Booking, setBooking] = useState([]);
-  const [totalBooking, setTotalBooknig] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [loadingButton, setLoadingButton] = useState(null);
-  const init = async status => {
-    const bookingDetail = await fetchAgentBookingInfo(status);
-    const totalBookings = await getTotalBookings();
-    const totalSessions = await getTotalSessions();
+  const fetchBookingsRef = useRef(fetchAgentBookingInfo);
+  const fetchSessionsRef = useRef(handleAgentSessions);
+  const bottomSheetRef = useRef(null);
+  const [requests, setRequests] = useState([]);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [earnings, setEarnings] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeService, setActiveService] = useState(null);
 
-    setTotalBooknig(totalBookings + totalSessions);
-    setBooking(bookingDetail);
-  };
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    init('pending');
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
-  useEffect(() => {
-    OneSignal.setExternalUserId(_id);
-    const unsubscribe = navigation.addListener('focus', () => {
-      console.log('Home screen sending...');
-      init('pending');
-    });
-    return unsubscribe;
-  }, [navigation]);
-  const handleNavigation = item => {
-    navigation.navigate('ClientDetailsScreen', {
-      clientDetail: item,
-    });
-    dispatch(setBookingInfoState(item));
-    dispatch(setUser(item?.booked_by));
-    dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
-  };
+  fetchBookingsRef.current = fetchAgentBookingInfo;
+  fetchSessionsRef.current = handleAgentSessions;
 
-  const handleStripeAccount = useCallback(
-    async service => {
-      setLoading(true);
-      setLoadingButton(service);
-      console.log('servierefd', service);
-      try {
-        const {isUserStripeOnboard} = await checkUserStipeAccount();
-        console.log('isuserstrier', isUserStripeOnboard);
-        if (
-          isUserStripeOnboard &&
-          isUserStripeOnboard.has_stripe_account === true &&
-          isUserStripeOnboard.has_details_submitted === true
-        ) {
-          if (service === 'mobile_notary') {
-            dispatchMobile('mobile_notary');
-          } else if (service === 'ron') {
-            dispatchRON('ron');
-          } else {
-            return;
-          }
-        } else {
-          // console.log('nota adtirped');
-          Alert.alert(
-            'Congratulations! Welcome to Notarizr.',
-            'Please setup your Stripe account in the profile section to accept bookings.',
-            [
-              {
-                text: 'Setup Stripe',
-                onPress: () => {
-                  navigation.navigate('PaymentUpdateScreen');
-                },
-                style: 'default',
-              },
-            ],
-            {cancelable: false},
-          );
-        }
-      } catch (error) {
-        console.error(error);
-        // Alert.alert(
-        //   'Congratulations! Welcome to Notarizr.',
-        //   'Please setup your Stripe account in the profile section to accept bookings.',
-        //   [
-        //     {
-        //       text: 'Setup Stripe',
-        //       onPress: () => {
-        //         navigation.navigate('PaymentUpdateScreen');
-        //       },
-        //       style: 'default',
-        //     },
-        //   ],
-        //   {cancelable: false},
-        // );
-      }
+  const loadDashboard = useCallback(async (isRefresh = false) => {
+    isRefresh ? setRefreshing(true) : setLoading(true);
+    try {
+      const [pending, completedBookings, completedSessions] = await Promise.all(
+        [
+          fetchBookingsRef.current('pending'),
+          fetchBookingsRef.current('completed'),
+          fetchSessionsRef.current('completed'),
+        ],
+      );
+      const safePending = Array.isArray(pending) ? pending : [];
+      const safeBookings = Array.isArray(completedBookings)
+        ? completedBookings
+        : [];
+      const safeSessions = Array.isArray(completedSessions)
+        ? completedSessions
+        : [];
+
+      setRequests(safePending);
+      setCompletedCount(safeBookings.length + safeSessions.length);
+      setEarnings(
+        [...safeBookings, ...safeSessions].reduce(
+          (sum, item) => sum + Number(item?.totalPrice ?? item?.price ?? 0),
+          0,
+        ),
+      );
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Dashboard could not refresh',
+        text2: 'Check your connection and try again.',
+      });
+    } finally {
       setLoading(false);
-      setLoadingButton(null);
-    },
-    [isVerified],
-  );
-
-  useEffect(() => {
-    if (isVerified) {
-      handleStripeAccount();
+      setRefreshing(false);
     }
   }, []);
-  // const verifiedStatus = useMemo(() => isVerified, [isVerified]);
-  // console.log('vlierifstatus', verifiedStatus);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+      if (user?._id) {
+        OneSignal.setExternalUserId(user._id);
+      }
+    }, [loadDashboard, user?._id]),
+  );
+
+  const openRequest = request => {
+    navigation.navigate('ClientDetailsScreen', {clientDetail: request});
+    dispatch(setBookingInfoState(request));
+    dispatch(setUser(request?.booked_by));
+    dispatch(
+      setCoordinates(request?.booked_by?.current_location?.coordinates || []),
+    );
+  };
+
+  const openService = async service => {
+    setActiveService(service);
+    try {
+      const stripeData = await checkUserStipeAccount();
+      const stripeAccount = stripeData?.isUserStripeOnboard;
+      const canAcceptPayments =
+        stripeAccount?.has_stripe_account &&
+        stripeAccount?.has_details_submitted;
+
+      if (!__DEV__ && !canAcceptPayments) {
+        Toast.show({
+          type: 'info',
+          text1: 'Set up payouts first',
+          text2: 'Complete Stripe setup before accepting bookings.',
+        });
+        navigation.navigate('PaymentUpdateScreen');
+        return;
+      }
+
+      service === 'mobile'
+        ? dispatchMobile('mobile_notary')
+        : dispatchRON('ron');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Service setup unavailable',
+        text2: 'Please try again in a moment.',
+      });
+    } finally {
+      setActiveService(null);
+    }
+  };
+
+  const accountMessage = useMemo(() => {
+    if (user?.isBlocked) {
+      return {
+        icon: 'slash',
+        title: 'Account access paused',
+        body: 'Please contact Notarizr support for help with your account.',
+      };
+    }
+    if (!user?.isVerified) {
+      return {
+        icon: 'clock',
+        title: 'Profile under review',
+        body: 'We will notify you as soon as your notary profile is approved.',
+      };
+    }
+    return null;
+  }, [user?.isBlocked, user?.isVerified]);
 
   return (
-    <>
-      <SafeAreaView style={styles.container}>
-        <AgentHomeHeader
-          Title="Explore your opportunities here."
-          Switch={true}
-        />
-        <BottomSheetStyle>
-          <ScrollView
-            scrollEnabled={true}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            contentContainerStyle={styles.contentContainer}>
-            <View
-              style={{
-                alignSelf: 'center',
-              }}>
-              <BigButton
-                Heading="Total Payout"
-                onPress={() => navigation.navigate('TransactionScreen')}
-              />
-              <BigButton
-                number={totalBooking || 0}
-                Heading="Total Bookings"
-                onPress={() => navigation.navigate('BookScreen')}
-              />
-              {/* <BigButton
-              number={50}
-              unitOfMeasurment="Miles"
-              Heading="Miles Travelled"
-            /> */}
-            </View>
-            <View
-              style={{
-                marginVertical: heightToDp(5),
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <GradientButton
-                viewStyle={{width: widthToDp(35)}}
-                Title="Mobile Notary Preferences"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => {
-                  setLoadingButton('mobile_notary');
-                  handleStripeAccount('mobile_notary');
-                }}
-                loading={loading && loadingButton === 'mobile_notary'}
-                fontSize={widthToDp(4)}
-                GradiStyles={{height: height * 0.1, paddingVertical: 5}}
-              />
-              <GradientButton
-                viewStyle={{width: widthToDp(35)}}
-                Title="Book RON Services"
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                onPress={() => {
-                  setLoadingButton('ron');
-                  handleStripeAccount('ron');
-                }}
-                loading={loading && loadingButton === 'ron'}
-                fontSize={widthToDp(4)}
-                GradiStyles={{height: height * 0.1, paddingVertical: 5}}
-              />
-            </View>
-            <View style={styles.flexContainer}>
-              <Text style={styles.Heading}>Service requests</Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('AllBookingScreen')}>
-                <Text style={styles.subheaing}>View All</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{flex: 1}}>
-              {Booking ? (
-                Booking.length !== 0 ? (
-                  <FlatList
-                    data={Booking.slice(0, 2)}
-                    keyExtractor={item => item._id}
-                    style={{marginBottom: heightToDp(50)}}
-                    renderItem={({item}) => {
-                      const addressId = item.address;
-                      let addressdetail = null;
-                      if (item?.booked_by?.addresses) {
-                        addressdetail = item.booked_by.addresses.find(
-                          address => address._id == addressId,
-                        );
-                      }
-                      // console.log('addfesdfd', addressdetail);
-                      return (
-                        <ClientServiceCard
-                          image={require('../../../../assets/agentLocation.png')}
-                          calendarImage={require('../../../../assets/calenderIcon.png')}
-                          source={{uri: item.booked_by?.profile_picture}}
-                          bottomRightText={item.document_type}
-                          bottomLeftText="Total"
-                          agentName={
-                            item.booked_by?.first_name +
-                            ' ' +
-                            item.booked_by?.last_name
-                          }
-                          agentAddress={addressdetail?.location}
-                          status={item?.status}
-                          OrangeText="At Home"
-                          Button={true}
-                          clientDetail={item}
-                          onPress={() => handleNavigation(item)}
-                          dateofBooking={item.date_of_booking}
-                          timeofBooking={item.time_of_booking}
-                          createdAt={item.createdAt}
-                          servicetype={item.service_type}
-                        />
-                      );
-                    }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginTop: widthToDp(10),
-                    }}>
-                    <Image
-                      source={require('../../../../assets/emptyBox.png')}
-                      style={styles.picture}
-                    />
-                    <Text style={styles.subheading}>No Booking Found...</Text>
-                  </View>
-                )
-              ) : (
-                <ActivityIndicator size="large" color={Colors.Orange} />
-              )}
-            </View>
-          </ScrollView>
-        </BottomSheetStyle>
-      </SafeAreaView>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AgentHomeHeader Switch />
 
-      {!isVerified && (
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            colors={['#D65322']}
+            onRefresh={() => loadDashboard(true)}
+            refreshing={refreshing}
+            tintColor="#D65322"
+          />
+        }
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.intro}>
+          <Text style={styles.title}>Overview</Text>
+          <Text style={styles.subtitle}>
+            Track your work and respond to new notary requests.
+          </Text>
+        </View>
+
+        <View style={styles.metrics}>
+          <AgentMetricCard
+            icon="dollar-sign"
+            label="Total earnings"
+            onPress={() => navigation.navigate('TransactionScreen')}
+            value={'$' + earnings.toFixed(0)}
+          />
+          <View style={styles.metricGap} />
+          <AgentMetricCard
+            icon="check-circle"
+            label="Completed jobs"
+            onPress={() => navigation.navigate('BookScreen')}
+            tone="blue"
+            value={completedCount}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your services</Text>
+          <Text style={styles.sectionSubtitle}>
+            Set when and where clients can book you.
+          </Text>
+          <View style={styles.serviceList}>
+            <AgentServiceAction
+              description="Manage travel radius, availability and appointment preferences."
+              icon="map-pin"
+              loading={activeService === 'mobile'}
+              onPress={() => openService('mobile')}
+              title="Mobile notary"
+            />
+            <View style={styles.serviceGap} />
+            <AgentServiceAction
+              description="Configure your remote online notarization schedule."
+              icon="video"
+              loading={activeService === 'remote'}
+              onPress={() => openService('remote')}
+              title="Remote online notary"
+              tone="remote"
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeadingRow}>
+            <View style={styles.sectionHeadingCopy}>
+              <View style={styles.requestTitleRow}>
+                <Text style={styles.sectionTitle}>New requests</Text>
+                {requests.length > 0 && (
+                  <View style={styles.countBadge}>
+                    <Text style={styles.countText}>{requests.length}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.sectionSubtitle}>
+                Review requests before they expire.
+              </Text>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('AllBookingScreen')}
+              style={styles.viewAllButton}>
+              <Text style={styles.viewAllText}>View all</Text>
+              <Feather name="arrow-right" size={14} color="#D65322" />
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator color="#D65322" />
+              <Text style={styles.loadingText}>Loading requests...</Text>
+            </View>
+          ) : requests.length > 0 ? (
+            requests
+              .slice(0, 2)
+              .map(request => (
+                <AgentRequestCard
+                  booking={request}
+                  key={request._id}
+                  onPress={() => openRequest(request)}
+                />
+              ))
+          ) : (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Feather name="inbox" size={22} color="#7B8490" />
+              </View>
+              <View style={styles.emptyCopy}>
+                <Text style={styles.emptyTitle}>No new requests</Text>
+                <Text style={styles.emptyText}>
+                  New client requests will appear here.
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {accountMessage && (
         <BottomSheet
-          snapPoints={['45%', '45%']}
+          backdropComponent={renderAccountBackdrop}
           enableContentPanningGesture={false}
           enableHandlePanningGesture={false}
           enableOverDrag={false}
-          index={1}
-          backdropComponent={backdropProps => (
-            <BottomSheetBackdrop
-              {...backdropProps}
-              opacity={0.9}
-              enableTouchThrough={true}
-              pressBehavior={'none'}
-            />
-          )}
-          ref={bottomSheetRef}>
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              flex: 1,
-              paddingHorizontal: widthToDp(5),
-            }}>
-            <Text style={{fontSize: 16, color: 'black'}}>
-              Thank you for signing up for Notarizr. We are reviewing your
-              profile and get back to you soon
-            </Text>
+          index={0}
+          ref={bottomSheetRef}
+          snapPoints={['34%']}>
+          <View style={styles.accountState}>
+            <View style={styles.accountIcon}>
+              <Feather name={accountMessage.icon} size={22} color="#D65322" />
+            </View>
+            <Text style={styles.accountTitle}>{accountMessage.title}</Text>
+            <Text style={styles.accountText}>{accountMessage.body}</Text>
           </View>
         </BottomSheet>
       )}
-      {isBlocked && (
-        <BottomSheet
-          snapPoints={['45%', '45%']}
-          enableContentPanningGesture={false}
-          enableHandlePanningGesture={false}
-          enableOverDrag={false}
-          index={1}
-          backdropComponent={backdropProps => (
-            <BottomSheetBackdrop
-              {...backdropProps}
-              opacity={0.9}
-              enableTouchThrough={true}
-              pressBehavior={'none'}
-            />
-          )}
-          ref={bottomSheetRef}>
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              flex: 1,
-              paddingHorizontal: widthToDp(5),
-            }}>
-            <Text style={{fontSize: 16, color: 'black'}}>
-              Your account has been blocked. Please contact support for further
-              assistance.
-            </Text>
-          </View>
-        </BottomSheet>
-      )}
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
+    backgroundColor: '#FFFFFF',
   },
-  mainHeading: {
-    fontSize: widthToDp(5.5),
+  content: {
+    paddingBottom: 34,
+    backgroundColor: '#F6F7F9',
+  },
+  intro: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  title: {
+    color: '#171D29',
     fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    marginHorizontal: widthToDp(3),
+    fontSize: 20,
   },
-  Heading: {
-    fontSize: widthToDp(5.5),
+  subtitle: {
+    marginTop: 4,
+    color: '#7D8591',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  metrics: {
+    flexDirection: 'row',
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  metricGap: {
+    width: 10,
+  },
+  section: {
+    marginTop: 28,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    color: '#1B2130',
     fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
+    fontSize: 15,
   },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
+  sectionSubtitle: {
+    marginTop: 3,
+    color: '#838A95',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
   },
-  flexContainer: {
+  serviceList: {
+    marginTop: 12,
+  },
+  serviceGap: {
+    height: 10,
+  },
+  sectionHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  sectionHeadingCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  requestTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: widthToDp(3),
   },
-  subheaing: {
-    fontSize: widthToDp(4),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    alignSelf: 'center',
+  countBadge: {
+    minWidth: 22,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    backgroundColor: '#FFE4D5',
   },
-  subheading: {
-    fontSize: widthToDp(4),
+  countText: {
+    color: '#C94D1C',
     fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-    paddingRight: widthToDp(2),
+    fontSize: 9,
   },
-  CategoryBar: {
+  viewAllButton: {
+    height: 32,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
+    alignItems: 'center',
+    marginLeft: 12,
+    paddingHorizontal: 8,
   },
-  PictureBar: {
+  viewAllText: {
+    marginRight: 4,
+    color: '#D65322',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  loadingState: {
+    height: 108,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  loadingText: {
+    marginTop: 8,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  emptyState: {
+    minHeight: 94,
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
+    alignItems: 'center',
+    marginTop: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
   },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
+  emptyIcon: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#EEF1F4',
   },
-  picture: {
-    width: widthToDp(20),
-    height: heightToDp(20),
+  emptyCopy: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  emptyTitle: {
+    color: '#242B36',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  emptyText: {
+    marginTop: 3,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  accountState: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 26,
+    paddingTop: 18,
+  },
+  accountIcon: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFF0E7',
+  },
+  accountTitle: {
+    marginTop: 14,
+    color: '#1A202C',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
+  },
+  accountText: {
+    marginTop: 7,
+    color: '#7F8792',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 17,
+    textAlign: 'center',
   },
 });

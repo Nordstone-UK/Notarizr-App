@@ -1,183 +1,131 @@
+import React, {useCallback, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  FlatList,
-  SafeAreaView,
-  RefreshControl,
-  Image,
 } from 'react-native';
-import React, {useDebugValue, useEffect, useState} from 'react';
-import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import Colors from '../../../themes/Colors';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
-import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
-import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
-import useFetchBooking from '../../../hooks/useFetchBooking';
-import {ScrollView} from 'react-native-virtualized-view';
+import {useFocusEffect} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch} from 'react-redux';
+import Toast from 'react-native-toast-message';
+import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
+import BookingCard from '../../../components/Bookings/BookingCard';
+import BookingEmptyState from '../../../components/Bookings/BookingEmptyState';
+import BookingHeader from '../../../components/Bookings/BookingHeader';
 import {setBookingInfoState} from '../../../features/booking/bookingSlice';
+import useFetchBooking from '../../../hooks/useFetchBooking';
+import {normalizeAgentBooking} from '../../../utils/agentBookingPresentation';
 
 export default function AgentCompletedBooking({navigation}) {
   const {fetchAgentBookingInfo, handleAgentSessions} = useFetchBooking();
-  const [Booking, setBooking] = useState();
-  const [mergerData, setMergerData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const fetchBookingsRef = useRef(fetchAgentBookingInfo);
+  const fetchSessionsRef = useRef(handleAgentSessions);
   const dispatch = useDispatch();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const init = async status => {
-    setLoading(true);
-    const bookingDetail = await fetchAgentBookingInfo(status);
-    const sessionDetail = await handleAgentSessions(status);
-    const mergedDetails = [...bookingDetail, ...sessionDetail];
-    const sortedDetails = mergedDetails.sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-    );
-    setMergerData(sortedDetails);
-    setLoading(false);
-  };
+  fetchBookingsRef.current = fetchAgentBookingInfo;
+  fetchSessionsRef.current = handleAgentSessions;
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      console.log('Completed sending...');
-      init('completed');
-    });
-    return unsubscribe;
-  }, [navigation]);
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setBooking(null);
-    init('completed');
-    setTimeout(() => {
+  const loadCompleted = useCallback(async (isRefresh = false) => {
+    isRefresh ? setRefreshing(true) : setLoading(true);
+    try {
+      const [bookingData, sessionData] = await Promise.all([
+        fetchBookingsRef.current('completed'),
+        fetchSessionsRef.current('completed'),
+      ]);
+      const merged = [
+        ...(Array.isArray(bookingData) ? bookingData : []),
+        ...(Array.isArray(sessionData) ? sessionData : []),
+      ]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(normalizeAgentBooking);
+      setBookings(merged);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Completed jobs could not refresh',
+        text2: 'Check your connection and try again.',
+      });
+    } finally {
+      setLoading(false);
       setRefreshing(false);
-    }, 1000);
+    }
   }, []);
-  const checkStatusNavigation = item => {
-    // console.log('item?.status', item._id, item?.status);
 
-    dispatch(setBookingInfoState(item));
-    navigation.navigate('ClientDetailsScreen');
+  useFocusEffect(
+    useCallback(() => {
+      loadCompleted();
+    }, [loadCompleted]),
+  );
+
+  const openBooking = booking => {
+    dispatch(setBookingInfoState(booking.raw));
+    navigation.navigate('ClientDetailsScreen', {
+      clientDetail: booking.raw,
+    });
   };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <AgentHomeHeader Title="Completed Bookings" Switch={true} />
-      <BottomSheetStyle>
-        <ScrollView
-          scrollEnabled={true}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.Heading}>Completed Booking</Text>
-          <View style={{flex: 1}}>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.Orange} />
-              </View>
-            ) : mergerData.length !== 0 ? (
-              <FlatList
-                data={mergerData}
-                keyExtractor={item => item._id}
-                renderItem={({item}) => {
-                  return (
-                    <ClientServiceCard
-                      image={require('../../../../assets/agentLocation.png')}
-                      calendarImage={require('../../../../assets/calenderIcon.png')}
-                      servicetype={item.service_type}
-                      source={{
-                        uri: item?.booked_by?.profile_picture
-                          ? `${item?.booked_by?.profile_picture}`
-                          : `${item?.client?.profile_picture}`,
-                      }}
-                      bottomRightText={item.document_type}
-                      bottomLeftText="Total"
-                      agentName={
-                        item?.booked_by?.first_name &&
-                        item?.booked_by?.last_name
-                          ? `${item.booked_by?.first_name} ${item.booked_by.last_name}`
-                          : `${item.client?.first_name} ${item.client?.last_name}`
-                      }
-                      agentAddress={
-                        item?.booked_by?.location
-                          ? `${item?.address}`
-                          : `${item?.client?.location}`
-                      }
-                      status={item?.status}
-                      OrangeText="At Home"
-                      onPress={() => checkStatusNavigation(item)}
-                      datetimesession={item?.date_time_session}
-                      dateofBooking={item.date_of_booking}
-                      timeofBooking={item.time_of_booking}
-                      createdAt={item.createdAt}
-                    />
-                  );
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: widthToDp(10),
-                }}>
-                <Image
-                  source={require('../../../../assets/emptyBox.png')}
-                  style={styles.picture}
-                />
-                <Text style={styles.subheading}>No Booking Found...</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </BottomSheetStyle>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AgentHomeHeader Switch />
+      <FlatList
+        contentContainerStyle={[
+          styles.listContent,
+          !loading && bookings.length === 0 && styles.emptyListContent,
+        ]}
+        data={bookings}
+        keyExtractor={item => item._id}
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator color="#2878A9" size="small" />
+              <Text style={styles.loadingText}>Loading completed jobs...</Text>
+            </View>
+          ) : (
+            <BookingEmptyState status="completed" />
+          )
+        }
+        ListHeaderComponent={
+          <BookingHeader
+            count={bookings.length}
+            showTabs={false}
+            subtitle="Your completed mobile and remote appointments"
+            title="Completed"
+          />
+        }
+        refreshControl={
+          <RefreshControl
+            colors={['#2878A9']}
+            onRefresh={() => loadCompleted(true)}
+            refreshing={refreshing}
+            tintColor="#2878A9"
+          />
+        }
+        renderItem={({item}) => (
+          <BookingCard booking={item} onPress={() => openBooking(item)} />
+        )}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
-  },
-  Heading: {
-    fontSize: widthToDp(6.5),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    marginHorizontal: widthToDp(3),
-  },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
-  },
-
-  subheading: {
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-  },
-  CategoryBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
-  },
-  PictureBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
-  },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
-  },
-  picture: {
-    width: widthToDp(20),
-    height: heightToDp(20),
-  },
-  loadingContainer: {
-    height: heightToDp(100),
-    justifyContent: 'center',
-    alignItems: 'center',
+  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
+  listContent: {paddingBottom: 28, backgroundColor: '#F6F7F9'},
+  emptyListContent: {flexGrow: 1},
+  loadingState: {alignItems: 'center', paddingTop: 86},
+  loadingText: {
+    marginTop: 9,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
   },
 });

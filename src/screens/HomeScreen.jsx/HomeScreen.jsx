@@ -1,296 +1,328 @@
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
-  Image,
+  ActivityIndicator,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
-  SafeAreaView,
-  FlatList,
-  ActivityIndicator,
-  RefreshControl,
-  BackHandler,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
-import Colors from '../../themes/Colors';
-import AgentCard from '../../components/AgentCard/AgentCard';
+import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import {useFocusEffect} from '@react-navigation/native';
+import OneSignal from 'react-native-onesignal';
 import {useDispatch, useSelector} from 'react-redux';
-import {ScrollView} from 'react-native-virtualized-view';
-import useFetchBooking from '../../hooks/useFetchBooking';
-import {WebView} from 'react-native-webview';
+import Feather from 'react-native-vector-icons/Feather';
+import BookingCard from '../../components/Bookings/BookingCard';
+import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
+import HomeHeader from '../../components/Home/HomeHeader';
+import HomeSectionHeader from '../../components/Home/HomeSectionHeader';
+import HomeServiceCard from '../../components/Home/HomeServiceCard';
+import {PREVIEW_BOOKINGS} from '../../data/previewBookings';
 import {
   setBookingInfoState,
   setCoordinates,
   setUser,
 } from '../../features/booking/bookingSlice';
-import TypesofServiceButton from '../../components/TypesofServiceButton/TypesofServiceButton';
-import ModalCheck from '../../components/ModalComponent/ModalCheck';
-import OneSignal from 'react-native-onesignal';
-import {socket} from '../../utils/Socket';
-import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
-import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
-import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
-export default function HomeScreen({route, navigation}) {
+const renderBlockedBackdrop = props => (
+  <BottomSheetBackdrop
+    {...props}
+    enableTouchThrough
+    opacity={0.9}
+    pressBehavior="none"
+  />
+);
+
+export default function HomeScreen({navigation}) {
   const user = useSelector(state => state.user.user);
-  const isBlocked = user?.isBlocked || false;
-  const {fetchBookingInfo} = useFetchBooking();
   const dispatch = useDispatch();
-  const bottomSheetRef = useRef(null);
-
-  const [Booking, setBooking] = useState([]);
+  const {fetchBookingInfo} = useFetchBooking();
+  const fetchBookingInfoRef = useRef(fetchBookingInfo);
+  const blockedSheetRef = useRef(null);
+  const [activeBookings, setActiveBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isLoginVisible, setLoginVisible] = useState(false);
 
-  const handleOpenModal = () => {
-    setModalVisible(true);
-  };
+  fetchBookingInfoRef.current = fetchBookingInfo;
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
-  const init = async status => {
-    const bookingDetail = await fetchBookingInfo(status);
-    setBooking(bookingDetail);
-  };
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    init('pending');
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+  const previewMode = Boolean(user?.isHomePreview);
+  const isBlocked = Boolean(user?.isBlocked);
+  const visibleBookings = previewMode
+    ? PREVIEW_BOOKINGS.filter(booking => booking.status === 'accepted').slice(
+        0,
+        1,
+      )
+    : activeBookings;
+
+  const loadActiveBookings = useCallback(
+    async (refreshingRequest = false) => {
+      if (previewMode || !user) {
+        return;
+      }
+
+      refreshingRequest ? setRefreshing(true) : setLoading(true);
+      try {
+        const [accepted, pending] = await Promise.all([
+          fetchBookingInfoRef.current('accepted'),
+          fetchBookingInfoRef.current('pending'),
+        ]);
+        const merged = [
+          ...(Array.isArray(accepted) ? accepted : []),
+          ...(Array.isArray(pending) ? pending : []),
+        ].sort(
+          (a, b) => new Date(a.date_of_booking) - new Date(b.date_of_booking),
+        );
+        setActiveBookings(merged);
+      } catch (error) {
+        console.error('Failed to load active bookings:', error);
+        setActiveBookings([]);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [previewMode, user],
+  );
 
   useEffect(() => {
-    OneSignal.setExternalUserId(user?._id);
-    if (user?._id !== null) {
-      const unsubscribe = navigation.addListener('focus', () => {
-        init('pending');
-      });
-      return unsubscribe;
+    if (!previewMode && user?._id) {
+      OneSignal.setExternalUserId(user._id);
     }
-  }, [navigation]);
+  }, [previewMode, user]);
 
-  const handleAgentData = item => {
-    navigation.navigate('MedicalBookingScreen', {
-      item: item,
-    });
-    dispatch(setBookingInfoState(item));
-    dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
-    dispatch(setUser(item?.agent));
+  useFocusEffect(
+    useCallback(() => {
+      loadActiveBookings();
+    }, [loadActiveBookings]),
+  );
+
+  const openService = serviceType => {
+    if (!user) {
+      setLoginVisible(true);
+      return;
+    }
+    navigation.navigate('BookingFlowScreen', {serviceType});
   };
-  return (
-    <SafeAreaView style={styles.container}>
-      <HomeScreenHeader Title="Please Choose Your Service" />
-      <BottomSheetStyle>
-        <ScrollView
-          style={{flex: 1}}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.contentContainer}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }>
-          <View style={styles.CategoryBar}></View>
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.Pink}}
-            Title="Mobile Notary"
-            Image={require('../../../assets/service1Pic.png')}
-            onPress={() =>
-              user != null
-                ? navigation.navigate('ServiceDetailScreen', {
-                    serviceType: 'mobile_notary',
-                  })
-                : handleOpenModal()
-            }
-          />
-          <TypesofServiceButton
-            backgroundColor={{backgroundColor: Colors.LightBlue}}
-            Title="Remote Online Notary"
-            Image={require('../../../assets/service2Pic.png')}
-            onPress={() =>
-              user != null
-                ? navigation.navigate('RonDateDocScreen')
-                : //navigation.navigate('OnlineNotaryScreen')
-                  handleOpenModal()
-            }
-          />
-          <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>Active Bookings</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('AllBookingScreen')}>
-              <Text style={styles.subheading}>View all</Text>
-            </TouchableOpacity>
-          </View>
-          {user != null ? (
-            <View style={{flex: 1}}>
-              {Booking ? (
-                Booking.length !== 0 ? (
-                  <FlatList
-                    data={Booking.slice(0, 2)}
-                    keyExtractor={item => item._id}
-                    style={{marginBottom: heightToDp(30)}}
-                    renderItem={({item}) => {
-                      return (
-                        <TouchableOpacity onPress={() => handleAgentData(item)}>
-                          <AgentCard
-                            source={{uri: item?.agent?.profile_picture}}
-                            bottomRightText={item?.document_type}
-                            bottomLeftText="Total"
-                            image={require('../../../assets/agentLocation.png')}
-                            calendarImage={require('../../../assets/calenderIcon.png')}
-                            servicetype={item.service_type}
-                            agentName={
-                              item?.agent?.first_name +
-                              ' ' +
-                              item?.agent?.last_name
-                            }
-                            agentAddress={item?.agent?.location}
-                            status={item?.status}
-                            OrangeText={'At Office'}
-                            dateofBooking={item?.date_of_booking}
-                            timeofBooking={item?.time_of_booking}
-                            createdAt={item?.createdAt}
-                          />
-                        </TouchableOpacity>
-                      );
-                    }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginTop: widthToDp(10),
-                    }}>
-                    <Image
-                      source={require('../../../assets/emptyBox.png')}
-                      style={styles.picture}
-                    />
-                    <Text style={styles.subheading}>No Booking Found...</Text>
-                  </View>
-                )
-              ) : (
-                <ActivityIndicator size="large" color={Colors.Orange} />
-              )}
-            </View>
-          ) : (
-            <View
-              style={{
-                minHeight: heightToDp(40),
-                justifyContent: 'center',
-                alignSelf: 'center',
-              }}>
-              <Image
-                source={require('../../../assets/emptyBox.png')}
-                style={styles.picture}
-              />
-              <Text
-                style={[
-                  styles.Heading,
 
-                  {
-                    fontSize: widthToDp(4),
-                    fontFamily: 'Manrope-SemiBold',
-                    fontWeight: '600',
-                  },
-                ]}>
-                Please Login to see your bookings
-              </Text>
+  const openBooking = booking => {
+    dispatch(setBookingInfoState(booking));
+    dispatch(
+      setCoordinates(booking?.booked_by?.current_location?.coordinates || []),
+    );
+    dispatch(setUser(booking?.agent || []));
+    navigation.navigate('MedicalBookingScreen');
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <HomeHeader navigation={navigation} user={user} />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            enabled={!previewMode}
+            onRefresh={() => loadActiveBookings(true)}
+            refreshing={refreshing}
+            tintColor="#FD6D1F"
+          />
+        }
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.intro}>
+          <Text style={styles.introTitle}>What can we notarize today?</Text>
+          <Text style={styles.introSubtitle}>
+            Choose the service that works best for your document.
+          </Text>
+        </View>
+
+        <HomeServiceCard
+          accentColor="#D65322"
+          backgroundColor="#FFF4EE"
+          description="A verified notary meets you at your preferred address."
+          icon="map-pin"
+          image={require('../../../assets/service1Pic.png')}
+          onPress={() => openService('mobile_notary')}
+          tag="AT YOUR LOCATION"
+          title="Mobile notary"
+        />
+        <HomeServiceCard
+          accentColor="#2878A9"
+          backgroundColor="#EEF7FC"
+          description="Meet a notary securely by video from wherever you are."
+          icon="video"
+          image={require('../../../assets/service2Pic.png')}
+          onPress={() => openService('remote_online_notary')}
+          tag="ONLINE SESSION"
+          title="Remote online"
+        />
+
+        <View style={styles.bookingsSection}>
+          <HomeSectionHeader
+            actionLabel="View all"
+            onAction={() => navigation.navigate('AllBookingScreen')}
+            subtitle="Your next confirmed appointment"
+            title="Active booking"
+          />
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color="#FD6D1F" size="small" />
+              <Text style={styles.loadingText}>Loading your appointments</Text>
+            </View>
+          ) : visibleBookings.length > 0 ? (
+            visibleBookings
+              .slice(0, 1)
+              .map(booking => (
+                <BookingCard
+                  key={booking._id}
+                  booking={booking}
+                  onPress={() => openBooking(booking)}
+                />
+              ))
+          ) : (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Feather name="calendar" size={21} color="#FD6D1F" />
+              </View>
+              <View style={styles.emptyCopy}>
+                <Text style={styles.emptyTitle}>No active bookings</Text>
+                <Text style={styles.emptyMessage}>
+                  Your next appointment will appear here.
+                </Text>
+              </View>
             </View>
           )}
-        </ScrollView>
-      </BottomSheetStyle>
+        </View>
+      </ScrollView>
+
       {isBlocked && (
         <BottomSheet
-          snapPoints={['45%', '45%']}
+          ref={blockedSheetRef}
+          backdropComponent={renderBlockedBackdrop}
           enableContentPanningGesture={false}
           enableHandlePanningGesture={false}
           enableOverDrag={false}
           index={1}
-          backdropComponent={backdropProps => (
-            <BottomSheetBackdrop
-              {...backdropProps}
-              opacity={0.9}
-              enableTouchThrough={true}
-              pressBehavior={'none'}
-            />
-          )}
-          ref={bottomSheetRef}>
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              flex: 1,
-              paddingHorizontal: widthToDp(5),
-            }}>
-            <Text style={{fontSize: 16, color: 'black'}}>
-              Your account has been blocked. Please contact support for further
-              assistance.
+          snapPoints={['45%', '45%']}>
+          <View style={styles.blockedContent}>
+            <Text style={styles.blockedTitle}>Account unavailable</Text>
+            <Text style={styles.blockedMessage}>
+              Your account has been blocked. Contact support for assistance.
             </Text>
           </View>
         </BottomSheet>
       )}
+
       <LoginBottomSheet
-        isVisible={isModalVisible}
-        onCloseModal={handleCloseModal}
-        Title="Please Login to use this service"
+        Title="Please log in to use this service"
+        isVisible={isLoginVisible}
+        onCloseModal={() => setLoginVisible(false)}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
+    backgroundColor: '#FFFFFF',
   },
-  MainHeading: {
-    fontSize: widthToDp(6.5),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    marginHorizontal: widthToDp(4),
+  scrollContent: {
+    paddingBottom: 28,
+    backgroundColor: '#F7F8FA',
   },
-  insideHeading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(6),
+  intro: {
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 4,
+  },
+  introTitle: {
+    color: '#141A27',
     fontFamily: 'Manrope-Bold',
-    marginVertical: widthToDp(3),
-    marginHorizontal: widthToDp(5),
+    fontSize: 24,
+    lineHeight: 31,
   },
-  Heading: {
-    fontSize: widthToDp(6.5),
-    fontWeight: '700',
-    color: Colors.TextColor,
+  introSubtitle: {
+    marginTop: 4,
+    color: '#7F8691',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
   },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
+  bookingsSection: {
+    marginTop: 28,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E4E7EB',
   },
-  subheading: {
-    fontSize: widthToDp(4),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-  },
-  CategoryBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: widthToDp(4),
+  loadingContainer: {
+    height: 130,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  PictureBar: {
+  loadingText: {
+    marginTop: 9,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  emptyState: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
   },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
+  emptyIcon: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFF0E7',
   },
-  picture: {
-    width: widthToDp(20),
-    height: heightToDp(20),
-    alignSelf: 'center',
+  emptyCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 12,
+  },
+  emptyTitle: {
+    color: '#202632',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  emptyMessage: {
+    marginTop: 2,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  blockedContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+  },
+  blockedTitle: {
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  blockedMessage: {
+    marginTop: 8,
+    color: '#737B87',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
   },
 });

@@ -1,202 +1,207 @@
+import React, {useState} from 'react';
 import {
-  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
-  ScrollView,
-  SafeAreaView,
-  View,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import React, {useState} from 'react';
-import HomeScreenHeader from '../../../components/HomeScreenHeader/HomeScreenHeader';
-import Colors from '../../../themes/Colors';
-import {heightToDp, widthToDp} from '../../../utils/Responsive';
-import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
-import MainButton from '../../../components/MainGradientButton/MainButton';
+import Feather from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
+import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
 import useAgentService from '../../../hooks/useAgentService';
 
-export default function AgentServicePereference({route, navigation}) {
+const CATEGORIES = [
+  {
+    id: '651edebe6ab4a249f611000d',
+    title: 'Legal',
+    description: 'Affidavits, powers of attorney and agreements',
+    icon: 'briefcase',
+    tone: '#FFF0E7',
+    color: '#D65322',
+  },
+  {
+    id: '651ede9e6ab4a249f610fffd',
+    title: 'Estate',
+    description: 'Wills, trusts and estate planning documents',
+    icon: 'home',
+    tone: '#EAF4FB',
+    color: '#2878A9',
+  },
+  {
+    id: '651edeab6ab4a249f6110005',
+    title: 'Medical',
+    description: 'Healthcare directives and medical authorizations',
+    icon: 'heart',
+    tone: '#FCEEEE',
+    color: '#C44242',
+  },
+  {
+    id: '651ede7d6ab4a249f610ffe9',
+    title: 'Business',
+    description: 'Corporate records and commercial documents',
+    icon: 'file-text',
+    tone: '#EAF7EF',
+    color: '#168A52',
+  },
+];
+
+export default function AgentServicePereference({navigation}) {
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const categories = {
-    legal: '651edebe6ab4a249f611000d',
-    business: '651ede7d6ab4a249f610ffe9',
-    medical: '651edeab6ab4a249f6110005',
-    estate: '651ede9e6ab4a249f610fffd',
-  };
   const {dispatchCategory} = useAgentService();
 
-  const toggleStringInArray = name => {
-    const index = selectedCategories.indexOf(name);
+  const toggleCategory = id =>
+    setSelectedCategories(current =>
+      current.includes(id)
+        ? current.filter(categoryId => categoryId !== id)
+        : [...current, id],
+    );
 
-    if (index === -1) {
-      // If the string is not in the array, add it
-      setSelectedCategories([...selectedCategories, name]);
-    } else {
-      // If the string is in the array, remove it
-      const updatedArray = selectedCategories.filter((item, i) => i !== index);
-      setSelectedCategories(updatedArray);
+  const continueSetup = () => {
+    if (selectedCategories.length === 0) {
+      Toast.show({
+        type: 'warning',
+        text1: 'Choose at least one category',
+      });
+      return;
     }
+    dispatchCategory(selectedCategories);
   };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <AgentHomeHeader Switch={true} Title="Profile Setup" />
-      <BottomSheetStyle>
-        <ScrollView
-          scrollEnabled={true}
-          contentContainerStyle={styles.contentContainer}>
-          <View style={styles.CategoryBar}>
-            <Text style={styles.Heading}>
-              Please select your preferred categories
-            </Text>
-          </View>
-          <View style={styles.CategoryPictures}>
-            <View style={styles.PictureBar}>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <ProfileScreenHeader
+        onBack={() => navigation.goBack()}
+        title="Document categories"
+      />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>What do you notarize?</Text>
+        <Text style={styles.subtitle}>
+          Select every category you are qualified and prepared to handle.
+        </Text>
+        <View style={styles.grid}>
+          {CATEGORIES.map(category => {
+            const selected = selectedCategories.includes(category.id);
+            return (
               <TouchableOpacity
-                style={styles.pictureCheck}
-                onPress={() => toggleStringInArray(categories.legal)}>
-                {/* <Image
-                  source={require('../../../../assets/legalDocIcon.png')}
-                /> */}
-                <Image source={require('../../../../assets/Group1.png')} />
-                {selectedCategories.includes(categories.legal) && (
-                  <Image
-                    source={require('../../../../assets/checkIcon.png')}
-                    style={styles.checkIcon}
+                accessibilityState={{selected}}
+                activeOpacity={0.75}
+                key={category.id}
+                onPress={() => toggleCategory(category.id)}
+                style={[styles.card, selected && styles.selectedCard]}>
+                <View
+                  style={[styles.iconBox, {backgroundColor: category.tone}]}>
+                  <Feather
+                    name={category.icon}
+                    size={20}
+                    color={category.color}
                   />
-                )}
+                </View>
+                <View style={styles.cardCopy}>
+                  <Text style={styles.cardTitle}>{category.title}</Text>
+                  <Text style={styles.cardText}>{category.description}</Text>
+                </View>
+                <View
+                  style={[
+                    styles.selection,
+                    selected && styles.selectedControl,
+                  ]}>
+                  {selected && (
+                    <Feather name="check" size={13} color="#FFFFFF" />
+                  )}
+                </View>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.pictureCheck}
-                onPress={() => toggleStringInArray(categories.estate)}>
-                <Image source={require('../../../../assets/Group2.png')} />
-                {selectedCategories.includes(categories.estate) && (
-                  <Image
-                    source={require('../../../../assets/checkIcon.png')}
-                    style={styles.checkIcon}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-            <View style={styles.PictureBar}>
-              <TouchableOpacity
-                style={styles.pictureCheck}
-                onPress={() => toggleStringInArray(categories.medical)}>
-                <Image source={require('../../../../assets/Group3.png')} />
-                {selectedCategories.includes(categories.medical) && (
-                  <Image
-                    source={require('../../../../assets/checkIcon.png')}
-                    style={styles.checkIcon}
-                  />
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.pictureCheck}
-                onPress={() => toggleStringInArray(categories.business)}>
-                <Image source={require('../../../../assets/Group4.png')} />
-                {selectedCategories.includes(categories.business) && (
-                  <Image
-                    source={require('../../../../assets/checkIcon.png')}
-                    style={styles.checkIcon}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
-        <View style={styles.bottomButton}>
-          <View style={styles.flexInput}>
-            <MainButton
-              Title="Back"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(15),
-                paddingVertical: heightToDp(3),
-                borderRadius: 5,
-              }}
-              styles={{
-                paddingHorizontal: widthToDp(0),
-                paddingVertical: heightToDp(0),
-                fontSize: widthToDp(4),
-              }}
-              onPress={() => navigation.goBack()}
-            />
-            <MainButton
-              Title="Next"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                paddingHorizontal: widthToDp(15),
-                paddingVertical: heightToDp(3),
-                borderRadius: 5,
-              }}
-              styles={{
-                paddingHorizontal: widthToDp(0),
-                paddingVertical: heightToDp(0),
-                fontSize: widthToDp(4),
-              }}
-              onPress={() => dispatchCategory(selectedCategories)}
-            />
-          </View>
+            );
+          })}
         </View>
-      </BottomSheetStyle>
+      </ScrollView>
+      <View style={styles.actionBar}>
+        <TouchableOpacity
+          activeOpacity={0.78}
+          onPress={continueSetup}
+          style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Continue</Text>
+          <Feather name="arrow-right" size={17} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
+  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
+  content: {padding: 20, paddingBottom: 28, backgroundColor: '#F7F8FA'},
+  title: {color: '#1D2430', fontFamily: 'Manrope-Bold', fontSize: 20},
+  subtitle: {
+    marginTop: 5,
+    color: '#7D8490',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 17,
   },
-  Heading: {
-    fontSize: widthToDp(6.5),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    paddingLeft: widthToDp(2),
-  },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
-  },
-  subheading: {
-    fontSize: widthToDp(4),
-    fontWeight: '700',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-    paddingRight: widthToDp(2),
-  },
-  CategoryBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
-    marginHorizontal: widthToDp(5),
-  },
-  PictureBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
-  },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
-  },
-  pictureCheck: {
-    position: 'relative',
-  },
-  checkIcon: {
-    position: 'absolute',
-    right: widthToDp(2),
-    top: widthToDp(2),
-  },
-  flexInput: {
-    flex: 1,
+  grid: {marginTop: 16},
+  card: {
+    minHeight: 88,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: widthToDp(4),
+    marginBottom: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E5E9',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
   },
-  bottomButton: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
-    marginBottom: heightToDp(5),
+  selectedCard: {borderColor: '#FD6D1F', backgroundColor: '#FFF9F5'},
+  iconBox: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  cardCopy: {flex: 1, minWidth: 0, marginHorizontal: 12},
+  cardTitle: {color: '#242B36', fontFamily: 'Manrope-Bold', fontSize: 13},
+  cardText: {
+    marginTop: 3,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    lineHeight: 14,
+  },
+  selection: {
+    width: 23,
+    height: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#C8CDD4',
+    borderRadius: 7,
+  },
+  selectedControl: {borderColor: '#FD6D1F', backgroundColor: '#FD6D1F'},
+  actionBar: {
+    minHeight: 76,
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  primaryButton: {
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FD6D1F',
+  },
+  primaryButtonText: {
+    marginRight: 8,
+    color: '#FFFFFF',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
 });

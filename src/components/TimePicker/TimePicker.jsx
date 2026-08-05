@@ -1,62 +1,77 @@
-import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import DatePicker from 'react-native-date-picker';
+import Feather from 'react-native-vector-icons/Feather';
 import moment from 'moment';
-import {widthToDp} from '../../utils/Responsive';
-import Colors from '../../themes/Colors';
 
-export default function TimePicker(props) {
+export default function TimePicker({
+  Text: label,
+  containerStyle,
+  date = new Date(),
+  labelStyle,
+  mode = 'time',
+  onConfirm,
+  textStyle,
+}) {
   const [open, setOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(props.date);
-  const handleCancel = () => {
-    setOpen(false);
-  };
+  const [selectedDate, setSelectedDate] = useState(date);
+
+  useEffect(() => {
+    setSelectedDate(date);
+  }, [date]);
+
   return (
-    <View>
+    <View style={[styles.wrapper, containerStyle]}>
+      <Text style={[styles.label, labelStyle]}>{label}</Text>
       <TouchableOpacity
+        activeOpacity={0.72}
         onPress={() => setOpen(true)}
-        style={props.containerStyle}>
-        {props.Text && (
-          <Text
-            style={[
-              {
-                fontFamily: 'Manrope-Bold',
-                fontSize: widthToDp(4),
-                color: Colors.TextColor,
-              },
-              props.labelStyle,
-            ]}>
-            {props.Text}
-          </Text>
-        )}
-        <Text
-          style={[
-            {
-              color: Colors.Orange,
-              fontFamily: 'Manrope-Bold',
-              fontSize: widthToDp(5),
-              borderWidth: 1,
-              borderColor: Colors.Orange,
-              paddingHorizontal: widthToDp(2),
-              borderRadius: widthToDp(2),
-            },
-            props.textStyle,
-          ]}>
+        style={styles.control}>
+        <Feather name="clock" size={17} color="#D65322" />
+        <Text style={[styles.value, textStyle]}>
           {moment(selectedDate).format('h:mm A')}
         </Text>
+        <Feather name="chevron-down" size={16} color="#9298A2" />
       </TouchableOpacity>
       <DatePicker
-        modal
-        open={open}
         date={selectedDate}
-        onConfirm={date => {
-          props.onConfirm(date);
-          setSelectedDate(date);
+        modal
+        mode={mode}
+        onCancel={() => setOpen(false)}
+        onConfirm={nextDate => {
+          setSelectedDate(nextDate);
           setOpen(false);
+          onConfirm?.(nextDate);
         }}
-        onCancel={handleCancel}
-        mode={props.mode || 'time'}
+        open={open}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {flex: 1, minWidth: 0},
+  label: {
+    marginBottom: 7,
+    color: '#59616D',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+  },
+  control: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E1E4E8',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  value: {
+    flex: 1,
+    marginLeft: 8,
+    color: '#252C37',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+});

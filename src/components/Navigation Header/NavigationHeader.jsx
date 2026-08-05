@@ -1,136 +1,137 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useState} from 'react';
-import Colors from '../../themes/Colors';
-import {height, heightToDp, width, widthToDp} from '../../utils/Responsive';
+import React from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {CommonActions, useNavigation} from '@react-navigation/native';
-
-import LabelTextInput from '../LabelTextInput/LabelTextInput';
+import Feather from 'react-native-vector-icons/Feather';
 
 export default function NavigationHeader(props) {
   const navigation = useNavigation();
-  const handleNavigateToTabScreen = () => {
-    navigation.dispatch(
-      CommonActions.navigate('HomeScreen', {
-        screen: 'AllBookingScreen',
-      }),
-    );
+  const goBack = () => {
+    if (props.reset) {
+      navigation.dispatch(
+        CommonActions.navigate('HomeScreen', {screen: 'AllBookingScreen'}),
+      );
+      return;
+    }
+    props.payment ? navigation.navigate('HomeScreen') : navigation.goBack();
   };
-  return (
-    <View
-      style={[
-        {marginTop: heightToDp(10)},
-        !props.isVisible && {marginBottom: heightToDp(5)},
-      ]}>
-      <View style={styles.container}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          {props.reset ? (
-            <TouchableOpacity
-              onPress={() => handleNavigateToTabScreen()}
-              style={styles.touchContainer}>
-              <Image
-                source={require('../../../assets/backIcon.png')}
-                style={styles.backIcon}
-              />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() =>
-                props?.payment
-                  ? navigation.navigate('HomeScreen')
-                  : navigation.goBack()
-              }
-              style={styles.touchContainer}>
-              <Image
-                source={require('../../../assets/backIcon.png')}
-                style={styles.backIcon}
-              />
-            </TouchableOpacity>
-          )}
 
-          {props.ProfilePic && (
-            <TouchableOpacity onPress={props.profileImgPress}>
-              <Image source={props.ProfilePic} style={styles.profilePic} />
+  return (
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
+        <TouchableOpacity
+          accessibilityLabel="Go back"
+          activeOpacity={0.7}
+          onPress={goBack}
+          style={styles.iconButton}>
+          <Feather name="arrow-left" size={21} color="#171D29" />
+        </TouchableOpacity>
+        {props.ProfilePic ? (
+          <TouchableOpacity activeOpacity={0.7} onPress={props.profileImgPress}>
+            <Image source={props.ProfilePic} style={styles.profilePic} />
+          </TouchableOpacity>
+        ) : null}
+        <Text numberOfLines={1} style={styles.title}>
+          {props.Title}
+        </Text>
+        <View style={styles.actions}>
+          {props.midImg ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={props.midImgPress}
+              style={styles.iconButton}>
+              <Image source={props.midImg} style={styles.actionIcon} />
             </TouchableOpacity>
-          )}
-          <Text style={styles.naveheader}>{props?.Title}</Text>
-        </View>
-        <View style={[styles.Flexcontainer]}>
-          <View style={styles.iconContainer}>
-            {props.midImg && (
-              <TouchableOpacity onPress={props.midImgPress}>
-                <Image
-                  source={props.midImg}
-                  style={[
-                    styles.backIcon,
-                    props.midImg === require('../../../assets/Search.png') && {
-                      width: widthToDp(5),
-                      height: heightToDp(5),
-                    },
-                  ]}
-                />
-              </TouchableOpacity>
-            )}
-            {props.lastImg && (
-              <TouchableOpacity onPress={props.lastImgPress}>
-                <Image source={props.lastImg} style={[styles.backIcon]} />
-              </TouchableOpacity>
-            )}
-          </View>
+          ) : null}
+          {props.lastImg ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={props.lastImgPress}
+              style={styles.iconButton}>
+              <Image source={props.lastImg} style={styles.actionIcon} />
+            </TouchableOpacity>
+          ) : null}
+          {!props.midImg && !props.lastImg ? (
+            <View style={styles.iconButton} />
+          ) : null}
         </View>
       </View>
-      {(false || props?.isVisible) && (
-        <LabelTextInput
-          leftImageSoucre={require('../../../assets/Search.png')}
-          placeholder={'Search'}
-          InputStyles={{
-            padding: widthToDp(2),
-          }}
-          defaultValue={props.searchQuery}
-          onChangeText={props.onChangeText}
-        />
-      )}
+      {props.isVisible ? (
+        <View style={styles.searchShell}>
+          <Feather name="search" size={17} color="#7D8490" />
+          <TextInput
+            onChangeText={props.onChangeText}
+            placeholder="Search"
+            placeholderTextColor="#A0A5AE"
+            style={styles.searchInput}
+            value={props.searchQuery}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECEEF1',
+    backgroundColor: '#FFFFFF',
+  },
   container: {
-    flexDirection: 'row',
-    marginRight: widthToDp(2),
-    marginLeft: widthToDp(2),
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    // backgroundColor: 'red',
-  },
-  touchContainer: {
-    flexDirection: 'row',
-  },
-  Flexcontainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginLeft: widthToDp(1),
-  },
-  iconContainer: {
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginRight: widthToDp(2),
+    paddingHorizontal: 12,
   },
-  naveheader: {
-    fontSize: widthToDp(5),
-    color: Colors.TextColor,
-    fontFamily: 'Manrope-Bold',
-    marginHorizontal: widthToDp(2),
+  iconButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   profilePic: {
-    marginLeft: widthToDp(2),
-    width: widthToDp(10),
-    height: heightToDp(10),
-    borderRadius: 25,
+    width: 38,
+    height: 38,
+    marginLeft: 4,
+    borderRadius: 19,
+    backgroundColor: '#EEF0F3',
   },
-  backIcon: {
-    width: widthToDp(6),
-    height: heightToDp(6),
-    marginLeft: widthToDp(2),
+  title: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 10,
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+  },
+  actions: {flexDirection: 'row', alignItems: 'center'},
+  actionIcon: {width: 20, height: 20, resizeMode: 'contain'},
+  searchShell: {
+    height: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E1E4E8',
+    borderRadius: 8,
+    backgroundColor: '#F7F8FA',
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    marginLeft: 8,
+    paddingVertical: 0,
+    color: '#303642',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
   },
 });

@@ -1,290 +1,321 @@
+import React, {useMemo, useState} from 'react';
 import {
+  Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
-  Animated,
   View,
-  TextInput,
-  Alert,
-  ScrollView,
-  SafeAreaView,
-  KeyboardAvoidingView,
 } from 'react-native';
 import moment from 'moment';
-import React, {useState, useEffect} from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
-import Colors from '../../themes/Colors';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {useSelector} from 'react-redux';
-import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 import Toast from 'react-native-toast-message';
-import {useLazyQuery} from '@apollo/client';
-import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
-import {captureImage, chooseFile} from '../../utils/ImagePicker';
-import useUpdate from '../../hooks/useUpdate';
-import useRegister from '../../hooks/useRegister';
+import Feather from 'react-native-vector-icons/Feather';
+import {useDispatch, useSelector} from 'react-redux';
+import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import AuthTextField from '../../components/AuthFlow/AuthTextField';
+import ProfileDateField from '../../components/Profile/ProfileDateField';
+import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
+import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
-import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
-import {removeCountryCode} from '../../utils/CountryCode';
-import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
+import useRegister from '../../hooks/useRegister';
+import useUpdate from '../../hooks/useUpdate';
+import {captureImage, chooseFile} from '../../utils/ImagePicker';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
 
-export default function ProfileDetailEditScreen({navigation, route}, props) {
-  const {profileEdit} = route.params || {profileEdit: false};
-  console.log('profileedit', profileEdit);
-  const {
-    gender: oldGender,
-    first_name,
-    location: oldLocation,
-    profile_picture,
-    last_name,
-    email: oldEmail,
-    phone_number,
-    description: oldDescription,
-    date_of_birth,
-  } = useSelector(state => state.user.user);
-  // const data = useSelector(state => state.user.user);
+const ORANGE = '#FD6D1F';
 
-  const dateOfBirth = date_of_birth
-    ? moment.utc(date_of_birth, 'YYYY-MM-DD').toDate()
-    : new Date();
+const getInitialDate = dateOfBirth => {
+  if (!dateOfBirth) {
+    return new Date(1990, 0, 1);
+  }
 
-  const [firstName, setfirstName] = useState(first_name);
-  const [lastName, setlastName] = useState(last_name);
-  const [phoneNumber, setNumber] = useState(phone_number);
-  const [location, setlocation] = useState(oldLocation);
-  const [email, setEmail] = useState(oldEmail);
-  const [gender, setGender] = useState(oldGender);
-  const [emailValid, setEmailValid] = useState();
-  const [image, setImage] = useState(profile_picture);
-  const [description, setDescription] = useState(oldDescription);
-  const [tempLoading, settempLoading] = useState(false);
-  const [profilePicture, setProfilePicure] = useState(profile_picture);
-  const [date, setDate] = useState(dateOfBirth);
+  const parsed = moment.utc(dateOfBirth, ['YYYY-MM-DD', moment.ISO_8601]);
+  return parsed.isValid() ? parsed.toDate() : new Date(1990, 0, 1);
+};
 
-  const {account_type} = useSelector(state => state.user.user);
+export default function ProfileDetailEditScreen({navigation, route}) {
+  const user = useSelector(state => state.user.user);
+  const dispatch = useDispatch();
+  const profileEdit = Boolean(route.params?.profileEdit);
+  const [firstName, setFirstName] = useState(user?.first_name || '');
+  const [lastName, setLastName] = useState(user?.last_name || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || '');
+  const [location, setLocation] = useState(user?.location || '');
+  const [email] = useState(user?.email || '');
+  const [description, setDescription] = useState(user?.description || '');
+  const [date, setDate] = useState(getInitialDate(user?.date_of_birth));
+  const [image, setImage] = useState(user?.profile_picture || '');
+  const [imageChanged, setImageChanged] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const {fetchUserInfo} = useFetchUser();
-  const {countryCode, phoneNumberWithoutCode} = removeCountryCode(phoneNumber);
   const {handleCompression, uploadBlobToS3} = useRegister();
   const {handleProfileUpdate} = useUpdate();
-  const showCameraGalleryAlert = () => {
-    Alert.alert(
-      'Choose an option',
-      'Select a source for your image:',
-      [
-        {
-          text: 'Cancel',
-          onPress: () => {
-            // Handle Camera button press
-            // You can add your camera logic here
-          },
-        },
-        {
-          text: 'Gallery',
-          onPress: async () => {
-            const uri = await chooseFile('photo');
-            console.log(uri);
-            setProfilePicure(uri);
-            setImage(uri);
-          },
-        },
-        {
-          text: 'Camera',
-          onPress: async () => {
-            const uri = await captureImage('photo');
-            setImage(uri);
-          },
-          style: 'cancel',
-        },
-      ],
-      {cancelable: false},
-    );
-  };
-  const calculateAge = dob => {
-    const today = moment();
-    const birthDate = moment(dob);
-    return today.diff(birthDate, 'years');
-  };
-  const submitRegister = async () => {
-    const age = calculateAge(date);
-    if (!description.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Invalid Description',
-        text2: 'Please fill in the description before saving.',
-      });
-      return;
+  const isClient = user?.account_type === 'client';
+
+  const fullName = useMemo(
+    () => [firstName, lastName].filter(Boolean).join(' '),
+    [firstName, lastName],
+  );
+
+  const goBack = () => goBackOrNavigate(navigation, 'ProfileInfoScreen');
+
+  const selectImage = async picker => {
+    try {
+      const uri = await picker('photo');
+      if (uri) {
+        setImage(uri);
+        setImageChanged(true);
+      }
+    } catch (error) {
+      if (!String(error).toLowerCase().includes('cancel')) {
+        Toast.show({
+          type: 'error',
+          text1: 'Photo unavailable',
+          text2: 'Please try another photo source.',
+        });
+      }
     }
-    if (age < 18) {
+  };
+
+  const showPhotoOptions = () => {
+    Alert.alert('Profile photo', 'Choose where to get your photo.', [
+      {text: 'Cancel', style: 'cancel'},
+      {text: 'Photo library', onPress: () => selectImage(chooseFile)},
+      {text: 'Camera', onPress: () => selectImage(captureImage)},
+    ]);
+  };
+
+  const validate = () => {
+    if (!firstName.trim() || !lastName.trim() || !phoneNumber.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Invalid Date of Birth',
+        text1: 'Missing information',
+        text2: 'Add your name and phone number before saving.',
+      });
+      return false;
+    }
+
+    if (moment().diff(moment(date), 'years') < 18) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid date of birth',
         text2: 'You must be at least 18 years old.',
       });
-      return;
-    }
-    settempLoading(true);
-    if (image) {
-      const imageBlob = await handleCompression(image);
-      const url = await uploadBlobToS3(imageBlob);
-      setImage(url);
+      return false;
     }
 
-    const params = {
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      phoneNumber: phoneNumber,
-      location: location,
-      profilePicture: image,
-      gender: gender,
-      description: description,
-      dateOfBirth: date,
-    };
-    console.log('paramsddd', params);
-    const isUpdated = await handleProfileUpdate(params);
-    if (isUpdated) {
-      await fetchUserInfo();
-      settempLoading(false);
-      Toast.show({
-        type: 'success',
-        text1: 'Profile Updated!',
-        text2: 'Your profile has been updated successfully.',
-      });
-      navigation.navigate('ProfileInfoScreen');
-    } else {
+    if (!isClient && !description.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Error',
-        text2: 'Problem while updating',
+        text1: 'Description required',
+        text2: 'Add a short professional description before saving.',
       });
-      settempLoading(false);
+      return false;
+    }
+
+    return true;
+  };
+
+  const savePreviewProfile = () => {
+    dispatch(
+      saveUserInfo({
+        ...user,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        phone_number: phoneNumber,
+        location: location.trim(),
+        description: description.trim(),
+        date_of_birth: moment(date).format('YYYY-MM-DD'),
+        profile_picture: image,
+      }),
+    );
+    Toast.show({
+      type: 'success',
+      text1: 'Profile updated',
+      text2: 'Your preview details were saved.',
+    });
+    goBack();
+  };
+
+  const submitProfile = async () => {
+    if (!validate()) {
+      return;
+    }
+
+    if (user?.isHomePreview) {
+      savePreviewProfile();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let profilePicture = image;
+      if (imageChanged) {
+        const imageBlob = await handleCompression(image);
+        profilePicture = await uploadBlobToS3(imageBlob);
+      }
+
+      const updated = await handleProfileUpdate({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email,
+        phoneNumber,
+        location: location.trim(),
+        profilePicture,
+        gender: user?.gender,
+        description: description.trim(),
+        dateOfBirth: date,
+      });
+
+      if (!updated) {
+        throw new Error('Profile update failed');
+      }
+
+      await fetchUserInfo();
+      Toast.show({
+        type: 'success',
+        text1: 'Profile updated',
+        text2: 'Your changes have been saved.',
+      });
+      goBack();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Unable to save',
+        text2: 'Please check your details and try again.',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!user) {
+    return null;
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Profile Details" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <ProfileScreenHeader
+        title={profileEdit ? 'Edit profile' : 'Personal details'}
+        actionLabel={profileEdit ? undefined : 'Edit'}
+        onAction={() => navigation.setParams({profileEdit: true})}
+        onBack={goBack}
+      />
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1, paddingBottom: heightToDp(10)}}>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardView}>
         <ScrollView
+          contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View>
-            <Image source={{uri: profilePicture}} style={styles.picture} />
+          <View style={styles.photoSection}>
+            <View>
+              <Image source={{uri: image}} style={styles.avatar} />
+              {profileEdit && (
+                <TouchableOpacity
+                  accessibilityLabel="Change profile photo"
+                  activeOpacity={0.72}
+                  onPress={showPhotoOptions}
+                  style={styles.cameraButton}>
+                  <Feather name="camera" size={17} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.name}>{fullName || 'Your profile'}</Text>
+            <Text style={styles.accountType}>
+              {isClient ? 'Notarizr client' : 'Notary professional'}
+            </Text>
             {profileEdit && (
-              <TouchableOpacity
-                style={styles.camera}
-                onPress={() => showCameraGalleryAlert()}>
-                <Image source={require('../../../assets/cameraIcon.png')} />
+              <TouchableOpacity activeOpacity={0.7} onPress={showPhotoOptions}>
+                <Text style={styles.changePhoto}>Change profile photo</Text>
               </TouchableOpacity>
             )}
           </View>
-          <Text style={styles.textheading}>
-            {first_name} {last_name}
-          </Text>
-          <Text style={styles.textsubheading}>{oldEmail}</Text>
-          <BottomSheetStyle>
-            <View style={{paddingBottom: widthToDp(5)}}>
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                Label={true}
-                defaultValue={first_name}
-                LabelTextInput={'First Name'}
-                onChangeText={text => setfirstName(text)}
-                editable={profileEdit}
-              />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                placeholder={'Enter your last name'}
-                defaultValue={last_name}
-                Label={true}
-                LabelTextInput={'Last Name'}
-                onChangeText={text => setlastName(text)}
-                editable={profileEdit}
-              />
 
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/EmailIcon.png')}
-                placeholder={'Enter your email address'}
-                LabelTextInput={
-                  (emailValid && 'Email Taken') || 'Email Address'
-                }
-                onChangeText={text => setEmail(text)}
-                defaultValue={oldEmail}
-                Label={true}
-                labelStyle={emailValid && {color: Colors.Red}}
-                AdjustWidth={emailValid && {borderColor: Colors.Red}}
-                editable={false}
-              />
-              <PhoneTextInput
-                onChange={e => {
-                  setNumber(e);
-                }}
-                LabelTextInput="Phone Number"
-                Label={true}
-                defaultCode={countryCode}
-                value={phoneNumberWithoutCode}
-                placeholder={'XXXXXXXXXXX'}
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionTitle}>Basic information</Text>
+            <Text style={styles.sectionDescription}>
+              {profileEdit
+                ? 'Keep your account information accurate and up to date.'
+                : 'The information connected to your Notarizr account.'}
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <AuthTextField
+              editable={profileEdit}
+              icon="user"
+              label="First name"
+              onChangeText={setFirstName}
+              placeholder="First name"
+              value={firstName}
+            />
+            <AuthTextField
+              editable={profileEdit}
+              icon="user"
+              label="Last name"
+              onChangeText={setLastName}
+              placeholder="Last name"
+              value={lastName}
+            />
+            <AuthTextField
+              editable={false}
+              icon="mail"
+              label="Email address"
+              placeholder="Email address"
+              value={email}
+            />
+            <AuthPhoneField
+              editable={profileEdit}
+              label="Phone number"
+              onChangeText={setPhoneNumber}
+              value={phoneNumber}
+            />
+            <ProfileDateField
+              editable={profileEdit}
+              label="Date of birth"
+              onChange={setDate}
+              value={date}
+            />
+            <AuthTextField
+              editable={profileEdit}
+              icon="map-pin"
+              label="Primary address"
+              onChangeText={setLocation}
+              placeholder="Enter your address"
+              value={location}
+            />
+            {!isClient && (
+              <AuthTextField
                 editable={profileEdit}
+                icon="file-text"
+                label="Professional description"
+                multiline
+                onChangeText={setDescription}
+                placeholder="Tell clients about your notary experience"
+                value={description}
               />
-              <CustomDatePicker
-                onConfirm={date => setDate(date)}
-                Text="Date Of Birth"
-                mode="date"
-                date={date || new Date()}
-                labelStyle={{}}
-                containerStyle={{
-                  paddingVertical: widthToDp(4),
-                  width: widthToDp(90),
-                  alignSelf: 'center',
-                }}
-                textStyle={{}}
-                editable={profileEdit}
+            )}
+
+            {profileEdit && (
+              <AuthPrimaryButton
+                icon="check"
+                loading={loading}
+                onPress={submitProfile}
+                style={styles.saveButton}
+                title="Save changes"
               />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/locationIcon.png')}
-                Label={true}
-                placeholder={'Enter your address'}
-                defaultValue={oldLocation}
-                LabelTextInput={'Address'}
-                onChangeText={text => setlocation(text)}
-                editable={profileEdit}
-              />
-              {account_type !== 'client' && (
-                <MultiLineTextInput
-                  Label={true}
-                  placeholder={'Enter description here'}
-                  defaultValue={description}
-                  LabelTextInput={'Description'}
-                  onChangeText={text => setDescription(text)}
-                  editable={profileEdit}
-                />
-              )}
-              {profileEdit && (
-                <View
-                  style={{
-                    marginTop: heightToDp(10),
-                  }}>
-                  <GradientButton
-                    colors={[
-                      Colors.OrangeGradientStart,
-                      Colors.OrangeGradientEnd,
-                    ]}
-                    Title="Save Details"
-                    onPress={() => submitRegister()}
-                    loading={tempLoading}
-                  />
-                </View>
-              )}
-            </View>
-          </BottomSheetStyle>
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -292,85 +323,82 @@ export default function ProfileDetailEditScreen({navigation, route}, props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FFF2DC',
+    backgroundColor: '#FFFFFF',
   },
-  picture: {
-    alignSelf: 'center',
-    width: widthToDp(25),
-    height: heightToDp(25),
-    borderRadius: 50,
+  keyboardView: {
+    flex: 1,
   },
-  camera: {
-    position: 'absolute',
-    left: widthToDp(55),
-    top: heightToDp(18),
+  content: {
+    paddingBottom: 36,
   },
-  searchSection: {
-    flexDirection: 'row',
+  photoSection: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    paddingTop: 28,
+    paddingBottom: 24,
+    backgroundColor: '#FFF4EA',
+  },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    borderRadius: 44,
+    backgroundColor: '#EDEFF2',
+  },
+  cameraButton: {
+    position: 'absolute',
+    right: -2,
+    bottom: 0,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
-    width: widthToDp(80),
-    paddingVertical: heightToDp(2),
-    alignSelf: 'center',
-    borderRadius: 15,
-    marginTop: heightToDp(5),
+    borderColor: '#FFFFFF',
+    borderRadius: 16,
+    backgroundColor: ORANGE,
   },
-  textheading: {
-    fontSize: widthToDp(6),
-    alignSelf: 'center',
-    color: Colors.TextColor,
+  name: {
+    marginTop: 14,
+    color: '#121826',
     fontFamily: 'Manrope-Bold',
+    fontSize: 20,
   },
-  textsubheading: {
-    fontSize: widthToDp(4.5),
-    alignSelf: 'center',
-    color: Colors.TextColor,
+  accountType: {
+    marginTop: 3,
+    color: '#747B87',
     fontFamily: 'Manrope-Regular',
-    marginBottom: heightToDp(2),
+    fontSize: 13,
+  },
+  changePhoto: {
+    marginTop: 10,
+    color: ORANGE,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  sectionHeading: {
+    paddingHorizontal: 20,
+    paddingTop: 26,
+    paddingBottom: 18,
+  },
+  sectionTitle: {
+    color: '#121826',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  sectionDescription: {
+    marginTop: 5,
+    color: '#7A818D',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  form: {
+    paddingHorizontal: 20,
+  },
+  saveButton: {
+    marginTop: 8,
   },
 });
-// const handleEmailValid = async () => {
-//   console.log(email, location, firstName, lastName, gender);
-//   if (!email || !location || !phoneNumber || !firstName || !lastName) {
-//     Toast.show({
-//       type: 'warning',
-//       text1: 'Warning!',
-//       text2: 'Please fill all the fields before submitting.',
-//     });
-//   } else {
-//     return new Promise(() => {
-//       try {
-//         isEmailValid({
-//           variables: {email},
-//         }).then(response => {
-//           setEmailValid(response?.data?.isEmailValid?.emailTaken);
-
-//           if (response?.data?.isEmailValid?.emailTaken) {
-//             Toast.show({
-//               type: 'error',
-//               text1: 'This email is already taken!',
-//               text2: 'Please enter other email address',
-//             });
-//           } else {
-//             setEmailValid(false);
-//             submitRegister({
-//               firstName,
-//               lastName,
-//               email,
-//               phoneNumber,
-//               location,
-//               profilePicture,
-//               gender,
-//             });
-//             console.log('Email is Valid');
-//           }
-//         });
-//       } catch (error) {
-//         console.log(error);
-//       }
-//     });
-//   }
-// };

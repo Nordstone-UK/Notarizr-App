@@ -5,7 +5,7 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-  platform :ios, '13.0'
+  platform :ios, '13.4'
 
 prepare_react_native_project!
 
@@ -85,20 +85,19 @@ target 'Notarizr' do
 
   # Add this block at the end, before the final end
 post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
-      config.build_settings["DEVELOPMENT_TEAM"] = "YOUR_TEAM_ID" # Replace with your team ID
-    end
-  end
-  
-
   react_native_post_install(
     installer,
     config[:reactNativePath],
     :mac_catalyst_enabled => false
   )
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'i386'
+      config.build_settings["DEVELOPMENT_TEAM"] = "YOUR_TEAM_ID" # Replace with your team ID
+    end
+  end
 
 end
 end

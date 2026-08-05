@@ -1,336 +1,226 @@
+import React, {useState} from 'react';
 import {
+  Alert,
   Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
-  Animated,
   View,
-  TextInput,
-  ScrollView,
-  Alert,
-  SafeAreaView,
-  PermissionsAndroid,
 } from 'react-native';
-import ProgressBar from 'react-native-progress/Bar';
-import React, {useEffect, useState} from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import Colors from '../../themes/Colors';
-import SkipButton from '../../components/MainGradientButton/SkipButton';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
+import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
-
-import {captureImage, chooseFile} from '../../utils/ImagePicker';
-
+import Toast from 'react-native-toast-message';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import AuthProgressHeader from '../../components/AuthFlow/AuthProgressHeader';
+import AuthUploadCard from '../../components/AuthFlow/AuthUploadCard';
 import {
   profilePictureSet,
-  setProgress,
   setFilledCount,
+  setProgress,
 } from '../../features/register/registerSlice';
-import Toast from 'react-native-toast-message';
-import useRegister from '../../hooks/useRegister';
-import AuthenticateModal from '../../components/AuthenticateModal/AuthenticateModal';
 import useAuthenticate from '../../hooks/useAuthenticate';
 import useFetchUser from '../../hooks/useFetchUser';
-import {Dimensions} from 'react-native';
+import useRegister from '../../hooks/useRegister';
+import {captureImage, chooseFile} from '../../utils/ImagePicker';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
 
 export default function ProfilePictureScreen({navigation}) {
+  const [image, setImage] = useState('');
+  const [loading, setLoading] = useState(false);
   const registerData = useSelector(state => state.register);
-  const totalFields = registerData.accountType === 'client' ? 8 : 12;
-  const {width} = Dimensions.get('window');
-  const [image, setImage] = useState();
-  const [errorMessage, setErrorMessage] = useState('');
-  const [tempLoading, settempLoading] = useState(false);
-  const [profilePicture, setProfilePicure] = useState('');
-  const [answer, setAnswer] = useState('');
-  const variables = useSelector(state => state.register);
-  const [visible, setVisible] = useState(false);
-  const [skip, setSkip] = useState(false);
+  const isClient = registerData.accountType === 'client';
+  const totalFields = isClient ? 8 : 12;
   const dispatch = useDispatch();
   const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
-  const {registerAuthUser, conAgentVerificationScreensentAuth} =
-    useAuthenticate();
+  const {registerAuthUser, consentAuth} = useAuthenticate();
   const {fetchUserInfo} = useFetchUser();
-  const showCameraGalleryAlert = () => {
-    Alert.alert(
-      'Choose an option',
-      'Select a source for your image:',
-      [
-        {
-          text: 'Cancel',
-        },
-        {
-          text: 'Gallery',
-          onPress: async () => {
-            const uri = await chooseFile('photo');
-            setImage(uri);
-            const progressValue = (registerData.filledCount + 1) / totalFields;
-            dispatch(setFilledCount(registerData.filledCount + 1));
-            dispatch(setProgress(progressValue));
-          },
-        },
-        {
-          text: 'Camera',
-          onPress: async () => {
-            const uri = await captureImage('photo');
-            setImage(uri);
-            const progressValue = (registerData.filledCount + 1) / totalFields;
-            dispatch(setFilledCount(registerData.filledCount + 1));
-            dispatch(setProgress(progressValue));
-          },
-          style: 'cancel',
-        },
-      ],
-      {cancelable: false},
-    );
+
+  const updateProgress = () => {
+    const filledCount = Math.min(registerData.filledCount + 1, totalFields);
+    dispatch(setFilledCount(filledCount));
+    dispatch(setProgress(filledCount / totalFields));
   };
 
-  const handleAuthPermission = async state => {
-    console.log('state', state);
-    setSkip(state);
-    setVisible(true);
+  const showImageSourceAlert = () => {
+    Alert.alert('Add profile photo', 'Choose where to get your photo.', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Photo Library',
+        onPress: async () => {
+          const uri = await chooseFile('photo');
+          if (uri) {
+            setImage(uri);
+          }
+        },
+      },
+      {
+        text: 'Camera',
+        onPress: async () => {
+          const uri = await captureImage('photo');
+          if (uri) {
+            setImage(uri);
+          }
+        },
+      },
+    ]);
+  };
 
-    // if (state) {
-    if (state == 'skip') {
-      console.log('Skipping');
-      await skipPciture();
-      setVisible(false);
-    } else if (image) {
-      console.log('submitRegister');
-      await submitRegister();
-      setVisible(false);
-    } else {
+  const finishClientRegistration = async profilePicture => {
+    const isRegistered = await handleRegister({
+      ...registerData,
+      profilePicture,
+    });
+    if (!isRegistered) {
+      return false;
+    }
+
+    await registerAuthUser();
+    const user = await fetchUserInfo();
+    if (user?.userAccessCode) {
+      await consentAuth(
+        `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
+        user.userAccessCode,
+      );
+    }
+    updateProgress();
+    navigation.navigate('RegisterCompletionScreen');
+    return true;
+  };
+
+  const continueNotaryRegistration = profilePicture => {
+    if (profilePicture) {
+      dispatch(profilePictureSet(profilePicture));
+    }
+    updateProgress();
+    navigation.navigate('AgentVerificationScreen');
+  };
+
+  const handleContinue = async () => {
+    if (!image) {
+      Toast.show({
+        type: 'warning',
+        text1: 'Add a profile photo',
+        text2: 'Choose a photo or skip this step.',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const imageBlob = await handleCompression(image);
+      const profilePicture = await uploadBlobToS3(imageBlob);
+      if (isClient) {
+        const completed = await finishClientRegistration(profilePicture);
+        if (!completed) {
+          throw new Error('Registration failed');
+        }
+      } else {
+        continueNotaryRegistration(profilePicture);
+      }
+    } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Please add an image',
+        text1: 'Unable to continue',
+        text2: 'Please try uploading your photo again.',
       });
+    } finally {
+      setLoading(false);
     }
-    // } else {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'You need to consent to continue',
-    //   });
-    //   setVisible(false);
-    // }
   };
-  const AuthFuc = async state => {
-    if (state) {
-      if (skip) {
-        console.log('Skipping');
-        await skipPciture();
-        setVisible(false);
-      } else if (image) {
-        console.log('submitRegister');
-        await submitRegister();
-        setVisible(false);
+
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      if (isClient) {
+        const completed = await finishClientRegistration('');
+        if (!completed) {
+          throw new Error('Registration failed');
+        }
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Please add an image',
-        });
+        continueNotaryRegistration('');
       }
-    } else {
+    } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'You need to consent to continue',
+        text1: 'Unable to continue',
+        text2: 'Please try again.',
       });
-      setVisible(false);
+    } finally {
+      setLoading(false);
     }
   };
-  const submitRegister = async () => {
-    settempLoading(true);
 
-    const imageBlob = await handleCompression(image);
-    const url = await uploadBlobToS3(imageBlob);
-    if (variables.accountType === 'client') {
-      const params = {
-        ...variables,
-        profilePicture: url,
-      };
-
-      const isRegistered = await handleRegister(params);
-      if (isRegistered) {
-        settempLoading(false);
-        await registerAuthUser()
-          .then(async () => {
-            await fetchUserInfo()
-              .then(async response => {
-                await consentAuth(
-                  response?.first_name + ' ' + response?.last_name,
-                  response?.userAccessCode,
-                );
-              })
-              .catch(error => {
-                console.log('Fetching user Auth', error);
-              });
-          })
-          .catch(error => {
-            console.log('Registering user Auth', error);
-          });
-        const progressValue = (registerData.filledCount + 1) / totalFields;
-        dispatch(setFilledCount(registerData.filledCount + 1));
-        dispatch(setProgress(progressValue));
-        navigation.navigate('RegisterCompletionScreen');
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Problem while registering',
-        });
-        settempLoading(false);
-      }
-    } else {
-      settempLoading(false);
-      dispatch(profilePictureSet(url));
-      // const progressValue = (registerData.filledCount + 1) / totalFields;
-      // dispatch(setFilledCount(registerData.filledCount + 1));
-      // dispatch(setProgress(progressValue));
-      navigation.navigate('AgentVerificationScreen');
-    }
-  };
-  const handleUpload = () => {
-    const progressValue = (registerData.filledCount + 1) / totalFields;
-    dispatch(setFilledCount(registerData.filledCount + 1));
-    dispatch(setProgress(progressValue));
-  };
-
-  const handleDelete = () => {
-    const progressValue = (registerData.filledCount - 1) / totalFields;
-    dispatch(setFilledCount(registerData.filledCount - 1));
-    dispatch(setProgress(progressValue));
-  };
-  const skipPciture = async () => {
-    settempLoading(true);
-
-    if (variables.accountType === 'client') {
-      const params = {
-        ...variables,
-        profilePicture: profilePicture,
-      };
-
-      const isRegistered = await handleRegister(params);
-      if (isRegistered) {
-        settempLoading(false);
-        await registerAuthUser()
-          .then(async () => {
-            await fetchUserInfo()
-              .then(async response => {
-                await consentAuth(
-                  response?.first_name + ' ' + response?.last_name,
-                  response?.userAccessCode,
-                );
-              })
-              .catch(error => {
-                console.log('Fetching user Auth', error);
-              });
-          })
-          .catch(error => {
-            console.log('Registering user Auth', error);
-          });
-        await handleUpload();
-        navigation.navigate('RegisterCompletionScreen');
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Problem while registering',
-        });
-        settempLoading(false);
-      }
-    } else {
-      settempLoading(false);
-      // dispatch(profilePictureSet(url));
-      await handleUpload();
-      navigation.navigate('AgentVerificationScreen');
-    }
-  };
   return (
     <SafeAreaView style={styles.container}>
-      <CompanyHeader
-        Header="Profile Image"
-        reset="true"
-        subHeading="Please provide us with your profile image"
-        HeaderStyle={{alignSelf: 'center'}}
-        subHeadingStyle={{
-          alignSelf: 'center',
-          fontSize: 17,
-          marginVertical: heightToDp(1.5),
-          color: '#121826',
-        }}
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AuthProgressHeader
+        title="Profile photo"
+        progress={registerData.progress}
+        onBack={() => goBackOrNavigate(navigation, 'SignUpDetailScreen')}
       />
-      <View style={styles.progressContainer}>
-        <ProgressBar
-          progress={registerData.progress}
-          width={width * 0.9}
-          color={Colors.OrangeGradientEnd}
-          unfilledColor={Colors.OrangeGradientStart}
-          borderWidth={0}
-        />
-        <Text style={styles.percentageText}>
-          {Math.round(registerData.progress * 100)}%
-        </Text>
-      </View>
-      <BottomSheetStyle>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <TouchableOpacity
-            onPress={() => {
-              setImage('');
-              handleDelete();
-            }}>
-            <Text style={styles.textRemove}>Remove</Text>
-          </TouchableOpacity>
-          {image ? (
-            <View>
-              <Image source={{uri: image}} style={styles.profileImage} />
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.dottedContianer}
-              onPress={() => showCameraGalleryAlert()}>
-              <Image source={require('../../../assets/upload.png')} />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  columnGap: widthToDp(2),
-                  alignItems: 'center',
-                }}>
-                <Text style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
-                  Upload
-                </Text>
-                <Image source={require('../../../assets/uploadIcon.png')} />
-              </View>
-              <Text>Upload your Profile Picture here...</Text>
-            </TouchableOpacity>
-          )}
-          <Text
-            style={{
-              color: '#000',
-              fontSize: widthToDp(5),
-              alignSelf: 'center',
-            }}>
-            {errorMessage}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}>
+        <View style={styles.intro}>
+          <Text style={styles.eyebrow}>MAKE IT PERSONAL</Text>
+          <Text style={styles.heading}>Add a profile photo</Text>
+          <Text style={styles.subheading}>
+            {isClient
+              ? 'A clear photo helps your notary recognize you.'
+              : 'Use a professional photo that clients can recognize.'}
           </Text>
-          <GradientButton
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            Title="Continue"
-            loading={tempLoading}
-            onPress={() => handleAuthPermission(false)}
+        </View>
+
+        {image ? (
+          <View style={styles.previewSection}>
+            <View style={styles.imageWrap}>
+              <Image source={{uri: image}} style={styles.profileImage} />
+              <TouchableOpacity
+                accessibilityLabel="Change profile photo"
+                activeOpacity={0.78}
+                onPress={showImageSourceAlert}
+                style={styles.editButton}>
+                <Feather name="camera" size={19} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => setImage('')}>
+              <Text style={styles.removeText}>Remove photo</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <AuthUploadCard
+            title="Choose a profile photo"
+            description="Use your camera or select an image from your library."
+            icon="camera"
+            onPress={showImageSourceAlert}
           />
-          <SkipButton
-            Title="Skip"
-            onPress={() => handleAuthPermission('skip')}
-            loading={tempLoading}
-          />
-        </ScrollView>
-      </BottomSheetStyle>
-      {/* {visible && (
-        <AuthenticateModal
-          modalVisible={visible}
-          setModalVisible={bool => setVisible(bool)}
-          handleConsent={answer => AuthFuc(answer)}
+        )}
+
+        <View style={styles.privacyNote}>
+          <Feather name="shield" size={19} color="#FD6D1F" />
+          <Text style={styles.privacyText}>
+            Your photo is stored securely and only used for your profile.
+          </Text>
+        </View>
+
+        <AuthPrimaryButton
+          title="Continue"
+          icon="arrow-right"
+          loading={loading}
+          onPress={handleContinue}
+          style={styles.continueButton}
         />
-      )} */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          disabled={loading}
+          onPress={handleSkip}
+          style={styles.skipButton}>
+          <Text style={styles.skipText}>Skip for now</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -338,53 +228,95 @@ export default function ProfilePictureScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF2DC',
+    backgroundColor: '#FFFFFF',
   },
-  textRemove: {
-    textAlign: 'right',
-    top: heightToDp(2),
-    right: widthToDp(5),
-    color: Colors.Orange,
-    fontFamily: 'Manrope-Bold',
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 32,
   },
-  textEdit: {
-    textAlign: 'center',
-    color: Colors.Orange,
+  intro: {
+    marginBottom: 28,
+  },
+  eyebrow: {
+    color: '#FD6D1F',
     fontFamily: 'Manrope-Bold',
-    marginBottom: heightToDp(5),
+    fontSize: 12,
+  },
+  heading: {
+    marginTop: 7,
+    color: '#121826',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 28,
+  },
+  subheading: {
+    marginTop: 8,
+    color: '#6C727F',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  previewSection: {
+    alignItems: 'center',
+  },
+  imageWrap: {
+    position: 'relative',
   },
   profileImage: {
-    marginTop: heightToDp(10),
-    marginBottom: heightToDp(2),
-    alignSelf: 'center',
-    width: widthToDp(50),
-    height: heightToDp(50),
+    width: 168,
+    height: 168,
+    borderWidth: 5,
+    borderColor: '#FFF0E7',
+    borderRadius: 84,
   },
-  dottedContianer: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderStyle: 'dotted',
-    borderWidth: 2,
-    borderColor: Colors.DisableColor,
-    borderRadius: 5,
-    marginTop: heightToDp(15),
-    paddingVertical: heightToDp(2),
-    width: widthToDp(80),
-  },
-  progressContainer: {
-    marginVertical: 25,
-    alignItems: 'center',
-    width: '100%', // Adjust as needed
-    alignSelf: 'center',
-    justifyContent: 'center',
-  },
-  percentageText: {
+  editButton: {
     position: 'absolute',
-    top: -30,
-    left: '47%',
-    // transform: [{translateX: -50}],
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'orange',
+    right: 4,
+    bottom: 8,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    borderRadius: 22,
+    backgroundColor: '#FD6D1F',
+  },
+  removeText: {
+    marginTop: 14,
+    color: '#D92D20',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  privacyNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 26,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: '#FFF7F2',
+  },
+  privacyText: {
+    flex: 1,
+    marginLeft: 11,
+    color: '#636B77',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  continueButton: {
+    marginTop: 28,
+  },
+  skipButton: {
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  skipText: {
+    color: '#596170',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
   },
 });

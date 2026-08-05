@@ -17,6 +17,7 @@ import { polyfill as polyfillFetch } from 'react-native-polyfill-globals/src/fet
 
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initializeOneSignal } from './src/utils/oneSignal';
 import Wrapper from './src/routes/Root';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -146,9 +147,11 @@ function App(): JSX.Element {
       <Provider store={store}>
         <StripeProvider publishableKey={publishableKey}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <BottomSheetModalProvider>
-              <Wrapper />
-            </BottomSheetModalProvider>
+            <SafeAreaProvider>
+              <BottomSheetModalProvider>
+                <Wrapper />
+              </BottomSheetModalProvider>
+            </SafeAreaProvider>
           </GestureHandlerRootView>
         </StripeProvider>
       </Provider>

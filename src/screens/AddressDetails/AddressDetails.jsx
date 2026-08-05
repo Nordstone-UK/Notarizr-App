@@ -1,138 +1,225 @@
+import React, {useEffect, useState} from 'react';
 import {
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
-  Image,
-  ScrollView,
-  SafeAreaView,
-  Alert,
 } from 'react-native';
-import React, {useEffect} from 'react';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import Colors from '../../themes/Colors';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
-import AddressCard from '../../components/AddressCard/AddressCard';
-import useFetchUser from '../../hooks/useFetchUser';
-import {useSelector} from 'react-redux';
+import Feather from 'react-native-vector-icons/Feather';
+import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import ScreenHeader from '../../components/Navigation/ScreenHeader';
+import SavedAddressRow from '../../components/Profile/SavedAddressRow';
+import {saveUserInfo} from '../../features/user/userSlice';
+import useFetchUser from '../../hooks/useFetchUser';
 
 export default function AddressDetails({navigation}) {
+  const user = useSelector(state => state.user.user);
+  const dispatch = useDispatch();
   const {fetchUserInfo, handleDeleteAddress} = useFetchUser();
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchUserInfo();
-    });
-    return unsubscribe;
-  }, [navigation]);
-  const {addresses = []} = useSelector(state => state.user.user);
-  const handleEditAddress = address => {
-    navigation.navigate('CurrentLocationScreen', {
-      previousScreen: 'AddressDetails',
-      address: address,
-    });
+  const [addresses, setAddresses] = useState(user?.addresses || []);
+  const previewMode = Boolean(user?.isHomePreview);
 
-    // navigation.navigate('AddNewAddress', {address: address});
-  };
-  const deleteAddress = async addressId => {
-    const isUpdated = await handleDeleteAddress(addressId);
-    if (isUpdated) {
-      fetchUserInfo();
-      Toast.show({
-        type: 'success',
-        text1: 'Address Deleted!',
-        text2: 'Your address has been deleted successfully.',
-      });
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Problem while editing',
-      });
+  useEffect(() => {
+    setAddresses(user?.addresses || []);
+  }, [user?.addresses]);
+
+  useEffect(() => {
+    if (previewMode) {
+      return undefined;
     }
-    await fetchUserInfo();
+    return navigation.addListener('focus', fetchUserInfo);
+  }, [fetchUserInfo, navigation, previewMode]);
+
+  const openAddress = address => {
+    navigation.navigate('AddressFormScreen', {address});
   };
-  const confirmDeleteAddress = addressId => {
+
+  const addAddress = () => {
+    navigation.navigate('AddressFormScreen');
+  };
+
+  const deleteAddress = async address => {
+    if (previewMode) {
+      const next = addresses.filter(item => item._id !== address._id);
+      setAddresses(next);
+      dispatch(saveUserInfo({...user, addresses: next}));
+      Toast.show({type: 'success', text1: 'Address removed'});
+      return;
+    }
+
+    const updated = await handleDeleteAddress(address._id);
+    if (updated?.deleteUserAddressR?.status === '200') {
+      await fetchUserInfo();
+      Toast.show({type: 'success', text1: 'Address removed'});
+    } else {
+      Toast.show({type: 'error', text1: 'Unable to remove address'});
+    }
+  };
+
+  const confirmDelete = address => {
     Alert.alert(
-      'Delete Address',
-      'Are you sure you want to delete this address?',
+      'Remove saved address?',
+      `Delete ${address.label || 'this address'} from your account?`,
       [
+        {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          onPress: () => deleteAddress(addressId),
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => deleteAddress(address),
         },
       ],
-      {cancelable: false},
     );
   };
-  console.log('addsssf', addresses);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Address" />
-      <Text style={styles.textheading}>Please find all your addresses</Text>
-      <BottomSheetStyle>
-        <ScrollView>
-          {addresses.map((item, index) => (
-            <AddressCard
-              key={index}
-              location={item.location}
-              onEdit={() => handleEditAddress(item)}
-              onDelete={() => confirmDeleteAddress(item._id)}
-            />
-          ))}
-          <View
-            style={{
-              marginTop: heightToDp(15),
-            }}>
-            <GradientButton
-              Title="Add Address"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{borderRadius: 15}}
-              onPress={() =>
-                navigation.navigate('CurrentLocationScreen', {
-                  previousScreen: 'AddressDetails',
-                })
-              }
-              // onPress={() => navigation.navigate('AddNewAddress')}
-            />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <ScreenHeader
+        fallback="HomeScreen"
+        fallbackParams={{screen: 'ProfileInfoScreen'}}
+        navigation={navigation}
+        subtitle={`${addresses.length} saved location${
+          addresses.length === 1 ? '' : 's'
+        }`}
+        title="Saved addresses"
+      />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.intro}>
+          <Text style={styles.introTitle}>Service locations</Text>
+          <Text style={styles.introText}>
+            Choose from these addresses when booking a mobile notary.
+          </Text>
+        </View>
+        {addresses.length ? (
+          <View style={styles.list}>
+            {addresses.map((address, index) => (
+              <SavedAddressRow
+                address={{
+                  ...address,
+                  label:
+                    address.label ||
+                    `${address.tag || 'Saved address'}`.replace(/^./, value =>
+                      value.toUpperCase(),
+                    ),
+                  primary: address.primary ?? index === 0,
+                }}
+                key={address._id || index}
+                last={index === addresses.length - 1}
+                onDelete={() => confirmDelete(address)}
+                onEdit={() => openAddress(address)}
+              />
+            ))}
           </View>
-        </ScrollView>
-      </BottomSheetStyle>
+        ) : (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Feather name="map-pin" size={26} color="#FD6D1F" />
+            </View>
+            <Text style={styles.emptyTitle}>No saved addresses</Text>
+            <Text style={styles.emptyText}>
+              Add a home or work address to book mobile services faster.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          activeOpacity={0.76}
+          onPress={addAddress}
+          style={styles.addButton}>
+          <Feather name="plus" size={19} color="#FFFFFF" />
+          <Text style={styles.addButtonText}>Add new address</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF2DC',
-    marginBottom: widthToDp(8),
-  },
-  picture: {
-    alignSelf: 'center',
-    marginVertical: heightToDp(25),
-  },
-  iconContainer: {
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: '#FD6D1F',
+    borderRadius: 8,
     flexDirection: 'row',
-    margin: widthToDp(4),
-    justifyContent: 'flex-start',
+    gap: 9,
+    height: 54,
+    justifyContent: 'center',
   },
-  icon: {
-    marginHorizontal: widthToDp(2),
-  },
-  textheading: {
-    fontSize: widthToDp(6),
-    alignSelf: 'center',
-    color: Colors.TextColor,
+  addButtonText: {
+    color: '#FFFFFF',
     fontFamily: 'Manrope-Bold',
-    width: widthToDp(80),
-    marginBottom: heightToDp(3),
+    fontSize: 15,
+  },
+  content: {
+    flexGrow: 1,
+    paddingBottom: 24,
+  },
+  emptyIcon: {
+    alignItems: 'center',
+    backgroundColor: '#FFF0E8',
+    borderRadius: 28,
+    height: 56,
+    justifyContent: 'center',
+    width: 56,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingHorizontal: 42,
+    paddingTop: 90,
+  },
+  emptyText: {
+    color: '#8B919C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 7,
     textAlign: 'center',
+  },
+  emptyTitle: {
+    color: '#202632',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+    marginTop: 15,
+  },
+  footer: {
+    backgroundColor: '#FFFFFF',
+    borderTopColor: '#E5E7EB',
+    borderTopWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  intro: {
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+  },
+  introText: {
+    color: '#7D8490',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 5,
+  },
+  introTitle: {
+    color: '#202632',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  list: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: '#ECEEF1',
+    borderBottomWidth: 1,
+    borderTopColor: '#ECEEF1',
+    borderTopWidth: 1,
+  },
+  safeArea: {
+    backgroundColor: '#FFFFFF',
+    flex: 1,
   },
 });

@@ -1,337 +1,308 @@
+import React, {useEffect, useState} from 'react';
 import {
-  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  TextInput,
-  Alert,
-  ScrollView,
-  SafeAreaView,
-  Dimensions,
 } from 'react-native';
-import ProgressBar from 'react-native-progress/Bar';
-
-import React, {useState, useEffect} from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
-import Colors from '../../themes/Colors';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import SplashScreen from 'react-native-splash-screen';
-import {useDispatch, useSelector} from 'react-redux';
-import {
-  ceredentailSet,
-  emailSet,
-  setProgress,
-  setFilledCount,
-} from '../../features/register/registerSlice';
 import {useLazyQuery} from '@apollo/react-hooks';
-import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
-import {Picker} from '@react-native-picker/picker';
-import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
+import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
-import MultiLineTextInput from '../../components/MultiLineTextInput/MultiLineTextInput';
-import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
-import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
-import CustomDatePicker from '../../components/CustomDatePicker/CustomDatePicker';
-import moment from 'moment';
-
+import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import AuthProgressHeader from '../../components/AuthFlow/AuthProgressHeader';
+import AuthSelectField from '../../components/AuthFlow/AuthSelectField';
+import AuthTextField from '../../components/AuthFlow/AuthTextField';
 import {statesData} from '../../data/statesData';
-import SingleSelectDropDown from '../../components/SingleSelectDropDown/SingleSelectDropDown';
+import {
+  emailSet,
+  setFilledCount,
+  setProgress,
+} from '../../features/register/registerSlice';
+import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
 import {IS_MOBILENO_VALID} from '../../../request/queries/isPhoneNoValid.query';
+import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function SignUpDetailScreen({navigation}, props) {
-  const [date, setDate] = useState('22-05-2010');
-  console.log('daterer', date);
-  const [firstName, setfirstName] = useState('');
-  const [lastName, setlastName] = useState('');
-  const [phoneNumber, setNumber] = useState('');
-  const [location, setlocation] = useState('');
-  const [state, setState] = useState(null);
+export default function SignUpDetailScreen({navigation}) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [emailValid, setEmailValid] = useState();
-  const [mobilenoValid, setMobileNoValid] = useState();
-  const [gender, setgender] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [location, setLocation] = useState('');
+  const [selectedState, setSelectedState] = useState('');
   const [description, setDescription] = useState('');
-
-  const [isEmailValid, {loading: validLoading}] = useLazyQuery(IS_EMAIL_VALID);
-  const [isMobileNoValid, {loading: mobilenovalidLoading}] =
+  const [emailTaken, setEmailTaken] = useState(false);
+  const [phoneTaken, setPhoneTaken] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [isEmailValid, {loading: emailLoading}] = useLazyQuery(IS_EMAIL_VALID);
+  const [isMobileNoValid, {loading: phoneValidationLoading}] =
     useLazyQuery(IS_MOBILENO_VALID);
-  const [getPhoneOtp, {loading: PhoneLoading}] =
+  const [getPhoneOtp, {loading: otpLoading}] =
     useLazyQuery(GET_VALID_PHONE_OTP);
-
   const dispatch = useDispatch();
-  const registerData = useSelector(state => state.register); // Access progress from Redux store
+  const registerData = useSelector(state => state.register);
+  const accountType = registerData.accountType;
+  const isClient = accountType === 'client';
+  const totalFields = isClient ? 8 : 12;
+  const date = '22-05-2010';
 
-  const {width} = Dimensions.get('window');
-  const variables = useSelector(state => state.register.accountType);
-  const handleGenderChange = value => {
-    setgender(value);
-  };
   useEffect(() => {
-    updateProgress();
-  }, [firstName, lastName, email, phoneNumber, location, state, description]);
-  const totalFields = variables === 'client' ? 8 : 12;
-
-  const updateProgress = () => {
     let filledFields = 1;
-
-    if (firstName.trim() !== '') filledFields++;
-    if (lastName.trim() !== '') filledFields++;
-    if (email.trim() !== '' && emailRegex.test(email)) filledFields++;
-    if (phoneNumber.trim() !== '') filledFields++;
-    if (location.trim() !== '') filledFields++;
-    if (state !== null) filledFields++;
-    if (description.trim() !== '') filledFields++;
-
-    const progressValue = filledFields / totalFields; // Calculate new progress
+    if (firstName.trim()) {
+      filledFields += 1;
+    }
+    if (lastName.trim()) {
+      filledFields += 1;
+    }
+    if (emailRegex.test(email.trim())) {
+      filledFields += 1;
+    }
+    if (phoneNumber.trim()) {
+      filledFields += 1;
+    }
+    if (location.trim()) {
+      filledFields += 1;
+    }
+    if (!isClient && description.trim()) {
+      filledFields += 1;
+    }
 
     dispatch(setFilledCount(filledFields));
-    dispatch(setProgress(progressValue));
+    dispatch(setProgress(Math.min(filledFields / totalFields, 1)));
+  }, [
+    description,
+    dispatch,
+    email,
+    firstName,
+    isClient,
+    lastName,
+    location,
+    phoneNumber,
+    totalFields,
+  ]);
+
+  const handleGetPhoneOtp = async () => {
+    dispatch(emailSet(email));
+    try {
+      const response = await getPhoneOtp({variables: {phoneNumber}});
+      if (response?.data?.getValidPhoneOtp?.status === '403') {
+        Toast.show({
+          type: 'error',
+          text1: 'We are Sorry!',
+          text2: 'This User is Blocked',
+        });
+      } else if (response?.data?.getValidPhoneOtp?.status !== '200') {
+        Toast.show({
+          type: 'error',
+          text1: 'OTP not sent!',
+          text2: 'We encountered a problem please try again',
+        });
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: `OTP Sent on ${response.data.getValidPhoneOtp.phoneNumber}`,
+          text2: '',
+        });
+        navigation.navigate('SignPhoneVerification', {
+          firstName,
+          lastName,
+          location,
+          email,
+          phoneNumber,
+          description,
+          date,
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'OTP not sent',
+        text2: 'Please try again.',
+      });
+    }
   };
 
-  const handleEmailValid = async () => {
-    if (!email || !location || !phoneNumber || !firstName || !lastName) {
+  const handleContinue = async () => {
+    setSubmitted(true);
+    const missingRequiredField =
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !phoneNumber.trim() ||
+      !location.trim() ||
+      (!isClient && !description.trim());
+
+    if (missingRequiredField) {
       Toast.show({
         type: 'warning',
-        text1: 'Warning!',
-        text2: 'Please fill all the fields before submitting.',
+        text1: 'Complete your profile',
+        text2: 'Please fill in all required fields.',
       });
-    } else if (!emailRegex.test(email)) {
+      return;
+    }
+    if (!emailRegex.test(email)) {
       Toast.show({
         type: 'error',
         text1: 'Invalid Email',
         text2: 'Please enter a valid email address.',
       });
       return;
-    } else {
-      try {
-        const emailResponse = await isEmailValid({variables: {email}});
-        const emailTaken = emailResponse?.data?.isEmailValid?.emailTaken;
-        setEmailValid(emailTaken);
-
-        if (emailTaken) {
-          Toast.show({
-            type: 'error',
-            text1: 'This email is already taken!',
-            text2: 'Please enter another email address',
-          });
-          return;
-        }
-
-        const phoneResponse = await isMobileNoValid({variables: {phoneNumber}});
-        const phoneTaken = phoneResponse?.data?.isMobileNoValid?.phoneNoTaken;
-        setMobileNoValid(phoneTaken);
-        if (phoneTaken) {
-          Toast.show({
-            type: 'error',
-            text1: 'This phone number is already taken!',
-            text2: 'Please enter another phone number',
-          });
-          return;
-        }
-
-        setEmailValid(false);
-        setMobileNoValid(false);
-        handleGetPhoneOtp();
-      } catch (error) {
-        console.error(error);
-      }
     }
-  };
-  const handleGetPhoneOtp = () => {
-    dispatch(emailSet(email));
+
     try {
-      getPhoneOtp({
-        variables: {phoneNumber},
-      }).then(response => {
-        // console.log('dawdads', response.data);
-        if (response?.data?.getValidPhoneOtp?.status === '403') {
-          Toast.show({
-            type: 'error',
-            text1: 'We are Sorry!',
-            text2: 'This User is Blocked',
-          });
-        } else if (response?.data?.getValidPhoneOtp?.status !== '200') {
-          Toast.show({
-            type: 'error',
-            text1: 'OTP not sent!',
-            text2: 'We encountered a problem please try again',
-          });
-        } else {
-          Toast.show({
-            type: 'success',
-            text1: `OTP Sent on ${response.data.getValidPhoneOtp.phoneNumber}`,
-            text2: '',
-          });
-          navigation.navigate('SignPhoneVerification', {
-            firstName,
-            lastName,
-            location,
-            // gender,
-            email,
-            phoneNumber,
-            description,
-            date,
-          });
-        }
-      });
+      const emailResponse = await isEmailValid({variables: {email}});
+      const isEmailTaken = emailResponse?.data?.isEmailValid?.emailTaken;
+      setEmailTaken(isEmailTaken);
+      if (isEmailTaken) {
+        return;
+      }
+
+      const phoneResponse = await isMobileNoValid({variables: {phoneNumber}});
+      const isPhoneTaken = phoneResponse?.data?.isMobileNoValid?.phoneNoTaken;
+      setPhoneTaken(isPhoneTaken);
+      if (isPhoneTaken) {
+        return;
+      }
+
+      await handleGetPhoneOtp();
     } catch (error) {
-      console.log(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Unable to continue',
+        text2: 'Please check your details and try again.',
+      });
     }
   };
-  console.log('registerData.progress', registerData.filledCount);
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <CompanyHeader
-          Header="Profile Details"
-          reset="true"
-          subHeading=""
-          HeaderStyle={{alignSelf: 'center'}}
-          subHeadingStyle={{
-            alignSelf: 'center',
-            fontSize: widthToDp(4.5),
-            marginVertical: heightToDp(1.5),
-            fontFamily: 'Manrope-Regular',
-            color: '#121826',
-          }}
-        />
-        <View style={styles.progressContainer}>
-          <ProgressBar
-            progress={registerData.progress}
-            width={width * 0.9}
-            color={Colors.OrangeGradientEnd}
-            unfilledColor={Colors.OrangeGradientStart}
-            borderWidth={0}
-          />
-          <Text style={styles.percentageText}>
-            {Math.round(registerData.progress * 100)}%
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AuthProgressHeader
+        title="Profile details"
+        progress={registerData.progress}
+        onBack={() => goBackOrNavigate(navigation, 'SignupAsScreen')}
+      />
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}>
+        <View style={styles.intro}>
+          <Text style={styles.eyebrow}>
+            {isClient ? 'CLIENT PROFILE' : 'NOTARY PROFILE'}
+          </Text>
+          <Text style={styles.heading}>Tell us about yourself</Text>
+          <Text style={styles.subheading}>
+            {isClient
+              ? 'Add your details so notaries can serve you securely.'
+              : 'Build a professional profile clients can trust.'}
           </Text>
         </View>
-        <View style={styles.container}>
-          <BottomSheetStyle>
-            <View style={{marginVertical: heightToDp(5)}}>
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                placeholder={'Enter your first name'}
-                Label={true}
-                defaultValue={firstName}
-                LabelTextInput={'First Name'}
-                onChangeText={text => setfirstName(text)}
-              />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                placeholder={'Enter your last name'}
-                defaultValue={lastName}
-                Label={true}
-                LabelTextInput={'Last Name'}
-                onChangeText={text => setlastName(text)}
-              />
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/profileTabIcon.png')}
-                placeholder={'Enter your email address'}
-                LabelTextInput={
-                  (emailValid && 'Email Taken') || 'Email Address'
-                }
-                onChangeText={text => setEmail(text)}
-                Label={true}
-                value={email}
-                returnKeyType="next"
-                onSubmitEditing={() => phoneInputRef.current.focus()}
-                labelStyle={emailValid && {color: Colors.Red}}
-                AdjustWidth={emailValid && {borderColor: Colors.Red}}
-              />
-              <PhoneTextInput
-                onChange={e => {
-                  setNumber(e);
-                }}
-                LabelTextInput="Phone Number"
-                Label={true}
-                placeholder={'XXXXXXXXXXX'}
-              />
-              {/* <CustomDatePicker
-                onConfirm={date => setDate(moment(date).format('DD-MM-YYYY'))}
-                Text="Date Of Birth"
-                mode="date"
-                date={date}
-                labelStyle={{}}
-                containerStyle={{
-                  paddingVertical: widthToDp(4),
-                  width: widthToDp(90),
-                  alignSelf: 'center',
-                }}
-                textStyle={{}}
-              /> */}
-              {variables == 'client' && (
-                <SingleSelectDropDown
-                  data={statesData}
-                  setSelected={item => {
-                    console.log('staterere', item);
-                    // Remove spaces from the selected state and set it
-                    const formattedState = item?.replace(/\s+/g, '');
-                    console.log('formateds dste', formattedState);
-                    setlocation(formattedState);
-                  }}
-                  label="State"
-                  placeholder="Choose your state..."
-                  Label={true}
-                  LabelTextInput={'State'}
-                  value={state?.label}
-                />
-              )}
-              {variables !== 'client' && (
-                <LabelTextInput
-                  leftImageSoucre={require('../../../assets/locationIcon.png')}
-                  Label={true}
-                  placeholder={'Enter your city'}
-                  LabelTextInput={'Address'}
-                  onChangeText={text => setlocation(text)}
-                />
-              )}
-              {variables !== 'client' && (
-                <MultiLineTextInput
-                  Label={true}
-                  placeholder={'Enter description here'}
-                  defaultValue={description}
-                  LabelTextInput={'Description'}
-                  onChangeText={text => setDescription(text)}
-                />
-              )}
 
-              {/* <View style={styles.GenderContainer}>
-                <Picker
-                  selectedValue={gender}
-                  onValueChange={handleGenderChange}
-                  style={{color: Colors.Black}}
-                  placeholder="Select Gender">
-                  <Picker.Item label="Select Gender" value="" />
-                  <Picker.Item label="Male" value="male" />
-                  <Picker.Item label="Female" value="female" />
-                  <Picker.Item label="Other" value="other" />
-                </Picker>
-              </View> */}
-              <View
-                style={{
-                  marginTop: heightToDp(10),
-                }}>
-                <GradientButton
-                  colors={[
-                    Colors.OrangeGradientStart,
-                    Colors.OrangeGradientEnd,
-                  ]}
-                  Title="Continue"
-                  loading={validLoading || mobilenovalidLoading || PhoneLoading}
-                  onPress={() => handleEmailValid()}
-                />
-              </View>
-            </View>
-          </BottomSheetStyle>
-        </View>
+        <AuthTextField
+          label="First name"
+          icon="user"
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="Enter your first name"
+          autoCapitalize="words"
+          error={submitted && !firstName.trim() ? 'First name is required' : ''}
+        />
+        <AuthTextField
+          label="Last name"
+          icon="user"
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Enter your last name"
+          autoCapitalize="words"
+          error={submitted && !lastName.trim() ? 'Last name is required' : ''}
+        />
+        <AuthTextField
+          label="Email address"
+          icon="mail"
+          value={email}
+          onChangeText={text => {
+            setEmail(text);
+            setEmailTaken(false);
+          }}
+          placeholder="name@example.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          error={
+            emailTaken
+              ? 'This email is already registered'
+              : submitted && !emailRegex.test(email)
+              ? 'Enter a valid email address'
+              : ''
+          }
+        />
+        <AuthPhoneField
+          value={phoneNumber}
+          onChangeText={text => {
+            setPhoneNumber(text);
+            setPhoneTaken(false);
+          }}
+          error={
+            phoneTaken
+              ? 'This phone number is already registered'
+              : submitted && !phoneNumber
+              ? 'Phone number is required'
+              : ''
+          }
+        />
+
+        {isClient ? (
+          <AuthSelectField
+            label="State"
+            placeholder="Choose your state"
+            data={statesData}
+            value={selectedState}
+            onSelect={item => {
+              setSelectedState(item.value);
+              setLocation(item.label.replace(/\s+/g, ''));
+            }}
+            error={submitted && !location ? 'State is required' : ''}
+          />
+        ) : (
+          <>
+            <AuthTextField
+              label="City"
+              icon="map-pin"
+              value={location}
+              onChangeText={setLocation}
+              placeholder="Enter your city"
+              autoCapitalize="words"
+              error={submitted && !location.trim() ? 'City is required' : ''}
+            />
+            <AuthTextField
+              label="Professional bio"
+              icon="align-left"
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Tell clients about your notary experience"
+              multiline
+              maxLength={500}
+              error={
+                submitted && !description.trim()
+                  ? 'Professional bio is required'
+                  : ''
+              }
+            />
+          </>
+        )}
+
+        <AuthPrimaryButton
+          title="Continue"
+          icon="arrow-right"
+          loading={emailLoading || phoneValidationLoading || otpLoading}
+          onPress={handleContinue}
+          style={styles.continueButton}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -340,32 +311,36 @@ export default function SignUpDetailScreen({navigation}, props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
+    backgroundColor: '#FFFFFF',
   },
-  GenderContainer: {
-    alignSelf: 'center',
-    marginTop: heightToDp(3),
-    // paddingVertical: heightToDp(2),
-    borderWidth: 2,
-    borderRadius: 15,
-    borderColor: '#D3D5DA',
-    width: widthToDp(90),
-    // height:height*.08
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 22,
+    paddingBottom: 36,
   },
-  progressContainer: {
-    marginVertical: 20,
-    alignItems: 'center',
-    width: '100%', // Adjust as needed
-    alignSelf: 'center',
-    justifyContent: 'center',
+  intro: {
+    marginBottom: 24,
   },
-  percentageText: {
-    position: 'absolute',
-    top: -30,
-    left: '47%',
-    // transform: [{translateX: -50}],
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'orange',
+  eyebrow: {
+    color: '#FD6D1F',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  heading: {
+    marginTop: 7,
+    color: '#121826',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 28,
+    lineHeight: 35,
+  },
+  subheading: {
+    marginTop: 7,
+    color: '#6C727F',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  continueButton: {
+    marginTop: 8,
   },
 });

@@ -1,61 +1,61 @@
+import React, {useEffect} from 'react';
 import {
+  ActivityIndicator,
+  Image,
+  SafeAreaView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  Image,
-  ImageBackground,
-  SafeAreaView,
 } from 'react-native';
-import React, {useEffect} from 'react';
-import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import useLogin from '../../hooks/useLogin';
 import LottieView from 'lottie-react-native';
+import useLogin from '../../hooks/useLogin';
 
-export default function RegisterCompletionScreen({navigation}) {
+export default function RegisterCompletionScreen() {
   const {resetStack} = useLogin();
+
   useEffect(() => {
-    const delay = 3000;
-
-    const timer = setTimeout(() => {
-      resetStack('signup');
-    }, delay);
-
+    const timer = setTimeout(() => resetStack('signup'), 3000);
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [resetStack]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <View
-        style={{
-          position: 'absolute',
-          height: '100%',
-          width: '100%',
-        }}>
-        <LottieView
-          source={require('../../../assets/confetti.json')}
-          autoPlay
-          loop
-          style={{
-            height: '100%',
-            width: '100%',
-          }}
-          resizeMode="cover"
-        />
-      </View>
-      <View style={styles.completeIcon}>
-        <Image
-          source={require('../../../assets/completedIcon.png')}
-          style={styles.icon}
-        />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <LottieView
+        source={require('../../../assets/confetti.json')}
+        autoPlay
+        loop={false}
+        resizeMode="cover"
+        pointerEvents="none"
+        style={styles.confetti}
+      />
 
-        <Text style={styles.text}>
-          Congratulations,{'\n'} you have successfully registered!
+      <Image
+        source={require('../../../assets/notarizrLogo1.png')}
+        resizeMode="contain"
+        style={styles.logo}
+      />
+
+      <View style={styles.content}>
+        <View style={styles.successIconWrap}>
+          <Image
+            source={require('../../../assets/completedIcon.png')}
+            resizeMode="contain"
+            style={styles.successIcon}
+          />
+        </View>
+        <Text style={styles.eyebrow}>REGISTRATION COMPLETE</Text>
+        <Text style={styles.heading}>Your account is ready</Text>
+        <Text style={styles.subheading}>
+          Welcome to Notarizr. We’re preparing your account now.
         </Text>
       </View>
-      <Image
-        source={require('../../../assets/complete.png')}
-        style={styles.complete}
-      />
+
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color="#FD6D1F" />
+        <Text style={styles.footerText}>Taking you to the app</Text>
+      </View>
     </SafeAreaView>
   );
 }
@@ -63,33 +63,71 @@ export default function RegisterCompletionScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
   },
-  completeIcon: {
-    marginTop: heightToDp(25),
+  confetti: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
-  groupimage: {
-    flex: 1,
-  },
-  icon: {
+  logo: {
+    width: 156,
+    height: 36,
     alignSelf: 'center',
-    marginVertical: heightToDp(2),
-    width: widthToDp(50),
-    height: widthToDp(50),
-    resizeMode: 'contain',
+    marginTop: 20,
   },
-  text: {
-    textAlign: 'center',
-    color: Colors.TextColor,
-    fontSize: widthToDp(7),
-    fontFamily: 'Manrope-Bold',
-  },
-
-  complete: {
-    alignSelf: 'flex-end',
-    width: widthToDp(70),
-    resizeMode: 'contain',
+  content: {
     flex: 1,
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 30,
+  },
+  successIconWrap: {
+    width: 154,
+    height: 154,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 77,
+    backgroundColor: '#FFF3EA',
+  },
+  successIcon: {
+    width: 118,
+    height: 118,
+  },
+  eyebrow: {
+    marginTop: 28,
+    color: '#FD6D1F',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  heading: {
+    marginTop: 8,
+    color: '#121826',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 28,
+    textAlign: 'center',
+  },
+  subheading: {
+    maxWidth: 300,
+    marginTop: 10,
+    color: '#6C727F',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  footer: {
+    height: 62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  footerText: {
+    marginLeft: 10,
+    color: '#737A86',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
   },
 });

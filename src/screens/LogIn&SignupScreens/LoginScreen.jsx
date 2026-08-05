@@ -1,37 +1,32 @@
 import {
   Image,
+  ImageBackground,
   StyleSheet,
   Text,
   TouchableOpacity,
-  Animated,
   View,
-  TextInput,
   ScrollView,
-  Alert,
-  SafeAreaView,
   PermissionsAndroid,
-  Linking,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import Colors from '../../themes/Colors';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch} from 'react-redux';
-import SplashScreen from 'react-native-splash-screen';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
 import {phoneSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
-import CustomToast from '../../components/CustomToast/CustomToast';
-import PhoneTextInput from '../../components/countryCode/PhoneTextInput';
 import Geolocation from '@react-native-community/geolocation';
+import Svg, {Path} from 'react-native-svg';
+import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 
-export default function LoginScreen({navigation}, props) {
-  const [email, setEmail] = useState('');
+const LOGIN_BACKGROUND = Colors.white;
+const HERO_ORANGE_END = '#FD6D1F';
+
+export default function LoginScreen({navigation}) {
   const [phone, setPhone] = useState('');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
   const dispatch = useDispatch();
@@ -58,8 +53,9 @@ export default function LoginScreen({navigation}, props) {
   };
 
   const handleGetPhoneOtp = () => {
-    getCurrentLocation();
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    getCurrentLocation().catch(error => {
+      console.log('Error getting current location:', error);
+    });
 
     // if (!emailRegex.test(email)) {
     //   Toast.show({
@@ -125,6 +121,7 @@ export default function LoginScreen({navigation}, props) {
     }
     // }
   };
+
   useEffect(() => {
     requestPermissions();
   }, []);
@@ -201,79 +198,117 @@ export default function LoginScreen({navigation}, props) {
     }
   };
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{backgroundColor: Colors.PinkBackground}}>
-        <CompanyHeader
-          Header="Welcome Back to Notarizr"
-          subHeading="Hello there, sign in to continue!"
-          HeaderStyle={{alignSelf: 'center'}}
-          subHeadingStyle={{
-            alignSelf: 'center',
-            fontSize: 17,
-            marginVertical: heightToDp(1.5),
-            color: '#121826',
-          }}
-        />
-        <BottomSheetStyle>
-          <View style={{marginTop: heightToDp(5)}}>
-            <PhoneTextInput
-              onChange={e => {
-                setPhone(e);
-              }}
-              LabelTextInput="Phone Number"
-              Label={true}
-              placeholder={'XXXXXXXXXXX'}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}>
+        <ImageBackground
+          source={require('../../../assets/loginBackground.png')}
+          style={styles.heroImage}
+          resizeMode="stretch">
+          <Image
+            source={require('../../../assets/notarizrLogo1.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Svg
+            style={styles.waveOverlay}
+            viewBox="0 0 400 90"
+            preserveAspectRatio="none">
+            <Path
+              d="M0 42 C58 74 120 8 190 36 C262 66 326 20 400 48 L400 90 L0 90 Z"
+              fill={Colors.white}
             />
-            {/* <LabelTextInput
-              leftImageSoucre={require('../../../assets/EmailIcon.png')}
-              placeholder={'Enter your email address'}
-              LabelTextInput={'Email Address'}
-              onChangeText={text => setEmail(text)}
-              keyboardType={'email-address'}
-              Label={true}
-            /> */}
-            <View
-              style={{
-                marginTop: heightToDp(10),
-              }}>
-              <GradientButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Login"
-                viewStyle={props.viewStyle}
-                GradiStyles={props.GradiStyles}
-                onPress={() => handleGetPhoneOtp()}
-                loading={loading}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'center',
-                marginVertical: heightToDp(10),
-              }}>
-              <Text
-                style={{
-                  color: Colors.DullTextColor,
-                }}>
-                Don’t have an account?{' '}
-              </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('SignupAsScreen')}>
-                <Text style={{color: Colors.Orange}}>Sign up</Text>
-              </TouchableOpacity>
-            </View>
+          </Svg>
+        </ImageBackground>
+
+        <View style={styles.formSection}>
+          <Text style={styles.headerText}>Login</Text>
+          <AuthPhoneField value={phone} onChangeText={setPhone} />
+
+          <AuthPrimaryButton
+            title="Login"
+            loading={loading}
+            onPress={handleGetPhoneOtp}
+            style={styles.loginButton}
+          />
+
+          <View style={styles.signupRow}>
+            <Text style={styles.signupPrompt}>Don’t have an account? </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SignupAsScreen')}>
+              <Text style={styles.signupLink}>Sign up</Text>
+            </TouchableOpacity>
           </View>
-        </BottomSheetStyle>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: LOGIN_BACKGROUND,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: heightToDp(6),
+    backgroundColor: LOGIN_BACKGROUND,
+  },
+  logo: {
+    position: 'absolute',
+    left: widthToDp(7),
+    top: Platform.OS === 'ios' ? heightToDp(14) : heightToDp(8),
+    width: widthToDp(31),
+    height: heightToDp(6),
+  },
+  heroImage: {
+    width: '100%',
+    height: heightToDp(128),
+  },
+  waveOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: -1,
+    width: '100%',
+    height: heightToDp(10),
+  },
+  formSection: {
+    width: '100%',
+    paddingHorizontal: widthToDp(7),
+    paddingTop: heightToDp(4.5),
+  },
+  headerText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 30,
+    color: Colors.TextColor,
+    marginBottom: 24,
+  },
+  loginButton: {
+    marginBottom: 22,
+  },
+  signupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: heightToDp(0.8),
+  },
+  signupPrompt: {
+    color: Colors.DullTextColor,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
+  },
+  signupLink: {
+    color: HERO_ORANGE_END,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
   },
 });

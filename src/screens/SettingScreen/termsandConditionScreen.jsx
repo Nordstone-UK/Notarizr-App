@@ -1,25 +1,12 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet} from 'react-native';
-import {WebView} from 'react-native-webview'; // Import WebView component
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import LegalWebScreen from '../../components/Support/LegalWebScreen';
 
-export default function TermsAndConditionsScreen() {
+export default function TermsAndConditionsScreen({navigation}) {
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Terms & Conditions" />
-
-      <WebView
-        originWhitelist={['*']} // Allow all origins
-        source={{uri: 'https://notarizr.co/terms-policies/'}} // Load the URL for Terms & Conditions
-        style={{flex: 1}} // Make WebView take up the full screen
-      />
-    </SafeAreaView>
+    <LegalWebScreen
+      navigation={navigation}
+      title="Terms and conditions"
+      url="https://notarizr.co/terms-policies/"
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF2DC',
-  },
-});

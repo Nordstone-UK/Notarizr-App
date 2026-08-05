@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -5,58 +6,60 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
-import LinearGradient from 'react-native-linear-gradient';
-import {width, widthToDp} from '../../utils/Responsive';
 
-export default function GradientButton({fontSize = widthToDp(5), ...props}) {
+const getBackground = colors =>
+  colors?.[0] && colors[0] === colors?.[1] ? colors[0] : '#FD6D1F';
+
+export default function GradientButton({fontSize = 13, ...props}) {
+  const requestedSize = Number(props.buttonFontSize || fontSize || 13);
   return (
-    <TouchableOpacity onPress={props.onPress} disabled={props?.isDisabled}>
-      <LinearGradient
-        colors={props?.colors}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 0}}
-        style={[styles.gradientstyles, props?.GradiStyles]}>
-        <View style={[styles.buttonToucableOpacity, props?.viewStyle]}>
-          {props?.loading || props?.isDisabled || false ? (
-            <ActivityIndicator
-              style={[styles.buttonText, props.styles]}
-              size="large"
-              color="#ffff"
-            />
-          ) : (
-            <Text
-              style={[
-                props?.styles,
-                styles.buttonText,
-                {
-                  fontSize: props?.buttonFontSize || fontSize, // Adjust font size dynamically
-                },
-              ]}>
-              {props?.Title}
-            </Text>
-          )}
-        </View>
-      </LinearGradient>
+    <TouchableOpacity
+      activeOpacity={0.78}
+      disabled={props.isDisabled}
+      onPress={props.onPress}
+      style={[styles.touchable, props.viewStyle]}>
+      <View
+        style={[
+          styles.button,
+          {backgroundColor: getBackground(props.colors)},
+          props.GradiStyles,
+          props.isDisabled && styles.disabled,
+        ]}>
+        {props.loading ? (
+          <ActivityIndicator color="#FFFFFF" size="small" />
+        ) : (
+          <Text
+            numberOfLines={2}
+            style={[
+              styles.text,
+              props.styles,
+              {fontSize: Math.min(requestedSize, 14)},
+            ]}>
+            {props.Title}
+          </Text>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  gradientstyles: {
-    borderRadius: 10,
-    alignSelf: 'center',
-    width: '90%',
-    justifyContent: 'center',
+  touchable: {alignSelf: 'stretch'},
+  button: {
+    minHeight: 48,
     alignItems: 'center',
-    margin: 15,
+    justifyContent: 'center',
+    margin: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: 8,
+    backgroundColor: '#FD6D1F',
   },
-
-  buttonText: {
-    padding: '5%',
-    color: '#fff',
-    // fontSize: widthToDp(6),
-    textAlign: 'center',
+  disabled: {opacity: 0.65},
+  text: {
+    color: '#FFFFFF',
     fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    textAlign: 'center',
   },
 });

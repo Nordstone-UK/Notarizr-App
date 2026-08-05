@@ -1,341 +1,217 @@
+import React, {useCallback, useRef, useState} from 'react';
 import {
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
-  View,
   FlatList,
-  SafeAreaView,
-  Image,
-  Text,
   RefreshControl,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import SignupButton from '../../components/SingupButton.jsx/SignupButton';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
-import HomeScreenHeader from '../../components/HomeScreenHeader/HomeScreenHeader';
-import Colors from '../../themes/Colors';
-import AgentCard from '../../components/AgentCard/AgentCard';
-import {ScrollView} from 'react-native-virtualized-view';
-import useFetchBooking from '../../hooks/useFetchBooking';
+import {useFocusEffect} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
+import BookingCard from '../../components/Bookings/BookingCard';
+import BookingEmptyState from '../../components/Bookings/BookingEmptyState';
+import BookingHeader from '../../components/Bookings/BookingHeader';
 import {
   setBookingInfoState,
   setCoordinates,
   setUser,
 } from '../../features/booking/bookingSlice';
+import {PREVIEW_BOOKINGS} from '../../data/previewBookings';
+import useFetchBooking from '../../hooks/useFetchBooking';
 
-export default function AllBookingScreen({route, navigation}) {
+const getBookingStatus = booking => {
+  if (booking.status === 'cancelled' || booking.status === 'expired') {
+    return 'rejected';
+  }
+  return booking.status;
+};
+
+export default function AllBookingScreen({navigation}) {
   const user = useSelector(state => state.user.user);
-  const [isFocused, setIsFocused] = useState('accepted');
-  const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
-  const [refreshing, setRefreshing] = useState(false);
-  const [mergerData, setMergerData] = useState([]);
-
-  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
-  const init = async status => {
-    setLoading(true);
-    const bookingDetail = await fetchBookingInfo(status);
-    const sessionDetail = await handleClientSessions(status);
-    const mergedDetails = [...bookingDetail, ...sessionDetail];
-    const sortedDetails = mergedDetails.sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-    );
-    setMergerData(sortedDetails);
-    setLoading(false);
-  };
-  useEffect(() => {
-    if (user != null) {
-      const unsubscribe = navigation.addListener('focus', () => {
-        init(isFocused);
-        setIsFocused(isFocused);
-      });
-      return unsubscribe;
-    }
-  }, [navigation]);
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    if (user != null) {
-      init(isFocused);
-    }
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
-  const callBookingsAPI = async status => {
-    setIsFocused(status);
-    if (user != null) {
-      init(status);
-    }
-  };
-  const handleAgentData = item => {
-    navigation.navigate('MedicalBookingScreen');
-    console.log('itemmmmsdf', item);
-    dispatch(setBookingInfoState(item));
-    dispatch(setCoordinates(item?.booked_by?.current_location?.coordinates));
-    dispatch(setUser(item?.agent));
-  };
-  return (
-    <SafeAreaView style={styles.container}>
-      <HomeScreenHeader Title="My Journal" />
-      <BottomSheetStyle>
-        <ScrollView
-          scrollEnabled={true}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.contentContainer}>
-          <ScrollView
-            horizontal={true}
-            contentContainerStyle={{}}
-            showsHorizontalScrollIndicator={false}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-around',
-                alignItems: 'center',
-                alignContent: 'center',
-                columnGap: widthToDp(5),
-                marginHorizontal: widthToDp(5),
-              }}>
-              <MainButton
-                Title="Accepted"
-                colors={
-                  isFocused === 'accepted'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'accepted'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                }
-                onPress={() => callBookingsAPI('accepted')}
-              />
-              <MainButton
-                Title="Pending"
-                colors={
-                  isFocused === 'pending'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'pending'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                }
-                onPress={() => callBookingsAPI('pending')}
-              />
-              <MainButton
-                Title="Completed"
-                colors={
-                  isFocused === 'completed'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'completed'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                }
-                onPress={() => callBookingsAPI('completed')}
-              />
-              <MainButton
-                Title="Rejected / Cancelled"
-                colors={
-                  isFocused === 'rejected'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                styles={
-                  isFocused === 'rejected'
-                    ? {
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                    : {
-                        color: Colors.TextColor,
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: widthToDp(1),
-                        fontSize: widthToDp(4),
-                      }
-                }
-                onPress={() => callBookingsAPI('rejected')}
-              />
-            </View>
-          </ScrollView>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.Orange} />
-            </View>
-          ) : user != null ? (
-            <View style={styles.bookingContainer}>
-              {mergerData ? (
-                mergerData.length !== 0 ? (
-                  <FlatList
-                    data={mergerData}
-                    keyExtractor={item => item._id}
-                    renderItem={({item}) => {
-                      return (
-                        <TouchableOpacity onPress={() => handleAgentData(item)}>
-                          <AgentCard
-                            source={{uri: item?.agent?.profile_picture}}
-                            calendarImage={require('../../../assets/calenderIcon.png')}
-                            servicetype={item.service_type}
-                            bottomRightText={item?.document_type}
-                            bottomLeftText="Total"
-                            image={require('../../../assets/locationIcon.png')}
-                            agentName={
-                              item?.agent?.first_name +
-                              ' ' +
-                              item?.agent?.last_name
-                            }
-                            paymentType={item?.payment_type}
-                            agentAddress={item?.agent?.location}
-                            status={item?.status || 'Loading'}
-                            OrangeText={'At Office'}
-                            datetimesession={item?.date_time_session}
-                            dateofBooking={item?.date_of_booking}
-                            timeofBooking={item?.time_of_booking}
-                            createdAt={item?.createdAt}
-                          />
-                        </TouchableOpacity>
-                      );
-                    }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      height: heightToDp(100),
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <Image
-                      source={require('../../../assets/emptyBox.png')}
-                      style={styles.picture}
-                    />
-                    <Text style={styles.subheading}>No Booking Found...</Text>
-                  </View>
-                )
-              ) : (
-                <View
-                  style={{
-                    height: heightToDp(100),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <ActivityIndicator size="large" color={Colors.Orange} />
-                </View>
-              )}
-            </View>
-          ) : (
-            <View
-              style={{
-                minHeight: heightToDp(100),
-                justifyContent: 'center',
-                alignSelf: 'center',
-              }}>
-              <Image
-                source={require('../../../assets/emptyBox.png')}
-                style={styles.picture}
-              />
-              <Text
-                style={[
-                  styles.Heading,
+  const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
+  const fetchBookingInfoRef = useRef(fetchBookingInfo);
+  const handleClientSessionsRef = useRef(handleClientSessions);
+  const [activeStatus, setActiveStatus] = useState('accepted');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
-                  {
-                    fontSize: widthToDp(4),
-                    fontFamily: 'Manrope-SemiBold',
-                    fontWeight: '600',
-                  },
-                ]}>
-                Please Login to see bookings
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      </BottomSheetStyle>
+  fetchBookingInfoRef.current = fetchBookingInfo;
+  handleClientSessionsRef.current = handleClientSessions;
+
+  const previewMode = Boolean(user?.isHomePreview);
+  const previewBookings = PREVIEW_BOOKINGS.filter(
+    booking => getBookingStatus(booking) === activeStatus,
+  );
+  const visibleBookings = previewMode ? previewBookings : bookings;
+
+  const loadBookings = useCallback(
+    async (status, refreshingRequest = false) => {
+      if (previewMode) {
+        return;
+      }
+
+      refreshingRequest ? setRefreshing(true) : setLoading(true);
+      setLoadError(false);
+      try {
+        const [bookingDetails, sessionDetails] = await Promise.all([
+          fetchBookingInfoRef.current(status),
+          handleClientSessionsRef.current(status),
+        ]);
+        const merged = [
+          ...(Array.isArray(bookingDetails) ? bookingDetails : []),
+          ...(Array.isArray(sessionDetails) ? sessionDetails : []),
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setBookings(merged);
+      } catch (error) {
+        console.error('Failed to load bookings:', error);
+        setBookings([]);
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [previewMode],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBookings(activeStatus);
+    }, [activeStatus, loadBookings]),
+  );
+
+  const openBooking = booking => {
+    dispatch(setBookingInfoState(booking));
+    dispatch(
+      setCoordinates(booking?.booked_by?.current_location?.coordinates || []),
+    );
+    dispatch(setUser(booking?.agent || []));
+    navigation.navigate('MedicalBookingScreen');
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color="#FD6D1F" size="small" />
+          <Text style={styles.loadingText}>Loading bookings</Text>
+        </View>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Bookings could not be loaded</Text>
+          <Text style={styles.errorMessage}>
+            Check your connection and try again.
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.72}
+            onPress={() => loadBookings(activeStatus)}
+            style={styles.retryButton}>
+            <Text style={styles.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={visibleBookings}
+        keyExtractor={item => item._id}
+        renderItem={({item}) => (
+          <BookingCard booking={item} onPress={() => openBooking(item)} />
+        )}
+        ListEmptyComponent={<BookingEmptyState status={activeStatus} />}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            enabled={!previewMode}
+            onRefresh={() => loadBookings(activeStatus, true)}
+            refreshing={refreshing}
+            tintColor="#FD6D1F"
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      />
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <BookingHeader
+        activeStatus={activeStatus}
+        count={visibleBookings.length}
+        onChangeStatus={setActiveStatus}
+      />
+      <View style={styles.content}>{renderContent()}</View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
+    backgroundColor: '#FFFFFF',
   },
-  picture: {
-    width: widthToDp(20),
-    alignSelf: 'center',
-    height: heightToDp(20),
+  content: {
+    flex: 1,
+    backgroundColor: '#F7F8FA',
   },
-  Heading: {
-    fontSize: widthToDp(6.5),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    paddingLeft: widthToDp(2),
-  },
-  contentContainer: {
-    paddingVertical: heightToDp(5),
-  },
-  subheading: {
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    alignSelf: 'center',
-  },
-  CategoryBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: heightToDp(3),
-  },
-  PictureBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginVertical: heightToDp(1),
-  },
-  CategoryPictures: {
-    marginVertical: heightToDp(2),
-  },
-  bookingContainer: {
-    // borderWidth: 1,
-    marginVertical: widthToDp(3),
+  listContent: {
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   loadingContainer: {
-    height: heightToDp(100),
-    justifyContent: 'center',
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#7A818D',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+  },
+  errorTitle: {
+    color: '#1B2130',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+  },
+  errorMessage: {
+    marginTop: 5,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  retryButton: {
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    backgroundColor: '#FD6D1F',
+  },
+  retryText: {
+    color: '#FFFFFF',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
 });

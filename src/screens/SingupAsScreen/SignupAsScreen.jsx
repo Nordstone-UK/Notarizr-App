@@ -1,137 +1,126 @@
+import React, {useEffect, useState} from 'react';
 import {
   Image,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  Dimensions,
 } from 'react-native';
-import ProgressBar from 'react-native-progress/Bar';
-
-import React, {useEffect, useState} from 'react';
-import SignupButton from '../../components/SingupButton.jsx/SignupButton';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import Colors from '../../themes/Colors';
-import {
-  setProgress,
-  setFilledCount,
-} from '../../features/register/registerSlice';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useDispatch, useSelector} from 'react-redux';
-import {accountTypeSet} from '../../features/register/registerSlice';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import AuthProgressHeader from '../../components/AuthFlow/AuthProgressHeader';
+import AccountTypeCard from '../../components/AuthFlow/AccountTypeCard';
+import SignupBenefit from '../../components/AuthFlow/SignupBenefit';
+import {
+  accountTypeSet,
+  setFilledCount,
+  setProgress,
+} from '../../features/register/registerSlice';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
+
+const ACCOUNT_OPTIONS = {
+  client: {
+    title: 'I need a notary',
+    description: 'Book trusted online or mobile notary services.',
+    icon: 'file-text',
+  },
+  agent: {
+    title: "I'm a notary",
+    description: 'Join the network and manage client requests.',
+    icon: 'briefcase',
+  },
+};
+
+const BENEFITS = {
+  client: {
+    icon: 'gift',
+    title: 'Start booking in minutes',
+    description: 'Create your profile and connect with trusted notaries.',
+  },
+  agent: {
+    icon: 'trending-up',
+    title: 'Grow your notary business',
+    description: 'Receive new requests and manage appointments in one place.',
+  },
+};
 
 export default function SignupAsScreen({navigation}) {
-  const [colored, setColored] = useState('client');
+  const [selectedType, setSelectedType] = useState('client');
   const [loading, setLoading] = useState(false);
   const registerData = useSelector(state => state.register);
-
-  const {width} = Dimensions.get('window');
-
   const dispatch = useDispatch();
-  const handleUserType = async colored => {
-    setLoading(true);
-    try {
-      if (colored === 'client') {
-        await navigation.navigate('SignUpDetailScreen');
-        dispatch(accountTypeSet(colored));
-      } else {
-        //await navigation.navigate('AgentSignupScreen');
-        dispatch(accountTypeSet('individual-agent'));
-        navigation.navigate('SignUpDetailScreen');
-      }
-    } catch (error) {
-      console.error('Error occurred:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const selectedBenefit = BENEFITS[selectedType];
+
   useEffect(() => {
-    const totalFields = colored === 'client' ? 8 : 12;
-    const progressValue = 1 / totalFields;
+    const totalFields = selectedType === 'client' ? 8 : 12;
     dispatch(setFilledCount(1));
-    dispatch(setProgress(progressValue));
-  }, [colored]);
+    dispatch(setProgress(1 / totalFields));
+  }, [dispatch, selectedType]);
+
+  const handleContinue = () => {
+    setLoading(true);
+    const accountType =
+      selectedType === 'client' ? 'client' : 'individual-agent';
+
+    dispatch(accountTypeSet(accountType));
+    navigation.navigate('SignUpDetailScreen');
+    setLoading(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressText}>
-          Your Notary Journey: {Math.round(registerData?.progress * 100)}% 🚀
-        </Text>
-        <ProgressBar
-          progress={registerData.progress}
-          width={width * 0.9}
-          color={Colors.OrangeGradientEnd}
-          unfilledColor={Colors.OrangeGradientStart}
-          borderWidth={0}
-        />
-      </View>
-
-      <CompanyHeader
-        Header={`Join Notarizr 😎 ${'\n'}and enjoy our services`}
-        HeaderStyle={{marginHorizontal: widthToDp(5)}}
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AuthProgressHeader
+        progress={registerData?.progress}
+        onBack={() => goBackOrNavigate(navigation, 'LoginScreen')}
       />
-      <BottomSheetStyle>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <SignupButton
-            Title="Become a VIP Clients 🎟️"
-            colors={
-              colored === 'client'
-                ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                : ['#F5F6F7', '#fff']
-            }
-            TextStyle={colored === 'client' ? {color: '#fff'} : {color: '#000'}}
-            picture={require('../../../assets/clientPic.png')}
-            onPress={() => setColored('client')}
-          />
-          <SignupButton
-            Title="Join the Elite Notary Network 🚀"
-            colors={
-              colored === 'agent'
-                ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                : ['#F5F6F7', '#fff']
-            }
-            TextStyle={colored === 'agent' ? {color: '#fff'} : {color: '#000'}}
-            picture={require('../../../assets/agentPic.png')}
-            onPress={() => setColored('agent')}
-          />
-          {/* Avatar & Challenge Section */}
-          <View style={styles.challengeContainer}>
-            <Text style={styles.challengeText}>
-              Earn points for completed tasks! 🎯
-            </Text>
-            <Text style={styles.challengeSubText}>
-              {colored === 'agent'
-                ? 'Complete 5 tasks to earn your first badge! 🏆'
-                : 'Book your first notarization and earn a discount! 💰'}
-            </Text>
-            {colored === 'agent' ? (
-              <Image
-                source={require('../../../assets/trophy.png')}
-                style={styles.badgeImage}
-              />
-            ) : (
-              <Image
-                source={require('../../../assets/money.png')}
-                style={styles.badgeImage}
-              />
-            )}
-          </View>
 
-          <View style={styles.buttonConatiner}>
-            <GradientButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Unlock Notarization Power! 🔓"
-              loading={loading}
-              onPress={() => handleUserType(colored)}
-            />
-          </View>
-        </ScrollView>
-      </BottomSheetStyle>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}>
+        <Image
+          source={require('../../../assets/notarizrLogo1.png')}
+          resizeMode="contain"
+          style={styles.logo}
+        />
+
+        <View style={styles.intro}>
+          <Text style={styles.eyebrow}>CHOOSE YOUR ACCOUNT</Text>
+          <Text style={styles.heading}>How will you use Notarizr?</Text>
+          <Text style={styles.subheading}>
+            Select the option that best matches what you need.
+          </Text>
+        </View>
+
+        <View style={styles.cardStack}>
+          <AccountTypeCard
+            {...ACCOUNT_OPTIONS.client}
+            selected={selectedType === 'client'}
+            onPress={() => setSelectedType('client')}
+          />
+          <View style={styles.cardSpacer} />
+          <AccountTypeCard
+            {...ACCOUNT_OPTIONS.agent}
+            selected={selectedType === 'agent'}
+            onPress={() => setSelectedType('agent')}
+          />
+        </View>
+
+        <SignupBenefit {...selectedBenefit} />
+
+        <AuthPrimaryButton
+          title={
+            selectedType === 'client'
+              ? 'Continue as a client'
+              : 'Continue as a notary'
+          }
+          icon="arrow-right"
+          loading={loading}
+          onPress={handleContinue}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -139,42 +128,46 @@ export default function SignupAsScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF2DC',
+    backgroundColor: '#FFFFFF',
   },
-  buttonConatiner: {
-    marginVertical: widthToDp(6),
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 32,
   },
-  progressContainer: {
-    marginTop: widthToDp(2),
-    paddingHorizontal: widthToDp(5),
+  logo: {
+    width: 168,
+    height: 38,
+    alignSelf: 'center',
   },
-  progressText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.OrangeGradientEnd,
-    marginBottom: widthToDp(1),
+  intro: {
+    marginTop: 28,
+    marginBottom: 22,
   },
-  progressBar: {
-    height: widthToDp(2),
+  eyebrow: {
+    color: '#FD6D1F',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
-  challengeContainer: {
-    marginTop: widthToDp(5),
-    alignItems: 'center',
+  heading: {
+    marginTop: 8,
+    color: '#121826',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 28,
+    lineHeight: 35,
   },
-  challengeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF7A28',
-  },
-  challengeSubText: {
+  subheading: {
+    marginTop: 8,
+    color: '#6C727F',
+    fontFamily: 'Manrope-Regular',
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginVertical: widthToDp(2),
+    lineHeight: 20,
   },
-  badgeImage: {
-    width: widthToDp(10),
-    height: widthToDp(10),
-    resizeMode: 'contain',
+  cardStack: {
+    width: '100%',
+  },
+  cardSpacer: {
+    height: 12,
   },
 });

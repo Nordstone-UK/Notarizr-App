@@ -1,174 +1,85 @@
+import React, {useEffect, useRef} from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
   Image,
-  ImageBackground,
-  SafeAreaView,
   PermissionsAndroid,
-  Linking,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
 } from 'react-native';
-import React, {useEffect} from 'react';
-import Colors from '../../themes/Colors';
-import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SplashScreen from 'react-native-splash-screen';
 import useFetchUser from '../../hooks/useFetchUser';
-import useChatService from '../../hooks/useChatService';
-import {useSession} from '../../hooks/useSession';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
-  const {getClientChats, getAgentChats} = useChatService();
-  const {getSessionByID} = useSession();
-  const checkAuthentication = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (token) {
-        await fetchUserInfo()
-          .then(async response => {
-            if (
-              response.isVerified == false &&
-              response.account_type == 'agent'
-            ) {
-              // console.log('tokemd', token);
-              navigation.navigate('AgentVerfiedScreen');
-            } else {
-              response?.account_type === 'client'
-                ? getClientChats()
-                : getAgentChats();
+  const fetchUserInfoRef = useRef(fetchUserInfo);
 
-              navigation.reset({
-                index: 0,
-                routes: [{name: 'HomeScreen'}],
-              });
-            }
-          })
-          .catch(error => {
-            console.log(error);
-          });
-      } else {
-        checkFirstLaunch();
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-    }
-  };
-
-  const isFirstLaunch = async () => {
-    try {
-      const value = await AsyncStorage.getItem('isFirstLaunch');
-      return value === null;
-    } catch (error) {
-      console.error('Error checking first launch:', error);
-      return false;
-    }
-  };
-  const checkFirstLaunch = async () => {
-    const isFirst = await isFirstLaunch();
-    if (isFirst) {
-      // User is launching the app for the first time
-      // Navigate to the onboarding screens
-      navigation.navigate('OnboardingScreen1');
-
-      // Once the introduction screens are shown, set the flag in AsyncStorage
-      try {
-        await AsyncStorage.setItem('isFirstLaunch', 'false');
-      } catch (error) {
-        console.error('Error setting first launch flag:', error);
-      }
-    } else {
-      // User has already seen the introduction screens
-      // Navigate to the login screen
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'HomeScreen'}],
-      });
-    }
-  };
+  fetchUserInfoRef.current = fetchUserInfo;
 
   useEffect(() => {
-    requestPermissions();
-    checkAuthentication().then(() => {
-      SplashScreen.hide();
-    });
-  }, []);
-  const requestPermissions = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        //       // Request location permission
-        //       const locationPermission = await PermissionsAndroid.request(
-        //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        //       );
-
-        //       // Request camera permission
-        //       const cameraPermission = await PermissionsAndroid.request(
-        //         PermissionsAndroid.PERMISSIONS.CAMERA,
-        //       );
-
-        //       // Request storage permission
-        //       const storagePermission = await PermissionsAndroid.request(
-        //         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        //       );
-        //       const Android13StoragePermission = await PermissionsAndroid.request(
-        //         PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-        //       );
-        const NotificationPermission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-        );
-        //       const PhonePermission = await PermissionsAndroid.request(
-        //         PermissionsAndroid.PERMISSIONS.CALL_PHONE,
-        //       );
-        //       // Check if permissions are granted
+    const requestNotificationPermission = async () => {
+      try {
         if (
-          //         locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          //         cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          NotificationPermission === PermissionsAndroid.RESULTS.GRANTED
-          //         PhonePermission === PermissionsAndroid.RESULTS.GRANTED &&
-          //         (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
-          //           Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
+          Platform.OS === 'android' &&
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
         ) {
-          console.log('All permissions granted');
-        } else {
-          console.log('Some permissions denied');
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          );
         }
-      } else if (Platform.OS === 'ios') {
-        //       // Request location permission
-        //       const locationPermissionStatus = await request(
-        //         PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-        //       );
-        const PushNotificationPermission = await request(
-          PERMISSIONS.IOS.NOTIFICATIONS,
-        );
-
-        //       // Request camera permission
-        //       const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
-
-        //       // Request photo library permission
-        //       const photoLibraryPermissionStatus = await request(
-        //         PERMISSIONS.IOS.PHOTO_LIBRARY,
-        //       );
-
-        //       // Check if permissions are granted
-        if (
-          //         locationPermissionStatus === 'granted' &&
-          //         cameraPermissionStatus === 'granted' &&
-          PushNotificationPermission === 'granted'
-          //         photoLibraryPermissionStatus === 'granted'
-        ) {
-          console.log('All permissions granted');
-        } else {
-          console.log('Some permissions denied');
-        }
+      } catch (error) {
+        console.log('Notification permission error:', error);
       }
-    } catch (error) {
-      console.log('Error requesting permissions:', error);
-    }
-  };
+    };
+
+    const openLogin = () => {
+      navigation.reset({index: 0, routes: [{name: 'LoginScreen'}]});
+    };
+
+    const bootstrap = async () => {
+      await requestNotificationPermission();
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          openLogin();
+          return;
+        }
+
+        const user = await fetchUserInfoRef.current();
+        if (!user) {
+          await AsyncStorage.removeItem('token');
+          openLogin();
+          return;
+        }
+        if (user.isVerified === false && user.account_type === 'agent') {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'AgentVerfiedScreen'}],
+          });
+          return;
+        }
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'HomeScreen'}],
+        });
+      } catch (error) {
+        await AsyncStorage.removeItem('token');
+        openLogin();
+      } finally {
+        SplashScreen.hide();
+      }
+    };
+
+    bootstrap();
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Image
         source={require('../../../assets/launch_screen.png')}
-        style={styles.complete}
+        resizeMode="cover"
+        style={styles.image}
       />
     </SafeAreaView>
   );
@@ -177,8 +88,10 @@ export default function Splash_Screen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
 });

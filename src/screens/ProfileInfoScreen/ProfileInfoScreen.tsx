@@ -1,230 +1,190 @@
+import React, {useEffect, useState} from 'react';
 import {
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ChatClient
-} from 'react-native-agora-chat';
-import { height, heightToDp, widthToDp } from '../../utils/Responsive';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import Colors from '../../themes/Colors';
-import SettingOptions from '../../components/SettingOptions/SettingOptions';
-import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ChatClient} from 'react-native-agora-chat';
+import {useDispatch, useSelector} from 'react-redux';
+import LogoutConfirmModal from '../../components/Profile/LogoutConfirmModal';
+import ProfileHeader from '../../components/Profile/ProfileHeader';
+import ProfileMenuItem from '../../components/Profile/ProfileMenuItem';
+import ProfileSection from '../../components/Profile/ProfileSection';
+import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import LoginBottomSheet from '../../components/CustomBottomSheet/LoginBottomSheet';
-import { saveUserInfo } from '../../features/user/userSlice';
-import { Alert } from 'react-native';
-export default function ProfileInfoScreen({ navigation }: any) {
-  const chatClient = ChatClient.getInstance();
 
-  const user = useSelector(state => state.user.user);
-  const { fetchUserInfo } = useFetchUser();
+export default function ProfileInfoScreen({navigation}: any) {
+  const user = useSelector((state: any) => state.user.user);
   const dispatch = useDispatch();
+  const {fetchUserInfo} = useFetchUser();
+  const [logoutVisible, setLogoutVisible] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
-  const clearTokenFromStorage = async () => {
+  useEffect(() => {
+    if (!user || user.isHomePreview) {
+      return undefined;
+    }
+
+    return navigation.addListener('focus', fetchUserInfo);
+  }, [fetchUserInfo, navigation, user]);
+
+  const openProfile = (profileEdit = false) => {
+    navigation.navigate('ProfileDetailEditScreen', {profileEdit});
+  };
+
+  const handleLogout = async () => {
+    setLogoutLoading(true);
     try {
       await AsyncStorage.removeItem('token');
-      const token = await AsyncStorage.getItem('token');
-      // console.log('Token cleared from AsyncStorage', token);
+
+      const chatClient = ChatClient.getInstance();
+      if (chatClient?.isInitialized) {
+        await chatClient.logout();
+      }
     } catch (error) {
-      console.error('Error clearing token from AsyncStorage:', error);
-    }
-  };
-  const handleLogout = async () => {
-    if (user) {
-      Alert.alert(
-        'Logout',
-        'Are you sure you want to log out?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Yes',
-            onPress: async () => {
-              clearTokenFromStorage();
-              dispatch(saveUserInfo(null));
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'HomeScreen' }],
-              });
-              if (chatClient && chatClient.isInitialized) {
-                await chatClient.logout();
-              }
-            },
-          },
-        ],
-        { cancelable: false }
-      );
-
-    }
-  };
-  useEffect(() => {
-    if (user != null) {
-      const unsubscribe = navigation.addListener('focus', () => {
-        fetchUserInfo();
+      console.error('Logout cleanup failed:', error);
+    } finally {
+      dispatch(saveUserInfo(null));
+      setLogoutLoading(false);
+      setLogoutVisible(false);
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'LoginScreen'}],
       });
-      return unsubscribe;
     }
-  }, [navigation]);
-  const [isModalVisible, setModalVisible] = useState(false);
-
-  const handleOpenModal = () => {
-    setModalVisible(true);
   };
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
+  if (!user) {
+    return null;
+  }
+
+  const isClient = user.account_type === 'client';
+
   return (
-    <SafeAreaView style={styles.container}>
-      {user != null ? (
-        <View>
-          <Image source={{ uri: user?.profile_picture }} style={styles.picture} />
-          <Text style={styles.textheading}>{user?.first_name}</Text>
-        </View>
-      ) : (
-        <View>
-          <Image
-            source={require('../../../assets/mainLogo.png')}
-            style={styles.picture}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#FD6D1F" />
+      <ProfileHeader
+        user={user}
+        onDetails={() => openProfile(false)}
+        onEdit={() => openProfile(true)}
+        onSettings={() => navigation.navigate('SettingScreen')}
+      />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
+        <ProfileSection title="Account">
+          <ProfileMenuItem
+            icon="map-pin"
+            title="Saved addresses"
+            description="Service and billing locations"
+            onPress={() => navigation.navigate('AddressDetails')}
           />
-          <Text style={styles.textheading}>Login to see your information</Text>
-        </View>
-      )}
-      <BottomSheetStyle>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: heightToDp(50) }}>
-          {user != null && (
-            <View style={styles.iconContainer}>
-              <TouchableOpacity
-                onPress={
-                  user?.account_type === 'client'
-                    ? () => navigation.navigate('ProfileDetailEditScreen', {
-                      profileEdit: true,
-                    })
-                    : () => navigation.navigate('ProfileDetailEditScreen', {
-                      profileEdit: true,
-                    })
-                  // navigation.navigate('AgentProfileEditScreen')
-                }>
-                <Image
-                  source={require('../../../assets/editIcon.png')}
-                  style={[styles.icon, { tintColor: Colors.Orange }]}
-
-                />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => navigation.navigate('SettingScreen')}>
-                <Image
-                  source={require('../../../assets/setting.png')}
-                  style={[styles.icon, { tintColor: Colors.Orange }]}
-                />
-              </TouchableOpacity>
-            </View>
+          <ProfileMenuItem
+            icon="settings"
+            title="Account settings"
+            description="Account type, privacy and security"
+            last={isClient}
+            tone="gray"
+            onPress={() => navigation.navigate('SettingScreen')}
+          />
+          {!isClient && (
+            <ProfileMenuItem
+              icon="credit-card"
+              title="Payment method"
+              description="Payout and payment details"
+              last
+              tone="green"
+              onPress={() => navigation.navigate('PaymentUpdateScreen')}
+            />
           )}
-          <View style={{ marginBottom: heightToDp(2) }}>
-            <SettingOptions
-              icon={require('../../../assets/settingProfile.png')}
-              Title="Profile Details"
-              onPress={() =>
-                user != null
-                  ? navigation.navigate('ProfileDetailEditScreen')
-                  : handleOpenModal()
-              }
-            />
-            <SettingOptions
-              icon={require('../../../assets/greenLocation.png')}
-              Title="Address"
-              onPress={() =>
-                user != null
-                  ? navigation.navigate('AddressDetails')
-                  : handleOpenModal()
-              }
-            />
-            {user != null && user?.account_type !== 'client' && (
-              <SettingOptions
-                icon={require('../../../assets/blueCard.png')}
-                Title="Payment Method"
-                onPress={() => navigation.navigate('PaymentUpdateScreen')}
-              />
-            )}
+        </ProfileSection>
 
-            {user != null && user?.account_type !== 'client' && (
-              <SettingOptions
-                icon={require('../../../assets/license.png')}
-                Title="Update Certificate and Notary Stamp"
-                onPress={() => navigation.navigate('AgentVerificationScreen', {
-                  user: user, // Pass user details here
-                })}
-              />
-            )}
-            {/* {user != null && user?.account_type !== 'client' && (
-              <SettingOptions
-                icon={require('../../../assets/training.png')}
-                Title="Trainings"
-              // onPress={() => navigation.navigate('PasswordEditScreen')}
-              />
-            )} */}
-            {user != null && (
-              <SettingOptions
-                icon={require('../../../assets/logout.png')}
-                Title="Log out"
-                onPress={() => handleLogout()}
-              />
-            )}
-          </View>
-        </ScrollView>
-      </BottomSheetStyle>
-      <LoginBottomSheet
-        isVisible={isModalVisible}
-        onCloseModal={handleCloseModal}
-        Title="Please Login to see your profile"
+        {!isClient && (
+          <ProfileSection title="Notary profile">
+            <ProfileMenuItem
+              icon="award"
+              title="Credentials and stamp"
+              description="Certificate and notary stamp"
+              last
+              tone="blue"
+              onPress={() =>
+                navigation.navigate('AgentVerificationScreen', {user})
+              }
+            />
+          </ProfileSection>
+        )}
+
+        <ProfileSection title="Support and legal">
+          <ProfileMenuItem
+            icon="help-circle"
+            title="Help and FAQ"
+            description="Answers to common questions"
+            tone="blue"
+            onPress={() => navigation.navigate('FaqScreen')}
+          />
+          <ProfileMenuItem
+            icon="shield"
+            title="Privacy policy"
+            description="How your information is protected"
+            tone="green"
+            onPress={() => navigation.navigate('PrivacyPolicyScreen')}
+          />
+          <ProfileMenuItem
+            icon="file-text"
+            title="Terms and conditions"
+            description="Terms for using Notarizr"
+            last
+            tone="gray"
+            onPress={() => navigation.navigate('TermsAndCondition')}
+          />
+        </ProfileSection>
+
+        <ProfileSection title="Session">
+          <ProfileMenuItem
+            destructive
+            icon="log-out"
+            title="Log out"
+            description="Sign out of this device"
+            last
+            onPress={() => setLogoutVisible(true)}
+          />
+        </ProfileSection>
+
+        <Text style={styles.version}>Notarizr account</Text>
+      </ScrollView>
+
+      <LogoutConfirmModal
+        visible={logoutVisible}
+        loading={logoutLoading}
+        onCancel={() => setLogoutVisible(false)}
+        onLogout={handleLogout}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FFF2DC',
+    backgroundColor: '#FD6D1F',
   },
-  picture: {
-    alignSelf: 'center',
-    marginTop: heightToDp(5),
-    width: widthToDp(30),
-    height: heightToDp(30),
-    borderRadius: 100,
+  content: {
+    paddingBottom: 24,
+    backgroundColor: '#F5F6F8',
   },
-  iconContainer: {
-    flexDirection: 'row',
-    margin: widthToDp(4),
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F5F6F8',
   },
-  icon: {
-    marginHorizontal: widthToDp(2),
-    width: widthToDp(5),
-    height: heightToDp(5),
-
-  },
-
-  textheading: {
-    fontSize: widthToDp(6),
-    alignSelf: 'center',
-    color: Colors.TextColor,
-    fontFamily: 'Manrope-Bold',
-    marginVertical: heightToDp(3),
+  version: {
+    marginTop: 22,
+    color: '#ADB1B9',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    textAlign: 'center',
   },
 });

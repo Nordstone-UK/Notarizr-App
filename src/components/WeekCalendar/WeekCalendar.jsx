@@ -1,112 +1,76 @@
-import {
-  Image,
-  StyleSheet,
-  Text,
-  ScrollView,
-  View,
-  TouchableOpacity,
-  TextInput,
-  Button,
-} from 'react-native';
-import React, {useState} from 'react';
-import LinearGradient from 'react-native-linear-gradient';
-import Colors from '../../themes/Colors';
-import {widthToDp} from '../../utils/Responsive';
+import React from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+
+const LABELS = {
+  mon: 'M',
+  tue: 'T',
+  wed: 'W',
+  thur: 'T',
+  fri: 'F',
+  sat: 'S',
+  sun: 'S',
+};
 
 export default function WeekCalendar({
-  selectedDays,
-  setSelectedDays,
-  weekdays,
+  selectedDays = [],
+  setSelectedDays = () => {},
+  weekdays = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'],
 }) {
-  const capitalize = day => day.charAt(0).toUpperCase() + day.slice(1);
-
-  const handleChange = day => {
-    if (selectedDays.includes(day)) {
-      setSelectedDays(selectedDays.filter(d => d !== day));
-    } else {
-      setSelectedDays([...selectedDays, day]);
-    }
+  const toggleDay = day => {
+    setSelectedDays(
+      selectedDays.includes(day)
+        ? selectedDays.filter(selected => selected !== day)
+        : [...selectedDays, day],
+    );
   };
+
   return (
-    <View style={{margin: widthToDp(2)}}>
-      <Text style={styles.monthHead}>Weekly</Text>
-      <ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        style={{marginVertical: widthToDp(5)}}>
-        {weekdays.map(day => (
+    <View style={styles.container}>
+      {weekdays.map(day => {
+        const selected = selectedDays.includes(day);
+        return (
           <TouchableOpacity
+            accessibilityLabel={day}
+            accessibilityState={{selected}}
+            activeOpacity={0.72}
             key={day}
-            onPress={() => handleChange(day)}
-            style={{}}>
-            <LinearGradient
-              style={styles.locationStyle}
-              colors={
-                selectedDays.includes(day)
-                  ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                  : [Colors.white, Colors.white]
-              }
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 0}}>
-              <View style={{marginHorizontal: widthToDp(2)}}>
-                <Text
-                  style={
-                    selectedDays.includes(day)
-                      ? styles.dateHeadingWhite
-                      : styles.dateHeading
-                  }>
-                  {capitalize(day)}
-                </Text>
-              </View>
-            </LinearGradient>
+            onPress={() => toggleDay(day)}
+            style={[styles.day, selected && styles.selectedDay]}>
+            <Text style={[styles.dayLabel, selected && styles.selectedLabel]}>
+              {LABELS[day] || day.slice(0, 1).toUpperCase()}
+            </Text>
+            <Text style={[styles.dayName, selected && styles.selectedName]}>
+              {day === 'thur'
+                ? 'Thu'
+                : day.slice(0, 1).toUpperCase() + day.slice(1, 3)}
+            </Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  locationStyle: {
-    borderRadius: 5,
-    marginHorizontal: widthToDp(2),
-    width: widthToDp(25),
+  container: {flexDirection: 'row', justifyContent: 'space-between'},
+  day: {
+    width: 40,
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E5E9',
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
   },
-  monthHead: {
-    alignSelf: 'center',
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-SemiBold',
-    color: Colors.TextColor,
+  selectedDay: {borderColor: '#FD6D1F', backgroundColor: '#FD6D1F'},
+  dayLabel: {color: '#3A414D', fontFamily: 'Manrope-Bold', fontSize: 13},
+  selectedLabel: {color: '#FFFFFF'},
+  dayName: {
+    marginTop: 2,
+    color: '#9096A0',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 7,
   },
-  text: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-SemiBold',
-  },
-  dateHeading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-Bold',
-    textAlign: 'center',
-  },
-  dateHeadingWhite: {
-    color: Colors.white,
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-Bold',
-    textAlign: 'center',
-  },
-  textWhite: {
-    color: Colors.white,
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-Bold',
-  },
-  Heading: {
-    tintColor: Colors.TextColor,
-    marginHorizontal: widthToDp(7),
-  },
-  Heading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-Bold',
-  },
+  selectedName: {color: '#FFE2D3'},
 });

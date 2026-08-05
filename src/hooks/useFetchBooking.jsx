@@ -1,10 +1,6 @@
 import {useLazyQuery, useMutation} from '@apollo/client';
-import {useDispatch} from 'react-redux';
 import {GET_CLIENT_BOOKING} from '../../request/queries/getClientBooking.query';
-import {setBookingState} from '../features/bookingInfo/bookingInfoSlice';
-import {useState} from 'react';
 import {GET_AGENT_BOOKING} from '../../request/queries/getAgentBooking.query';
-import {setBookingInfoState} from '../features/booking/bookingSlice';
 import {GET_BOOKING_BY_ID} from '../../request/queries/getBookingByID.query';
 import {UPDATE_BOOKING_INFO} from '../../request/mutations/updateBookingInfo.mutation';
 import {GET_CLIENT_SESSION} from '../../request/queries/getClientSession.query';
@@ -25,12 +21,11 @@ const useFetchBooking = () => {
   const [updateBookingPrice] = useMutation(UPDATE_BOOKING_PRICE);
   const [updateAgentDocuments] = useMutation(UPDATE_SESSION_AGENTDOCS);
   const [updateSessionPricsDoc] = useMutation(UPDATE_SESSION_PRICEDOCS);
-  const dispatch = useDispatch();
-  const [clientBooking, setClientBooking] = useState({
+  const clientBooking = {
     status: 'pending',
     page: 1,
     pageSize: 50,
-  });
+  };
   const fetchBookingInfo = async status => {
     const request = {
       variables: {
@@ -89,14 +84,17 @@ const useFetchBooking = () => {
     try {
       console.log('reqddddddddddddt', request);
       const response = await updateAgentDocuments(request);
-      console.log('Agent Booking sdsdd', response);
-      return sortBookingByDate(data?.getAgentBookings?.bookings);
+      return response?.data?.updateSessionR;
     } catch (error) {
       console.log(error);
     }
   };
   const sortBookingByDate = bookingArray => {
-    return bookingArray.sort(
+    if (!Array.isArray(bookingArray)) {
+      return [];
+    }
+
+    return [...bookingArray].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
   };

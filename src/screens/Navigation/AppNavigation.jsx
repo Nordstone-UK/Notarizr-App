@@ -1,12 +1,10 @@
-import {View, Text, Platform, PermissionsAndroid} from 'react-native';
-import React, {useEffect, useRef, useCallback} from 'react';
+import React from 'react';
 import OnboardingScreen2 from '../OnboardingScreens/OnboardingScreen2';
 import OnboardingScreen3 from '../OnboardingScreens/OnboardingScreen3';
 import SignupAsScreen from '../SingupAsScreen/SignupAsScreen';
 import LoginScreen from '../LogIn&SignupScreens/LoginScreen';
 import OnboardingScreen1 from '../OnboardingScreens/OnboardingScreen1';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {NavigationContainer} from '@react-navigation/native';
 import HomeScreen from '../HomeScreen.jsx/HomeScreen';
 import LegalDocScreen from '../LegalDocumentsScren/LegalDocScreen';
 import ProfilePictureScreen from '../LogIn&SignupScreens/ProfilePictureScreen';
@@ -20,7 +18,6 @@ import MedicalBookingScreen from '../AllBookingScreen/MedicalBookingScreen';
 import ChatScreen from '../ChatScreens/ChatScreen';
 import PaymentScreen from '../PaymentScreen/PaymentScreen';
 import PaymentCompletionScreen from '../CompletionScreen/PaymentCompletionScreen';
-import SignUpScreen from '../LogIn&SignupScreens/SignUpScreen';
 import RejectedByAgentScreen from '../CompletionScreen/RejectedByAgentScreen';
 import WaitingRoomScreen from '../CallRoomScreen/WaitingRoomScreen';
 import FinalBookingScreen from '../FinalBookingScreen/FinalBookingScreen';
@@ -39,11 +36,9 @@ import FaqScreen from '../SettingScreen/Faqscreen';
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Ionicons from '../../components/Ionicons/Ionicons';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
+import AppTabBar from '../../components/Navigation/AppTabBar';
 import OnlineNotaryScreen from '../OnlineNotaryScreen/OnlineNotaryScreen';
 import NearbyLoadingScreen from '../NearbyLoadingScreen/NearbyLoadingScreen';
-import AcceptAgentCard from '../../components/AcceptAgentCard/AcceptAgentCard';
 import SessionScreen from '../SessionDisplayScreen/SessionScreen';
 import OnlineSessionDetail from '../OnlineSessionDetail/OnlineSessionDetail';
 import LocalNotaryBookingScreen from '../LocalNotaryBookingScreen.jsx/LocalNotaryBookingScreen';
@@ -75,10 +70,11 @@ import AgentLocalNotaryEndScreen from '../AgentScreens/AgentLocalNotaryEndScreen
 import AgentDocumentCompletion from '../CompletionScreen/AgentDocumentCompletion';
 import CancelledBookingScreen from '../CancelledBookingScreen/CancelledBookingScreen';
 import NotaryCallScreen from '../NotaryCallScreen/NotaryCallScreen';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
-import ClientDetailsScreen from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
+import AgentBookingWorkspace from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
+import AgentBookingOverviewScreen from '../AgentScreens/AgentBookingOverviewScreen/AgentBookingOverviewScreen';
 import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationScreen';
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
@@ -100,210 +96,57 @@ import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen
 import AddNewAddress from '../NewAddressScreen/AddNewAddress';
 import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
 import TransactionScreen from '../TransactionScreen/TransactionScreen';
-import {socket} from '../../utils/Socket';
-import {setSocketID} from '../../features/user/userSlice';
 import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
 import SessionCreation from '../CompletionScreen/SessionCreation';
 import AuthenticationScreen from '../AuthenticationScreen.jsx/AuthenticationScreen';
-import BottomSheet, {
-  BottomSheetModal,
-  BottomSheetView,
-} from '@gorhom/bottom-sheet';
 import AgentCallFinishing from '../CompletionScreen/AgentCompletecall';
 import NotaryDocumentDownloadScreen from '../AgentScreens/NotaryDocumentDownloadScreen/NotaryDocumentDownloadScreen';
 import CurrentLocationScreen from '../NewAddressScreen/CurrentLocation';
 import AgentMapArrivalScreen from '../MapArrivalScreen/AgentMapArraivalScreen';
 import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
+import BookingFlowScreen from '../BookingFlowScreen/BookingFlowScreen';
+import PreviewChatScreen from '../PreviewChatScreen/PreviewChatScreen';
+import AddressFormScreen from '../AddressFormScreen/AddressFormScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 function TabNavigation() {
   const user = useSelector(state => state.user.user);
-  useEffect(() => {
-    requestPermissions();
-  }, []);
-  const requestPermissions = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        // Request location permission
-        //  const locationPermission = await PermissionsAndroid.request(
-        //    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        //  );
+  if (!user) {
+    return null;
+  }
 
-        // Request camera permission
-        const cameraPermission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-        );
-
-        // Request storage permission
-        const storagePermission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        );
-        const Android13StoragePermission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-        );
-        //  const NotificationPermission = await PermissionsAndroid.request(
-        //    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-        //  );
-        //  const PhonePermission = await PermissionsAndroid.request(
-        //    PermissionsAndroid.PERMISSIONS.CALL_PHONE,
-        //  );
-        // Check if permissions are granted
-        if (
-          //  locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          //  NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          //  PhonePermission === PermissionsAndroid.RESULTS.GRANTED
-          (storagePermission === PermissionsAndroid.RESULTS.GRANTED ||
-            Android13StoragePermission === PermissionsAndroid.RESULTS.GRANTED)
-        ) {
-          console.log('All permissions granted');
-        } else {
-          console.log('Some permissions denied');
-        }
-      } else if (Platform.OS === 'ios') {
-        // Request location permission
-        //  const locationPermissionStatus = await request(
-        //    PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-        //  );
-        //  const PushNotificationPermission = await request(
-        //    PERMISSIONS.IOS.NOTIFICATIONS,
-        //  );
-
-        // Request camera permission
-        const cameraPermissionStatus = await request(PERMISSIONS.IOS.CAMERA);
-
-        // Request photo library permission
-        const photoLibraryPermissionStatus = await request(
-          PERMISSIONS.IOS.PHOTO_LIBRARY,
-        );
-
-        // Check if permissions are granted
-        if (
-          //  locationPermissionStatus === 'granted' &&
-          cameraPermissionStatus === 'granted' &&
-          //  PushNotificationPermission === 'granted'
-          photoLibraryPermissionStatus === 'granted'
-        ) {
-          console.log('All permissions granted');
-        } else {
-          console.log('Some permissions denied');
-        }
-      }
-    } catch (error) {
-      console.log('Error requesting permissions:', error);
-    }
+  const screenOptions = {
+    headerShown: false,
+    tabBarHideOnKeyboard: true,
   };
-  return (
-    <>
-      {user ? (
-        <>
-          {user?.account_type === 'client' ? (
-            <Tab.Navigator
-              screenOptions={({route}) => ({
-                headerShown: false,
+  const tabBar = props => <AppTabBar {...props} />;
 
-                tabBarShowLabel: false,
-                tabBarStyle: {
-                  height:
-                    Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
-                },
-                tabBarIcon: ({focused}) => {
-                  return <Ionicons focused={focused} name={route.name} />;
-                },
-              })}>
-              <Tab.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{
-                  key: 'HomeScreen',
-                }}
-              />
-              <Tab.Screen
-                name="AllBookingScreen"
-                component={AllBookingScreen}
-                options={{
-                  tabBarLabel: 'All Bookings',
-                }}
-              />
-              <Tab.Screen
-                name="ChatContactScreen"
-                component={ChatContactScreen}
-              />
-              <Tab.Screen
-                name="ProfileInfoScreen"
-                component={ProfileInfoScreen}
-              />
-            </Tab.Navigator>
-          ) : (
-            <Tab.Navigator
-              screenOptions={({route}) => ({
-                headerShown: false,
-                tabBarShowLabel: false,
-                tabBarStyle: {
-                  //   display: user.isVerified ? 'flex' : 'none',
-                  height:
-                    Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
-                },
-                tabBarIcon: ({focused}) => {
-                  return <Ionicons focused={focused} name={route.name} />;
-                },
-              })}>
-              <Tab.Screen
-                name="Home"
-                component={AgentHomeScreen}
-                options={{
-                  key: 'HomeScreen',
-                }}
-              />
-              <Tab.Screen
-                name="AllBookingScreen"
-                component={AgentAllBookingScreen}
-              />
-              <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
-              <Tab.Screen
-                name="ChatContactScreen"
-                component={AgentChatContactScreen}
-              />
-              <Tab.Screen
-                name="ProfileInfoScreen"
-                component={ProfileInfoScreen}
-              />
-            </Tab.Navigator>
-          )}
-        </>
-      ) : (
-        <Tab.Navigator
-          screenOptions={({route}) => ({
-            headerShown: false,
-            tabBarShowLabel: false,
-            tabBarStyle: {
-              height:
-                Platform.OS === 'android' ? heightToDp(17) : heightToDp(22),
-            },
-            tabBarIcon: ({focused}) => {
-              return <Ionicons focused={focused} name={route.name} />;
-            },
-          })}>
-          <Tab.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{
-              key: 'HomeScreen',
-            }}
-          />
-          <Tab.Screen
-            name="AllBookingScreen"
-            component={AllBookingScreen}
-            options={{
-              tabBarLabel: 'All Bookings',
-            }}
-          />
-          <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
-          <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
-        </Tab.Navigator>
-      )}
-    </>
+  if (user.account_type === 'client') {
+    return (
+      <Tab.Navigator
+        initialRouteName="Home"
+        tabBar={tabBar}
+        screenOptions={screenOptions}>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="AllBookingScreen" component={AllBookingScreen} />
+        <Tab.Screen name="ChatContactScreen" component={ChatContactScreen} />
+        <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
+      </Tab.Navigator>
+    );
+  }
+
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      tabBar={tabBar}
+      screenOptions={screenOptions}>
+      <Tab.Screen name="Home" component={AgentHomeScreen} />
+      <Tab.Screen name="AllBookingScreen" component={AgentAllBookingScreen} />
+      <Tab.Screen name="BookScreen" component={AgentCompletedBooking} />
+      <Tab.Screen name="ChatContactScreen" component={AgentChatContactScreen} />
+      <Tab.Screen name="ProfileInfoScreen" component={ProfileInfoScreen} />
+    </Tab.Navigator>
   );
 }
 
@@ -352,6 +195,9 @@ export default function AppNavigation() {
           name="ServiceDetailScreen"
           component={ServiceDetailScreen}
         />
+        <Stack.Screen name="BookingFlowScreen" component={BookingFlowScreen} />
+        <Stack.Screen name="PreviewChatScreen" component={PreviewChatScreen} />
+        <Stack.Screen name="AddressFormScreen" component={AddressFormScreen} />
         <Stack.Screen
           name="ActiveServicesScreen"
           component={ActiveServicesScreen}
@@ -576,7 +422,11 @@ export default function AppNavigation() {
         />
         <Stack.Screen
           name="ClientDetailsScreen"
-          component={ClientDetailsScreen}
+          component={AgentBookingOverviewScreen}
+        />
+        <Stack.Screen
+          name="AgentBookingWorkspace"
+          component={AgentBookingWorkspace}
         />
       </Stack.Navigator>
       <CustomToast />

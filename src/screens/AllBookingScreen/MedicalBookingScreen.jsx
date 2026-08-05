@@ -60,8 +60,24 @@ import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import AddressCard from '../../components/AddressCard/AddressCard';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import Toast from 'react-native-toast-message';
+import BookingDetailsPreview from '../../components/Bookings/BookingDetailsPreview';
 
-export default function MedicalBookingScreen({route, navigation}) {
+export default function MedicalBookingScreen(props) {
+  const bookingDetail = useSelector(state => state.booking.booking);
+
+  if (bookingDetail?.isPreview) {
+    return (
+      <BookingDetailsPreview
+        booking={bookingDetail}
+        navigation={props.navigation}
+      />
+    );
+  }
+
+  return <LiveMedicalBookingScreen {...props} />;
+}
+
+function LiveMedicalBookingScreen({route, navigation}) {
   const token = useSelector(state => state.chats.chatToken);
   console.log('clienttokenchagfdfddfdfdfd', token);
   const {
