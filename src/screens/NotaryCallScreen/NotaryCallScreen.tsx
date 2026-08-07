@@ -16,6 +16,8 @@ import moment from 'moment-timezone';
 import DatePicker from 'react-native-date-picker';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -1000,105 +1002,98 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
   return (
     <SafeAreaView style={styles.Maincontainer}>
-      <View style={styles.SecondContainer}>
-        <View style={styles.topbuttons}>
-          <LinearGradient
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.sessionIDComponent]}>
-            <RNText style={styles.sessionID}>
-              {`Session ID: ${bookingData._id}`}
+
+      {/* ── HEADER ── */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerBackBtn}
+          onPress={() => handleBackButton()}>
+          <Feather name="chevron-left" size={22} color={BookingColors.textPrimary} />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <RNText style={styles.headerTitle}>Notary Session</RNText>
+          <View style={styles.sessionBadge}>
+            <Feather name="hash" size={9} color={BookingColors.primary} />
+            <RNText style={styles.sessionBadgeText} numberOfLines={1}>
+              {bookingData._id?.slice(-10).toUpperCase()}
             </RNText>
-          </LinearGradient>
-        </View>
-        <View style={styles.flexContainer}>
-          <ScrollView
-            style={styles.scroll}
-            horizontal={true}
-            contentContainerStyle={styles.scrollContainer}>
-            {isJoined ? (
-              <React.Fragment key={0}>
-                <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
-              </React.Fragment>
-            ) : (
-              <View
-                style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Image
-                  source={{ uri: User?.profile_picture }}
-                  style={{
-                    width: widthToDp(25),
-                    height: widthToDp(25),
-                    borderRadius: 100,
-                  }}
-                />
-              </View>
-            )}
-            {remoteUids.map((uid, index) => (
-              <View key={index}>
-                <RtcSurfaceView canvas={{ uid }} style={styles.videoView} />
-              </View>
-            ))}
-          </ScrollView>
-          <View style={{ flex: 0.2, justifyContent: 'space-evenly' }}>
-            {isJoined ? (
-              <TouchableOpacity
-                style={styles.hourGlass}
-                onPress={toggleVideoMute}>
-                <Image
-                  source={require('../../../assets/video.png')}
-                  style={{ width: widthToDp(10), height: widthToDp(10) }}
-                />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.hourGlass}
-                onPress={toggleVideoMute}>
-                <Image
-                  source={require('../../../assets/videoOff.png')}
-                  style={{ width: widthToDp(10), height: widthToDp(10) }}
-                />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.hourGlass} onPress={() => mute()}>
-              <Image
-                source={
-                  isMuted
-                    ? require('../../../assets/unmute.png')
-                    : require('../../../assets/mute.png')
-                }
-                style={{
-                  width: widthToDp(10),
-                  height: widthToDp(10),
-                }}
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <View style={{ backgroundColor: Colors.white }}>
-        <RNPickerSelect
-          style={pickerSelectStyles}
-          onValueChange={(itemValue, itemLabel) =>
-            handleLinkChange(itemValue, itemLabel)
-          }
-          items={pickerItems}
-          value={selectedItem}
-          placeholder={{
-            label: 'Select a document',
-            // value: { selectedItem },
-            color: '#9EA0A4',
-          }}
-          useNativeAndroidPickerStyle={false} // Important for custom styles on Android
-          Icon={() => {
-            return <Icon name="chevron-down" size={20} color={Colors.Black} />;
-          }}
-        />
+      {/* ── VIDEO PANEL ── */}
+      <View style={styles.videoPanel}>
+        <ScrollView
+          style={styles.videoScroll}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.videoScrollContent}>
+          {isJoined ? (
+            <React.Fragment key={0}>
+              <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
+            </React.Fragment>
+          ) : (
+            <View style={styles.avatarContainer}>
+              <Image
+                source={{ uri: User?.profile_picture }}
+                style={styles.videoAvatar}
+              />
+            </View>
+          )}
+          {remoteUids.map((uid, index) => (
+            <View key={index} style={styles.remoteVideoWrapper}>
+              <RtcSurfaceView canvas={{ uid }} style={styles.videoView} />
+            </View>
+          ))}
+        </ScrollView>
+        <View style={styles.videoControls}>
+          <TouchableOpacity
+            style={[styles.controlBtn, !isJoined && styles.controlBtnMuted]}
+            onPress={toggleVideoMute}>
+            <Feather
+              name={isJoined ? 'video' : 'video-off'}
+              size={17}
+              color={!isJoined ? BookingColors.primary : 'rgba(255,255,255,0.85)'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.controlBtn, isMuted && styles.controlBtnMuted]}
+            onPress={() => mute()}>
+            <Feather
+              name={isMuted ? 'mic-off' : 'mic'}
+              size={17}
+              color={isMuted ? BookingColors.primary : 'rgba(255,255,255,0.85)'}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* ── DOCUMENT PICKER ── */}
+      <View style={styles.pickerCard}>
+        <View style={styles.pickerIconWrap}>
+          <Feather name="file-text" size={14} color={BookingColors.primary} />
+        </View>
+        <View style={styles.pickerInner}>
+          <RNPickerSelect
+            style={modernPickerStyles}
+            onValueChange={(itemValue, itemLabel) =>
+              handleLinkChange(itemValue, itemLabel)
+            }
+            items={pickerItems}
+            value={selectedItem}
+            placeholder={{
+              label: 'Select a document',
+              color: BookingColors.textMuted,
+            }}
+            useNativeAndroidPickerStyle={false}
+            Icon={() => (
+              <Feather name="chevron-down" size={17} color={BookingColors.textSecondary} />
+            )}
+          />
+        </View>
+      </View>
+
+      {/* ── PDF VIEWER + TOOLBAR ── */}
       <View style={styles.container}>
         <View style={styles.pdfWrapper}>
           {getSignaturePad ? (
@@ -1125,18 +1120,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                       showsVerticalScrollIndicator={false}
                       showsHorizontalScrollIndicator={false}
                       horizontal={true}
-                      // vertical={false}
                       enablePaging={false}
                       minScale={1.0}
                       maxScale={3.0}
                       scale={1.0}
                       spacing={0}
                       fitPolicy={getFitPolicy()}
-                      onLoadComplete={(
-                        numberOfPages,
-                        filePath,
-                        { width, height },
-                      ) => {
+                      onLoadComplete={(numberOfPages, filePath, { width, height }) => {
                         setCurrentPage(1);
                         setTotalPages(numberOfPages);
                         setPageWidth(width);
@@ -1144,17 +1134,24 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                       }}
                       onPageChanged={(page, numberOfPages) => {
                         setCurrentPage(page);
-                        // setRemoteCurrentPage(page);
                       }}
                       onPageSingleTap={(page, x, y) => {
                         handleSingleTap(page, x, y);
                       }}
                       onError={error => console.error(error)}
                     />
-                    {/* </View> */}
                     {User.account_type !== 'client' && (
-                      <TouchableOpacity onPress={toggleDrawingMode} style={[styles.penIconContainer, drawingMode && styles.activePenIconContainer]}>
-                        <Icon name="edit" size={30} style={[styles.editIcon, drawingMode && styles.activeeditIcon]} />
+                      <TouchableOpacity
+                        onPress={toggleDrawingMode}
+                        style={[
+                          styles.penIconContainer,
+                          drawingMode && styles.activePenIconContainer,
+                        ]}>
+                        <Icon
+                          name="pencil"
+                          size={16}
+                          style={[styles.editIcon, drawingMode && styles.activeeditIcon]}
+                        />
                       </TouchableOpacity>
                     )}
                     {drawingMode && User.account_type != 'client' && (
@@ -1165,40 +1162,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         saveToPdf={saveToPdf}
                       />
                     )}
-                    <View style={styles.currentPageTextContainer}>
-                      <RNText style={styles.currentPageText}>
+                    <View style={styles.pageIndicator}>
+                      <RNText style={styles.pageIndicatorText}>
                         {currentPage}
                       </RNText>
                     </View>
                   </>
                 ) : (
-                  <View
-                    style={{
-                      width: widthToDp(100),
-                      flex: 1,
-                      height: height,
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 999,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <ActivityIndicator
-                      size="large"
-                      color={Colors.Orange}
-                      style={{ marginTop: -200 }}
-                    />
-                    <RNText
-                      style={{
-                        color: Colors.Orange,
-                        fontSize: 20,
-                        fontWeight: 'bold',
-                        marginTop: 20,
-                      }}>
-                      Saving the Pdf file
-                    </RNText>
+                  <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color={BookingColors.primary} />
+                    <RNText style={styles.loadingText}>Saving PDF…</RNText>
                   </View>
                 )}
               </>
@@ -1209,114 +1182,89 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             onSignatureChange={handleDragabbleSignatureData}
           />
         </View>
-        <View style={styles.actions}>
-          <MainButton
-            Title="Add Signature"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            styles={{
-              paddingHorizontal: widthToDp(3),
-              paddingVertical: widthToDp(2),
-            }}
-            onPress={() => {
-              // onSignatureAdd();
-              // getSignature();
-              handleSignPress();
-            }}
-          />
-          {User.account_type === 'client' && (
-            <MainButton
-              Title="Upload Document"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => clientDocumentsUpload()}
-            />
-          )}
+
+        {/* ── ACTION TOOLBAR ── */}
+        <View style={styles.toolbar}>
+          <View style={styles.toolbarGrid}>
+            {/* Add Signature — always visible */}
+            <TouchableOpacity
+              style={styles.toolBtn}
+              onPress={() => handleSignPress()}>
+              <View style={styles.toolBtnIcon}>
+                <Feather name="edit-2" size={15} color={BookingColors.primary} />
+              </View>
+              <RNText style={styles.toolBtnLabel}>Add Signature</RNText>
+            </TouchableOpacity>
+
+            {/* Upload Document */}
+            <TouchableOpacity
+              style={styles.toolBtn}
+              onPress={() =>
+                User.account_type === 'client'
+                  ? clientDocumentsUpload()
+                  : selectDocuments()
+              }>
+              {loading ? (
+                <ActivityIndicator size="small" color={BookingColors.primary} style={{ width: 28 }} />
+              ) : (
+                <View style={styles.toolBtnIcon}>
+                  <Feather name="upload" size={15} color={BookingColors.primary} />
+                </View>
+              )}
+              <RNText style={styles.toolBtnLabel}>Upload Doc</RNText>
+            </TouchableOpacity>
+
+            {User.account_type != 'client' && (
+              <TouchableOpacity
+                style={styles.toolBtn}
+                onPress={() => handlePresentModalPress()}>
+                <View style={styles.toolBtnIcon}>
+                  <Feather name="type" size={15} color={BookingColors.primary} />
+                </View>
+                <RNText style={styles.toolBtnLabel}>Add Text</RNText>
+              </TouchableOpacity>
+            )}
+
+            {User.account_type != 'client' && (
+              <TouchableOpacity
+                style={styles.toolBtn}
+                onPress={() => setOpen(true)}>
+                <View style={styles.toolBtnIcon}>
+                  <Feather name="calendar" size={15} color={BookingColors.primary} />
+                </View>
+                <RNText style={styles.toolBtnLabel}>Add Date</RNText>
+              </TouchableOpacity>
+            )}
+          </View>
+
           {User.account_type != 'client' && (
-            <MainButton
-              Title="Upload Document"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => selectDocuments()}
-            />
-            // <MainButton
-            //   Title="Add stamp"
-            //   colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            //   styles={{
-            //     paddingHorizontal: widthToDp(1),
-            //     paddingVertical: widthToDp(2),
-            //   }}
-            //   onPress={() => {
-            //     onAddSignatureImage(true);
-            //   }}
-            // />
+            <TouchableOpacity
+              style={styles.endCallBtn}
+              onPress={() => leave()}>
+              <Feather name="phone-off" size={15} color={BookingColors.error} />
+              <RNText style={styles.endCallBtnText}>Complete Call</RNText>
+            </TouchableOpacity>
           )}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Add Text"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => {
-                handlePresentModalPress();
-              }}
-            />
-          )}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Add Date"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(1),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => {
-                setOpen(true);
-              }}
-            />
-            // </View>
-          )}
-          {/* </View> */}
-          {User.account_type != 'client' && (
-            <MainButton
-              Title="Complete call"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              styles={{
-                paddingHorizontal: widthToDp(4),
-                paddingVertical: widthToDp(2),
-              }}
-              onPress={() => {
-                leave();
-              }}
-            />
-          )}
+
           <BottomSheetModal
             ref={bottomSheetModalRef}
             index={1}
-            snapPoints={snapPoints}
-          // onChange={handleSheetChanges}
-          >
+            snapPoints={snapPoints}>
             <AddText
               text={documentText}
               onChangeText={(text: string) => setDocumentText(text)}
               onPress={() => handleTextonLiveblock()}
             />
           </BottomSheetModal>
+
           <DrawSignTypeModal
             isVisible={isDrawTypeModalVisible}
             onClose={handleSignCloseModal}
             signs={User}
             onStampChanges={handleSavedStamp}
-
             onSelectOption={handleSelectDrawType}
           />
+
           <View style={styles.buttonFlex}>
             <DatePicker
               modal
@@ -1339,270 +1287,356 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     </SafeAreaView>
   );
 }
-const pickerSelectStyles = StyleSheet.create({
+const modernPickerStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
+    fontSize: 14,
+    paddingVertical: 13,
     paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    borderRadius: 4,
-    color: Colors.Black,
-    paddingRight: 30,
-    margin: 5,
+    color: BookingColors.textPrimary,
+    paddingRight: 32,
+    fontFamily: 'Manrope-Regular',
   },
   inputAndroid: {
-    fontSize: 16,
+    fontSize: 14,
     paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    borderRadius: 8,
-    color: Colors.Black,
-    paddingRight: 30,
-    margin: 5,
+    paddingVertical: 12,
+    color: BookingColors.textPrimary,
+    paddingRight: 32,
+    fontFamily: 'Manrope-Regular',
   },
   iconContainer: {
-    top: 10, // Adjust position as needed
+    top: 14,
     right: 12,
-    color: Colors.Black, // Black color for the icon
+  },
+  placeholder: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
   },
 });
+
 const styles = StyleSheet.create({
+  // ── LAYOUT ──
+  Maincontainer: {
+    flex: 1,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
   container: {
     flex: 1,
   },
+
+  // ── HEADER ──
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    backgroundColor: BookingColors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  headerBackBtn: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.backgroundSubtle,
+    marginRight: 12,
+  },
+  headerCenter: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: BookingColors.textPrimary,
+  },
+  sessionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 3,
+  },
+  sessionBadgeText: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    color: BookingColors.primary,
+    letterSpacing: 0.5,
+  },
+
+  // ── VIDEO PANEL ──
+  videoPanel: {
+    backgroundColor: '#0F1117',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  videoScroll: {
+    flex: 1,
+  },
+  videoScrollContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    gap: 10,
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  videoAvatar: {
+    width: widthToDp(22),
+    height: widthToDp(22),
+    borderRadius: widthToDp(11),
+    borderWidth: 2.5,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  remoteVideoWrapper: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  videoView: {
+    width: widthToDp(26),
+    height: heightToDp(22),
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  videoControls: {
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    gap: 10,
+    alignItems: 'center',
+  },
+  controlBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  controlBtnMuted: {
+    backgroundColor: 'rgba(253,109,31,0.18)',
+  },
+
+  // ── DOCUMENT PICKER ──
+  pickerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    marginTop: 12,
+    paddingLeft: 12,
+    backgroundColor: BookingColors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  pickerIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+  },
+  pickerInner: {
+    flex: 1,
+  },
+
+  // ── PDF VIEWER ──
   pdfWrapper: {
     flex: 1,
   },
   pdfView: {
-    // flex: 1,
     height: '100%',
-    objectFit: 'cover'
+    objectFit: 'cover',
   },
-  currentPageTextContainer: {
-    backgroundColor: Colors.Orange,
-    width: 25,
-    height: 25,
+  pageIndicator: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    justifyContent: 'center', // Center the text vertically
-    alignItems: 'center',
-  },
-  currentPageText: {
-    color: 'white', // Use a color that contrasts with the background
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  objectsWrapper: {
-    // backgroundColor: 'blue',
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  actions: {
-    borderTopWidth: 1,
-    borderTopColor: '#e2e2e2',
-    backgroundColor: '#ffffff',
-    paddingBottom: 10,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    // justifyContent: 'center',
-    flexWrap: 'wrap',
-    columnGap: 16,
-    rowGap: 16,
-  },
-  navigation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    columnGap: 16,
-  },
-  Maincontainer: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
-  NavbarContainer: {
-    flexDirection: 'row',
-    marginHorizontal: widthToDp(5),
-    marginVertical: widthToDp(2),
-    justifyContent: 'space-between',
-  },
-  NavContainer: {
-    flexDirection: 'row',
-    marginHorizontal: widthToDp(2),
-    marginVertical: widthToDp(2),
-    // borderWidth: 1,
-  },
-  waitingNav: {
-    width: widthToDp(6),
-    height: heightToDp(6),
-    marginVertical: widthToDp(2),
-  },
-  profilePic: {
-    marginVertical: widthToDp(2),
-  },
-  flexContainer: {
-    flexDirection: 'row',
-    // height: heightToDp(40),s
-  },
-  scrollBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: widthToDp(5),
-  },
-  picker: {
-    borderWidth: 2,
-    backgroundColor: Colors.white,
-    borderColor: Colors.DisableColor,
-  },
-  NavTextContainer: {
-    // borderWidth: 1,
-    marginLeft: widthToDp(5),
-  },
-  textHead: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(5),
-    fontWeight: '700',
-    fontFamily: 'Manrope-Regular',
-  },
-  textSubHead: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(3.5),
-    fontWeight: '700',
-    marginLeft: widthToDp(2),
-    fontFamily: 'Manrope-Regular',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    // borderWidth: 1,
-    justifyContent: 'center',
-  },
-  SecondContainer: {
-    backgroundColor: Colors.white,
-  },
-  hourGlass: {
-    alignSelf: 'center',
-  },
-  textSession: {
-    color: Colors.TextColor,
-    marginHorizontal: widthToDp(5),
-    marginTop: heightToDp(10),
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-Bold',
-  },
-  sessionDesc: {
-    color: Colors.TextColor,
-    fontFamily: 'Manrope-Bold',
-  },
-  btn: {
-    marginVertical: heightToDp(2),
-  },
-  btncontain: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginVertical: heightToDp(5),
-  },
-  slideContainer: {
-    flex: 1,
-    marginHorizontal: widthToDp(5),
-    alignItems: 'stretch',
-    justifyContent: 'center',
-  },
-  button: {
-    paddingHorizontal: 25,
-    paddingVertical: 4,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    backgroundColor: '#0055cc',
-    margin: 5,
-  },
-  main: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  scroll: {
-    flex: 1,
-    width: '100%',
-  },
-  scrollContainer: {
-    margin: widthToDp(3),
-    columnGap: widthToDp(4),
-  },
-  videoView: {
-    width: widthToDp(25),
-    height: heightToDp(30),
-    resizeMode: 'contain',
+    bottom: 10,
+    right: 10,
+    width: 30,
+    height: 30,
     borderRadius: 15,
-  },
-  btnContainer: {
-    flexDirection: 'row',
+    backgroundColor: BookingColors.primary,
+    alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  head: {
-    fontSize: 20,
-  },
-  info: {
-    backgroundColor: '#ffffe0',
-    color: '#0000ff',
-  },
-  sessionIDComponent: {
-    borderRadius: 5,
-    alignSelf: 'center',
-    backgroundColor: Colors.white,
-  },
-  sessionID: {
-    color: Colors.white,
-    padding: '.5%',
-    paddingHorizontal: 5,
-    // color: '#fff',
-    fontSize: widthToDp(2.8),
-    textAlign: 'center',
+  pageIndicatorText: {
+    color: BookingColors.white,
+    fontSize: 12,
     fontFamily: 'Manrope-Bold',
   },
-  topbuttons: {
-    flexDirection: 'row',
-    rowGap: 10,
-    alignItems: 'center',
-    marginTop: 6,
-    marginHorizontal: 10,
-  },
-  penToolcanva: {
+  loadingOverlay: {
     position: 'absolute',
     top: 0,
+    bottom: 0,
     left: 0,
-    // bottom: 0,
-    // right: 0,
+    right: 0,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
   },
+  loadingText: {
+    color: BookingColors.primary,
+    fontSize: 15,
+    fontFamily: 'Manrope-Bold',
+    marginTop: 14,
+  },
+  objectsWrapper: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+
+  // ── PEN TOOL ──
   penIconContainer: {
     position: 'absolute',
-    top: 20,
-    // left: 20,
+    top: 12,
     right: 10,
     zIndex: 10,
-    backgroundColor: "transparent",
-    padding: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: BookingColors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   activePenIconContainer: {
-    backgroundColor: Colors.OrangeGradientEnd
+    backgroundColor: BookingColors.primary,
+    borderColor: BookingColors.primary,
   },
   editIcon: {
-    color: Colors.OrangeGradientEnd
+    color: BookingColors.textSecondary,
   },
   activeeditIcon: {
-    color: Colors.white
-  }, overlay: {
+    color: BookingColors.white,
+  },
+  overlay: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: 'transparent',
-    zIndex: 1, // Ensure it sits above the PdfView
+    zIndex: 1,
   },
+
+  // ── ACTION TOOLBAR ──
+  toolbar: {
+    backgroundColor: BookingColors.surface,
+    borderTopWidth: 1,
+    borderTopColor: BookingColors.border,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  toolbarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 10,
+  },
+  toolBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
+    gap: 8,
+    minWidth: '47%',
+    flex: 1,
+  },
+  toolBtnIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toolBtnLabel: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    color: BookingColors.textPrimary,
+  },
+  endCallBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: BookingColors.errorSoft,
+    gap: 8,
+  },
+  endCallBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.error,
+  },
+
+  // ── LEGACY / MISC (kept for compatibility) ──
+  buttonFlex: {},
+  navigation: { flexDirection: 'row', alignItems: 'center', columnGap: 16 },
+  flexContainer: { flexDirection: 'row' },
+  scroll: { flex: 1, width: '100%' },
+  scrollContainer: { margin: widthToDp(3), columnGap: widthToDp(4) },
+  SecondContainer: { backgroundColor: Colors.white },
+  hourGlass: { alignSelf: 'center' },
+  penToolcanva: { position: 'absolute', top: 0, left: 0 },
+
+  // kept so StyleSheet.create doesn't complain about removed references in commented code
+  NavbarContainer: {} as any,
+  NavContainer: {} as any,
+  waitingNav: {} as any,
+  profilePic: {} as any,
+  scrollBar: {} as any,
+  picker: {} as any,
+  NavTextContainer: {} as any,
+  textHead: {} as any,
+  textSubHead: {} as any,
+  buttonContainer: {} as any,
+  textSession: {} as any,
+  sessionDesc: {} as any,
+  btn: {} as any,
+  btncontain: {} as any,
+  slideContainer: {} as any,
+  button: {} as any,
+  main: {} as any,
+  btnContainer: {} as any,
+  head: {} as any,
+  info: {} as any,
+  sessionIDComponent: {} as any,
+  sessionID: {} as any,
+  topbuttons: {} as any,
+  currentPageTextContainer: {} as any,
+  currentPageText: {} as any,
+  actions: {} as any,
 });
 
 ///////////////////////////////

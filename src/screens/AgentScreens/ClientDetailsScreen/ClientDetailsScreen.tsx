@@ -23,20 +23,20 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Pdf from 'react-native-pdf';
 import PdfView from 'react-native-pdf';
 
 import RNFS from 'react-native-fs';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import BookingColors from '../../../themes/BookingColors';
-import {formatDateTime, heightToDp, widthToDp} from '../../../utils/Responsive';
+import { formatDateTime, heightToDp, widthToDp } from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
 import useBookingStatus from '../../../hooks/useBookingStatus';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -53,12 +53,12 @@ import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import Toast from 'react-native-toast-message';
 // import {BottomSheet} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
-import {useSession} from '../../../hooks/useSession';
-import {useLiveblocks} from '../../../store/liveblocks';
+import { useSession } from '../../../hooks/useSession';
+import { useLiveblocks } from '../../../store/liveblocks';
 import Loading from '../../../components/LiveBlocksComponents/loading';
 import RequestPayment from '../../../components/RequestPayment/RequestPayment';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { CheckCircle, CheckCircleSolid, Xmark } from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
 import {
   UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
@@ -67,10 +67,10 @@ import {
 } from '../../../../request/mutations/updateSessionClientDocs';
 
 import AddressCard from '../../../components/AddressCard/AddressCard';
-import {useLazyQuery, useMutation} from '@apollo/client';
-import {GET_SESSION_BY_ID} from '../../../../request/queries/getSessionByID.query';
-import {UPDATE_SESSION_PRICEDOCS} from '../../../../request/mutations/updateSessionPriceDocs.mutation';
-import {Alert} from 'react-native';
+import { useLazyQuery, useMutation } from '@apollo/client';
+import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
+import { UPDATE_SESSION_PRICEDOCS } from '../../../../request/mutations/updateSessionPriceDocs.mutation';
+import { Alert } from 'react-native';
 import {
   ACCEPT_ALLOCATION_REQUEST,
   REJECT_ALLOCATION_REQUEST,
@@ -124,7 +124,7 @@ const WORKSPACE_STATUS = {
   },
 };
 
-export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
+export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const downloadPdf = useRef(null);
   const token = useSelector(state => state.chats.chatToken);
   const clientDetail = useSelector((state: any) => state?.booking?.booking);
@@ -142,12 +142,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     updateAgentdocs,
   } = useFetchBooking();
 
-  const {handleCallSupport} = useCustomerSuport();
-  const {updateSession, handleSessionUpdation, getSessionByID} = useSession();
-  const {searchUserByEmail} = useFetchUser();
-  let {documents: documentArray} = clientDetail;
-  const {booked_for} = clientDetail;
-  const {proof_documents} = clientDetail;
+  const { handleCallSupport } = useCustomerSuport();
+  const { updateSession, handleSessionUpdation, getSessionByID } = useSession();
+  const { searchUserByEmail } = useFetchUser();
+  let { documents: documentArray } = clientDetail;
+  const { booked_for } = clientDetail;
+  const { proof_documents } = clientDetail;
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [allocationStatus, setAllocationStatus] = useState();
@@ -183,7 +183,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [fileDownloaded, setFileDownloaded] = useState(false);
-  const [lastRNBFTask, setLastRNBFTask] = useState({cancel: () => {}});
+  const [lastRNBFTask, setLastRNBFTask] = useState({ cancel: () => { } });
   // const [navigationStatus, setNavigationStatus] = useState('');
   const [selected, setSelected] = useState('client_choose');
   const [bookedByAddress, setBookedByAddress] = useState(null);
@@ -251,7 +251,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     }, 2000);
   }, []);
 
-  const {uploadMultipleFiles, uploadAllDocuments, uploadDocArray} =
+  const { uploadMultipleFiles, uploadAllDocuments, uploadDocArray } =
     useRegister();
 
   const [updateSessionClientDocs] = useMutation(
@@ -347,7 +347,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
 
   const [
     acceptAllocation,
-    {data: acceptData, loading: acceptLoading, error: acceptError},
+    { data: acceptData, loading: acceptLoading, error: acceptError },
   ] = useMutation(ACCEPT_ALLOCATION_REQUEST, {
     onCompleted: data => {
       console.log('Allocation accepted:', data);
@@ -361,7 +361,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   });
   const [
     rejectAllocation,
-    {data: rejectData, loading: rejectLoading, error: rejectError},
+    { data: rejectData, loading: rejectLoading, error: rejectError },
   ] = useMutation(REJECT_ALLOCATION_REQUEST, {
     onCompleted: data => {
       console.log('Allocation rejected:', data);
@@ -375,12 +375,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   });
   const handleAllocationAccept = async allocationId => {
     acceptAllocation({
-      variables: {allocationId},
+      variables: { allocationId },
     });
   };
   const handleAllocationReject = async allocationId => {
     rejectAllocation({
-      variables: {allocationId},
+      variables: { allocationId },
     });
   };
   const handleUpdateClientStatus = async (updatestatus: string) => {
@@ -468,7 +468,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     setLoading(false);
   };
   const scanDocument = async () => {
-    const {scannedImages} = await DocumentScanner.scanDocument();
+    const { scannedImages } = await DocumentScanner.scanDocument();
     return scannedImages;
   };
   const handleSignaturePage = async () => {
@@ -485,7 +485,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     setIsVisible(false);
   };
   function displayNamesWithCommas(arr: any[]) {
-    const names = arr.map((obj: {name: any}) => obj.name);
+    const names = arr.map((obj: { name: any }) => obj.name);
     const namesString = names.join(', ');
     return namesString;
   }
@@ -597,7 +597,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       const res =
         clientDetail.__typename == 'Session'
           ? // await updateAgentdocs(request)
-            await updateAgentdocs(clientDetail?._id, urlResponse)
+          await updateAgentdocs(clientDetail?._id, urlResponse)
           : await updateBookingClientDocs(requestBooking);
 
       var reponse;
@@ -619,9 +619,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   };
   const highestPriceDocument = clientDetail.document_type?.length
     ? clientDetail.document_type.reduce(
-        (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
-        clientDetail.document_type[0],
-      )
+      (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
+      clientDetail.document_type[0],
+    )
     : {};
 
   const additionalSignatureCharges =
@@ -858,7 +858,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
 
   const handleNotarizrDocumentPress = async (documents, name) => {
     try {
-      setLoadingStates(prev => ({...prev, [name]: true}));
+      setLoadingStates(prev => ({ ...prev, [name]: true }));
       Toast.show({
         type: 'info',
         text1: 'Download Starting',
@@ -872,7 +872,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           text1: 'Permission Denied',
           text2: 'Storage permission is required to download files.',
         });
-        setLoadingStates(prev => ({...prev, [name]: false}));
+        setLoadingStates(prev => ({ ...prev, [name]: false }));
 
         return;
       }
@@ -884,7 +884,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           text1: 'Download Directory Not Found',
           text2: 'The download directory does not exist or is not accessible.',
         });
-        setLoadingStates(prev => ({...prev, [name]: false}));
+        setLoadingStates(prev => ({ ...prev, [name]: false }));
 
         return;
       }
@@ -907,14 +907,14 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               text1: 'Download Successful',
               text2: `File downloaded to ${downloadPath}`,
             });
-            setLoadingStates(prev => ({...prev, [name]: false}));
+            setLoadingStates(prev => ({ ...prev, [name]: false }));
           } else {
             Toast.show({
               type: 'error',
               text1: 'Download Failed',
               text2: `Failed to download the file ${fileName}.`,
             });
-            setLoadingStates(prev => ({...prev, [name]: false}));
+            setLoadingStates(prev => ({ ...prev, [name]: false }));
           }
         } catch (error) {
           console.error(`Failed to download ${fileName}:`, error);
@@ -924,7 +924,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             text2: `An error occurred while downloading the file ${fileName}.`,
           });
         } finally {
-          setLoadingStates(prev => ({...prev, [name]: false}));
+          setLoadingStates(prev => ({ ...prev, [name]: false }));
         }
       };
 
@@ -1028,7 +1028,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           <View
             style={[
               styles.workspaceStatusBadge,
-              {backgroundColor: workspaceStatusStyle.background},
+              { backgroundColor: workspaceStatusStyle.background },
             ]}>
             <Feather
               name={workspaceStatusStyle.icon}
@@ -1038,7 +1038,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             <Text
               style={[
                 styles.workspaceStatusText,
-                {color: workspaceStatusStyle.color},
+                { color: workspaceStatusStyle.color },
               ]}>
               {workspaceStatusLabel}
             </Text>
@@ -1071,19 +1071,21 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
         <ScrollView
           scrollEnabled={true}
           nestedScrollEnabled={true}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
+          {/* Legacy status — hidden, kept for logic compatibility */}
           <View style={styles.legacyStatusContainer}>
             <View style={styles.iconContainer}>
               {(status === 'Pending' ||
                 (status === 'to_be_paid' &&
                   clientDetail.payment_type === 'on_agent')) && (
-                <Image
-                  source={require('../../../../assets/pending.png')}
-                  style={styles.greenIcon}
-                />
-              )}
+                  <Image
+                    source={require('../../../../assets/pending.png')}
+                    style={styles.greenIcon}
+                  />
+                )}
               {(status === 'Completed' ||
                 status === 'Accepted' ||
                 status === 'Ongoing' ||
@@ -1092,11 +1094,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 status === 'Payment_confirmed' ||
                 (status === 'to_be_paid' &&
                   clientDetail.payment_type === 'on_agent')) && (
-                <Image
-                  source={require('../../../../assets/greenIcon.png')}
-                  style={styles.greenIcon}
-                />
-              )}
+                  <Image
+                    source={require('../../../../assets/greenIcon.png')}
+                    style={styles.greenIcon}
+                  />
+                )}
               {status === 'To_be_paid' && (
                 <>
                   <Image
@@ -1112,9 +1114,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               )}
               {status !== 'To_be_paid' && (
                 <Text style={styles.insideText}>
-                  {status === 'Payment_confirmed'
-                    ? 'Payment Confirmed'
-                    : status}
+                  {status === 'Payment_confirmed' ? 'Payment Confirmed' : status}
                 </Text>
               )}
               {clientDetail?.agentResquesStatus === 'pending' &&
@@ -1141,270 +1141,165 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           </View>
 
           <View style={styles.sheetContainer}>
-            {clientDetail.client ? (
-              <View>
-                <Text style={[styles.insideHeading]}>Client details</Text>
-                <View
-                  style={{
-                    width: widthToDp(90),
-                    marginTop: 10,
-                    marginHorizontal: widthToDp(5),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: widthToDp(3),
-                    borderRadius: widthToDp(2),
-                    backgroundColor: 'white',
-                    shadowColor: BookingColors.black,
-                    shadowOffset: {
-                      width: 0,
-                      height: 2,
-                    },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                  }}>
-                  <View style={{marginRight: 10}}>
+
+            {/* ── CLIENT DETAILS ── */}
+            <Text style={styles.insideHeading}>Client Details</Text>
+            <View style={styles.infoCard}>
+              {clientDetail.client ? (
+                <View style={styles.personRow}>
+                  <View style={styles.avatarRing}>
                     <Image
                       source={{
                         uri:
                           clientDetail.client.profile_picture ||
                           'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
                       }}
-                      style={{
-                        width: widthToDp(14),
-                        height: widthToDp(14),
-                        borderRadius: widthToDp(7),
-                      }}
+                      style={styles.personAvatar}
                     />
                   </View>
-                  <View>
-                    <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
+                  <View style={styles.personInfo}>
+                    <Text style={styles.personName}>
                       {clientDetail.client.first_name}{' '}
                       {clientDetail.client.last_name}
                     </Text>
-                    {/* Render other client details here if available */}
                   </View>
+                  <Feather name="chevron-right" size={18} color={BookingColors.textMuted} />
                 </View>
-              </View>
-            ) : (
-              <View>
-                <Text style={[styles.insideHeading]}>Client details</Text>
-                <View
-                  style={{
-                    width: widthToDp(90),
-                    marginTop: 10,
-                    marginHorizontal: widthToDp(5),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: widthToDp(3),
-                    borderRadius: widthToDp(2),
-                    backgroundColor: 'white',
-                    shadowColor: BookingColors.black,
-                    shadowOffset: {
-                      width: 0,
-                      height: 2,
-                    },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                  }}>
-                  <View style={{marginRight: 10}}>
+              ) : (
+                <View style={styles.personRow}>
+                  <View style={styles.avatarRing}>
                     <Image
                       source={{
                         uri: 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
                       }}
-                      style={{
-                        width: widthToDp(14),
-                        height: widthToDp(14),
-                        borderRadius: widthToDp(7),
-                      }}
+                      style={styles.personAvatar}
                     />
                   </View>
-                  <View>
-                    <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
-                      {clientDetail?.booked_for?.email ||
-                        clientDetail?.booked_by?.email ||
-                        clientDetail?.email}
-                    </Text>
-                    <Text
-                      style={{color: 'black', fontFamily: 'Poppins-Regular'}}>
-                      {clientDetail?.booked_for?.first_name ||
+                  <View style={styles.personInfo}>
+                    <Text style={styles.personName}>
+                      {(clientDetail?.booked_for?.first_name ||
                         clientDetail?.booked_by?.first_name ||
-                        clientDetail?.first_name}
-                      {clientDetail.booked_for?.last_name ||
+                        clientDetail?.first_name || '')}
+                      {' '}
+                      {(clientDetail.booked_for?.last_name ||
                         clientDetail.booked_by?.last_name ||
-                        clientDetail?.last_name}
+                        clientDetail?.last_name || '')}
                     </Text>
-                    {/* Render other alternative client details here */}
+                    {(clientDetail?.booked_for?.email ||
+                      clientDetail?.booked_by?.email ||
+                      clientDetail?.email) ? (
+                      <Text style={styles.personMeta}>
+                        {clientDetail?.booked_for?.email ||
+                          clientDetail?.booked_by?.email ||
+                          clientDetail?.email}
+                      </Text>
+                    ) : null}
                   </View>
+                  <Feather name="chevron-right" size={18} color={BookingColors.textMuted} />
                 </View>
-              </View>
-            )}
+              )}
+            </View>
 
+            {/* ── OBSERVERS (existing) ── */}
             {clientDetail.observers && clientDetail.observers.length > 0 && (
-              <View>
-                <Text style={[styles.insideHeading]}>Observers </Text>
-                <View>
-                  {clientDetail.observers.map(item => {
-                    return (
-                      <View
-                        style={{
-                          width: widthToDp(90),
-                          marginTop: 10,
-                          marginHorizontal: widthToDp(5),
-
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          padding: widthToDp(3),
-                          borderRadius: widthToDp(2),
-                          backgroundColor: 'white',
-                          shadowColor: BookingColors.black,
-                          shadowOffset: {
-                            width: 0,
-                            height: 2,
-                          },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-
-                          elevation: 5,
-                          // marginLeft: 3,
-                        }}>
-                        <View style={{marginRight: 10}}>
-                          <Image
-                            source={{
-                              uri: 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
-                            }}
-                            style={{
-                              width: widthToDp(14),
-                              height: widthToDp(14),
-                              borderRadius: widthToDp(7),
-                            }}
-                          />
-                        </View>
-                        <View>
-                          <Text
-                            style={{
-                              color: 'black',
-                              fontFamily: 'Poppins-Bold',
-                            }}>
-                            {item}
-                          </Text>
-                        </View>
+              <>
+                <Text style={styles.insideHeading}>Observers</Text>
+                {clientDetail.observers.map((item, idx) => (
+                  <View
+                    key={idx}
+                    style={[styles.infoCard, { marginBottom: idx < clientDetail.observers.length - 1 ? 2 : undefined }]}>
+                    <View style={styles.personRow}>
+                      <View style={styles.avatarRing}>
+                        <Image
+                          source={{
+                            uri: 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
+                          }}
+                          style={styles.personAvatar}
+                        />
                       </View>
-                    );
-                  })}
-                </View>
-              </View>
+                      <View style={styles.personInfo}>
+                        <Text style={styles.personName}>{item}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </>
             )}
+
+            {/* ── WITNESS INVITE ── */}
             {(!clientDetail.observers ||
               (status === 'Paid' && clientDetail.observers.length === 0)) &&
               clientDetail.__typename === 'Session' && (
-                <View>
-                  <Text style={styles.insideHeading}>
-                    Make observers as witnesses
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: 'Poppins-Regular',
-                      color: 'black',
-                      paddingHorizontal: 40,
-                    }}>
-                    An Observer is anyone with relevant information for all the
-                    signing that may need to be on the notarization session.
-                  </Text>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: widthToDp(2),
-                      marginHorizontal: widthToDp(5),
-                      marginVertical: widthToDp(2),
-                    }}>
-                    <Text
-                      style={{
-                        color: BookingColors.textPrimary,
-                        width: widthToDp(70),
-                      }}>
-                      How many witnesses do you want to invite?
-                    </Text>
-                    <TextInput
-                      style={{
-                        paddingHorizontal: widthToDp(2),
-                        paddingVertical: heightToDp(2),
-                        width: widthToDp(15),
-                        height: heightToDp(10),
-                        borderColor: BookingColors.primary,
-                        borderWidth: 2,
-                        borderRadius: widthToDp(3),
-                        color: 'black',
-                      }}
-                      placeholder=""
-                      keyboardType="numeric"
-                      onChangeText={text => {
-                        let number = parseInt(text, 10) || 1;
-                        if (number > 5) {
-                          Toast.show({
-                            type: 'error',
-                            text1: 'Only 5 observers are allowed',
-                          });
-                          number = 5;
-                        }
-                        setNumOfWitnesses(number);
-                        setWitnessFields(Array(number).fill(''));
-                      }}
-                    />
+                <>
+                  <Text style={styles.insideHeading}>Make Observers as Witnesses</Text>
+                  <View style={styles.infoCard}>
+                    <View style={{ padding: 14 }}>
+                      <Text style={styles.witnessDescription}>
+                        An Observer is anyone with relevant information for all the
+                        signing that may need to be on the notarization session.
+                      </Text>
+                      <View style={styles.witnessCountRow}>
+                        <Text style={styles.witnessCountLabel}>
+                          How many witnesses?
+                        </Text>
+                        <TextInput
+                          style={styles.witnessCountInput}
+                          placeholder="1"
+                          placeholderTextColor={BookingColors.textMuted}
+                          keyboardType="numeric"
+                          onChangeText={text => {
+                            let number = parseInt(text, 10) || 1;
+                            if (number > 5) {
+                              Toast.show({
+                                type: 'error',
+                                text1: 'Only 5 observers are allowed',
+                              });
+                              number = 5;
+                            }
+                            setNumOfWitnesses(number);
+                            setWitnessFields(Array(number).fill(''));
+                          }}
+                        />
+                      </View>
+                    </View>
                   </View>
 
                   {witnessFields.map((_, index) => (
-                    <View
-                      key={index}
-                      style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 10,
-                      }}>
+                    <View key={index} style={{ marginTop: 8 }}>
                       <LabelTextInput
-                        placeholder={`Search observer by  ${index + 1} email`}
+                        placeholder={`Search observer ${index + 1} by email`}
                         value={searchTexts[index]}
                         defaultValue={''}
                         onChangeText={text => handleSearchChange(text, index)}
                         rightImagePress={() => {
                           const updatedSearchTexts = [...searchTexts];
-                          updatedSearchTexts[index] = ''; // Clear the input field for this index
+                          updatedSearchTexts[index] = '';
                           setSearchTexts(updatedSearchTexts);
-                          setSearchedUser([]); // Optionally clear the search results
-                          setShowObserverSearchView(false); // Optionally hide the search view
+                          setSearchedUser([]);
+                          setShowObserverSearchView(false);
                         }}
-                        InputStyles={{padding: widthToDp(2)}}
+                        InputStyles={{ padding: widthToDp(2) }}
                         AdjustWidth={{
                           width: widthToDp(92),
                           borderColor: BookingColors.primary,
                         }}
                         rightImageSoucre={require('../../../../assets/close.png')}
-                        // rightImagePress={() => {
-                        //   setSearchedUser([]);
-                        //   setSearchText('');
-                        // }}
                       />
                       {showObserverSearchView &&
-                      searchFor == 'Observer' &&
-                      activeFieldIndex === index &&
-                      searchedUser.length !== 0 ? (
+                        searchFor == 'Observer' &&
+                        activeFieldIndex === index &&
+                        searchedUser.length !== 0 ? (
                         isLoading ? (
                           <ActivityIndicator
                             size="large"
                             color={BookingColors.primary}
-                            style={{height: heightToDp(40)}}
+                            style={{ height: heightToDp(40) }}
                           />
                         ) : (
                           <ScrollView
                             showsVerticalScrollIndicator={false}
                             nestedScrollEnabled={true}
-                            style={{
-                              height: heightToDp(40),
-                              marginBottom: widthToDp(3),
-                            }}>
+                            style={{ height: heightToDp(40), marginBottom: widthToDp(3) }}>
                             {searchedUser.map(item => (
                               <TouchableOpacity
                                 key={item._id}
@@ -1415,21 +1310,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                                   setObservers(prev => [...prev, item]);
                                   setShowObserverSearchView(false);
                                 }}
-                                style={{
-                                  borderColor: BookingColors.primary,
-                                  borderWidth: 1,
-                                  padding: widthToDp(1),
-                                  // marginLeft: widthToDp(6),
-                                  marginBottom: widthToDp(3),
-                                  borderRadius: widthToDp(2),
-                                  width: widthToDp(88),
-                                  // backgroundColor: 'red'
-                                }}>
-                                <Text
-                                  style={{
-                                    color: BookingColors.textPrimary,
-                                    fontSize: widthToDp(4),
-                                  }}>
+                                style={styles.observerSearchResult}>
+                                <Text style={styles.observerSearchResultText}>
                                   {item.email}
                                 </Text>
                               </TouchableOpacity>
@@ -1440,403 +1322,231 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     </View>
                   ))}
 
-                  {observers.length > 0 && (
-                    <View>
-                      {observers.map(item => {
-                        return (
-                          <View
-                            style={{
-                              width: widthToDp(90),
-                              marginTop: 10,
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              padding: widthToDp(3),
-                              borderRadius: widthToDp(2),
-                              backgroundColor: 'white',
-                              shadowColor: BookingColors.black,
-                              shadowOffset: {
-                                width: 0,
-                                height: 2,
-                              },
-                              shadowOpacity: 0.25,
-                              shadowRadius: 3.84,
-
-                              elevation: 5,
-                              marginLeft: widthToDp(6),
-                            }}>
-                            <View style={{marginRight: 10}}>
-                              <Image
-                                source={{
-                                  uri:
-                                    item?.profile_picture != 'none'
-                                      ? item.profile_picture
-                                      : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
-                                }}
-                                style={{
-                                  width: widthToDp(14),
-                                  height: widthToDp(14),
-                                  borderRadius: widthToDp(7),
-                                }}
-                              />
-                            </View>
-                            <View>
-                              <Text
-                                style={{
-                                  color: 'black',
-                                  fontFamily: 'Poppins-Bold',
-                                }}>
-                                {item.first_name} {item.last_name}
-                              </Text>
-                              <Text
-                                style={{
-                                  color: 'black',
-                                  fontFamily: 'Poppins-Regular',
-                                }}>
-                                {item?.email}
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              onPress={() => {
-                                setObservers(
-                                  observers.filter(i => i._id !== item._id),
-                                );
+                  {observers.length > 0 &&
+                    observers.map(item => (
+                      <View key={item._id} style={[styles.infoCard, { marginTop: 8 }]}>
+                        <View style={styles.personRow}>
+                          <View style={styles.avatarRing}>
+                            <Image
+                              source={{
+                                uri:
+                                  item?.profile_picture != 'none'
+                                    ? item.profile_picture
+                                    : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
                               }}
-                              style={{position: 'absolute', right: 5, top: 5}}>
-                              <Xmark
-                                width={24}
-                                height={24}
-                                strokeWidth={2}
-                                color={BookingColors.primary}
-                              />
-                            </TouchableOpacity>
+                              style={styles.personAvatar}
+                            />
                           </View>
-                        );
-                      })}
-                    </View>
-                  )}
-                </View>
+                          <View style={styles.personInfo}>
+                            <Text style={styles.personName}>
+                              {item.first_name} {item.last_name}
+                            </Text>
+                            <Text style={styles.personMeta}>{item?.email}</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() =>
+                              setObservers(observers.filter(i => i._id !== item._id))
+                            }
+                            style={styles.removeObserverBtn}>
+                            <Xmark width={16} height={16} strokeWidth={2.5} color={BookingColors.error} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                </>
               )}
+
+            {/* ── LOCATION ── */}
             {(clientDetail.__typename === 'Booking' ||
               clientDetail.__typename === 'Allocation') &&
               clientDetail.address && (
-                <View style={{paddingHorizontal: widthToDp(3)}}>
+                <>
                   <Text style={[styles.insideHeading, styles.addressMargin]}>
                     Booked For Location
                   </Text>
-                  <AddressCard
-                    location={bookedByAddress?.location || clientDetail.address}
-                    onPress={handleStartNavigation}
-                    booking="true"
-                  />
-                </View>
+                  <View style={{ paddingHorizontal: 16, marginBottom: 4 }}>
+                    <AddressCard
+                      location={bookedByAddress?.location || clientDetail.address}
+                      onPress={handleStartNavigation}
+                      booking="true"
+                    />
+                  </View>
+                </>
               )}
 
+            {/* ── NOTARY DOCUMENTS ── */}
             {clientDetail.document_type &&
               clientDetail.document_type.length > 0 && (
-                <View style={{marginTop: heightToDp(2)}}>
-                  <Text style={[styles.insideHeading]}>Notary Documents</Text>
-                  {clientDetail.document_type &&
-                    clientDetail.document_type.map(item => (
+                <>
+                  <Text style={styles.insideHeading}>Notary Documents</Text>
+                  <View style={styles.infoCard}>
+                    {clientDetail.document_type.map((item, idx) => (
                       <View
-                        style={{
-                          paddingHorizontal: widthToDp(7),
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                        }}>
-                        <CheckCircleSolid
-                          width={24}
-                          height={24}
-                          strokeWidth={2}
-                          color={BookingColors.primary}
-                        />
-                        <Text
-                          style={{
-                            fontFamily: 'Poppins-Regular',
-                            color: 'black',
-                            marginLeft: 10,
-                          }}>
-                          {item.name}- $ {item.price}
-                        </Text>
+                        key={idx}
+                        style={[
+                          styles.docRow,
+                          idx === clientDetail.document_type.length - 1 && { borderBottomWidth: 0 },
+                        ]}>
+                        <View style={styles.docIconCircle}>
+                          <Feather name="file-text" size={14} color={BookingColors.primary} />
+                        </View>
+                        <Text style={styles.docName}>{item.name}</Text>
+                        <View style={styles.docPricePill}>
+                          <Text style={styles.docPriceText}>${item.price}</Text>
+                        </View>
                       </View>
                     ))}
-                </View>
+                  </View>
+                </>
               )}
-            {/* {clientDetail.date_time_session && ( */}
 
-            <View style={{marginVertical: 10}}>
-              <Text style={[styles.insideHeading]}>
-                Preferred date and time
-              </Text>
-              <View style={{paddingHorizontal: widthToDp(7)}}>
-                {clientDetail.date_time_session && (
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                    {moment(clientDetail.date_time_session).format(
-                      'MM/DD/YYYY',
-                    )}{' '}
-                    at {moment(clientDetail.date_time_session).format('h:mm a')}
-                  </Text>
-                )}
-                {(clientDetail?.date_of_booking ||
-                  clientDetail?.time_of_booking) && (
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                    {moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')}{' '}
-                    at {clientDetail.time_of_booking}
-                  </Text>
-                )}
-                {clientDetail?.preferredDate && (
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                    {moment(clientDetail?.preferredDate).format('MM/DD/YYYY')}{' '}
-                    at {clientDetail.preferredTime}
-                  </Text>
-                )}
+            {/* ── PREFERRED DATE & TIME ── */}
+            <Text style={styles.insideHeading}>Preferred Date & Time</Text>
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconCircle}>
+                  <Feather name="calendar" size={14} color={BookingColors.primary} />
+                </View>
+                <Text style={styles.infoRowText}>
+                  {clientDetail.date_time_session
+                    ? `${moment(clientDetail.date_time_session).format('MM/DD/YYYY')} at ${moment(clientDetail.date_time_session).format('h:mm a')}`
+                    : (clientDetail?.date_of_booking || clientDetail?.time_of_booking)
+                      ? `${moment(clientDetail?.date_of_booking).format('MM/DD/YYYY')} at ${clientDetail.time_of_booking}`
+                      : clientDetail?.preferredDate
+                        ? `${moment(clientDetail?.preferredDate).format('MM/DD/YYYY')} at ${clientDetail.preferredTime}`
+                        : '—'}
+                </Text>
               </View>
             </View>
-            {/* )} */}
+
+            {/* ── PAYING AMOUNT ── */}
             {clientDetail.__typename === 'Booking' &&
               typeof clientDetail.totalPrice === 'number' && (
-                <View>
-                  <Text style={[styles.insideHeading]}>Paying Amount</Text>
-                  <View
-                    style={{
-                      paddingHorizontal: widthToDp(7),
-                      backgroundColor: BookingColors.primary,
-                      marginLeft: widthToDp(5),
-                      width: widthToDp(60),
-                      paddingVertical: 6,
-                      borderRadius: 20,
-                    }}>
-                    <Text
-                      style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                      Total Price: ${totalPrice}
-                      {status === 'Accepted' || status === 'Paid'
-                        ? '  - > Paid'
-                        : ''}
+                <>
+                  <Text style={styles.insideHeading}>Paying Amount</Text>
+                  <View style={styles.infoCard}>
+                    <View style={styles.amountRow}>
+                      <Text style={styles.amountLabel}>Total Price</Text>
+                      <View style={styles.amountBadge}>
+                        <Text style={styles.amountBadgeText}>
+                          ${totalPrice}
+                          {status === 'Accepted' || status === 'Paid' ? '  ✓ Paid' : ''}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              )}
+
+            {/* ── ADDITIONAL SIGNATURES ── */}
+            {typeof clientDetail.total_signatures_required === 'number' && (
+              <>
+                <Text style={styles.insideHeading}>Additional Signature Documents</Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconCircle}>
+                      <Feather name="edit-3" size={14} color={BookingColors.primary} />
+                    </View>
+                    <Text style={styles.infoRowText}>
+                      {clientDetail.total_signatures_required} additional{' '}
+                      {clientDetail.total_signatures_required === 1 ? 'signature' : 'signatures'} required
                     </Text>
                   </View>
                 </View>
-              )}
-            {typeof clientDetail.total_signatures_required === 'number' && (
-              <View>
-                <Text style={[styles.insideHeading]}>
-                  Additional Signature Documents
-                </Text>
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    backgroundColor: BookingColors.primary,
-                    marginLeft: widthToDp(5),
-                    width: widthToDp(60),
-                    paddingVertical: 6,
-                    borderRadius: 20,
-                  }}>
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                    {clientDetail.total_signatures_required}
-                  </Text>
-                </View>
-              </View>
+              </>
             )}
+
+            {/* ── PRINT UPLOADED DOCUMENTS ── */}
             {clientDetail.documents && clientDetail.documents.length > 0 && (
-              <View style={{marginTop: heightToDp(5), marginVertical: 10}}>
-                <View style={styles.downloadButtonContainer}>
-                  <Text style={[styles.insideHeading]}>
-                    Print uploaded documents
-                  </Text>
+              <>
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.insideHeading}>Print Uploaded Documents</Text>
                   <TouchableOpacity
                     onPress={() =>
-                      handleNotarizrDocumentPress(
-                        clientDetail.documents,
-                        'printuploaded',
-                      )
+                      handleNotarizrDocumentPress(clientDetail.documents, 'printuploaded')
                     }
-                    style={styles.downloadButton}>
+                    style={styles.downloadBtn}>
                     {loadingStates.printuploaded ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={BookingColors.white}
-                      />
+                      <ActivityIndicator size="small" color={BookingColors.white} />
                     ) : (
-                      <Text style={styles.downloadButtonText}>Download</Text>
+                      <>
+                        <Feather name="download" size={12} color={BookingColors.white} />
+                        <Text style={styles.downloadBtnText}>Download</Text>
+                      </>
                     )}
                   </TouchableOpacity>
                 </View>
-
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    marginTop: heightToDp(4),
-                    marginLeft: widthToDp(5),
-                    columnGap: widthToDp(3),
-                  }}>
-                  {clientDetail.documents &&
-                    Array.isArray(clientDetail.documents) &&
-                    clientDetail.documents.map((item, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() => {
-                          handleDocumentPress(item.url);
-                        }}>
-                        <Image
-                          source={require('../../../../assets/docPic.png')}
-                          style={{width: widthToDp(10), height: heightToDp(10)}}
-                        />
-                      </TouchableOpacity>
-                    ))}
+                <View style={styles.infoCard}>
+                  {clientDetail.documents.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handleDocumentPress(item.url)}
+                      style={[
+                        styles.docListItem,
+                        index === clientDetail.documents.length - 1 && { borderBottomWidth: 0 },
+                      ]}>
+                      <View style={styles.docListIcon}>
+                        <Feather name="file" size={16} color={BookingColors.textSecondary} />
+                      </View>
+                      <Text style={styles.docListName}>Document {index + 1}</Text>
+                      <View style={styles.docListAction}>
+                        <Feather name="eye" size={14} color={BookingColors.primary} />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              </View>
+              </>
             )}
-            {/* {clientDetail.payment_type && (
-              <View>
-                <Text style={[styles.insideHeading]}>Payment Info </Text>
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <CheckCircleSolid
-                    width={24}
-                    height={24}
-                    strokeWidth={2}
-                    color={BookingColors.primary}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: 'Poppins-Regular',
-                      color: 'black',
-                      marginLeft: 10,
-                    }}>
-                    {clientDetail.payment_type == 'on_notarizr'
-                      ? ' Invoice the client on Notarizr'
-                      : 'Invoice the client on your own'}
-                  </Text>
-                </View>
-              </View>
-            )} */}
-            {/* {!clientDetail.payment_type &&
-              clientDetail.__typename === 'Session' && (
-                <View style={styles.headingContainer}>
-                  <Text style={styles.Heading}>Payment Info</Text>
-                  <View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginTop: 10,
-                      }}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setPaymentMethod('on_agent');
-                        }}>
-                        {paymentMethod == 'on_agent' ? (
-                          <CheckCircleSolid
-                            width={24}
-                            height={24}
-                            strokeWidth={2}
-                            color={BookingColors.primary}
-                          />
-                        ) : (
-                          <CheckCircle
-                            width={24}
-                            height={24}
-                            strokeWidth={2}
-                            color={'gray'}
-                          />
-                        )}
-                      </TouchableOpacity>
-                      <Text style={{ color: 'black', marginLeft: 10 }}>
-                        Invoice the client on your own{' '}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginTop: 10,
-                      }}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setPaymentMethod('on_notarizr');
-                        }}>
-                        {paymentMethod == 'on_notarizr' ? (
-                          <CheckCircleSolid
-                            width={24}
-                            height={24}
-                            strokeWidth={2}
-                            color={BookingColors.primary}
-                          />
-                        ) : (
-                          <CheckCircle
-                            width={24}
-                            height={24}
-                            strokeWidth={2}
-                            color={'gray'}
-                          />
-                        )}
-                      </TouchableOpacity>
-                      <Text style={{ color: 'black', marginLeft: 10 }}>
-                        Invoice the client on Notarizr{' '}
+
+            {/* ── REQUESTED AMOUNT ── */}
+            {clientDetail.payment_type == 'on_notarizr' && (
+              <>
+                <Text style={styles.insideHeading}>Requested Amount</Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.amountRow}>
+                    <Text style={styles.amountLabel}>Session Fee</Text>
+                    <View style={styles.amountBadge}>
+                      <Text style={styles.amountBadgeText}>
+                        ${price}
+                        {status === 'Accepted' || status === 'Paid' ? '  ✓ Paid' : ''}
                       </Text>
                     </View>
                   </View>
                 </View>
-              )} */}
-            {clientDetail.payment_type == 'on_notarizr' && (
-              <View>
-                <Text style={[styles.insideHeading]}>Requested Amount</Text>
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    backgroundColor: BookingColors.primary,
-                    marginLeft: widthToDp(5),
-                    width: widthToDp(60),
-                    paddingVertical: 6,
-                    borderRadius: 20,
-                  }}>
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                    $ {price}{' '}
-                    {status === 'Accepted' || status === 'Paid'
-                      ? '  - > Paid'
-                      : ''}
-                  </Text>
-                </View>
-              </View>
+              </>
             )}
+
+            {/* ── ID OPTIONS ── */}
             {clientDetail.identity_authentication && (
-              <View>
-                <Text style={[styles.insideHeading]}>ID options</Text>
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    backgroundColor: BookingColors.primary,
-                    marginLeft: widthToDp(5),
-                    width: widthToDp(60),
-                    paddingVertical: 6,
-                    borderRadius: 20,
-                  }}>
-                  <Text style={{fontFamily: 'Poppins-Regular', color: 'white'}}>
-                    {clientDetail.identity_authentication == 'user_id'
-                      ? 'ID Card'
-                      : clientDetail.identity_authentication == 'user_passport'
-                      ? 'Passport'
-                      : 'Allow user to choose'}
-                  </Text>
+              <>
+                <Text style={styles.insideHeading}>ID Options</Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconCircle}>
+                      <Feather name="credit-card" size={14} color={BookingColors.primary} />
+                    </View>
+                    <Text style={styles.infoRowLabel}>Identity Verification</Text>
+                    <View style={styles.idChip}>
+                      <Text style={styles.idChipText}>
+                        {clientDetail.identity_authentication == 'user_id'
+                          ? 'ID Card'
+                          : clientDetail.identity_authentication == 'user_passport'
+                            ? 'Passport'
+                            : 'User Choice'}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
+              </>
             )}
+
+            {/* ── AUTH SELECTION ── */}
             {!clientDetail.identity_authentication &&
               clientDetail.__typename === 'Session' &&
               status === 'Paid' && (
                 <View style={styles.headingContainer}>
-                  <Text
-                    style={{
-                      flex: 3,
-                      color: BookingColors.textPrimary,
-                      fontSize: widthToDp(4),
-                      fontFamily: 'Manrope-Bold',
-                      marginVertical: widthToDp(2),
-                      marginHorizontal: widthToDp(2),
-                    }}>
-                    Choose client Session Authentication
+                  <Text style={[styles.insideHeading, { marginHorizontal: widthToDp(2) }]}>
+                    Choose Client Session Authentication
                   </Text>
                   <View style={styles.authbuttoncontainer}>
                     <MainButton
@@ -1844,19 +1554,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                       colors={
                         selected === 'client_choose'
                           ? [BookingColors.primary, BookingColors.primary]
-                          : [
-                              BookingColors.borderStrong,
-                              BookingColors.borderStrong,
-                            ]
+                          : [BookingColors.borderStrong, BookingColors.borderStrong]
                       }
-                      GradiStyles={{
-                        paddingVertical: heightToDp(1),
-                        paddingHorizontal: widthToDp(5),
-                      }}
-                      styles={{
-                        padding: heightToDp(2),
-                        fontSize: widthToDp(3.5),
-                      }}
+                      GradiStyles={{ paddingVertical: heightToDp(1), paddingHorizontal: widthToDp(5) }}
+                      styles={{ padding: heightToDp(2), fontSize: widthToDp(3.5) }}
                       onPress={() => setSelected('client_choose')}
                     />
                     <MainButton
@@ -1864,19 +1565,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                       colors={
                         selected === 'user_id'
                           ? [BookingColors.primary, BookingColors.primary]
-                          : [
-                              BookingColors.borderStrong,
-                              BookingColors.borderStrong,
-                            ]
+                          : [BookingColors.borderStrong, BookingColors.borderStrong]
                       }
-                      GradiStyles={{
-                        paddingVertical: heightToDp(1),
-                        paddingHorizontal: widthToDp(5),
-                      }}
-                      styles={{
-                        padding: heightToDp(2),
-                        fontSize: widthToDp(3.5),
-                      }}
+                      GradiStyles={{ paddingVertical: heightToDp(1), paddingHorizontal: widthToDp(5) }}
+                      styles={{ padding: heightToDp(2), fontSize: widthToDp(3.5) }}
                       onPress={() => setSelected('user_id')}
                     />
                     <MainButton
@@ -1884,222 +1576,189 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                       colors={
                         selected === 'user_passport'
                           ? [BookingColors.primary, BookingColors.primary]
-                          : [
-                              BookingColors.borderStrong,
-                              BookingColors.borderStrong,
-                            ]
+                          : [BookingColors.borderStrong, BookingColors.borderStrong]
                       }
-                      GradiStyles={{
-                        paddingVertical: heightToDp(1),
-                        paddingHorizontal: widthToDp(5),
-                      }}
-                      styles={{
-                        padding: heightToDp(2),
-                        fontSize: widthToDp(3.5),
-                      }}
+                      GradiStyles={{ paddingVertical: heightToDp(1), paddingHorizontal: widthToDp(5) }}
+                      styles={{ padding: heightToDp(2), fontSize: widthToDp(3.5) }}
                       onPress={() => setSelected('user_passport')}
                     />
                   </View>
                 </View>
               )}
+
+            {/* ── CLIENT UPLOADED DOCS (no agent_document) ── */}
             {!clientDetail.agent_document &&
               clientDetail.documents &&
               clientDetail.documents.length > 0 && (
-                <View style={{marginVertical: 10}}>
-                  <Text style={[styles.insideHeading]}>
-                    Client uploaded documents
-                  </Text>
-                  <GradientButton
-                    colors={[BookingColors.primary, BookingColors.primary]}
-                    title="Print Invoice"
-                  />
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      marginTop: heightToDp(4),
-                      marginLeft: widthToDp(5),
-                      columnGap: widthToDp(3),
-                      flexWrap: 'wrap',
-                      gap: widthToDp(3),
-                    }}>
+                <>
+                  <Text style={styles.insideHeading}>Client Uploaded Documents</Text>
+                  <View style={styles.infoCard}>
+                    <TouchableOpacity
+                      style={[styles.docListItem, { borderBottomWidth: 1, borderBottomColor: BookingColors.border }]}>
+                      <View style={styles.docListIcon}>
+                        <Feather name="printer" size={16} color={BookingColors.textSecondary} />
+                      </View>
+                      <Text style={styles.docListName}>Print Invoice</Text>
+                      <View style={styles.docListAction}>
+                        <Feather name="chevron-right" size={14} color={BookingColors.primary} />
+                      </View>
+                    </TouchableOpacity>
                     {clientDetail.documents.map((item, index) => (
-                      <TouchableOpacity key={index}>
-                        <Image
-                          source={require('../../../../assets/docPic.png')}
-                          style={{width: widthToDp(10), height: heightToDp(10)}}
-                        />
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.docListItem,
+                          index === clientDetail.documents.length - 1 && { borderBottomWidth: 0 },
+                        ]}>
+                        <View style={styles.docListIcon}>
+                          <Feather name="file" size={16} color={BookingColors.textSecondary} />
+                        </View>
+                        <Text style={styles.docListName}>Document {index + 1}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
-                </View>
+                </>
               )}
 
+            {/* ── CLIENT_DOCUMENTS ── */}
             {clientDetail.client_documents &&
               Object.values(clientDetail.client_documents)?.length > 0 && (
-                <View style={{marginVertical: 10}}>
-                  <View style={styles.downloadButtonContainer}>
-                    <View style={styles.uplodaText}>
-                      <Text style={[styles.insideHeading]}>
-                        Client uploaded documents
-                      </Text>
-                    </View>
+                <>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.insideHeading}>Client Uploaded Documents</Text>
                     <TouchableOpacity
                       onPress={() =>
-                        handleNotarizrDocumentPress(
-                          clientDetail.client_documents,
-                          'clientuploaded',
-                        )
+                        handleNotarizrDocumentPress(clientDetail.client_documents, 'clientuploaded')
                       }
-                      style={styles.downloadButton}>
+                      style={styles.downloadBtn}>
                       {loadingStates.clientuploaded ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={BookingColors.white}
-                        />
+                        <ActivityIndicator size="small" color={BookingColors.white} />
                       ) : (
-                        <Text style={styles.downloadButtonText}>Download</Text>
+                        <>
+                          <Feather name="download" size={12} color={BookingColors.white} />
+                          <Text style={styles.downloadBtnText}>Download</Text>
+                        </>
                       )}
                     </TouchableOpacity>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      marginTop: heightToDp(4),
-                      marginLeft: widthToDp(5),
-                      columnGap: widthToDp(3),
-                      flexWrap: 'wrap',
-                      gap: widthToDp(3),
-                    }}>
-                    {Object.values(clientDetail.client_documents)?.map(
-                      (item, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => handleDocumentPress(item)}>
-                          <Image
-                            source={require('../../../../assets/docPic.png')}
-                            style={{
-                              width: widthToDp(10),
-                              height: heightToDp(10),
-                            }}
-                          />
-                        </TouchableOpacity>
-                      ),
-                    )}
+                  <View style={styles.infoCard}>
+                    {Object.values(clientDetail.client_documents)?.map((item, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => handleDocumentPress(item)}
+                        style={[
+                          styles.docListItem,
+                          index === Object.values(clientDetail.client_documents).length - 1 && {
+                            borderBottomWidth: 0,
+                          },
+                        ]}>
+                        <View style={styles.docListIcon}>
+                          <Feather name="file" size={16} color={BookingColors.textSecondary} />
+                        </View>
+                        <Text style={styles.docListName}>Document {index + 1}</Text>
+                        <View style={styles.docListAction}>
+                          <Feather name="eye" size={14} color={BookingColors.primary} />
+                        </View>
+                      </TouchableOpacity>
+                    ))}
                   </View>
-                </View>
+                </>
               )}
+
+            {/* ── AGENT UPLOADED DOCS ── */}
             {clientDetail.agent_document &&
               clientDetail.agent_document.length > 0 && (
-                <View style={{marginVertical: 5, marginTop: 10}}>
-                  <View style={styles.downloadButtonContainer}>
-                    <View style={styles.uplodaText}>
-                      <Text style={[styles.insideHeading]}>
-                        Agent uploaded documents
-                      </Text>
-                    </View>
+                <>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.insideHeading}>Agent Uploaded Documents</Text>
                     <TouchableOpacity
                       onPress={() =>
-                        handleNotarizrDocumentPress(
-                          clientDetail.agent_document,
-                          'agentuploaded',
-                        )
+                        handleNotarizrDocumentPress(clientDetail.agent_document, 'agentuploaded')
                       }
-                      style={styles.downloadButton}>
+                      style={styles.downloadBtn}>
                       {loadingStates.agentuploaded ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={BookingColors.white}
-                        />
+                        <ActivityIndicator size="small" color={BookingColors.white} />
                       ) : (
-                        <Text style={styles.downloadButtonText}>Download</Text>
+                        <>
+                          <Feather name="download" size={12} color={BookingColors.white} />
+                          <Text style={styles.downloadBtnText}>Download</Text>
+                        </>
                       )}
                     </TouchableOpacity>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      marginTop: heightToDp(4),
-                      marginLeft: widthToDp(5),
-                      columnGap: widthToDp(3),
-                      flexWrap: 'wrap',
-                      gap: widthToDp(3),
-                    }}>
+                  <View style={styles.infoCard}>
                     {clientDetail.agent_document?.map((item, index) => (
                       <TouchableOpacity
                         key={index}
-                        onPress={() => handleDocumentPress(item)}>
-                        <Image
-                          source={require('../../../../assets/docPic.png')}
-                          style={{width: widthToDp(10), height: heightToDp(10)}}
-                        />
+                        onPress={() => handleDocumentPress(item)}
+                        style={[
+                          styles.docListItem,
+                          index === clientDetail.agent_document.length - 1 && { borderBottomWidth: 0 },
+                        ]}>
+                        <View style={styles.docListIcon}>
+                          <Feather name="file" size={16} color={BookingColors.textSecondary} />
+                        </View>
+                        <Text style={styles.docListName}>Document {index + 1}</Text>
+                        <View style={styles.docListAction}>
+                          <Feather name="eye" size={14} color={BookingColors.primary} />
+                        </View>
                       </TouchableOpacity>
                     ))}
                   </View>
-                </View>
+                </>
               )}
 
+            {/* ── NOTARIZED DOCS ── */}
             {clientDetail.notarized_docs &&
               clientDetail.notarized_docs.length > 0 && (
-                <View style={{marginTop: 10}}>
-                  <View style={styles.downloadButtonContainer}>
-                    <View style={styles.uplodaText}>
-                      <Text style={[styles.insideHeading]}>
-                        Notarized documents
-                      </Text>
-                    </View>
+                <>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.insideHeading}>Notarized Documents</Text>
                     <TouchableOpacity
                       onPress={() =>
-                        handleNotarizrDocumentPress(
-                          clientDetail.notarized_docs,
-                          'notarydocuments',
-                        )
+                        handleNotarizrDocumentPress(clientDetail.notarized_docs, 'notarydocuments')
                       }
-                      style={styles.downloadButton}>
+                      style={styles.downloadBtn}>
                       {loadingStates.notarydocuments ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={BookingColors.white}
-                        />
+                        <ActivityIndicator size="small" color={BookingColors.white} />
                       ) : (
-                        <Text style={styles.downloadButtonText}>Download</Text>
+                        <>
+                          <Feather name="download" size={12} color={BookingColors.white} />
+                          <Text style={styles.downloadBtnText}>Download</Text>
+                        </>
                       )}
                     </TouchableOpacity>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      marginTop: heightToDp(4),
-                      marginLeft: widthToDp(5),
-                      columnGap: widthToDp(3),
-                      flexWrap: 'wrap',
-                      gap: widthToDp(3),
-                    }}>
+                  <View style={styles.infoCard}>
                     {clientDetail.notarized_docs?.map((item, index) => (
                       <TouchableOpacity
                         key={index}
-                        onPress={() => handleDocumentPress(item)}>
-                        <Image
-                          source={require('../../../../assets/docPic.png')}
-                          style={{width: widthToDp(10), height: heightToDp(10)}}
-                        />
+                        onPress={() => handleDocumentPress(item)}
+                        style={[
+                          styles.docListItem,
+                          index === clientDetail.notarized_docs.length - 1 && { borderBottomWidth: 0 },
+                        ]}>
+                        <View style={[styles.docListIcon, { backgroundColor: BookingColors.successSoft }]}>
+                          <Feather name="file-text" size={16} color={BookingColors.success} />
+                        </View>
+                        <Text style={styles.docListName}>Notarized Doc {index + 1}</Text>
+                        <View style={[styles.docListAction, { backgroundColor: BookingColors.successSoft }]}>
+                          <Feather name="eye" size={14} color={BookingColors.success} />
+                        </View>
                       </TouchableOpacity>
                     ))}
                   </View>
-                </View>
+                </>
               )}
+
+            {/* PDF Modal */}
             <Modal visible={showModal} animationType="slide">
-              {/* <View style={styles.modalContainer}>
-                <Text style={styles.modalHeading}>Document Preview</Text> */}
-              {/* {/* Display the document PDF */}
               <PdfView
-                // ref={pdfRef}
                 style={styles.pdfView}
-                source={{uri: filePath}}
+                source={{ uri: filePath }}
                 trustAllCerts={false}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
-                // horizontal={true}
-
                 enablePaging={true}
                 minScale={1.0}
                 maxScale={20.0}
@@ -2109,222 +1768,111 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 onLoadComplete={(numberOfPages, filePath) => {
                   console.log('completed');
                 }}
-                onPageChanged={(page, numberOfPages) => {}}
-                // onPageSingleTap={(page, x, y) => {
-                //   handleSingleTap(page, x, y);
-                // }}
+                onPageChanged={(page, numberOfPages) => { }}
                 onError={error => console.error(error)}
               />
               <View style={styles.modalButtons}>
                 <Button title="Download" onPress={openLocalFile} />
                 <Button title="Close" onPress={cancelTaskAndCloseModal} />
               </View>
-              {/* </View> */}
             </Modal>
 
-            {/* {clientDetail.agent_document && (
-              <View style={{marginTop: 10}}>
-                <Text style={[styles.insideHeading]}>Notarized documents</Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    marginLeft: widthToDp(5),
-                    columnGap: widthToDp(3),
-                  }}>
-                  {clientDetail.agent_document?.map((item, index) => (
-                    <TouchableOpacity key={index}>
-                      <Image
-                        source={require('../../../../assets/docPic.png')}
-                        style={{ width: widthToDp(10), height: heightToDp(10) }}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )} */}
+            {/* ── PAYMENT DETAILS (Booking) ── */}
             {clientDetail.__typename === 'Booking' && (
-              <View>
-                <Text style={[styles.insideHeading]}>Payment details</Text>
-
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <CheckCircleSolid
-                    width={24}
-                    height={24}
-                    strokeWidth={2}
-                    color={BookingColors.primary}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: 'Poppins-Regular',
-                      color: 'black',
-                      marginLeft: 10,
-                    }}>
-                    Notary charges: ${highestPriceDocument?.price}
-                  </Text>
-                </View>
-                {typeof clientDetail.total_signatures_required === 'number' && (
-                  <View
-                    style={{
-                      paddingHorizontal: widthToDp(7),
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}>
-                    <CheckCircleSolid
-                      width={24}
-                      height={24}
-                      strokeWidth={2}
-                      color={BookingColors.primary}
-                    />
-
-                    <Text
-                      style={{
-                        fontFamily: 'Poppins-Regular',
-                        color: 'black',
-                        marginLeft: 10,
-                      }}>
-                      Additional signatures :{' '}
-                      {clientDetail.total_signatures_required} x $ 10 = $
-                      {additionalSignatureCharges}
+              <>
+                <Text style={styles.insideHeading}>Payment Details</Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.paymentRow}>
+                    <Text style={styles.paymentLabel}>Notary Charges</Text>
+                    <Text style={styles.paymentValue}>${highestPriceDocument?.price}</Text>
+                  </View>
+                  {typeof clientDetail.total_signatures_required === 'number' && (
+                    <View style={styles.paymentRow}>
+                      <Text style={styles.paymentLabel}>
+                        Additional Signatures ({clientDetail.total_signatures_required} × $10)
+                      </Text>
+                      <Text style={styles.paymentValue}>${additionalSignatureCharges}</Text>
+                    </View>
+                  )}
+                  <View style={styles.paymentRow}>
+                    <Text style={styles.paymentLabel}>Printing Charges</Text>
+                    <Text style={styles.paymentValue}>
+                      ${clientDetail.documents.length > 0 ? 10 : 0}
                     </Text>
                   </View>
-                )}
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <CheckCircleSolid
-                    width={24}
-                    height={24}
-                    strokeWidth={2}
-                    color={BookingColors.primary}
-                  />
-
-                  <Text
-                    style={{
-                      fontFamily: 'Poppins-Regular',
-                      color: 'black',
-                      marginLeft: 10,
-                    }}>
-                    Printing charges : ${' '}
-                    {clientDetail.documents.length > 0 ? 10 : 0}
-                  </Text>
+                  <View style={[styles.paymentRow, styles.paymentTotalRow]}>
+                    <Text style={styles.paymentTotalLabel}>Total</Text>
+                    <Text style={styles.paymentTotalValue}>${clientDetail.totalPrice}</Text>
+                  </View>
                 </View>
-                <View
-                  style={{
-                    paddingHorizontal: widthToDp(7),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <CheckCircleSolid
-                    width={24}
-                    height={24}
-                    strokeWidth={2}
-                    color={BookingColors.primary}
-                  />
-
-                  <Text
-                    style={{
-                      fontFamily: 'Poppins-Regular',
-                      color: 'black',
-                      marginLeft: 10,
-                    }}>
-                    Total : $ {clientDetail.totalPrice}
-                  </Text>
-                </View>
-              </View>
+              </>
             )}
+
+            {/* ── BOOKED FOR ── */}
             {booked_for?.first_name && (
-              <View>
-                <View style={styles.addressView}>
-                  <Text
-                    style={{
-                      fontSize: widthToDp(4),
-                      marginLeft: widthToDp(1),
-                      fontFamily: 'Manrope-Bold',
-                      color: BookingColors.textPrimary,
-                    }}>
-                    Booked For:
-                  </Text>
-                  <Text style={styles.detail}>
-                    {booked_for?.first_name} {booked_for?.last_name}
-                  </Text>
+              <>
+                <Text style={styles.insideHeading}>Booked For</Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconCircle}>
+                      <Feather name="user" size={14} color={BookingColors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoRowText}>
+                        {booked_for?.first_name} {booked_for?.last_name}
+                      </Text>
+                      {booked_for?.phone_number ? (
+                        <Text style={styles.personMeta}>{booked_for?.phone_number}</Text>
+                      ) : null}
+                      {booked_for?.location ? (
+                        <Text style={styles.personMeta}>
+                          {capitalizeFirstLetter(booked_for?.location)}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
                 </View>
-                <View style={styles.addressView}>
-                  <Text
-                    style={{
-                      fontSize: widthToDp(4),
-                      marginLeft: widthToDp(1),
-                      fontFamily: 'Manrope-Bold',
-                      color: BookingColors.textPrimary,
-                    }}>
-                    Phone Number:
-                  </Text>
-                  <Text style={styles.detail}>{booked_for?.phone_number}</Text>
-                </View>
-                <View style={styles.addressView}>
-                  <Image
-                    source={require('../../../../assets/locationIcon.png')}
-                    style={styles.locationImage}
-                  />
-                  <Text style={styles.detail}>
-                    {capitalizeFirstLetter(booked_for?.location)}
-                  </Text>
-                </View>
-              </View>
+              </>
             )}
+
+            <View style={{ height: 8 }} />
           </View>
 
+          {/* ── NOTES ── */}
           {showNotes && (
-            <LabelTextInput
-              LabelTextInput="Notes"
-              placeholder="Write notes here"
-              Label={true}
-              onChangeText={(text: React.SetStateAction<string>) =>
-                setNotes(text)
-              }
-            />
+            <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+              <LabelTextInput
+                LabelTextInput="Notes"
+                placeholder="Write notes here"
+                Label={true}
+                onChangeText={(text: React.SetStateAction<string>) => setNotes(text)}
+              />
+            </View>
           )}
 
-          <View style={[styles.buttonFlex, {marginTop: heightToDp(5)}]}>
-            {
-              // (clientDetail.observers.length === 0 ||
-              //   clientDetail.identity_authentication === null) &&
-              clientDetail.__typename !== 'Booking' && status === 'Paid' && (
-                <MainButton
-                  Title="Update"
-                  colors={[BookingColors.primary, BookingColors.primary]}
-                  onPress={() => {
-                    handleClientData();
-                    handleStatusChange('accepted');
-                  }}
-                  GradiStyles={{
-                    width: widthToDp(30),
-                    paddingHorizontal: widthToDp(0),
-                    paddingVertical: heightToDp(3),
-                  }}
-                  loading={loadingUpdate}
-                  isDisabled={loadingUpdate}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(4),
-                  }}
-                />
-              )
-            }
+          {/* ── ACTION BUTTONS ── */}
+          <View style={styles.actionContainer}>
+            {clientDetail.__typename !== 'Booking' && status === 'Paid' && (
+              <TouchableOpacity
+                style={[styles.primaryBtn, loadingUpdate && styles.btnDisabled]}
+                onPress={() => {
+                  handleClientData();
+                  handleStatusChange('accepted');
+                }}
+                disabled={loadingUpdate}>
+                {loadingUpdate ? (
+                  <ActivityIndicator size="small" color={BookingColors.white} />
+                ) : (
+                  <Text style={styles.primaryBtnText}>Update</Text>
+                )}
+              </TouchableOpacity>
+            )}
+
             {allocationStatus == null &&
-              (clientDetail?.__typename == 'Allocation' ||
-                status === 'Pending') && (
+              (clientDetail?.__typename == 'Allocation' || status === 'Pending') && (
                 <>
-                  <MainButton
-                    Title="Accept"
-                    colors={[BookingColors.primary, BookingColors.primary]}
+                  <TouchableOpacity
+                    style={[styles.primaryBtn, loadingAccept && styles.btnDisabled]}
                     onPress={() => {
                       if (clientDetail?.__typename !== 'Allocation') {
                         handleStatusChange('to_be_paid');
@@ -2333,72 +1881,51 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         handleAllocationAccept(clientDetail?._id);
                       }
                     }}
-                    GradiStyles={{
-                      width: widthToDp(30),
-                      paddingHorizontal: widthToDp(0),
-                      paddingVertical: heightToDp(3),
-                    }}
-                    loading={loadingAccept}
-                    isDisabled={loadingAccept}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(4),
-                    }}
-                  />
-                  <MainButton
-                    Title="Reject"
-                    colors={[BookingColors.primary, BookingColors.primary]}
+                    disabled={loadingAccept}>
+                    {loadingAccept ? (
+                      <ActivityIndicator size="small" color={BookingColors.white} />
+                    ) : (
+                      <Text style={styles.primaryBtnText}>Accept Booking</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.dangerBtn, loadingReject && styles.btnDisabled]}
                     onPress={() => {
                       if (clientDetail?.__typename !== 'Allocation') {
                         handleStatusChange('rejected');
                       } else {
                         handleAllocationReject(clientDetail?._id);
                       }
-
-                      // handleUpdateBookingStatus('rejected', clientDetail._id)
                     }}
-                    GradiStyles={{
-                      width: widthToDp(30),
-                      paddingHorizontal: widthToDp(0),
-                      paddingVertical: heightToDp(3),
-                    }}
-                    loading={loadingReject}
-                    isDisabled={loadingReject}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(4),
-                    }}
-                  />
+                    disabled={loadingReject}>
+                    {loadingReject ? (
+                      <ActivityIndicator size="small" color={BookingColors.error} />
+                    ) : (
+                      <Text style={styles.dangerBtnText}>Decline Booking</Text>
+                    )}
+                  </TouchableOpacity>
                 </>
               )}
-          </View>
-          <View style={[styles.buttonFlex]}>
+
+            {/* RON — Accepted / Ongoing / Payment_confirmed */}
             {clientDetail?.service_type !== 'mobile_notary' &&
-            (status === 'Accepted' ||
-              status === 'Ongoing' ||
-              status === 'Payment_confirmed') &&
-            !isStorageLoading ? (
-              <>
-                <GradientButton
-                  Title="Upload documents"
-                  colors={[BookingColors.primary, BookingColors.primary]}
-                  onPress={() => selectDocuments()}
-                  GradiStyles={{
-                    width: widthToDp(42),
-                    paddingHorizontal: widthToDp(0),
-                    paddingVertical: heightToDp(3),
-                  }}
-                  styles={{
-                    fontSize: widthToDp(4),
-                  }}
-                  fontSize={widthToDp(4)}
-                  loading={loading}
-                />
-                {clientDetail?.service_type !== 'mobile_notary' &&
-                  status === 'Accepted' && (
-                    <GradientButton
-                      Title="Join Session"
-                      colors={[BookingColors.primary, BookingColors.primary]}
+              (status === 'Accepted' ||
+                status === 'Ongoing' ||
+                status === 'Payment_confirmed') &&
+              !isStorageLoading && (
+                <>
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={() => selectDocuments()}>
+                    {loading ? (
+                      <ActivityIndicator size="small" color={BookingColors.textPrimary} />
+                    ) : (
+                      <Text style={styles.secondaryBtnText}>Upload Documents</Text>
+                    )}
+                  </TouchableOpacity>
+                  {status === 'Accepted' && (
+                    <TouchableOpacity
+                      style={styles.primaryBtn}
                       onPress={() =>
                         navigation.navigate('NotaryCallScreen', {
                           routeFrom: 'agent',
@@ -2406,280 +1933,139 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           channel: clientDetail?.agora_channel_name,
                           token: clientDetail?.agora_channel_token,
                         })
-                      }
-                      GradiStyles={{
-                        width: widthToDp(30),
-                        paddingHorizontal: widthToDp(0),
-                        paddingVertical: heightToDp(3.5),
-                      }}
-                      styles={{
-                        fontSize: widthToDp(4),
-                      }}
-                      fontSize={widthToDp(4)}
-                    />
+                      }>
+                      <Text style={styles.primaryBtnText}>Join Session</Text>
+                    </TouchableOpacity>
                   )}
-                {clientDetail.payment_type == 'on_notarizr' &&
-                  status !== 'Accepted' &&
-                  status == 'To_be_paid' && (
-                    <GradientButton
-                      Title="Requested Payment  for [RON]"
-                      colors={[BookingColors.primary, BookingColors.primary]}
-                      GradiStyles={{
-                        width: widthToDp(30),
-                        paddingHorizontal: widthToDp(0),
-                        paddingVertical: heightToDp(3),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(4),
-                      }}
-                      onPress={() => {
+                  {clientDetail.payment_type == 'on_notarizr' &&
+                    status !== 'Accepted' &&
+                    status == 'To_be_paid' && (
+                      <TouchableOpacity
+                        style={styles.primaryBtn}
+                        onPress={() => handlePresentModalPress()}>
+                        <Text style={styles.primaryBtnText}>Request Payment [RON]</Text>
+                      </TouchableOpacity>
+                    )}
+                </>
+              )}
+
+            {/* RON — To_be_paid */}
+            {clientDetail?.service_type !== 'mobile_notary' &&
+              status === 'To_be_paid' && (
+                <>
+                  <TouchableOpacity
+                    style={styles.primaryBtn}
+                    onPress={() => {
+                      if (clientDetail.payment_type == 'on_notarizr') {
                         handlePresentModalPress();
-                      }}
-                      fontSize={widthToDp(4)}
-                    />
-                  )}
-              </>
-            ) : null}
+                      } else {
+                        navigation.navigate('NotaryCallScreen', {
+                          routeFrom: 'agent',
+                          uid: clientDetail?._id,
+                          channel: clientDetail?.agora_channel_name,
+                          token: clientDetail?.agora_channel_token,
+                        });
+                      }
+                    }}>
+                    <Text style={styles.primaryBtnText}>
+                      {clientDetail.payment_type == 'on_notarizr'
+                        ? 'Request Payment [RON]'
+                        : 'Join Session'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={() => selectDocuments()}>
+                    {loading ? (
+                      <ActivityIndicator size="small" color={BookingColors.textPrimary} />
+                    ) : (
+                      <Text style={styles.secondaryBtnText}>Upload Documents</Text>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+
+            {/* Mobile Notary */}
             {clientDetail?.service_type === 'mobile_notary' &&
               (status === 'Accepted' ||
                 status === 'Ongoing' ||
                 status === 'Travelling') && (
                 <>
                   {status === 'Accepted' && (
-                    <GradientButton
-                      Title="Start Navigation"
-                      colors={[BookingColors.primary, BookingColors.primary]}
-                      GradiStyles={{
-                        width: widthToDp(30),
-                        paddingHorizontal: widthToDp(0),
-                        paddingVertical: heightToDp(3),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(4),
-                      }}
-                      onPress={handleStartNavigation}
-                      fontSize={widthToDp(4)}
-                    />
+                    <TouchableOpacity
+                      style={styles.primaryBtn}
+                      onPress={handleStartNavigation}>
+                      <Text style={styles.primaryBtnText}>Start Navigation</Text>
+                    </TouchableOpacity>
                   )}
                   {status === 'Travelling' && (
-                    <GradientButton
-                      Title="Start Notary"
-                      colors={[BookingColors.primary, BookingColors.primary]}
-                      GradiStyles={{
-                        width: widthToDp(30),
-                        paddingHorizontal: widthToDp(0),
-                        paddingVertical: heightToDp(3),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(4),
-                      }}
-                      onPress={() => handleStatusChange('ongoing')}
-                      fontSize={widthToDp(4)}
-                    />
+                    <TouchableOpacity
+                      style={styles.primaryBtn}
+                      onPress={() => handleStatusChange('ongoing')}>
+                      <Text style={styles.primaryBtnText}>Start Notary</Text>
+                    </TouchableOpacity>
                   )}
                   {status === 'Ongoing' && (
-                    <GradientButton
-                      Title="End Notary"
-                      colors={[BookingColors.primary, BookingColors.primary]}
-                      GradiStyles={{
-                        width: widthToDp(30),
-                        paddingHorizontal: widthToDp(0),
-                        paddingVertical: heightToDp(3),
-                      }}
-                      styles={{
-                        padding: widthToDp(0),
-                        fontSize: widthToDp(4),
-                      }}
-                      onPress={() => handleStatusChange('completed')}
-                      fontSize={widthToDp(4)}
-                    />
+                    <TouchableOpacity
+                      style={styles.primaryBtn}
+                      onPress={() => handleStatusChange('completed')}>
+                      <Text style={styles.primaryBtnText}>End Notary</Text>
+                    </TouchableOpacity>
                   )}
                 </>
               )}
-            {/* {clientDetail?.service_type === 'mobile_notary' &&
-              (status === 'Accepted' || status === 'Ongoing') && (
-                <>
-                  {
-                    status !== 'Ongoing' && (
-                      <GradientButton
-                        Title='Start notary'
-                        colors={[BookingColors.primary, BookingColors.primary]}
-                        GradiStyles={{
-                          width: widthToDp(30),
-                          paddingHorizontal: widthToDp(0),
-                          paddingVertical: heightToDp(3),
-                        }}
-                        styles={{
-                          padding: widthToDp(0),
-                          fontSize: widthToDp(4),
-                        }}
-                        onPress={() => handleStatusChange('ongoing')}
-                        fontSize={widthToDp(4)}
-                      />
-                    )
-                  }
-                  <GradientButton
-                    Title='End notary'
-                    colors={[BookingColors.primary, BookingColors.primary]}
-                    GradiStyles={{
-                      width: widthToDp(30),
-                      paddingHorizontal: widthToDp(0),
-                      paddingVertical: heightToDp(3),
-                    }}
-                    styles={{
-                      padding: widthToDp(0),
-                      fontSize: widthToDp(4),
-                    }}
-                    onPress={() => handleStatusChange('completed')}
-                    fontSize={widthToDp(4)}
-                  />
 
-                </>
-              )
-            } */}
-          </View>
-          {clientDetail?.service_type !== 'mobile_notary' &&
-            status === 'To_be_paid' && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: widthToDp(2),
-                }}>
-                <GradientButton
-                  Title={
-                    clientDetail.payment_type == 'on_notarizr'
-                      ? 'Requested Payment  for [RON]'
-                      : 'Join session'
-                  }
-                  colors={[BookingColors.primary, BookingColors.primary]}
-                  GradiStyles={{
-                    width: widthToDp(41),
-                    paddingVertical: widthToDp(4),
-                    marginTop: widthToDp(10),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(4),
-                  }}
-                  onPress={() => {
-                    if (clientDetail.payment_type == 'on_notarizr') {
-                      handlePresentModalPress();
-                    } else {
-                      navigation.navigate('NotaryCallScreen', {
-                        routeFrom: 'agent',
-                        uid: clientDetail?._id,
-                        channel: clientDetail?.agora_channel_name,
-                        token: clientDetail?.agora_channel_token,
-                      });
-                    }
-                  }}
-                  fontSize={widthToDp(4)}
-                />
-                <GradientButton
-                  Title={'Upload documents'}
-                  colors={[BookingColors.primary, BookingColors.primary]}
-                  GradiStyles={{
-                    width: widthToDp(41),
-                    paddingVertical: widthToDp(4),
-                    marginTop: widthToDp(10),
-                  }}
-                  styles={{
-                    padding: widthToDp(0),
-                    fontSize: widthToDp(6),
-                  }}
-                  onPress={() => {
-                    selectDocuments();
-                  }}
-                  fontSize={widthToDp(4)}
-                  loading={loading}
-                />
-              </View>
-            )}
-          <View style={styles.buttonBottom}>
+            {/* Ongoing — upload */}
             {notary === 'Ongoing' && (!notaryBlock || !signaturePage) && (
-              <GradientButton
-                Title="Upload Documents"
-                colors={[BookingColors.primary, BookingColors.primary]}
-                GradiStyles={{padding: widthToDp(4)}}
-                styles={{padding: 0, fontSize: widthToDp(5)}}
-                onPress={() => setIsVisible(true)}
-              />
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={() => setIsVisible(true)}>
+                <Text style={styles.primaryBtnText}>Upload Documents</Text>
+              </TouchableOpacity>
             )}
-            {signaturePage &&
-              notaryBlock &&
-              !showNotes &&
-              status !== 'Completed' && (
-                <GradientButton
-                  Title="Next"
-                  colors={[BookingColors.primary, BookingColors.primary]}
-                  GradiStyles={{padding: widthToDp(4)}}
-                  styles={{padding: 0, fontSize: widthToDp(5)}}
-                  onPress={() => handleNext()}
-                />
-              )}
+
+            {signaturePage && notaryBlock && !showNotes && status !== 'Completed' && (
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={() => handleNext()}>
+                <Text style={styles.primaryBtnText}>Next</Text>
+              </TouchableOpacity>
+            )}
+
             {showNotes && (
-              <View style={{marginBottom: widthToDp(5)}}>
-                <GradientButton
-                  Title="Complete Notary"
-                  colors={[BookingColors.primary, BookingColors.primary]}
-                  onPress={() => handleComplete()}
-                  loading={loading}
-                />
-              </View>
+              <TouchableOpacity
+                style={[styles.primaryBtn, loading && styles.btnDisabled]}
+                onPress={() => handleComplete()}
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator size="small" color={BookingColors.white} />
+                ) : (
+                  <Text style={styles.primaryBtnText}>Complete Notary</Text>
+                )}
+              </TouchableOpacity>
             )}
+
             {notary === 'Ongoing' && (
               <View style={styles.dashedContainer}>
-                <Text
-                  style={{
-                    color: BookingColors.textPrimary,
-                    fontFamily: 'Manrope-Regular',
-                    fontSize: widthToDp(4),
-                  }}>
+                <Text style={styles.supportText}>
                   If you have any issues completing this Notary service, please
                   contact customer support.
                 </Text>
                 <TouchableOpacity onPress={() => handleCallSupport()}>
-                  <Text
-                    style={{
-                      flex: 1,
-                      marginTop: widthToDp(2),
-                      color: BookingColors.primary,
-                      fontFamily: 'Manrope-Regular',
-                      fontSize: widthToDp(4),
-                      alignSelf: 'flex-end',
-                    }}>
-                    [Contact Support]
-                  </Text>
+                  <Text style={styles.supportLink}>Contact Support</Text>
                 </TouchableOpacity>
               </View>
             )}
+
+            <View style={{ height: 32 }} />
           </View>
+
         </ScrollView>
-        {/* {isVisible ? (
-            <BottomSheetModal
-              ref={bottomSheetModalRef}
-          index={1}
-          snapPoints={snapPoints}
-          onChange={handleSheetChanges}>
-              <UploadDocsSheet
-                SignaturePagePress={() => handleSignaturePage()}
-                NotaryBlockPress={() => handleNotaryBlock()}
-                CancelPress={() => handleCancel()}
-              />
-            </BottomSheetModal>
-          ) : null} */}
 
         <BottomSheetModal
           ref={bottomSheetModalRef}
           index={1}
-          snapPoints={snapPoints}
-          // onChange={handleSheetChanges}
-        >
+          snapPoints={snapPoints}>
           <RequestPayment
             amount={AmountEntered}
             onChangeText={(text: number) => setAmountEntered(text)}
@@ -2881,7 +2267,6 @@ const styles = StyleSheet.create({
     color: BookingColors.textSecondary,
   },
   sheetContainer: {
-    paddingBottom: 24,
     backgroundColor: BookingColors.backgroundSubtle,
   },
   locationImage: {
@@ -2905,7 +2290,6 @@ const styles = StyleSheet.create({
     columnGap: heightToDp(1),
     marginHorizontal: widthToDp(2),
   },
-
   buttonFlex: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -2917,7 +2301,6 @@ const styles = StyleSheet.create({
   },
   pdfView: {
     flex: 1,
-    // height: height * 0.6,
   },
   pdf: {
     flex: 1,
@@ -2935,7 +2318,6 @@ const styles = StyleSheet.create({
   },
   downloadButton: {
     width: 120,
-    // flex: 1,
     backgroundColor: BookingColors.primary,
     padding: 10,
     borderRadius: 5,
@@ -2944,5 +2326,352 @@ const styles = StyleSheet.create({
     color: BookingColors.white,
     fontSize: 16,
     textAlign: 'center',
+  },
+
+  // ── Modern card-based design system ──
+  infoCard: {
+    backgroundColor: BookingColors.surface,
+    borderRadius: 14,
+    marginHorizontal: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  personRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  avatarRing: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: BookingColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  personAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  personInfo: {
+    flex: 1,
+  },
+  personName: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: BookingColors.textPrimary,
+  },
+  personMeta: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    color: BookingColors.textSecondary,
+    marginTop: 2,
+  },
+  docRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  docIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: BookingColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  docName: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textPrimary,
+  },
+  docPricePill: {
+    backgroundColor: BookingColors.successSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  docPriceText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    color: BookingColors.success,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  infoIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: BookingColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  infoRowText: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textPrimary,
+  },
+  infoRowLabel: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textSecondary,
+  },
+  idChip: {
+    backgroundColor: BookingColors.primarySoft,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  idChipText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    color: BookingColors.primary,
+  },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  amountLabel: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textSecondary,
+  },
+  amountBadge: {
+    backgroundColor: BookingColors.primarySoft,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  amountBadgeText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    color: BookingColors.primary,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  paymentLabel: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textSecondary,
+    marginRight: 8,
+  },
+  paymentValue: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    color: BookingColors.textPrimary,
+  },
+  paymentTotalRow: {
+    borderBottomWidth: 0,
+    paddingVertical: 14,
+  },
+  paymentTotalLabel: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+  },
+  paymentTotalValue: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
+    color: BookingColors.primary,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 16,
+  },
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: BookingColors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    gap: 5,
+  },
+  downloadBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    color: BookingColors.white,
+  },
+  docListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  docListIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: BookingColors.backgroundSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  docListName: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textPrimary,
+  },
+  docListAction: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeObserverBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: BookingColors.errorSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  witnessDescription: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    color: BookingColors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 14,
+  },
+  witnessCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  witnessCountLabel: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textSecondary,
+    flex: 1,
+  },
+  witnessCountInput: {
+    borderWidth: 1.5,
+    borderColor: BookingColors.primary,
+    borderRadius: 10,
+    width: 56,
+    height: 44,
+    textAlign: 'center',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+  },
+  observerSearchResult: {
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    padding: 12,
+    marginBottom: 6,
+    borderRadius: 10,
+    backgroundColor: BookingColors.surface,
+  },
+  observerSearchResultText: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: BookingColors.textPrimary,
+  },
+  actionContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    gap: 10,
+  },
+  primaryBtn: {
+    backgroundColor: BookingColors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.white,
+  },
+  secondaryBtn: {
+    backgroundColor: BookingColors.surface,
+    borderRadius: 12,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: BookingColors.borderStrong,
+  },
+  secondaryBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+  },
+  dangerBtn: {
+    backgroundColor: BookingColors.errorSoft,
+    borderRadius: 12,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dangerBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.error,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  supportText: {
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  supportLink: {
+    marginTop: 8,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    alignSelf: 'flex-end',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
 });

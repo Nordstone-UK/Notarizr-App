@@ -14,7 +14,7 @@ import {useDispatch} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
-import BookingCard from '../../../components/Bookings/BookingCard';
+import AgentWorkspaceBookingCard from '../../../components/Bookings/AgentWorkspaceBookingCard';
 import BookingEmptyState from '../../../components/Bookings/BookingEmptyState';
 import {setBookingInfoState} from '../../../features/booking/bookingSlice';
 import useFetchBooking from '../../../hooks/useFetchBooking';
@@ -100,30 +100,32 @@ export default function AgentCompletedBooking({navigation}) {
           <View style={styles.listHeader}>
             <View style={styles.workspaceHero}>
               <View style={styles.heroGlow} />
-              <View style={styles.titleCopy}>
-                <Text style={styles.eyebrow}>SERVICE HISTORY</Text>
-                <Text style={styles.title}>Completed</Text>
-                <Text style={styles.subtitle}>
-                  Your completed mobile and remote appointments
-                </Text>
-              </View>
-              <View style={styles.countCard}>
-                <Feather
-                  name="check-circle"
-                  size={15}
-                  color={BookingColors.white}
-                />
-                <Text style={styles.countValue}>{bookings.length}</Text>
-                <Text style={styles.countLabel}>
-                  {bookings.length === 1 ? 'booking' : 'bookings'}
-                </Text>
+              <View style={styles.titleRow}>
+                <View style={styles.titleCopy}>
+                  <Text style={styles.eyebrow}>SERVICE HISTORY</Text>
+                  <Text style={styles.title}>Completed</Text>
+                  <Text style={styles.subtitle}>
+                    Your completed mobile and remote appointments
+                  </Text>
+                </View>
+                <View style={styles.countCard}>
+                  <Feather
+                    name="check-circle"
+                    size={15}
+                    color={BookingColors.white}
+                  />
+                  <Text style={styles.countValue}>{bookings.length}</Text>
+                  <Text style={styles.countLabel}>
+                    {bookings.length === 1 ? 'booking' : 'bookings'}
+                  </Text>
+                </View>
               </View>
             </View>
             <View style={styles.resultsRow}>
               <Text style={styles.resultsTitle}>Completed appointments</Text>
-              <View style={styles.completeBadge}>
-                <Feather name="archive" size={12} color={BookingColors.info} />
-                <Text style={styles.completeText}>History</Text>
+              <View style={styles.liveIndicator}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveText}>Up to date</Text>
               </View>
             </View>
           </View>
@@ -137,7 +139,10 @@ export default function AgentCompletedBooking({navigation}) {
           />
         }
         renderItem={({item}) => (
-          <BookingCard booking={item} onPress={() => openBooking(item)} />
+          <AgentWorkspaceBookingCard
+            booking={item}
+            onPress={() => openBooking(item)}
+          />
         )}
         showsVerticalScrollIndicator={false}
       />
@@ -150,10 +155,8 @@ const styles = StyleSheet.create({
   listContent: {paddingBottom: 28, backgroundColor: BookingColors.background},
   listHeader: {paddingHorizontal: 16, paddingTop: 14},
   workspaceHero: {
-    alignItems: 'center',
     backgroundColor: BookingColors.textPrimary,
     borderRadius: 8,
-    flexDirection: 'row',
     overflow: 'hidden',
     padding: 17,
   },
@@ -167,6 +170,7 @@ const styles = StyleSheet.create({
     width: 150,
   },
   titleCopy: {flex: 1, minWidth: 0, paddingRight: 14},
+  titleRow: {alignItems: 'flex-start', flexDirection: 'row'},
   eyebrow: {
     color: BookingColors.primary,
     fontFamily: 'Manrope-Bold',
@@ -182,8 +186,8 @@ const styles = StyleSheet.create({
   subtitle: {
     color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 12,
+    lineHeight: 17,
     marginTop: 3,
   },
   countCard: {
@@ -220,19 +224,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },
-  completeBadge: {
-    alignItems: 'center',
-    backgroundColor: BookingColors.infoSoft,
-    borderRadius: 7,
-    flexDirection: 'row',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+  liveDot: {
+    backgroundColor: BookingColors.success,
+    borderRadius: 3,
+    height: 6,
+    marginRight: 6,
+    width: 6,
   },
-  completeText: {
-    color: BookingColors.info,
-    fontFamily: 'Manrope-Bold',
+  liveIndicator: {alignItems: 'center', flexDirection: 'row'},
+  liveText: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
     fontSize: 9,
-    marginLeft: 5,
   },
   emptyListContent: {flexGrow: 1},
   loadingState: {alignItems: 'center', paddingTop: 86},
