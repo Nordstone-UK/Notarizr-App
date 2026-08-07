@@ -20,8 +20,9 @@ import {saveUserInfo} from '../../features/user/userSlice';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
 import {DELETE_ACCOUNT} from '../../../request/mutations/deleteAccount.mutation';
 import {UPDATE_ACCOUNT_TYPE} from '../../../request/mutations/updateAccountType.mutation';
+import AppColors from '../../themes/AppColors';
 
-const ORANGE = '#FD6D1F';
+const ORANGE = AppColors.primary;
 
 const getAccountLabel = accountType =>
   accountType === 'client' ? 'Client' : 'Notary';
@@ -169,18 +170,25 @@ export default function SettingScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={AppColors.textPrimary}
+      />
 
       <View style={styles.header}>
+        <View style={styles.headerGlow} />
         <View style={styles.headerToolbar}>
           <TouchableOpacity
             accessibilityLabel="Go back"
             activeOpacity={0.72}
             onPress={goBack}
             style={styles.backButton}>
-            <Feather name="arrow-left" size={21} color="#121826" />
+            <Feather name="arrow-left" size={20} color={AppColors.white} />
           </TouchableOpacity>
-          <Text style={styles.title}>Settings</Text>
+          <View style={styles.headerCopy}>
+            <Text style={styles.eyebrow}>ACCOUNT CENTER</Text>
+            <Text style={styles.title}>Settings</Text>
+          </View>
           <View style={styles.headerSpacer} />
         </View>
       </View>
@@ -189,10 +197,21 @@ export default function SettingScreen({navigation}) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.modeSection}>
-          <Text style={styles.modeTitle}>Account mode</Text>
-          <Text style={styles.modeDescription}>
-            Choose how you want to use Notarizr.
-          </Text>
+          <View style={styles.modeHeading}>
+            <View style={styles.modeIcon}>
+              <Feather name="repeat" size={18} color={AppColors.primary} />
+            </View>
+            <View style={styles.modeCopy}>
+              <Text style={styles.modeTitle}>How are you using Notarizr?</Text>
+              <Text style={styles.modeDescription}>
+                Switch experiences whenever you need.
+              </Text>
+            </View>
+            <View style={styles.livePill}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Active</Text>
+            </View>
+          </View>
           <View style={styles.segmentedControl}>
             <TouchableOpacity
               activeOpacity={0.72}
@@ -200,9 +219,9 @@ export default function SettingScreen({navigation}) {
               onPress={toggleAccountType}
               style={[styles.segment, isClientMode && styles.activeSegment]}>
               <Feather
-                name="user"
+                name="user-check"
                 size={16}
-                color={isClientMode ? ORANGE : '#7A818D'}
+                color={isClientMode ? ORANGE : AppColors.textSecondary}
               />
               <Text
                 style={[
@@ -218,9 +237,9 @@ export default function SettingScreen({navigation}) {
               onPress={toggleAccountType}
               style={[styles.segment, !isClientMode && styles.activeSegment]}>
               <Feather
-                name="award"
+                name="briefcase"
                 size={16}
-                color={!isClientMode ? ORANGE : '#7A818D'}
+                color={!isClientMode ? ORANGE : AppColors.textSecondary}
               />
               <Text
                 style={[
@@ -242,7 +261,7 @@ export default function SettingScreen({navigation}) {
             onPress={() => navigation.navigate('PrivacyPolicyScreen')}
           />
           <ProfileMenuItem
-            icon="file-text"
+            icon="book-open"
             title="Terms and conditions"
             description="Rules and terms for using Notarizr"
             last
@@ -253,7 +272,7 @@ export default function SettingScreen({navigation}) {
 
         <ProfileSection title="Help">
           <ProfileMenuItem
-            icon="help-circle"
+            icon="life-buoy"
             title="Help and FAQ"
             description="Find answers to common questions"
             last
@@ -265,7 +284,7 @@ export default function SettingScreen({navigation}) {
         <ProfileSection title="Account management">
           <ProfileMenuItem
             destructive
-            icon="trash-2"
+            icon="user-x"
             title="Delete account"
             description="Permanently remove your Notarizr account"
             last
@@ -274,10 +293,15 @@ export default function SettingScreen({navigation}) {
         </ProfileSection>
 
         <View style={styles.securityNote}>
-          <Feather name="lock" size={14} color="#7A818D" />
-          <Text style={styles.securityText}>
-            Account changes are protected and may require verification.
-          </Text>
+          <View style={styles.securityIcon}>
+            <Feather name="lock" size={16} color={AppColors.success} />
+          </View>
+          <View style={styles.securityCopy}>
+            <Text style={styles.securityTitle}>Protected account</Text>
+            <Text style={styles.securityText}>
+              Sensitive changes may require additional verification.
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -285,108 +309,168 @@ export default function SettingScreen({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 6,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
-  },
-  headerToolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  headerSpacer: {
-    width: 40,
-    height: 40,
-  },
-  title: {
-    flex: 1,
-    marginHorizontal: 10,
-    color: '#121826',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  content: {
-    flexGrow: 1,
-    paddingBottom: 30,
-    backgroundColor: '#FFFFFF',
-  },
-  modeSection: {
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
-  },
-  modeTitle: {
-    color: '#171C26',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 16,
-  },
-  modeDescription: {
-    marginTop: 3,
-    color: '#858B96',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 12,
-  },
-  segmentedControl: {
-    height: 48,
-    flexDirection: 'row',
-    marginTop: 14,
-    padding: 4,
-    borderRadius: 8,
-    backgroundColor: '#F1F3F5',
-  },
-  segment: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 6,
-  },
   activeSegment: {
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
     borderWidth: 1,
-    borderColor: '#E3E5E9',
-    backgroundColor: '#FFFFFF',
-  },
-  segmentLabel: {
-    marginLeft: 7,
-    color: '#707784',
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 13,
+    shadowColor: AppColors.textPrimary,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
   },
   activeSegmentLabel: {
-    color: '#202632',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
   },
-  securityNote: {
-    flexDirection: 'row',
+  backButton: {
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 24,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  content: {
+    backgroundColor: AppColors.background,
+    flexGrow: 1,
+    paddingBottom: 30,
+  },
+  eyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 1,
+  },
+  header: {
+    backgroundColor: AppColors.textPrimary,
+    overflow: 'hidden',
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  headerCopy: {alignItems: 'center', flex: 1, marginHorizontal: 10},
+  headerGlow: {
+    backgroundColor: 'rgba(253,109,31,0.15)',
+    borderRadius: 70,
+    height: 140,
+    position: 'absolute',
+    right: -35,
+    top: -75,
+    width: 140,
+  },
+  headerSpacer: {height: 40, width: 40},
+  headerToolbar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  liveDot: {
+    backgroundColor: AppColors.success,
+    borderRadius: 4,
+    height: 7,
+    marginRight: 5,
+    width: 7,
+  },
+  livePill: {
+    alignItems: 'center',
+    backgroundColor: AppColors.successSoft,
+    borderRadius: 8,
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  liveText: {color: AppColors.success, fontFamily: 'Manrope-Bold', fontSize: 8},
+  modeCopy: {flex: 1, marginHorizontal: 11},
+  modeDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    marginTop: 3,
+  },
+  modeHeading: {alignItems: 'center', flexDirection: 'row'},
+  modeIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  modeSection: {
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 14,
+  },
+  modeTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  safeArea: {backgroundColor: AppColors.textPrimary, flex: 1},
+  securityCopy: {flex: 1, marginLeft: 11},
+  securityIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.successSoft,
+    borderRadius: 8,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  securityNote: {
+    alignItems: 'center',
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 13,
   },
   securityText: {
-    flex: 1,
-    marginLeft: 8,
-    color: '#7A818D',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    lineHeight: 14,
+    marginTop: 2,
+  },
+  securityTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
     fontSize: 11,
-    lineHeight: 16,
+  },
+  segment: {
+    alignItems: 'center',
+    borderRadius: 8,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  segmentedControl: {
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 8,
+    flexDirection: 'row',
+    height: 50,
+    marginTop: 15,
+    padding: 4,
+  },
+  segmentLabel: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+    marginLeft: 7,
+  },
+  title: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+    marginTop: 1,
   },
 });

@@ -6,16 +6,17 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import ScreenHeader from '../../components/Navigation/ScreenHeader';
 import SavedAddressRow from '../../components/Profile/SavedAddressRow';
 import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
+import AppColors from '../../themes/AppColors';
 
 export default function AddressDetails({navigation}) {
   const user = useSelector(state => state.user.user);
@@ -78,7 +79,7 @@ export default function AddressDetails({navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
       <ScreenHeader
         fallback="HomeScreen"
         fallbackParams={{screen: 'ProfileInfoScreen'}}
@@ -92,10 +93,21 @@ export default function AddressDetails({navigation}) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
-          <Text style={styles.introTitle}>Service locations</Text>
-          <Text style={styles.introText}>
-            Choose from these addresses when booking a mobile notary.
-          </Text>
+          <View style={styles.introGlow} />
+          <View style={styles.introIcon}>
+            <Feather name="map" size={22} color={AppColors.white} />
+          </View>
+          <View style={styles.introCopy}>
+            <Text style={styles.introEyebrow}>YOUR PLACES</Text>
+            <Text style={styles.introTitle}>Book faster next time</Text>
+            <Text style={styles.introText}>
+              Keep your most-used service locations ready to select.
+            </Text>
+          </View>
+          <View style={styles.countPill}>
+            <Text style={styles.countValue}>{addresses.length}</Text>
+            <Text style={styles.countLabel}>SAVED</Text>
+          </View>
         </View>
         {addresses.length ? (
           <View style={styles.list}>
@@ -120,7 +132,7 @@ export default function AddressDetails({navigation}) {
         ) : (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Feather name="map-pin" size={26} color="#FD6D1F" />
+              <Feather name="navigation" size={25} color={AppColors.primary} />
             </View>
             <Text style={styles.emptyTitle}>No saved addresses</Text>
             <Text style={styles.emptyText}>
@@ -130,13 +142,12 @@ export default function AddressDetails({navigation}) {
         )}
       </ScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity
-          activeOpacity={0.76}
+        <AuthPrimaryButton
+          icon="arrow-right"
           onPress={addAddress}
-          style={styles.addButton}>
-          <Feather name="plus" size={19} color="#FFFFFF" />
-          <Text style={styles.addButtonText}>Add new address</Text>
-        </TouchableOpacity>
+          style={styles.addButton}
+          title="Add new address"
+        />
       </View>
     </SafeAreaView>
   );
@@ -144,26 +155,17 @@ export default function AddressDetails({navigation}) {
 
 const styles = StyleSheet.create({
   addButton: {
-    alignItems: 'center',
-    backgroundColor: '#FD6D1F',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 9,
     height: 54,
-    justifyContent: 'center',
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 15,
+    marginTop: 0,
   },
   content: {
     flexGrow: 1,
+    backgroundColor: AppColors.background,
     paddingBottom: 24,
   },
   emptyIcon: {
     alignItems: 'center',
-    backgroundColor: '#FFF0E8',
+    backgroundColor: AppColors.primarySoft,
     borderRadius: 28,
     height: 56,
     justifyContent: 'center',
@@ -172,10 +174,17 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingHorizontal: 42,
-    paddingTop: 90,
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 16,
+    marginTop: 35,
+    paddingBottom: 40,
+    paddingTop: 40,
   },
   emptyText: {
-    color: '#8B919C',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 13,
     lineHeight: 20,
@@ -183,43 +192,88 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   emptyTitle: {
-    color: '#202632',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 18,
     marginTop: 15,
   },
   footer: {
-    backgroundColor: '#FFFFFF',
-    borderTopColor: '#E5E7EB',
+    backgroundColor: AppColors.white,
+    borderTopColor: AppColors.border,
     borderTopWidth: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
   },
   intro: {
-    paddingHorizontal: 20,
-    paddingVertical: 22,
+    alignItems: 'center',
+    backgroundColor: AppColors.textPrimary,
+    flexDirection: 'row',
+    margin: 16,
+    overflow: 'hidden',
+    padding: 16,
+    borderRadius: 8,
+  },
+  introCopy: {flex: 1, marginHorizontal: 12},
+  introEyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 8,
+    letterSpacing: 0.9,
+  },
+  introGlow: {
+    backgroundColor: 'rgba(253,109,31,0.15)',
+    borderRadius: 60,
+    height: 120,
+    position: 'absolute',
+    right: -45,
+    top: -50,
+    width: 120,
+  },
+  introIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primary,
+    borderRadius: 8,
+    height: 46,
+    justifyContent: 'center',
+    width: 46,
   },
   introText: {
-    color: '#7D8490',
+    color: AppColors.textMuted,
     fontFamily: 'Manrope-Regular',
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 5,
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 4,
   },
   introTitle: {
-    color: '#202632',
+    color: AppColors.white,
     fontFamily: 'Manrope-Bold',
-    fontSize: 18,
+    fontSize: 14,
+  },
+  countLabel: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 7,
+    marginTop: 1,
+  },
+  countPill: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  countValue: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
   },
   list: {
-    backgroundColor: '#FFFFFF',
-    borderBottomColor: '#ECEEF1',
-    borderBottomWidth: 1,
-    borderTopColor: '#ECEEF1',
-    borderTopWidth: 1,
+    marginHorizontal: 16,
   },
   safeArea: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
     flex: 1,
   },
 });

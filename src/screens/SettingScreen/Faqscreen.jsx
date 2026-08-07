@@ -7,15 +7,17 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import {useSelector} from 'react-redux';
 import ScreenHeader from '../../components/Navigation/ScreenHeader';
 import FaqItem from '../../components/Support/FaqItem';
+import useCustomerSuport from '../../hooks/useCustomerSupport';
 import useFetchFaq from '../../hooks/useFetchFaq';
+import AppColors from '../../themes/AppColors';
 
-const PREVIEW_FAQS = [
+const FALLBACK_FAQS = [
   {
     _id: 'faq-1',
     question: 'What should I bring to a mobile notary appointment?',
@@ -53,14 +55,18 @@ const PREVIEW_FAQS = [
       'Once a notary accepts your request, open Messages or the booking details page to start a protected conversation.',
   },
 ];
-const EMPTY_FAQS = [];
+
+const TOPICS = [
+  {label: 'Booking', icon: 'calendar'},
+  {label: 'Payments', icon: 'credit-card'},
+  {label: 'Security', icon: 'shield'},
+];
 
 export default function Faqscreen({navigation}) {
-  const user = useSelector(state => state.user.user);
-  const {faq, loading} = useFetchFaq();
+  const {faq, error, loading, refetchFaq} = useFetchFaq();
+  const {handleCallSupport} = useCustomerSuport();
   const [search, setSearch] = useState('');
-  const previewMode = Boolean(user?.isHomePreview);
-  const items = previewMode ? PREVIEW_FAQS : faq || EMPTY_FAQS;
+  const items = faq.length ? faq : FALLBACK_FAQS;
   const visibleItems = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) {
@@ -75,11 +81,11 @@ export default function Faqscreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
       <ScreenHeader
         fallback="SettingScreen"
         navigation={navigation}
-        subtitle="Answers to common questions"
+        subtitle="Support center"
         title="Help and FAQ"
       />
       <ScrollView
@@ -87,51 +93,119 @@ export default function Faqscreen({navigation}) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <Text style={styles.heroTitle}>How can we help?</Text>
+          <View style={styles.heroBadge}>
+            <Feather name="life-buoy" size={14} color={AppColors.primary} />
+            <Text style={styles.heroBadgeText}>NOTARIZR SUPPORT</Text>
+          </View>
+          <Text style={styles.heroTitle}>What can we help you find?</Text>
           <Text style={styles.heroText}>
-            Search booking, payment, and account questions.
+            Fast answers for appointments, payments, and your account.
           </Text>
           <View style={styles.searchBox}>
-            <Feather name="search" size={18} color="#838A95" />
+            <View style={styles.searchIcon}>
+              <Feather name="search" size={17} color={AppColors.primary} />
+            </View>
             <TextInput
               onChangeText={setSearch}
-              placeholder="Search help"
-              placeholderTextColor="#A4A9B1"
+              placeholder="Search a question or keyword"
+              placeholderTextColor={AppColors.textMuted}
+              returnKeyType="search"
               style={styles.searchInput}
               value={search}
             />
+            {Boolean(search) && (
+              <TouchableOpacity onPress={() => setSearch('')}>
+                <Feather
+                  name="x-circle"
+                  size={17}
+                  color={AppColors.textMuted}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
-        <Text style={styles.sectionTitle}>Frequently asked</Text>
-        {loading && !previewMode ? (
-          <ActivityIndicator color="#FD6D1F" style={styles.loader} />
+
+        <View style={styles.topicRow}>
+          {TOPICS.map(topic => (
+            <TouchableOpacity
+              activeOpacity={0.75}
+              key={topic.label}
+              onPress={() => setSearch(topic.label)}
+              style={styles.topicCard}>
+              <View style={styles.topicIcon}>
+                <Feather
+                  name={topic.icon}
+                  size={17}
+                  color={AppColors.primary}
+                />
+              </View>
+              <Text style={styles.topicText}>{topic.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.sectionHeading}>
+          <View>
+            <Text style={styles.sectionTitle}>
+              {search ? 'Search results' : 'Frequently asked'}
+            </Text>
+            <Text style={styles.sectionMeta}>
+              {visibleItems.length}{' '}
+              {visibleItems.length === 1 ? 'answer' : 'answers'}
+            </Text>
+          </View>
+          {error && (
+            <TouchableOpacity onPress={refetchFaq} style={styles.refreshButton}>
+              <Feather name="refresh-cw" size={13} color={AppColors.primary} />
+              <Text style={styles.refreshText}>Refresh</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {loading && !faq.length ? (
+          <View style={styles.loaderWrap}>
+            <ActivityIndicator color={AppColors.primary} />
+            <Text style={styles.loaderText}>Finding the best answers...</Text>
+          </View>
         ) : visibleItems.length ? (
           <View style={styles.list}>
             {visibleItems.map((item, index) => (
               <FaqItem
+                index={index}
                 item={item}
                 key={item._id || item.question}
-                last={index === visibleItems.length - 1}
               />
             ))}
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <Feather name="search" size={24} color="#FD6D1F" />
-            <Text style={styles.emptyTitle}>No matching answers</Text>
+            <View style={styles.emptyIcon}>
+              <Feather name="search" size={22} color={AppColors.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>No exact match yet</Text>
             <Text style={styles.emptyText}>
-              Try a shorter phrase or a different keyword.
+              Try a shorter phrase or speak directly with our support team.
             </Text>
           </View>
         )}
-        <View style={styles.supportNote}>
-          <Feather name="message-circle" size={19} color="#2879B8" />
+
+        <View style={styles.supportCard}>
+          <View style={styles.supportIcon}>
+            <Feather name="headphones" size={22} color={AppColors.white} />
+          </View>
           <View style={styles.supportCopy}>
-            <Text style={styles.supportTitle}>Still need help?</Text>
+            <Text style={styles.supportTitle}>Need a human touch?</Text>
             <Text style={styles.supportText}>
-              Booking conversations remain available from Messages.
+              Our support team can help with an active booking.
             </Text>
           </View>
+          <TouchableOpacity
+            activeOpacity={0.78}
+            onPress={handleCallSupport}
+            style={styles.callButton}>
+            <Feather name="phone" size={15} color={AppColors.primary} />
+            <Text style={styles.callText}>Call</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -139,106 +213,201 @@ export default function Faqscreen({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  content: {
-    paddingBottom: 30,
+  callButton: {
+    alignItems: 'center',
+    backgroundColor: AppColors.white,
+    borderRadius: 8,
+    flexDirection: 'row',
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+  },
+  callText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+    marginLeft: 6,
+  },
+  content: {paddingBottom: 28, backgroundColor: AppColors.background},
+  emptyIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 25,
+    height: 50,
+    justifyContent: 'center',
+    width: 50,
   },
   emptyState: {
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 50,
-  },
-  emptyText: {
-    color: '#8B919C',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 12,
-    marginTop: 6,
-  },
-  emptyTitle: {
-    color: '#202632',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 16,
-    marginTop: 12,
-  },
-  hero: {
-    backgroundColor: '#F5F6F8',
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  heroText: {
-    color: '#7D8490',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 13,
-    marginTop: 5,
-  },
-  heroTitle: {
-    color: '#202632',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 20,
-  },
-  list: {
-    backgroundColor: '#FFFFFF',
-    borderBottomColor: '#E9EBEF',
-    borderBottomWidth: 1,
-    borderTopColor: '#E9EBEF',
-    borderTopWidth: 1,
-  },
-  loader: {
-    marginVertical: 50,
-  },
-  safeArea: {
-    backgroundColor: '#FFFFFF',
-    flex: 1,
-  },
-  searchBox: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DEE1E6',
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
     borderRadius: 8,
     borderWidth: 1,
+    marginHorizontal: 16,
+    padding: 30,
+  },
+  emptyText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  emptyTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    marginTop: 13,
+  },
+  hero: {
+    backgroundColor: AppColors.textPrimary,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  heroBadge: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
     flexDirection: 'row',
-    marginTop: 18,
-    minHeight: 48,
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  heroBadgeText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 0.7,
+    marginLeft: 7,
+  },
+  heroText: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 19,
+    marginTop: 7,
+    maxWidth: 310,
+  },
+  heroTitle: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 22,
+    lineHeight: 29,
+    marginTop: 17,
+  },
+  list: {marginHorizontal: 16},
+  loaderText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 10,
+  },
+  loaderWrap: {alignItems: 'center', paddingVertical: 44},
+  refreshButton: {alignItems: 'center', flexDirection: 'row', padding: 7},
+  refreshText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    marginLeft: 6,
+  },
+  safeArea: {backgroundColor: AppColors.background, flex: 1},
+  searchBox: {
+    alignItems: 'center',
+    backgroundColor: AppColors.white,
+    borderRadius: 8,
+    flexDirection: 'row',
+    marginTop: 20,
+    minHeight: 52,
+    paddingHorizontal: 10,
+  },
+  searchIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
   },
   searchInput: {
-    color: '#202632',
+    color: AppColors.textPrimary,
     flex: 1,
     fontFamily: 'Manrope-Regular',
-    fontSize: 14,
+    fontSize: 13,
     marginLeft: 10,
     paddingVertical: 10,
   },
-  sectionTitle: {
-    color: '#8B919C',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-    paddingHorizontal: 20,
-    paddingVertical: 13,
-    textTransform: 'uppercase',
-  },
-  supportCopy: {
-    flex: 1,
-    marginLeft: 13,
-  },
-  supportNote: {
+  sectionHeading: {
     alignItems: 'center',
-    backgroundColor: '#EDF4FC',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+  },
+  sectionMeta: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    marginTop: 2,
+  },
+  sectionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+  },
+  supportCard: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primary,
     borderRadius: 8,
     flexDirection: 'row',
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 24,
-    padding: 16,
+    padding: 15,
+  },
+  supportCopy: {flex: 1, marginHorizontal: 12},
+  supportIcon: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 8,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
   },
   supportText: {
-    color: '#647383',
+    color: AppColors.primarySoft,
     fontFamily: 'Manrope-Regular',
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 10,
+    lineHeight: 15,
     marginTop: 3,
   },
   supportTitle: {
-    color: '#245E8A',
+    color: AppColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
+  },
+  topicCard: {
+    alignItems: 'center',
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    marginHorizontal: 4,
+    paddingVertical: 13,
+  },
+  topicIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  topicRow: {flexDirection: 'row', marginHorizontal: 12, marginTop: 14},
+  topicText: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+    marginTop: 7,
   },
 });

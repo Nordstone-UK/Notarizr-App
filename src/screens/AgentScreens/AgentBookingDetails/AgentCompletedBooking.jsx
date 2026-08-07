@@ -12,12 +12,13 @@ import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import Feather from 'react-native-vector-icons/Feather';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import BookingCard from '../../../components/Bookings/BookingCard';
 import BookingEmptyState from '../../../components/Bookings/BookingEmptyState';
-import BookingHeader from '../../../components/Bookings/BookingHeader';
 import {setBookingInfoState} from '../../../features/booking/bookingSlice';
 import useFetchBooking from '../../../hooks/useFetchBooking';
+import BookingColors from '../../../themes/BookingColors';
 import {normalizeAgentBooking} from '../../../utils/agentBookingPresentation';
 
 export default function AgentCompletedBooking({navigation}) {
@@ -73,7 +74,10 @@ export default function AgentCompletedBooking({navigation}) {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
       <AgentHomeHeader Switch />
       <FlatList
         contentContainerStyle={[
@@ -85,7 +89,7 @@ export default function AgentCompletedBooking({navigation}) {
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingState}>
-              <ActivityIndicator color="#2878A9" size="small" />
+              <ActivityIndicator color={BookingColors.primary} size="small" />
               <Text style={styles.loadingText}>Loading completed jobs...</Text>
             </View>
           ) : (
@@ -93,19 +97,43 @@ export default function AgentCompletedBooking({navigation}) {
           )
         }
         ListHeaderComponent={
-          <BookingHeader
-            count={bookings.length}
-            showTabs={false}
-            subtitle="Your completed mobile and remote appointments"
-            title="Completed"
-          />
+          <View style={styles.listHeader}>
+            <View style={styles.workspaceHero}>
+              <View style={styles.heroGlow} />
+              <View style={styles.titleCopy}>
+                <Text style={styles.eyebrow}>SERVICE HISTORY</Text>
+                <Text style={styles.title}>Completed</Text>
+                <Text style={styles.subtitle}>
+                  Your completed mobile and remote appointments
+                </Text>
+              </View>
+              <View style={styles.countCard}>
+                <Feather
+                  name="check-circle"
+                  size={15}
+                  color={BookingColors.white}
+                />
+                <Text style={styles.countValue}>{bookings.length}</Text>
+                <Text style={styles.countLabel}>
+                  {bookings.length === 1 ? 'booking' : 'bookings'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.resultsRow}>
+              <Text style={styles.resultsTitle}>Completed appointments</Text>
+              <View style={styles.completeBadge}>
+                <Feather name="archive" size={12} color={BookingColors.info} />
+                <Text style={styles.completeText}>History</Text>
+              </View>
+            </View>
+          </View>
         }
         refreshControl={
           <RefreshControl
-            colors={['#2878A9']}
+            colors={[BookingColors.primary]}
             onRefresh={() => loadCompleted(true)}
             refreshing={refreshing}
-            tintColor="#2878A9"
+            tintColor={BookingColors.primary}
           />
         }
         renderItem={({item}) => (
@@ -118,13 +146,99 @@ export default function AgentCompletedBooking({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
-  listContent: {paddingBottom: 28, backgroundColor: '#F6F7F9'},
+  safeArea: {flex: 1, backgroundColor: BookingColors.surface},
+  listContent: {paddingBottom: 28, backgroundColor: BookingColors.background},
+  listHeader: {paddingHorizontal: 16, paddingTop: 14},
+  workspaceHero: {
+    alignItems: 'center',
+    backgroundColor: BookingColors.textPrimary,
+    borderRadius: 8,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    padding: 17,
+  },
+  heroGlow: {
+    backgroundColor: 'rgba(253,109,31,0.15)',
+    borderRadius: 75,
+    height: 150,
+    position: 'absolute',
+    right: -45,
+    top: -75,
+    width: 150,
+  },
+  titleCopy: {flex: 1, minWidth: 0, paddingRight: 14},
+  eyebrow: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 0.8,
+  },
+  title: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 26,
+    marginTop: 3,
+  },
+  subtitle: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  countCard: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 66,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  countValue: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
+    marginTop: 2,
+  },
+  countLabel: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    marginTop: 1,
+  },
+  resultsRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+    marginTop: 19,
+  },
+  resultsTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  completeBadge: {
+    alignItems: 'center',
+    backgroundColor: BookingColors.infoSoft,
+    borderRadius: 7,
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  completeText: {
+    color: BookingColors.info,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    marginLeft: 5,
+  },
   emptyListContent: {flexGrow: 1},
   loadingState: {alignItems: 'center', paddingTop: 86},
   loadingText: {
     marginTop: 9,
-    color: '#858C97',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },

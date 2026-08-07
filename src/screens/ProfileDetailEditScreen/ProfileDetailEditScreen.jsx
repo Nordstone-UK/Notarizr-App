@@ -27,8 +27,9 @@ import useRegister from '../../hooks/useRegister';
 import useUpdate from '../../hooks/useUpdate';
 import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
+import AppColors from '../../themes/AppColors';
 
-const ORANGE = '#FD6D1F';
+const ORANGE = AppColors.primary;
 
 const getInitialDate = dateOfBirth => {
   if (!dateOfBirth) {
@@ -51,6 +52,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
   const [description, setDescription] = useState(user?.description || '');
   const [date, setDate] = useState(getInitialDate(user?.date_of_birth));
   const [image, setImage] = useState(user?.profile_picture || '');
+  const [imageFailed, setImageFailed] = useState(false);
   const [imageChanged, setImageChanged] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -63,6 +65,16 @@ export default function ProfileDetailEditScreen({navigation, route}) {
     () => [firstName, lastName].filter(Boolean).join(' '),
     [firstName, lastName],
   );
+  const initials = useMemo(
+    () =>
+      [firstName, lastName]
+        .filter(Boolean)
+        .map(value => value.trim().charAt(0))
+        .join('')
+        .slice(0, 2)
+        .toUpperCase(),
+    [firstName, lastName],
+  );
 
   const goBack = () => goBackOrNavigate(navigation, 'ProfileInfoScreen');
 
@@ -71,6 +83,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
       const uri = await picker('photo');
       if (uri) {
         setImage(uri);
+        setImageFailed(false);
         setImageChanged(true);
       }
     } catch (error) {
@@ -202,7 +215,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
       <ProfileScreenHeader
         title={profileEdit ? 'Edit profile' : 'Personal details'}
         actionLabel={profileEdit ? undefined : 'Edit'}
@@ -217,103 +230,156 @@ export default function ProfileDetailEditScreen({navigation, route}) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View style={styles.photoSection}>
-            <View>
-              <Image source={{uri: image}} style={styles.avatar} />
-              {profileEdit && (
-                <TouchableOpacity
-                  accessibilityLabel="Change profile photo"
-                  activeOpacity={0.72}
-                  onPress={showPhotoOptions}
-                  style={styles.cameraButton}>
-                  <Feather name="camera" size={17} color="#FFFFFF" />
-                </TouchableOpacity>
-              )}
-            </View>
-            <Text style={styles.name}>{fullName || 'Your profile'}</Text>
-            <Text style={styles.accountType}>
-              {isClient ? 'Notarizr client' : 'Notary professional'}
+          <View style={styles.profileHero}>
+            <View style={styles.heroGlow} />
+            <Text style={styles.heroEyebrow}>
+              {profileEdit ? 'PROFILE APPEARANCE' : 'ACCOUNT IDENTITY'}
             </Text>
+            <View style={styles.profileCard}>
+              <View style={styles.avatarFrame}>
+                {image && !imageFailed ? (
+                  <Image
+                    onError={() => setImageFailed(true)}
+                    source={{uri: image}}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={styles.avatarFallback}>
+                    <Text style={styles.avatarInitials}>{initials || 'N'}</Text>
+                  </View>
+                )}
+                {profileEdit && (
+                  <TouchableOpacity
+                    accessibilityLabel="Change profile photo"
+                    activeOpacity={0.72}
+                    onPress={showPhotoOptions}
+                    style={styles.cameraButton}>
+                    <Feather name="camera" size={17} color={AppColors.white} />
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={styles.profileCopy}>
+                <Text style={styles.name}>{fullName || 'Your profile'}</Text>
+                <Text style={styles.accountType}>
+                  {isClient ? 'Notarizr client' : 'Notary professional'}
+                </Text>
+                <View style={styles.verifiedRow}>
+                  <Feather
+                    name="check-circle"
+                    size={13}
+                    color={AppColors.success}
+                  />
+                  <Text style={styles.verifiedText}>Account verified</Text>
+                </View>
+              </View>
+            </View>
             {profileEdit && (
-              <TouchableOpacity activeOpacity={0.7} onPress={showPhotoOptions}>
-                <Text style={styles.changePhoto}>Change profile photo</Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={showPhotoOptions}
+                style={styles.photoAction}>
+                <Feather name="image" size={14} color={AppColors.primary} />
+                <Text style={styles.changePhoto}>Choose a different photo</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <View style={styles.sectionHeading}>
-            <Text style={styles.sectionTitle}>Basic information</Text>
-            <Text style={styles.sectionDescription}>
-              {profileEdit
-                ? 'Keep your account information accurate and up to date.'
-                : 'The information connected to your Notarizr account.'}
-            </Text>
-          </View>
+          <View style={styles.formSection}>
+            <View style={styles.sectionHeading}>
+              <View style={styles.sectionIcon}>
+                <Feather
+                  name={profileEdit ? 'edit-3' : 'user-check'}
+                  size={18}
+                  color={AppColors.primary}
+                />
+              </View>
+              <View style={styles.sectionCopy}>
+                <Text style={styles.sectionTitle}>Basic information</Text>
+                <Text style={styles.sectionDescription}>
+                  {profileEdit
+                    ? 'Keep your account information accurate and up to date.'
+                    : 'The information connected to your Notarizr account.'}
+                </Text>
+              </View>
+            </View>
 
-          <View style={styles.form}>
-            <AuthTextField
-              editable={profileEdit}
-              icon="user"
-              label="First name"
-              onChangeText={setFirstName}
-              placeholder="First name"
-              value={firstName}
-            />
-            <AuthTextField
-              editable={profileEdit}
-              icon="user"
-              label="Last name"
-              onChangeText={setLastName}
-              placeholder="Last name"
-              value={lastName}
-            />
-            <AuthTextField
-              editable={false}
-              icon="mail"
-              label="Email address"
-              placeholder="Email address"
-              value={email}
-            />
-            <AuthPhoneField
-              editable={profileEdit}
-              label="Phone number"
-              onChangeText={setPhoneNumber}
-              value={phoneNumber}
-            />
-            <ProfileDateField
-              editable={profileEdit}
-              label="Date of birth"
-              onChange={setDate}
-              value={date}
-            />
-            <AuthTextField
-              editable={profileEdit}
-              icon="map-pin"
-              label="Primary address"
-              onChangeText={setLocation}
-              placeholder="Enter your address"
-              value={location}
-            />
-            {!isClient && (
+            <View style={styles.form}>
               <AuthTextField
                 editable={profileEdit}
-                icon="file-text"
-                label="Professional description"
-                multiline
-                onChangeText={setDescription}
-                placeholder="Tell clients about your notary experience"
-                value={description}
+                icon="user"
+                label="First name"
+                onChangeText={setFirstName}
+                placeholder="First name"
+                value={firstName}
               />
-            )}
+              <AuthTextField
+                editable={profileEdit}
+                icon="users"
+                label="Last name"
+                onChangeText={setLastName}
+                placeholder="Last name"
+                value={lastName}
+              />
+              <AuthTextField
+                editable={false}
+                icon="at-sign"
+                label="Email address"
+                placeholder="Email address"
+                value={email}
+              />
+              <AuthPhoneField
+                editable={profileEdit}
+                label="Phone number"
+                onChangeText={setPhoneNumber}
+                value={phoneNumber}
+              />
+              <ProfileDateField
+                editable={profileEdit}
+                label="Date of birth"
+                onChange={setDate}
+                value={date}
+              />
+              <AuthTextField
+                editable={profileEdit}
+                icon="navigation"
+                label="Primary address"
+                onChangeText={setLocation}
+                placeholder="Enter your address"
+                value={location}
+              />
+              {!isClient && (
+                <AuthTextField
+                  editable={profileEdit}
+                  icon="align-left"
+                  label="Professional description"
+                  multiline
+                  onChangeText={setDescription}
+                  placeholder="Tell clients about your notary experience"
+                  value={description}
+                />
+              )}
 
-            {profileEdit && (
-              <AuthPrimaryButton
-                icon="check"
-                loading={loading}
-                onPress={submitProfile}
-                style={styles.saveButton}
-                title="Save changes"
-              />
+              {profileEdit && (
+                <AuthPrimaryButton
+                  icon="check"
+                  loading={loading}
+                  onPress={submitProfile}
+                  style={styles.saveButton}
+                  title="Save changes"
+                />
+              )}
+            </View>
+            {!profileEdit && (
+              <View style={styles.readOnlyNote}>
+                <Feather
+                  name="lock"
+                  size={13}
+                  color={AppColors.textSecondary}
+                />
+                <Text style={styles.readOnlyText}>
+                  Your personal information is visible only to you.
+                </Text>
+              </View>
             )}
           </View>
         </ScrollView>
@@ -323,82 +389,145 @@ export default function ProfileDetailEditScreen({navigation, route}) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+  accountType: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 3,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: 36,
-  },
-  photoSection: {
+  avatar: {height: '100%', width: '100%'},
+  avatarFallback: {
     alignItems: 'center',
-    paddingTop: 28,
-    paddingBottom: 24,
-    backgroundColor: '#FFF4EA',
+    backgroundColor: AppColors.primarySoft,
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
   },
-  avatar: {
-    width: 88,
-    height: 88,
+  avatarFrame: {
+    backgroundColor: AppColors.white,
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 38,
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    borderRadius: 44,
-    backgroundColor: '#EDEFF2',
+    height: 76,
+    width: 76,
+  },
+  avatarInitials: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 21,
   },
   cameraButton: {
+    alignItems: 'center',
+    backgroundColor: ORANGE,
+    borderColor: AppColors.textPrimary,
+    borderRadius: 15,
+    borderWidth: 2,
+    bottom: 0,
+    height: 30,
+    justifyContent: 'center',
     position: 'absolute',
     right: -2,
-    bottom: 0,
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderRadius: 16,
-    backgroundColor: ORANGE,
-  },
-  name: {
-    marginTop: 14,
-    color: '#121826',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 20,
-  },
-  accountType: {
-    marginTop: 3,
-    color: '#747B87',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 13,
+    width: 30,
   },
   changePhoto: {
-    marginTop: 10,
     color: ORANGE,
     fontFamily: 'Manrope-Bold',
-    fontSize: 12,
+    fontSize: 11,
+    marginLeft: 7,
+  },
+  content: {paddingBottom: 34},
+  form: {
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingTop: 16,
+  },
+  formSection: {paddingHorizontal: 16, paddingTop: 22},
+  heroEyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 1,
+  },
+  heroGlow: {
+    backgroundColor: 'rgba(253,109,31,0.14)',
+    borderRadius: 80,
+    height: 160,
+    position: 'absolute',
+    right: -35,
+    top: -78,
+    width: 160,
+  },
+  keyboardView: {flex: 1},
+  name: {color: AppColors.white, fontFamily: 'Manrope-Bold', fontSize: 18},
+  photoAction: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: AppColors.white,
+    borderRadius: 8,
+    flexDirection: 'row',
+    marginTop: 17,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  profileCard: {alignItems: 'center', flexDirection: 'row', marginTop: 18},
+  profileCopy: {flex: 1, marginLeft: 14},
+  profileHero: {
+    backgroundColor: AppColors.textPrimary,
+    overflow: 'hidden',
+    paddingBottom: 23,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  readOnlyNote: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginTop: 14,
+    paddingHorizontal: 4,
+  },
+  readOnlyText: {
+    color: AppColors.textSecondary,
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+    marginLeft: 7,
+  },
+  safeArea: {backgroundColor: AppColors.white, flex: 1},
+  saveButton: {marginBottom: 15, marginTop: 2},
+  sectionCopy: {flex: 1, marginLeft: 11},
+  sectionDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
   },
   sectionHeading: {
-    paddingHorizontal: 20,
-    paddingTop: 26,
-    paddingBottom: 18,
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 13,
+  },
+  sectionIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
   },
   sectionTitle: {
-    color: '#121826',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
-    fontSize: 18,
+    fontSize: 16,
   },
-  sectionDescription: {
-    marginTop: 5,
-    color: '#7A818D',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  form: {
-    paddingHorizontal: 20,
-  },
-  saveButton: {
-    marginTop: 8,
+  verifiedRow: {alignItems: 'center', flexDirection: 'row', marginTop: 9},
+  verifiedText: {
+    color: AppColors.success,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+    marginLeft: 5,
   },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 export default function BookingChoice({
   icon,
@@ -10,17 +11,20 @@ export default function BookingChoice({
   subtitle,
 }) {
   return (
-    <TouchableOpacity
+    <Pressable
       accessibilityRole="radio"
       accessibilityState={{checked: selected}}
-      activeOpacity={0.72}
       onPress={onPress}
-      style={[styles.container, selected && styles.selectedContainer]}>
+      style={({pressed}) => [
+        styles.container,
+        selected && styles.selectedContainer,
+        pressed && styles.pressedContainer,
+      ]}>
       <View style={[styles.iconBox, selected && styles.selectedIconBox]}>
         <Feather
           name={icon}
           size={17}
-          color={selected ? '#FD6D1F' : '#7E8590'}
+          color={selected ? BookingColors.primary : BookingColors.textSecondary}
         />
       </View>
       <View style={styles.copy}>
@@ -32,7 +36,7 @@ export default function BookingChoice({
       <View style={[styles.radio, selected && styles.selectedRadio]}>
         {selected ? <View style={styles.radioDot} /> : null}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -46,24 +50,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderWidth: 1,
-    borderColor: '#E1E4E8',
+    borderColor: BookingColors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BookingColors.surface,
   },
   selectedContainer: {
-    borderColor: '#FD6D1F',
-    backgroundColor: '#FFF9F5',
+    borderColor: BookingColors.primary,
+    backgroundColor: BookingColors.primarySoft,
   },
+  pressedContainer: {borderColor: BookingColors.primaryPressed},
   iconBox: {
     width: 36,
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#F0F2F4',
+    backgroundColor: BookingColors.backgroundSubtle,
   },
   selectedIconBox: {
-    backgroundColor: '#FFF0E7',
+    backgroundColor: BookingColors.primarySoft,
   },
   copy: {
     flex: 1,
@@ -71,17 +76,17 @@ const styles = StyleSheet.create({
     marginLeft: 11,
   },
   label: {
-    color: '#2A303C',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 12,
   },
   selectedLabel: {
-    color: '#171D29',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
   },
   subtitle: {
     marginTop: 2,
-    color: '#858C97',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
   },
@@ -92,16 +97,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 10,
     borderWidth: 1,
-    borderColor: '#BCC1C8',
+    borderColor: BookingColors.borderStrong,
     borderRadius: 9,
   },
   selectedRadio: {
-    borderColor: '#FD6D1F',
+    borderColor: BookingColors.primary,
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#FD6D1F',
+    backgroundColor: BookingColors.primary,
   },
 });

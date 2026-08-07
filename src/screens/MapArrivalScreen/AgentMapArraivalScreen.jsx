@@ -6,22 +6,22 @@ import {
   View,
   Text,
   ActivityIndicator,
+  StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import {throttle} from 'lodash';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import Colors from '../../themes/Colors';
+import BookingColors from '../../themes/BookingColors';
+import BookingActionButton from '../../components/Bookings/BookingActionButton';
 import MapViewDirections from 'react-native-maps-directions';
 import useAgentService from '../../hooks/useAgentService';
-import {GET_AGENT_LIVE_LOCATION} from '../../../request/queries/getAgentLiveLocation.query';
-import {useQuery} from '@apollo/client';
 import {setNavigationStatus} from '../../features/booking/bookingSlice';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
-import {Button} from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 const GOOGLE_MAPS_APIKEY = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
+const DEFAULT_COORDINATES = {latitude: 36.778259, longitude: -119.417931};
 
 export default function AgentMapArrivalScreen({navigation}) {
   const dispatch = useDispatch();
@@ -31,8 +31,6 @@ export default function AgentMapArrivalScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState(null);
   const [duration, setDuration] = useState(null);
-  const [showInfo, setShowInfo] = useState(true);
-  const [highAccuracy, setHighAccuracy] = useState(false);
 
   const clientData = useSelector(state => state.booking);
   const coordinates = useSelector(state => state.booking?.coordinates);
@@ -52,7 +50,6 @@ export default function AgentMapArrivalScreen({navigation}) {
       if (user === 'individual-agent') {
         const currentLocation = await getLocation();
         setLocation(currentLocation);
-        updateDirections(currentLocation);
         await updateAgentLocation(currentLocation);
       } else {
         // refetch();
@@ -67,7 +64,6 @@ export default function AgentMapArrivalScreen({navigation}) {
             longitude: agentLocation?.coordinates[0],
           };
           setLocation(agentCoordinates);
-          updateDirections(agentCoordinates);
         } else {
           setLocation(DEFAULT_COORDINATES);
         }
@@ -77,7 +73,10 @@ export default function AgentMapArrivalScreen({navigation}) {
     } finally {
       setLoading(false);
     }
-  }, [clientData, user, updateAgentLocation, updateDirections, getLocation]);
+    // Service helpers are recreated by the legacy hook; the booking/user values
+    // are the stable inputs that should restart live tracking.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientData, user]);
   const handleGetLocationThrottled = throttle(handleGetLocation, 10000);
 
   useEffect(() => {
@@ -98,7 +97,7 @@ export default function AgentMapArrivalScreen({navigation}) {
           reject(error);
         },
         {
-          enableHighAccuracy: highAccuracy,
+          enableHighAccuracy: false,
           timeout: 20000,
           maximumAge: 10000,
         },
@@ -106,43 +105,6 @@ export default function AgentMapArrivalScreen({navigation}) {
     });
   };
 
-  const updateDirections = currentLocation => {
-    setDistance(null);
-    setDuration(null);
-    if (coordinates) {
-      const origin = {
-        latitude: currentLocation?.latitude,
-        longitude: currentLocation?.longitude,
-      };
-      const destination = {
-        latitude: coordinates[0],
-        longitude: coordinates[1],
-      };
-      const directionsService = new MapViewDirections({
-        origin,
-        destination,
-        apikey: GOOGLE_MAPS_APIKEY,
-        mode: 'DRIVING',
-        onReady: result => {
-          console.log('reisputdistance', result);
-          setDistance(result.distance);
-          setDuration(result.duration);
-          checkHighValues(result.distance, result.duration);
-        },
-        onError: errorMessage => {
-          console.log('GOT AN ERROR', errorMessage);
-        },
-      });
-    }
-  };
-
-  const checkHighValues = (distance, duration) => {
-    if (distance > 50 || duration > 60) {
-      setShowInfo(true);
-    } else {
-      setShowInfo(true);
-    }
-  };
   const updateAgentLocation = async currentLocation => {
     try {
       const latString = '' + currentLocation?.latitude;
@@ -152,7 +114,7 @@ export default function AgentMapArrivalScreen({navigation}) {
         lng: lngString,
       };
 
-      const response = await agentLocationUpdate(params);
+      await agentLocationUpdate(params);
     } catch (error) {
       console.log('Error updating location:', error);
     }
@@ -175,28 +137,19 @@ export default function AgentMapArrivalScreen({navigation}) {
   }, [dispatch, navigation]);
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={Colors.OrangeGradientStart}
+          color={BookingColors.primary}
           style={styles.loader}
         />
       ) : (
         location && (
           <>
-            <View style={styles.infoContainer}>
-              {showInfo && distance && duration && (
-                <Text
-                  style={[
-                    styles.infoText,
-                    (distance > 50 || duration > 60) && styles.highValues,
-                  ]}>
-                  Distance: {distance.toFixed(2)} km, Duration:{' '}
-                  {duration.toFixed(2)} min
-                </Text>
-              )}
-            </View>
-
             <MapView
               zoomEnabled={true}
               initialRegion={{
@@ -232,7 +185,7 @@ export default function AgentMapArrivalScreen({navigation}) {
                     }}
                     apikey={GOOGLE_MAPS_APIKEY}
                     strokeWidth={3}
-                    strokeColor="#4285F4"
+                    strokeColor={BookingColors.info}
                     mode="DRIVING"
                     onReady={result => {
                       if (
@@ -262,38 +215,87 @@ export default function AgentMapArrivalScreen({navigation}) {
           </>
         )
       )}
-      <View style={{marginTop: 20}} />
-      <NavigationHeader
-        // Title={clientData.user?.first_name + ' ' + clientData.user?.last_name}
-        ProfilePic={{uri: clientData?.user?.profile_picture}}
-        midImg={require('../../../assets/supportIcon.png')}
-        midImgPress={() => handleCallSupport()}
-        lastImg={require('../../../assets/chatIcon.png')}
-        lastImgPress={() =>
-          navigation.navigate('ChatScreen', {
-            sender:
-              clientData?.booking?.booked_by || clientData.booking?.client,
-            receiver: clientData?.booking?.agent,
-            chat: clientData?.booking?._id,
-            channel: clientData?.booking?.agora_channel_name,
-            voiceToken: clientData?.booking?.agora_channel_token,
-          })
-        }
-      />
+      <View style={styles.floatingHeader}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
+          style={styles.headerButton}>
+          <Feather
+            name="arrow-left"
+            size={20}
+            color={BookingColors.textPrimary}
+          />
+        </TouchableOpacity>
+        <View style={styles.headerCopy}>
+          <Text style={styles.headerEyebrow}>LIVE ROUTE</Text>
+          <Text numberOfLines={1} style={styles.headerTitle}>
+            {[clientData?.user?.first_name, clientData?.user?.last_name]
+              .filter(Boolean)
+              .join(' ') || 'Client appointment'}
+          </Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={handleCallSupport}
+          style={styles.headerButton}>
+          <Feather
+            name="help-circle"
+            size={20}
+            color={BookingColors.textSecondary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() =>
+            navigation.navigate('ChatScreen', {
+              sender:
+                clientData?.booking?.booked_by || clientData.booking?.client,
+              receiver: clientData?.booking?.agent,
+              chat: clientData?.booking?._id,
+              channel: clientData?.booking?.agora_channel_name,
+              voiceToken: clientData?.booking?.agora_channel_token,
+            })
+          }
+          style={[styles.headerButton, styles.chatButton]}>
+          <Feather
+            name="message-circle"
+            size={19}
+            color={BookingColors.primary}
+          />
+        </TouchableOpacity>
+      </View>
       {user !== 'client' && (
-        <>
-          {/* <View style={{backgroundColor: 'red'}}>
-            <Text>hsllfldfldl</Text>
-          </View> */}
-          <View style={styles.button}>
-            <GradientButton
-              Title="Arrived"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              loading={loading}
-              onPress={() => showConfirmation()}
-            />
+        <View style={styles.tripPanel}>
+          <View style={styles.tripHandle} />
+          <View style={styles.tripSummary}>
+            <View style={styles.routeIcon}>
+              <Feather
+                name="navigation"
+                size={20}
+                color={BookingColors.primary}
+              />
+            </View>
+            <View style={styles.tripCopy}>
+              <Text style={styles.tripTitle}>On the way</Text>
+              <Text style={styles.tripText}>
+                {distance && duration
+                  ? `${distance.toFixed(1)} km • ${duration.toFixed(0)} min`
+                  : 'Calculating live route…'}
+              </Text>
+            </View>
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Live</Text>
+            </View>
           </View>
-        </>
+          <BookingActionButton
+            disabled={loading}
+            icon="check-circle"
+            label="I’ve arrived"
+            onPress={showConfirmation}
+            style={styles.arrivedButton}
+          />
+        </View>
       )}
     </SafeAreaView>
   );
@@ -301,34 +303,121 @@ export default function AgentMapArrivalScreen({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.PinkBackground,
+    backgroundColor: BookingColors.surface,
     flex: 1,
   },
-  infoContainer: {
+  floatingHeader: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    right: 10,
-    zIndex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 10,
+    top: 14,
+    left: 14,
+    right: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: BookingColors.border,
     borderRadius: 8,
+    backgroundColor: BookingColors.surface,
   },
-  infoText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.OrangeGradientEnd,
+  chatButton: {
+    marginLeft: 8,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.primarySoft,
   },
-  highValues: {
-    color: 'red',
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 8,
+    backgroundColor: BookingColors.surface,
+  },
+  headerEyebrow: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 8,
+  },
+  headerTitle: {
+    marginTop: 1,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
   map: {
     flex: 1,
     ...StyleSheet.absoluteFillObject,
   },
-  button: {
-    justifyContent: 'flex-end',
-    flex: 1,
-    marginBottom: 20,
+  tripPanel: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: BookingColors.textPrimary,
+    backgroundColor: BookingColors.textPrimary,
+  },
+  tripHandle: {
+    width: 38,
+    height: 4,
+    alignSelf: 'center',
+    marginBottom: 14,
+    borderRadius: 2,
+    backgroundColor: BookingColors.textSecondary,
+  },
+  tripSummary: {flexDirection: 'row', alignItems: 'center'},
+  routeIcon: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  tripCopy: {flex: 1, minWidth: 0, marginLeft: 11},
+  tripTitle: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  tripText: {
+    marginTop: 3,
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 7,
+    backgroundColor: BookingColors.successSoft,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    marginRight: 5,
+    borderRadius: 3,
+    backgroundColor: BookingColors.success,
+  },
+  liveText: {
+    color: BookingColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  arrivedButton: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 14,
+    borderRadius: 8,
   },
 });

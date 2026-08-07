@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import {
-  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -14,7 +13,9 @@ import {useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
+import BookingActionButton from '../../../components/Bookings/BookingActionButton';
 import useCustomerSuport from '../../../hooks/useCustomerSupport';
+import BookingColors from '../../../themes/BookingColors';
 import {
   getBookingClient,
   normalizeAgentBooking,
@@ -27,19 +28,51 @@ import {UPDATE_BOOKING_STATUS} from '../../../../request/mutations/updateBooking
 import {UPDATE_SESSION_STATUS} from '../../../../request/mutations/updateSessionStatus.mutation';
 
 const STATUS_CONFIG = {
-  pending: {background: '#FFF5DC', color: '#A86900', icon: 'clock'},
-  to_be_paid: {background: '#FFF5DC', color: '#A86900', icon: 'credit-card'},
-  paid: {background: '#EAF2FC', color: '#2571B9', icon: 'credit-card'},
+  pending: {
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
+    icon: 'clock',
+  },
+  to_be_paid: {
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
+    icon: 'credit-card',
+  },
+  paid: {
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
+    icon: 'credit-card',
+  },
   payment_confirmed: {
-    background: '#EAF2FC',
-    color: '#2571B9',
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
     icon: 'check-circle',
   },
-  accepted: {background: '#EAF7EF', color: '#168A52', icon: 'check-circle'},
-  travelling: {background: '#EAF4FB', color: '#2878A9', icon: 'navigation'},
-  ongoing: {background: '#EAF4FB', color: '#2878A9', icon: 'activity'},
-  completed: {background: '#EAF2FC', color: '#2571B9', icon: 'check-circle'},
-  rejected: {background: '#FCEEEE', color: '#C44242', icon: 'x-circle'},
+  accepted: {
+    background: BookingColors.successSoft,
+    color: BookingColors.success,
+    icon: 'check-circle',
+  },
+  travelling: {
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
+    icon: 'navigation',
+  },
+  ongoing: {
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
+    icon: 'activity',
+  },
+  completed: {
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
+    icon: 'check-circle',
+  },
+  rejected: {
+    background: BookingColors.errorSoft,
+    color: BookingColors.error,
+    icon: 'x-circle',
+  },
 };
 
 const formatStatus = value =>
@@ -51,7 +84,7 @@ function DetailRow({icon, label, value, last = false}) {
   return (
     <View style={[styles.detailRow, last && styles.lastDetailRow]}>
       <View style={styles.detailIcon}>
-        <Feather name={icon} size={16} color="#D65322" />
+        <Feather name={icon} size={16} color={BookingColors.primary} />
       </View>
       <View style={styles.detailCopy}>
         <Text style={styles.detailLabel}>{label}</Text>
@@ -174,6 +207,16 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     : status === 'completed'
     ? 'View completed record'
     : 'Manage booking';
+  const progressIndex = [
+    'pending',
+    'to_be_paid',
+    'paid',
+    'payment_confirmed',
+    'accepted',
+    'travelling',
+    'ongoing',
+    'completed',
+  ].indexOf(status);
 
   if (!booking?._id) {
     return (
@@ -183,7 +226,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           title="Booking details"
         />
         <View style={styles.missingState}>
-          <Feather name="alert-circle" size={26} color="#C44242" />
+          <Feather name="alert-circle" size={26} color={BookingColors.error} />
           <Text style={styles.missingTitle}>Booking unavailable</Text>
         </View>
       </SafeAreaView>
@@ -192,7 +235,10 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
       <ProfileScreenHeader
         actionLabel="Help"
         onAction={handleCallSupport}
@@ -230,6 +276,46 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           <Text style={styles.serviceText}>
             {normalized.displayDate} at {normalized.displayTime}
           </Text>
+          <View style={styles.progressTrack}>
+            {['Request', 'Payment', 'Service', 'Complete'].map(
+              (label, index) => {
+                const active = progressIndex >= index * 2;
+                return (
+                  <View key={label} style={styles.progressStep}>
+                    <View
+                      style={[
+                        styles.progressDot,
+                        active && styles.activeProgressDot,
+                      ]}>
+                      {active && (
+                        <Feather
+                          name="check"
+                          size={10}
+                          color={BookingColors.white}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.progressLabel,
+                        active && styles.activeProgressLabel,
+                      ]}>
+                      {label}
+                    </Text>
+                    {index < 3 && (
+                      <View
+                        style={[
+                          styles.progressLine,
+                          progressIndex >= (index + 1) * 2 &&
+                            styles.activeProgressLine,
+                        ]}
+                      />
+                    )}
+                  </View>
+                );
+              },
+            )}
+          </View>
         </View>
 
         <Section title="Client">
@@ -267,7 +353,11 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
                 })
               }
               style={styles.messageButton}>
-              <Feather name="message-circle" size={19} color="#D65322" />
+              <Feather
+                name="message-circle"
+                size={19}
+                color={BookingColors.primary}
+              />
             </TouchableOpacity>
           </View>
         </Section>
@@ -313,41 +403,38 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
 
       <View style={styles.actionBar}>
         {pending && (
-          <TouchableOpacity
-            activeOpacity={0.75}
+          <BookingActionButton
             disabled={Boolean(activeAction)}
+            label="Decline"
+            loading={activeAction === 'rejected'}
             onPress={() => updateStatus('rejected')}
-            style={styles.secondaryButton}>
-            {activeAction === 'rejected' ? (
-              <ActivityIndicator color="#C44242" size="small" />
-            ) : (
-              <Text style={styles.secondaryButtonText}>Decline</Text>
-            )}
-          </TouchableOpacity>
+            style={styles.secondaryButton}
+            variant="danger"
+          />
         )}
-        <TouchableOpacity
-          activeOpacity={0.78}
+        <BookingActionButton
           disabled={Boolean(activeAction)}
+          icon="arrow-right"
+          label={primaryLabel}
+          loading={Boolean(activeAction && activeAction !== 'rejected')}
           onPress={handlePrimary}
-          style={styles.primaryButton}>
-          {activeAction && activeAction !== 'rejected' ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <>
-              <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
-              <Feather name="arrow-right" size={17} color="#FFFFFF" />
-            </>
-          )}
-        </TouchableOpacity>
+          style={styles.primaryButton}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
-  content: {paddingBottom: 24, backgroundColor: '#F7F8FA'},
-  summary: {padding: 20, backgroundColor: '#FFFFFF'},
+  safeArea: {flex: 1, backgroundColor: BookingColors.surface},
+  content: {paddingBottom: 24, backgroundColor: BookingColors.background},
+  summary: {
+    margin: 16,
+    padding: 20,
+    overflow: 'hidden',
+    borderRadius: 8,
+    backgroundColor: BookingColors.textPrimary,
+  },
   summaryTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -361,23 +448,72 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   },
   statusText: {marginLeft: 5, fontFamily: 'Manrope-Bold', fontSize: 10},
-  reference: {color: '#9AA0A9', fontFamily: 'Manrope-SemiBold', fontSize: 9},
+  reference: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 9,
+  },
   serviceTitle: {
     marginTop: 16,
-    color: '#171D29',
+    color: BookingColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 21,
   },
   serviceText: {
     marginTop: 4,
-    color: '#7B838F',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
+  },
+  progressTrack: {
+    flexDirection: 'row',
+    marginTop: 22,
+  },
+  progressStep: {
+    flex: 1,
+    position: 'relative',
+    alignItems: 'flex-start',
+  },
+  progressDot: {
+    width: 20,
+    height: 20,
+    zIndex: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: BookingColors.textSecondary,
+    borderRadius: 10,
+    backgroundColor: BookingColors.textPrimary,
+  },
+  activeProgressDot: {
+    borderColor: BookingColors.primary,
+    backgroundColor: BookingColors.primary,
+  },
+  progressLine: {
+    position: 'absolute',
+    top: 9,
+    left: 20,
+    right: 0,
+    height: 2,
+    backgroundColor: BookingColors.textSecondary,
+  },
+  activeProgressLine: {
+    backgroundColor: BookingColors.primary,
+  },
+  progressLabel: {
+    marginTop: 6,
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 8,
+  },
+  activeProgressLabel: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-SemiBold',
   },
   section: {marginTop: 18, paddingHorizontal: 20},
   sectionTitle: {
     marginBottom: 9,
-    color: '#7F8792',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Bold',
     fontSize: 10,
     textTransform: 'uppercase',
@@ -385,9 +521,9 @@ const styles = StyleSheet.create({
   sectionBody: {
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E3E6EA',
+    borderColor: BookingColors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BookingColors.surface,
   },
   clientRow: {
     minHeight: 76,
@@ -401,14 +537,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 23,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: BookingColors.primarySoft,
   },
-  avatarText: {color: '#D65322', fontFamily: 'Manrope-Bold', fontSize: 13},
+  avatarText: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
   clientCopy: {flex: 1, minWidth: 0, marginLeft: 11},
-  clientName: {color: '#242B36', fontFamily: 'Manrope-Bold', fontSize: 13},
+  clientName: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
   clientMeta: {
     marginTop: 3,
-    color: '#858C97',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
   },
@@ -418,9 +562,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F2D9CB',
+    borderColor: BookingColors.border,
     borderRadius: 8,
-    backgroundColor: '#FFF7F2',
+    backgroundColor: BookingColors.primarySoft,
   },
   detailRow: {
     minHeight: 66,
@@ -430,7 +574,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingRight: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
+    borderBottomColor: BookingColors.border,
   },
   lastDetailRow: {borderBottomWidth: 0},
   detailIcon: {
@@ -439,13 +583,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: BookingColors.primarySoft,
   },
   detailCopy: {flex: 1, minWidth: 0, marginLeft: 11},
-  detailLabel: {color: '#9197A1', fontFamily: 'Manrope-Regular', fontSize: 9},
+  detailLabel: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+  },
   detailValue: {
     marginTop: 2,
-    color: '#303642',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 11,
     lineHeight: 16,
@@ -457,8 +605,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
   secondaryButton: {
     height: 52,
@@ -467,14 +615,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
     paddingHorizontal: 22,
     borderWidth: 1,
-    borderColor: '#E7CACA',
+    borderColor: BookingColors.errorSoft,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  secondaryButtonText: {
-    color: '#C44242',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
+    backgroundColor: BookingColors.surface,
   },
   primaryButton: {
     height: 52,
@@ -483,18 +626,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FD6D1F',
-  },
-  primaryButtonText: {
-    marginRight: 8,
-    color: '#FFFFFF',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
   },
   missingState: {flex: 1, alignItems: 'center', justifyContent: 'center'},
   missingTitle: {
     marginTop: 12,
-    color: '#242B36',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
   },

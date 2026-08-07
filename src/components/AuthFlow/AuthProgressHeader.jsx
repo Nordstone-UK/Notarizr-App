@@ -1,8 +1,9 @@
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import AppColors from '../../themes/AppColors';
 
-const ORANGE = '#FD6D1F';
+const ORANGE = AppColors.primary;
 
 export default function AuthProgressHeader({
   title = 'Create account',
@@ -22,7 +23,7 @@ export default function AuthProgressHeader({
           activeOpacity={0.7}
           onPress={onBack}
           style={styles.backButton}>
-          <Feather name="arrow-left" size={20} color="#121826" />
+          <Feather name="arrow-left" size={20} color={AppColors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>{title}</Text>
         {hasProgress && (
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
   headerRow: {
     height: 44,
@@ -63,14 +64,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#EAEBEF',
+    borderColor: AppColors.border,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
   title: {
     flex: 1,
     marginLeft: 12,
-    color: '#121826',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
   },
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     overflow: 'hidden',
     borderRadius: 3,
-    backgroundColor: '#F1F2F4',
+    backgroundColor: AppColors.backgroundSubtle,
   },
   progressFill: {
     height: '100%',

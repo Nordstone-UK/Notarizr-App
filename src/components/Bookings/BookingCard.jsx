@@ -1,13 +1,34 @@
 import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 const STATUS_STYLES = {
-  accepted: {background: '#EAF7EF', color: '#168A52', label: 'Accepted'},
-  pending: {background: '#FFF5DC', color: '#A86900', label: 'Pending'},
-  completed: {background: '#EAF2FC', color: '#2571B9', label: 'Completed'},
-  rejected: {background: '#FCEEEE', color: '#C44242', label: 'Cancelled'},
-  cancelled: {background: '#FCEEEE', color: '#C44242', label: 'Cancelled'},
+  accepted: {
+    background: BookingColors.successSoft,
+    color: BookingColors.success,
+    label: 'Accepted',
+  },
+  pending: {
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
+    label: 'Pending',
+  },
+  completed: {
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
+    label: 'Completed',
+  },
+  rejected: {
+    background: BookingColors.errorSoft,
+    color: BookingColors.error,
+    label: 'Cancelled',
+  },
+  cancelled: {
+    background: BookingColors.errorSoft,
+    color: BookingColors.error,
+    label: 'Cancelled',
+  },
 };
 
 const formatService = value =>
@@ -90,7 +111,7 @@ export default function BookingCard({booking, onPress}) {
       <View style={styles.providerRow}>
         {booking.unassigned ? (
           <View style={styles.avatarPlaceholder}>
-            <Feather name="user" size={21} color="#A86900" />
+            <Feather name="user" size={21} color={BookingColors.warning} />
           </View>
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
@@ -112,14 +133,18 @@ export default function BookingCard({booking, onPress}) {
             {formatService(booking.service_type)}
           </Text>
         </View>
-        <Feather name="chevron-right" size={20} color="#9AA0AA" />
+        <Feather
+          name="chevron-right"
+          size={20}
+          color={BookingColors.textMuted}
+        />
       </View>
 
       <View style={styles.divider} />
 
       <View style={styles.detailsGrid}>
         <View style={styles.detailItem}>
-          <Feather name="calendar" size={16} color="#FD6D1F" />
+          <Feather name="calendar" size={16} color={BookingColors.primary} />
           <View style={styles.detailCopy}>
             <Text style={styles.detailLabel}>Date</Text>
             <Text numberOfLines={1} style={styles.detailValue}>
@@ -128,7 +153,7 @@ export default function BookingCard({booking, onPress}) {
           </View>
         </View>
         <View style={styles.detailItem}>
-          <Feather name="clock" size={16} color="#FD6D1F" />
+          <Feather name="clock" size={16} color={BookingColors.primary} />
           <View style={styles.detailCopy}>
             <Text style={styles.detailLabel}>Time</Text>
             <Text numberOfLines={1} style={styles.detailValue}>
@@ -142,7 +167,7 @@ export default function BookingCard({booking, onPress}) {
         <Feather
           name={booking.service_type === 'mobile_notary' ? 'map-pin' : 'video'}
           size={16}
-          color="#7A818D"
+          color={BookingColors.textMuted}
         />
         <Text numberOfLines={1} style={styles.locationText}>
           {location}
@@ -154,13 +179,13 @@ export default function BookingCard({booking, onPress}) {
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 20,
-    marginTop: 14,
+    marginHorizontal: 16,
+    marginTop: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E4E7EB',
+    borderColor: BookingColors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BookingColors.surface,
   },
   topRow: {
     flexDirection: 'row',
@@ -185,7 +210,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   reference: {
-    color: '#969CA6',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 10,
   },
@@ -198,14 +223,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F0F2F4',
+    backgroundColor: BookingColors.backgroundSubtle,
   },
   avatarFallback: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    color: '#D65322',
+    color: BookingColors.primary,
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
   },
@@ -221,7 +246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 24,
-    backgroundColor: '#FFF5DC',
+    backgroundColor: BookingColors.warningSoft,
   },
   providerCopy: {
     flex: 1,
@@ -229,20 +254,20 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   name: {
-    color: '#181E2A',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
   },
   service: {
     marginTop: 2,
-    color: '#7A818D',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },
   divider: {
     height: 1,
     marginVertical: 14,
-    backgroundColor: '#ECEEF1',
+    backgroundColor: BookingColors.border,
   },
   detailsGrid: {
     flexDirection: 'row',
@@ -259,13 +284,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   detailLabel: {
-    color: '#969CA6',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
   },
   detailValue: {
     marginTop: 1,
-    color: '#303642',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 11,
   },
@@ -275,12 +300,12 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0F1F3',
+    borderTopColor: BookingColors.border,
   },
   locationText: {
     flex: 1,
     marginLeft: 8,
-    color: '#666E7A',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },

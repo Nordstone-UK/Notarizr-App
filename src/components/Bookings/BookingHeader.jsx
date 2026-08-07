@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import BookingStatusTabs from './BookingStatusTabs';
+import BookingColors from '../../themes/BookingColors';
 
 export default function BookingHeader({
   activeStatus,
@@ -43,8 +44,8 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
   titleRow: {
     flexDirection: 'row',
@@ -56,13 +57,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   title: {
-    color: '#121826',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 26,
   },
   subtitle: {
     marginTop: 2,
-    color: '#7A818D',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
   },
@@ -72,10 +73,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: BookingColors.primarySoft,
   },
   countText: {
-    color: '#FD6D1F',
+    color: BookingColors.primary,
     fontFamily: 'Manrope-Bold',
     fontSize: 11,
   },

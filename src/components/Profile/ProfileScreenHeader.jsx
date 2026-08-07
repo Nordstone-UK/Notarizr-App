@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import AppColors from '../../themes/AppColors';
 
 export default function ProfileScreenHeader({
   title,
@@ -15,7 +16,7 @@ export default function ProfileScreenHeader({
         activeOpacity={0.7}
         onPress={onBack}
         style={styles.iconButton}>
-        <Feather name="arrow-left" size={21} color="#121826" />
+        <Feather name="arrow-left" size={21} color={AppColors.textPrimary} />
       </TouchableOpacity>
       <Text numberOfLines={1} style={styles.title}>
         {title}
@@ -42,8 +43,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: AppColors.border,
+    backgroundColor: AppColors.white,
   },
   iconButton: {
     width: 40,
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     marginHorizontal: 8,
-    color: '#121826',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 17,
     textAlign: 'center',
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionLabel: {
-    color: '#FD6D1F',
+    color: AppColors.primary,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },

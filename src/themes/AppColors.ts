@@ -1,0 +1,25 @@
+const AppColors = {
+  primary: '#FD6D1F',
+  primaryPressed: '#E95A10',
+  primarySoft: '#FFF4EA',
+  surface: '#FFFFFF',
+  background: '#F5F6F8',
+  backgroundSubtle: '#F7F8FA',
+  textPrimary: '#121826',
+  textSecondary: '#7A818D',
+  textMuted: '#969CA6',
+  border: '#E4E7EB',
+  borderStrong: '#D8DBE1',
+  success: '#168A52',
+  successSoft: '#EAF7EF',
+  info: '#2571B9',
+  infoSoft: '#EAF2FC',
+  warning: '#A86900',
+  warningSoft: '#FFF5DC',
+  error: '#C44242',
+  errorSoft: '#FCEEEE',
+  black: '#000000',
+  white: '#FFFFFF',
+} as const;
+
+export default AppColors;

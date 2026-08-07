@@ -1,8 +1,9 @@
 import React from 'react';
 import {Modal, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import AppColors from '../../themes/AppColors';
 
-const ORANGE = '#FD6D1F';
+const ORANGE = AppColors.primary;
 
 export default function LogoutConfirmModal({
   visible,
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     maxWidth: 360,
     padding: 22,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
   iconBox: {
     width: 46,
@@ -71,17 +72,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: AppColors.primarySoft,
   },
   title: {
     marginTop: 18,
-    color: '#121826',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 20,
   },
   message: {
     marginTop: 8,
-    color: '#737A86',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 14,
     lineHeight: 21,
@@ -97,11 +98,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#D9DCE1',
+    borderColor: AppColors.borderStrong,
     borderRadius: 8,
   },
   cancelLabel: {
-    color: '#343A45',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: ORANGE,
   },
   logoutLabel: {
-    color: '#FFFFFF',
+    color: AppColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },

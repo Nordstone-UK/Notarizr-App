@@ -1,5 +1,7 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 const DEFAULT_TABS = [
   {label: 'Accepted', value: 'accepted'},
@@ -19,17 +21,30 @@ export default function BookingStatusTabs({
         const active = tab.value === activeStatus;
 
         return (
-          <TouchableOpacity
+          <Pressable
             key={tab.value}
             accessibilityRole="tab"
             accessibilityState={{selected: active}}
-            activeOpacity={0.72}
             onPress={() => onChange(tab.value)}
-            style={[styles.tab, active && styles.activeTab]}>
+            style={({pressed}) => [
+              styles.tab,
+              active && styles.activeTab,
+              active && pressed && styles.pressedTab,
+            ]}>
+            {tab.icon ? (
+              <Feather
+                name={tab.icon}
+                size={13}
+                color={
+                  active ? BookingColors.white : BookingColors.textSecondary
+                }
+                style={styles.icon}
+              />
+            ) : null}
             <Text style={[styles.label, active && styles.activeLabel]}>
               {tab.label}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>
@@ -42,25 +57,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 3,
     borderRadius: 8,
-    backgroundColor: '#F0F2F4',
+    backgroundColor: BookingColors.backgroundSubtle,
   },
   tab: {
     flex: 1,
     minWidth: 0,
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
     borderRadius: 6,
   },
   activeTab: {
-    backgroundColor: '#FD6D1F',
+    backgroundColor: BookingColors.primary,
   },
+  pressedTab: {backgroundColor: BookingColors.primaryPressed},
   label: {
-    color: '#737B87',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 10,
   },
   activeLabel: {
-    color: '#FFFFFF',
+    color: BookingColors.white,
     fontFamily: 'Manrope-Bold',
+  },
+  icon: {
+    marginRight: 5,
   },
 });

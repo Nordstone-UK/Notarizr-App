@@ -1,8 +1,9 @@
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import AppColors from '../../themes/AppColors';
 
-const ORANGE = '#FD6D1F';
+const ORANGE = AppColors.primary;
 
 export default function AuthUploadCard({
   title,
@@ -22,7 +23,7 @@ export default function AuthUploadCard({
         <Feather
           name={uploaded ? 'check' : icon}
           size={21}
-          color={uploaded ? '#FFFFFF' : ORANGE}
+          color={uploaded ? AppColors.white : ORANGE}
         />
       </View>
       <View style={styles.copy}>
@@ -39,7 +40,7 @@ export default function AuthUploadCard({
             onRemove();
           }}
           style={styles.removeButton}>
-          <Feather name="trash-2" size={18} color="#D92D20" />
+          <Feather name="trash-2" size={18} color={AppColors.error} />
         </TouchableOpacity>
       ) : (
         <Feather name="upload-cloud" size={20} color={ORANGE} />
@@ -55,21 +56,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.white,
   },
   uploadedCard: {
-    borderColor: '#F4B38E',
-    backgroundColor: '#FFF9F5',
+    borderColor: AppColors.primary,
+    backgroundColor: AppColors.primarySoft,
   },
   iconBox: {
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#FFF0E7',
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
   },
   uploadedIconBox: {
     backgroundColor: ORANGE,
@@ -79,13 +80,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   title: {
-    color: '#121826',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
   },
   description: {
     marginTop: 3,
-    color: '#737A86',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
     lineHeight: 17,

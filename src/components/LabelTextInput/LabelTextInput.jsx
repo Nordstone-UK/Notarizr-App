@@ -3,16 +3,12 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  Animated,
+  Platform,
   View,
 } from 'react-native';
 import React, {useState} from 'react';
-import CompanyHeader from '../../components/CompanyHeader/CompanyHeader';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import Colors from '../../themes/Colors';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import BookingColors from '../../themes/BookingColors';
 import {TextInput} from 'react-native-gesture-handler';
 import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
 
@@ -21,7 +17,6 @@ export default function LabelTextInput(props) {
   const handleFocus = () => {
     setIsFocused(true);
   };
-  const [secureText, setSecreText] = useState(props.secureTextEntry);
   const handleBlur = () => {
     if (isFocused) {
       setIsFocused(false);
@@ -51,7 +46,7 @@ export default function LabelTextInput(props) {
               defaultValue={props.defaultValue}
               value={props.value}
               placeholderTextColor={
-                Colors.DisableColor || props.placeholderTextColor
+                props.placeholderTextColor || BookingColors.textMuted
               }
               multiline
               onChangeText={props.onChangeText}
@@ -68,7 +63,7 @@ export default function LabelTextInput(props) {
               defaultValue={props.defaultValue}
               value={props.value}
               placeholderTextColor={
-                Colors.DisableColor || props.placeholderTextColor
+                props.placeholderTextColor || BookingColors.textMuted
               }
               multiline
               onChangeText={props.onChangeText}
@@ -86,7 +81,7 @@ export default function LabelTextInput(props) {
             defaultValue={props.defaultValue}
             value={props.value}
             placeholderTextColor={
-              Colors.DisableColor || props.placeholderTextColor
+              props.placeholderTextColor || BookingColors.textMuted
             }
             multiline
             onChangeText={props.onChangeText}
@@ -103,7 +98,7 @@ export default function LabelTextInput(props) {
           defaultValue={props.defaultValue}
           value={props.value}
           placeholderTextColor={
-            Colors.DisableColor || props.placeholderTextColor
+            props.placeholderTextColor || BookingColors.textMuted
           }
           multiline
           onChangeText={props.onChangeText}
@@ -146,16 +141,17 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderRadius: 15,
-    borderColor: '#D3D5DA',
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
     width: widthToDp(90),
     // paddingHorizontal: widthToDp(4),
   },
   icon: {
     width: widthToDp(7),
     height: heightToDp(5),
-    tintColor: '#D3D5DA',
+    tintColor: BookingColors.textMuted,
   },
 
   labelFocused: {
@@ -164,9 +160,9 @@ const styles = StyleSheet.create({
     top: widthToDp(-3),
     padding: 2,
     fontSize: 15,
-    color: '#FF7A28',
+    color: BookingColors.primary,
     zIndex: 3,
-    backgroundColor: '#fff',
+    backgroundColor: BookingColors.surface,
   },
   labelUnFocused: {
     position: 'absolute',
@@ -174,24 +170,25 @@ const styles = StyleSheet.create({
     top: widthToDp(-3),
     padding: 2,
     fontSize: 15,
-    color: Colors.InputTextColor,
+    color: BookingColors.textPrimary,
     zIndex: 3,
-    backgroundColor: '#fff',
+    backgroundColor: BookingColors.surface,
   },
   input: {
     padding: widthToDp(4),
     width: widthToDp(80),
     fontSize: 18,
     backgroundColor: 'transparent',
-    color: Colors.Black,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Regular',
   },
   InputFocused: {
-    borderColor: '#FF7A28',
+    borderColor: BookingColors.primary,
   },
   iconLeft: {
     width: widthToDp(5),
     height: heightToDp(5),
     marginHorizontal: widthToDp(1),
-    tintColor: Colors.DisableColor,
+    tintColor: BookingColors.textMuted,
   },
 });

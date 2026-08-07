@@ -1,57 +1,111 @@
 import React, {useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import AppColors from '../../themes/AppColors';
 
-export default function FaqItem({item, last}) {
+export default function FaqItem({item, index}) {
   const [open, setOpen] = useState(false);
 
   return (
-    <View style={[styles.container, last && styles.last]}>
+    <View style={[styles.container, open && styles.containerOpen]}>
       <TouchableOpacity
-        activeOpacity={0.72}
+        accessibilityRole="button"
+        accessibilityState={{expanded: open}}
+        activeOpacity={0.76}
         onPress={() => setOpen(current => !current)}
         style={styles.questionRow}>
+        <View style={[styles.number, open && styles.numberOpen]}>
+          <Text style={[styles.numberText, open && styles.numberTextOpen]}>
+            {String(index + 1).padStart(2, '0')}
+          </Text>
+        </View>
         <Text style={styles.question}>{item.question}</Text>
-        <Feather
-          name={open ? 'minus' : 'plus'}
-          size={19}
-          color={open ? '#FD6D1F' : '#79818D'}
-        />
+        <View style={[styles.toggle, open && styles.toggleOpen]}>
+          <Feather
+            name={open ? 'minus' : 'plus'}
+            size={16}
+            color={open ? AppColors.white : AppColors.textSecondary}
+          />
+        </View>
       </TouchableOpacity>
-      {open && <Text style={styles.answer}>{item.answer}</Text>}
+      {open && (
+        <View style={styles.answerWrap}>
+          <View style={styles.answerLine} />
+          <Text style={styles.answer}>{item.answer}</Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   answer: {
-    color: '#69717E',
+    color: AppColors.textSecondary,
+    flex: 1,
     fontFamily: 'Manrope-Regular',
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 19,
+  },
+  answerLine: {
+    backgroundColor: AppColors.primary,
+    borderRadius: 2,
+    marginRight: 13,
+    width: 2,
+  },
+  answerWrap: {
+    flexDirection: 'row',
     paddingBottom: 17,
-    paddingRight: 28,
+    paddingLeft: 17,
+    paddingRight: 18,
   },
   container: {
-    borderBottomColor: '#E9EBEF',
-    borderBottomWidth: 1,
-    marginHorizontal: 20,
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 10,
   },
-  last: {
-    borderBottomWidth: 0,
+  containerOpen: {borderColor: AppColors.primary},
+  number: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
   },
+  numberOpen: {backgroundColor: AppColors.primarySoft},
+  numberText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  numberTextOpen: {color: AppColors.primary},
   question: {
-    color: '#202632',
+    color: AppColors.textPrimary,
     flex: 1,
     fontFamily: 'Manrope-SemiBold',
-    fontSize: 14,
-    lineHeight: 20,
-    marginRight: 16,
+    fontSize: 13,
+    lineHeight: 19,
+    marginHorizontal: 12,
   },
   questionRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    minHeight: 67,
-    paddingVertical: 15,
+    minHeight: 68,
+    padding: 12,
+  },
+  toggle: {
+    alignItems: 'center',
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  toggleOpen: {
+    backgroundColor: AppColors.primary,
+    borderColor: AppColors.primary,
   },
 });

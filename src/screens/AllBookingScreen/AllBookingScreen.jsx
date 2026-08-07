@@ -7,7 +7,6 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
@@ -15,6 +14,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import BookingCard from '../../components/Bookings/BookingCard';
 import BookingEmptyState from '../../components/Bookings/BookingEmptyState';
 import BookingHeader from '../../components/Bookings/BookingHeader';
+import BookingActionButton from '../../components/Bookings/BookingActionButton';
+import BookingColors from '../../themes/BookingColors';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -100,7 +101,7 @@ export default function AllBookingScreen({navigation}) {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#FD6D1F" size="small" />
+          <ActivityIndicator color={BookingColors.primary} size="small" />
           <Text style={styles.loadingText}>Loading bookings</Text>
         </View>
       );
@@ -113,12 +114,11 @@ export default function AllBookingScreen({navigation}) {
           <Text style={styles.errorMessage}>
             Check your connection and try again.
           </Text>
-          <TouchableOpacity
-            activeOpacity={0.72}
+          <BookingActionButton
+            label="Try again"
             onPress={() => loadBookings(activeStatus)}
-            style={styles.retryButton}>
-            <Text style={styles.retryText}>Try again</Text>
-          </TouchableOpacity>
+            style={styles.retryButton}
+          />
         </View>
       );
     }
@@ -137,7 +137,7 @@ export default function AllBookingScreen({navigation}) {
             enabled={!previewMode}
             onRefresh={() => loadBookings(activeStatus, true)}
             refreshing={refreshing}
-            tintColor="#FD6D1F"
+            tintColor={BookingColors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -147,7 +147,10 @@ export default function AllBookingScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
       <BookingHeader
         activeStatus={activeStatus}
         count={visibleBookings.length}
@@ -161,11 +164,11 @@ export default function AllBookingScreen({navigation}) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BookingColors.surface,
   },
   content: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: BookingColors.background,
   },
   listContent: {
     flexGrow: 1,
@@ -178,7 +181,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#7A818D',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
   },
@@ -189,13 +192,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
   },
   errorTitle: {
-    color: '#1B2130',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
   },
   errorMessage: {
     marginTop: 5,
-    color: '#858C97',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
     textAlign: 'center',
@@ -207,11 +210,5 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 18,
     borderRadius: 8,
-    backgroundColor: '#FD6D1F',
-  },
-  retryText: {
-    color: '#FFFFFF',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
   },
 });

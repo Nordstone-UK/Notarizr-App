@@ -6,7 +6,9 @@ export default function TermsAndConditionsScreen({navigation}) {
     <LegalWebScreen
       navigation={navigation}
       title="Terms and conditions"
-      url="https://notarizr.co/terms-policies/"
+      description="The rules that keep every Notarizr booking clear, fair, and secure."
+      icon="file-text"
+      url="https://notarizr.co/terms-and-conditions/"
     />
   );
 }

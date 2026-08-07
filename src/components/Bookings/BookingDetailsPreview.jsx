@@ -10,29 +10,31 @@ import {
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
+import BookingActionButton from './BookingActionButton';
 
 const STATUS_CONFIG = {
   accepted: {
-    background: '#EAF7EF',
-    color: '#168A52',
+    background: BookingColors.successSoft,
+    color: BookingColors.success,
     icon: 'check-circle',
     label: 'Accepted',
   },
   pending: {
-    background: '#FFF5DC',
-    color: '#A86900',
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
     icon: 'clock',
     label: 'Pending',
   },
   completed: {
-    background: '#EAF2FC',
-    color: '#2571B9',
+    background: BookingColors.infoSoft,
+    color: BookingColors.info,
     icon: 'check-circle',
     label: 'Completed',
   },
   rejected: {
-    background: '#FCEEEE',
-    color: '#C44242',
+    background: BookingColors.errorSoft,
+    color: BookingColors.error,
     icon: 'x-circle',
     label: 'Cancelled',
   },
@@ -42,7 +44,7 @@ function DetailRow({icon, label, value, last}) {
   return (
     <View style={[styles.detailRow, last && styles.lastDetailRow]}>
       <View style={styles.detailIcon}>
-        <Feather name={icon} size={17} color="#FD6D1F" />
+        <Feather name={icon} size={17} color={BookingColors.primary} />
       </View>
       <View style={styles.detailCopy}>
         <Text style={styles.detailLabel}>{label}</Text>
@@ -106,14 +108,21 @@ export default function BookingDetailsPreview({booking, navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
       <View style={styles.header}>
         <TouchableOpacity
           accessibilityLabel="Go back"
           activeOpacity={0.7}
           onPress={() => navigation.goBack()}
           style={styles.backButton}>
-          <Feather name="arrow-left" size={21} color="#171D29" />
+          <Feather
+            name="arrow-left"
+            size={21}
+            color={BookingColors.textPrimary}
+          />
         </TouchableOpacity>
         <View style={styles.headerCopy}>
           <Text style={styles.headerTitle}>Booking details</Text>
@@ -134,7 +143,7 @@ export default function BookingDetailsPreview({booking, navigation}) {
         <View style={styles.providerSection}>
           {booking.unassigned ? (
             <View style={styles.avatarPlaceholder}>
-              <Feather name="user" size={27} color="#A86900" />
+              <Feather name="user" size={27} color={BookingColors.warning} />
             </View>
           ) : (
             <Image source={avatar} style={styles.avatar} />
@@ -152,7 +161,11 @@ export default function BookingDetailsPreview({booking, navigation}) {
             <Feather
               name={booking.unassigned ? 'clock' : 'check'}
               size={14}
-              color={booking.unassigned ? '#A86900' : '#168A52'}
+              color={
+                booking.unassigned
+                  ? BookingColors.warning
+                  : BookingColors.success
+              }
             />
           </View>
         </View>
@@ -206,13 +219,12 @@ export default function BookingDetailsPreview({booking, navigation}) {
       </ScrollView>
 
       <View style={styles.actionBar}>
-        <TouchableOpacity
-          activeOpacity={0.75}
+        <BookingActionButton
+          icon="arrow-right"
+          label={primaryLabel}
           onPress={handlePrimaryAction}
-          style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
-          <Feather name="arrow-right" size={17} color="#FFFFFF" />
-        </TouchableOpacity>
+          style={styles.primaryButton}
+        />
       </View>
     </SafeAreaView>
   );
@@ -221,7 +233,7 @@ export default function BookingDetailsPreview({booking, navigation}) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BookingColors.surface,
   },
   header: {
     height: 66,
@@ -229,8 +241,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
   backButton: {
     width: 40,
@@ -238,9 +250,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E1E4E8',
+    borderColor: BookingColors.border,
     borderRadius: 8,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: BookingColors.backgroundSubtle,
   },
   headerCopy: {
     flex: 1,
@@ -248,13 +260,13 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   headerTitle: {
-    color: '#151B27',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 17,
   },
   headerSubtitle: {
     marginTop: 1,
-    color: '#8D939D',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
   },
@@ -273,21 +285,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 24,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: BookingColors.background,
   },
   providerSection: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: BookingColors.border,
+    backgroundColor: BookingColors.textPrimary,
   },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#EEF0F3',
+    backgroundColor: BookingColors.backgroundSubtle,
   },
   avatarPlaceholder: {
     width: 60,
@@ -295,7 +307,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 30,
-    backgroundColor: '#FFF5DC',
+    backgroundColor: BookingColors.warningSoft,
   },
   providerCopy: {
     flex: 1,
@@ -303,19 +315,19 @@ const styles = StyleSheet.create({
     marginLeft: 14,
   },
   service: {
-    color: '#FD6D1F',
+    color: BookingColors.primary,
     fontFamily: 'Manrope-Bold',
     fontSize: 10,
   },
   agentName: {
     marginTop: 2,
-    color: '#171D29',
+    color: BookingColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 18,
   },
   agentRole: {
     marginTop: 2,
-    color: '#858C97',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
   },
@@ -325,23 +337,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 14,
-    backgroundColor: '#EAF7EF',
+    backgroundColor: BookingColors.successSoft,
   },
   pendingIcon: {
-    backgroundColor: '#FFF5DC',
+    backgroundColor: BookingColors.warningSoft,
   },
   section: {
     marginTop: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#ECEEF1',
-    backgroundColor: '#FFFFFF',
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
   sectionTitle: {
     paddingHorizontal: 20,
     paddingTop: 15,
     paddingBottom: 8,
-    color: '#8A919C',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Bold',
     fontSize: 10,
     textTransform: 'uppercase',
@@ -354,7 +366,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF0F2',
+    borderBottomColor: BookingColors.border,
   },
   lastDetailRow: {
     borderBottomWidth: 0,
@@ -365,7 +377,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: BookingColors.primarySoft,
   },
   detailCopy: {
     flex: 1,
@@ -374,13 +386,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   detailLabel: {
-    color: '#969CA6',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
   },
   detailValue: {
     marginTop: 2,
-    color: '#252B37',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 12,
     lineHeight: 17,
@@ -392,18 +404,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   paymentLabel: {
-    color: '#252B37',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 12,
   },
   paymentMethod: {
     marginTop: 3,
-    color: '#969CA6',
+    color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
   },
   price: {
-    color: '#171D29',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 20,
   },
@@ -412,8 +424,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E4E7EB',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
   primaryButton: {
     height: 50,
@@ -421,12 +433,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FD6D1F',
-  },
-  primaryButtonText: {
-    marginRight: 8,
-    color: '#FFFFFF',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
   },
 });

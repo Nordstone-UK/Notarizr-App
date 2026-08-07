@@ -1,36 +1,40 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import {ActivityIndicator, Pressable, StyleSheet, Text} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import AppColors from '../../themes/AppColors';
 
 export default function AuthPrimaryButton({
   title,
   loading,
+  disabled,
   icon,
   onPress,
   style,
 }) {
+  const inactive = loading || disabled;
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.82}
-      disabled={loading}
+    <Pressable
+      accessibilityRole="button"
+      disabled={inactive}
       onPress={onPress}
-      style={[styles.button, loading && styles.disabledButton, style]}>
+      style={({pressed}) => [
+        styles.button,
+        pressed && styles.pressedButton,
+        inactive && styles.disabledButton,
+        style,
+      ]}>
       {loading ? (
-        <ActivityIndicator size="small" color="#FFFFFF" />
+        <ActivityIndicator size="small" color={AppColors.white} />
       ) : (
         <>
           <Text style={[styles.title, icon && styles.titleWithIcon]}>
             {title}
           </Text>
-          {icon && <Feather name={icon} size={20} color="#FFFFFF" />}
+          {icon && <Feather name={icon} size={20} color={AppColors.white} />}
         </>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -41,14 +45,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 22,
-    borderRadius: 14,
-    backgroundColor: '#FD6D1F',
+    borderRadius: 8,
+    backgroundColor: AppColors.primary,
   },
+  pressedButton: {backgroundColor: AppColors.primaryPressed},
   disabledButton: {
     opacity: 0.7,
   },
   title: {
-    color: '#FFFFFF',
+    color: AppColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
   },

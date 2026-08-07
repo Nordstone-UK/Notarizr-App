@@ -14,11 +14,12 @@ import WebView from 'react-native-webview';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
 import useStripeApi from '../../hooks/useStripeApi';
+import AppColors from '../../themes/AppColors';
 
 const Requirement = ({children}) => (
   <View style={styles.requirement}>
     <View style={styles.checkIcon}>
-      <Feather name="check" size={12} color="#168A52" />
+      <Feather name="check" size={12} color={AppColors.success} />
     </View>
     <Text style={styles.requirementText}>{children}</Text>
   </View>
@@ -83,7 +84,10 @@ export default function PaymentUpdateScreen({navigation}) {
   if (onboardingLink) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={AppColors.surface}
+        />
         <ProfileScreenHeader
           actionLabel="Close"
           onAction={() => {
@@ -96,7 +100,7 @@ export default function PaymentUpdateScreen({navigation}) {
         <WebView
           renderLoading={() => (
             <View style={styles.webLoading}>
-              <ActivityIndicator color="#635BFF" />
+              <ActivityIndicator color={AppColors.info} />
               <Text style={styles.webLoadingText}>Opening Stripe...</Text>
             </View>
           )}
@@ -110,7 +114,7 @@ export default function PaymentUpdateScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
       <ProfileScreenHeader
         onBack={() => navigation.goBack()}
         title="Payout setup"
@@ -120,7 +124,7 @@ export default function PaymentUpdateScreen({navigation}) {
         showsVerticalScrollIndicator={false}>
         <View style={styles.stripeBrand}>
           <View style={styles.stripeIcon}>
-            <Feather name="credit-card" size={23} color="#635BFF" />
+            <Feather name="credit-card" size={23} color={AppColors.primary} />
           </View>
           <View style={styles.brandCopy}>
             <Text style={styles.brandTitle}>Stripe payouts</Text>
@@ -139,13 +143,20 @@ export default function PaymentUpdateScreen({navigation}) {
                 started && styles.startedIcon,
               ]}>
               {statusLoading ? (
-                <ActivityIndicator color="#7A818D" size="small" />
+                <ActivityIndicator
+                  color={AppColors.textSecondary}
+                  size="small"
+                />
               ) : (
                 <Feather
                   name={connected ? 'check-circle' : started ? 'clock' : 'link'}
                   size={20}
                   color={
-                    connected ? '#168A52' : started ? '#A86900' : '#D65322'
+                    connected
+                      ? AppColors.success
+                      : started
+                      ? AppColors.warning
+                      : AppColors.primary
                   }
                 />
               )}
@@ -180,7 +191,7 @@ export default function PaymentUpdateScreen({navigation}) {
         </View>
 
         <View style={styles.securityNote}>
-          <Feather name="shield" size={18} color="#2878A9" />
+          <Feather name="shield" size={18} color={AppColors.info} />
           <Text style={styles.securityText}>
             Your financial details are entered directly with Stripe and are not
             stored by Notarizr.
@@ -206,16 +217,21 @@ export default function PaymentUpdateScreen({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
-  content: {padding: 20, paddingBottom: 34, backgroundColor: '#F7F8FA'},
+  safeArea: {flex: 1, backgroundColor: AppColors.white},
+  content: {
+    padding: 20,
+    paddingBottom: 34,
+    backgroundColor: AppColors.background,
+  },
   stripeBrand: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E3E5E9',
+    borderColor: AppColors.textPrimary,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.textPrimary,
+    overflow: 'hidden',
   },
   stripeIcon: {
     width: 46,
@@ -223,13 +239,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#EFEEFF',
+    backgroundColor: AppColors.primarySoft,
   },
   brandCopy: {flex: 1, minWidth: 0, marginLeft: 12},
-  brandTitle: {color: '#232936', fontFamily: 'Manrope-Bold', fontSize: 14},
+  brandTitle: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
   brandText: {
     marginTop: 3,
-    color: '#7D8490',
+    color: AppColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 15,
@@ -238,9 +258,9 @@ const styles = StyleSheet.create({
     marginTop: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E3E5E9',
+    borderColor: AppColors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
   statusHeader: {flexDirection: 'row', alignItems: 'center'},
   statusIcon: {
@@ -249,21 +269,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: AppColors.primarySoft,
   },
-  connectedIcon: {backgroundColor: '#E8F6EE'},
-  startedIcon: {backgroundColor: '#FFF5DC'},
+  connectedIcon: {backgroundColor: AppColors.successSoft},
+  startedIcon: {backgroundColor: AppColors.warningSoft},
   statusCopy: {flex: 1, marginLeft: 11},
-  statusLabel: {color: '#9096A0', fontFamily: 'Manrope-Regular', fontSize: 9},
+  statusLabel: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+  },
   statusTitle: {
     marginTop: 2,
-    color: '#242B36',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },
   statusDescription: {
     marginTop: 13,
-    color: '#757D89',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 16,
@@ -271,7 +295,7 @@ const styles = StyleSheet.create({
   requirementsSection: {marginTop: 24},
   sectionTitle: {
     marginBottom: 11,
-    color: '#2A303B',
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },
@@ -282,12 +306,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 6,
-    backgroundColor: '#E8F6EE',
+    backgroundColor: AppColors.successSoft,
   },
   requirementText: {
     flex: 1,
     marginLeft: 10,
-    color: '#59616D',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },
@@ -297,12 +321,12 @@ const styles = StyleSheet.create({
     marginTop: 26,
     padding: 14,
     borderRadius: 8,
-    backgroundColor: '#EAF4FB',
+    backgroundColor: AppColors.infoSoft,
   },
   securityText: {
     flex: 1,
     marginLeft: 10,
-    color: '#4C6678',
+    color: AppColors.info,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 15,
@@ -313,11 +337,11 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
   webLoadingText: {
     marginTop: 9,
-    color: '#7D8490',
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },

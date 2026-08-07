@@ -1,56 +1,53 @@
-import { useLazyQuery } from '@apollo/client'
-import { useEffect, useState } from 'react'
-import { Faq } from '../types/faq.types'
-import { GET_FAQS } from '../../request/queries/faq.query'
-
-type MainData = {
-  status?: string
-  message?: string
-  data?: Faq
-}
+import {useLazyQuery} from '@apollo/client';
+import {useCallback, useEffect, useState} from 'react';
+import {Faq} from '../types/faq.types';
+import {GET_FAQS} from '../../request/queries/faq.query';
 
 type Response = {
-  getFaq: MainData
-  loading: boolean
-}
+  getAllFAQS?: Faq[];
+};
 
 type FetchResponse = {
-  faq: Faq | any
-  error: boolean
-  loading: boolean
-  refetchFaq: () => void
-}
+  faq: Faq[];
+  error: boolean;
+  loading: boolean;
+  refetchFaq: () => Promise<void>;
+};
 
 const useFetchFaq = (): FetchResponse => {
-  const [faq, setFaq] = useState<Faq>()
-  const [error, setError] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [GetAllFAQS, { data, error: queryError, loading: queryLoading }] = useLazyQuery<Response>(GET_FAQS)
-  const fetchFaq = async () => {
-    setLoading(true)
+  const [faq, setFaq] = useState<Faq[]>([]);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [getAllFaqs] = useLazyQuery<Response>(GET_FAQS, {
+    fetchPolicy: 'network-only',
+  });
+
+  const fetchFaq = useCallback(async () => {
+    setLoading(true);
+    setError(false);
     try {
-      const res = await GetAllFAQS()
-      if (res?.data?.getAllFAQS) {
-        setFaq(res.data.getAllFAQS)
+      const response = await getAllFaqs();
+      if (Array.isArray(response.data?.getAllFAQS)) {
+        setFaq(response.data.getAllFAQS);
       } else {
-        setError(true)
+        setError(true);
       }
-    } catch (error) {
-      setLoading(false)
-      setError(true)
+    } catch {
+      setError(true);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [getAllFaqs]);
 
   const refetchFaq = async () => {
-    await fetchFaq()
-  }
+    await fetchFaq();
+  };
 
   useEffect(() => {
-    fetchFaq()
-  }, [])
-  return { faq, error, loading, refetchFaq }
-}
+    fetchFaq();
+  }, [fetchFaq]);
 
-export default useFetchFaq
+  return {faq, error, loading, refetchFaq};
+};
+
+export default useFetchFaq;

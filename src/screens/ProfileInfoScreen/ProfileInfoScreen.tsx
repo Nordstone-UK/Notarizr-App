@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,19 +7,20 @@ import {
   Text,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ChatClient} from 'react-native-agora-chat';
-import {useDispatch, useSelector} from 'react-redux';
+import { ChatClient } from 'react-native-agora-chat';
+import { useDispatch, useSelector } from 'react-redux';
 import LogoutConfirmModal from '../../components/Profile/LogoutConfirmModal';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
 import ProfileMenuItem from '../../components/Profile/ProfileMenuItem';
 import ProfileSection from '../../components/Profile/ProfileSection';
-import {saveUserInfo} from '../../features/user/userSlice';
+import { saveUserInfo } from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
+import AppColors from '../../themes/AppColors';
 
-export default function ProfileInfoScreen({navigation}: any) {
+export default function ProfileInfoScreen({ navigation }: any) {
   const user = useSelector((state: any) => state.user.user);
   const dispatch = useDispatch();
-  const {fetchUserInfo} = useFetchUser();
+  const { fetchUserInfo } = useFetchUser();
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
@@ -32,27 +33,28 @@ export default function ProfileInfoScreen({navigation}: any) {
   }, [fetchUserInfo, navigation, user]);
 
   const openProfile = (profileEdit = false) => {
-    navigation.navigate('ProfileDetailEditScreen', {profileEdit});
+    navigation.navigate('ProfileDetailEditScreen', { profileEdit });
   };
 
   const handleLogout = async () => {
     setLogoutLoading(true);
     try {
       await AsyncStorage.removeItem('token');
-
-      const chatClient = ChatClient.getInstance();
-      if (chatClient?.isInitialized) {
-        await chatClient.logout();
-      }
     } catch (error) {
-      console.error('Logout cleanup failed:', error);
+      console.error('Token removal failed:', error);
+    }
+
+    try {
+      await ChatClient.getInstance().logout();
+    } catch (error) {
+      console.warn('Agora chat logout skipped:', error);
     } finally {
       dispatch(saveUserInfo(null));
       setLogoutLoading(false);
       setLogoutVisible(false);
       navigation.reset({
         index: 0,
-        routes: [{name: 'LoginScreen'}],
+        routes: [{ name: 'LoginScreen' }],
       });
     }
   };
@@ -65,7 +67,7 @@ export default function ProfileInfoScreen({navigation}: any) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#FD6D1F" />
+      <StatusBar barStyle="light-content" backgroundColor="#202632" />
       <ProfileHeader
         user={user}
         onDetails={() => openProfile(false)}
@@ -78,13 +80,13 @@ export default function ProfileInfoScreen({navigation}: any) {
         showsVerticalScrollIndicator={false}>
         <ProfileSection title="Account">
           <ProfileMenuItem
-            icon="map-pin"
+            icon="navigation"
             title="Saved addresses"
             description="Service and billing locations"
             onPress={() => navigation.navigate('AddressDetails')}
           />
           <ProfileMenuItem
-            icon="settings"
+            icon="sliders"
             title="Account settings"
             description="Account type, privacy and security"
             last={isClient}
@@ -93,7 +95,7 @@ export default function ProfileInfoScreen({navigation}: any) {
           />
           {!isClient && (
             <ProfileMenuItem
-              icon="credit-card"
+              icon="dollar-sign"
               title="Payment method"
               description="Payout and payment details"
               last
@@ -106,13 +108,12 @@ export default function ProfileInfoScreen({navigation}: any) {
         {!isClient && (
           <ProfileSection title="Notary profile">
             <ProfileMenuItem
-              icon="award"
+              icon="shield"
               title="Credentials and stamp"
               description="Certificate and notary stamp"
-              last
               tone="blue"
               onPress={() =>
-                navigation.navigate('AgentVerificationScreen', {user})
+                navigation.navigate('AgentVerificationScreen', { user })
               }
             />
           </ProfileSection>
@@ -120,21 +121,21 @@ export default function ProfileInfoScreen({navigation}: any) {
 
         <ProfileSection title="Support and legal">
           <ProfileMenuItem
-            icon="help-circle"
+            icon="life-buoy"
             title="Help and FAQ"
             description="Answers to common questions"
             tone="blue"
             onPress={() => navigation.navigate('FaqScreen')}
           />
           <ProfileMenuItem
-            icon="shield"
+            icon="lock"
             title="Privacy policy"
             description="How your information is protected"
             tone="green"
             onPress={() => navigation.navigate('PrivacyPolicyScreen')}
           />
           <ProfileMenuItem
-            icon="file-text"
+            icon="book-open"
             title="Terms and conditions"
             description="Terms for using Notarizr"
             last
@@ -146,7 +147,7 @@ export default function ProfileInfoScreen({navigation}: any) {
         <ProfileSection title="Session">
           <ProfileMenuItem
             destructive
-            icon="log-out"
+            icon="power"
             title="Log out"
             description="Sign out of this device"
             last
@@ -154,7 +155,7 @@ export default function ProfileInfoScreen({navigation}: any) {
           />
         </ProfileSection>
 
-        <Text style={styles.version}>Notarizr account</Text>
+        <Text style={styles.version}>NOTARIZR • ACCOUNT CENTER</Text>
       </ScrollView>
 
       <LogoutConfirmModal
@@ -170,19 +171,20 @@ export default function ProfileInfoScreen({navigation}: any) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FD6D1F',
+    backgroundColor: AppColors.textPrimary,
   },
   content: {
-    paddingBottom: 24,
-    backgroundColor: '#F5F6F8',
+    paddingBottom: 30,
+    backgroundColor: AppColors.background,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#F5F6F8',
+    backgroundColor: AppColors.background,
   },
   version: {
-    marginTop: 22,
-    color: '#ADB1B9',
+    letterSpacing: 0.7,
+    marginTop: 20,
+    color: AppColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     textAlign: 'center',

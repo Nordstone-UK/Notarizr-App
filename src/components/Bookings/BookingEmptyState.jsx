@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 const COPY = {
   accepted: {
@@ -27,7 +28,7 @@ export default function BookingEmptyState({status}) {
   return (
     <View style={styles.container}>
       <View style={styles.iconBox}>
-        <Feather name="calendar" size={24} color="#FD6D1F" />
+        <Feather name="calendar" size={24} color={BookingColors.primary} />
       </View>
       <Text style={styles.title}>{copy.title}</Text>
       <Text style={styles.message}>{copy.message}</Text>
@@ -47,17 +48,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    backgroundColor: BookingColors.primarySoft,
   },
   title: {
     marginTop: 16,
-    color: '#1B2130',
+    color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
   },
   message: {
     marginTop: 5,
-    color: '#858C97',
+    color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
     textAlign: 'center',

@@ -3,29 +3,33 @@ import {
   ActivityIndicator,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  Pressable,
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 export default function BookingFlowFooter({disabled, label, loading, onPress}) {
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Pressable
         accessibilityRole="button"
-        activeOpacity={0.76}
         disabled={disabled || loading}
         onPress={onPress}
-        style={[styles.button, (disabled || loading) && styles.disabledButton]}>
+        style={({pressed}) => [
+          styles.button,
+          pressed && styles.pressedButton,
+          (disabled || loading) && styles.disabledButton,
+        ]}>
         {loading ? (
-          <ActivityIndicator color="#FFFFFF" size="small" />
+          <ActivityIndicator color={BookingColors.white} size="small" />
         ) : (
           <>
             <Text style={styles.label}>{label}</Text>
-            <Feather name="arrow-right" size={17} color="#FFFFFF" />
+            <Feather name="arrow-right" size={17} color={BookingColors.white} />
           </>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
@@ -36,8 +40,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E2E5E9',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
   },
   button: {
     height: 50,
@@ -45,14 +49,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: '#FD6D1F',
+    backgroundColor: BookingColors.primary,
   },
+  pressedButton: {backgroundColor: BookingColors.primaryPressed},
   disabledButton: {
-    backgroundColor: '#C9CDD3',
+    backgroundColor: BookingColors.borderStrong,
   },
   label: {
     marginRight: 8,
-    color: '#FFFFFF',
+    color: BookingColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
   },

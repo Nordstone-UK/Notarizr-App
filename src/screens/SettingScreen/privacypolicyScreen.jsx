@@ -6,6 +6,8 @@ export default function PrivacyPolicyScreen({navigation}) {
     <LegalWebScreen
       navigation={navigation}
       title="Privacy policy"
+      description="A clear view of how Notarizr collects, uses, and protects your information."
+      icon="shield"
       url="https://notarizr.co/privacypolicy/"
     />
   );

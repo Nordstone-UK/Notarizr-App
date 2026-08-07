@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import {useMutation} from '@apollo/client';
+import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
@@ -23,6 +24,7 @@ import useRegister from '../../hooks/useRegister';
 import {uriToBlob} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
 import {UPDATE_VERIFICATION} from '../../../request/mutations/updateVerification.mutation';
+import AppColors from '../../themes/AppColors';
 
 const DOCUMENTS = {
   photoID: {
@@ -188,7 +190,7 @@ export default function AgentVerificationScreen({navigation, route}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
       <AuthProgressHeader
         title={user ? 'Edit verification' : 'Identity verification'}
         progress={user ? undefined : registerData.progress}
@@ -203,6 +205,16 @@ export default function AgentVerificationScreen({navigation, route}) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
         <View style={styles.intro}>
+          <View style={styles.introGlow} />
+          <View style={styles.introTop}>
+            <View style={styles.introIcon}>
+              <Feather name="shield" size={21} color={AppColors.primary} />
+            </View>
+            <View style={styles.reviewPill}>
+              <View style={styles.reviewDot} />
+              <Text style={styles.reviewText}>SECURE REVIEW</Text>
+            </View>
+          </View>
           <Text style={styles.eyebrow}>NOTARY VERIFICATION</Text>
           <Text style={styles.heading}>Verify your credentials</Text>
           <Text style={styles.subheading}>
@@ -211,8 +223,18 @@ export default function AgentVerificationScreen({navigation, route}) {
         </View>
 
         <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Documents uploaded</Text>
-          <Text style={styles.statusValue}>{uploadedCount} of 3</Text>
+          <View style={styles.statusIcon}>
+            <Feather name="file-text" size={17} color={AppColors.primary} />
+          </View>
+          <View style={styles.statusCopy}>
+            <Text style={styles.statusLabel}>Documents uploaded</Text>
+            <Text style={styles.statusHint}>
+              Complete all items before submitting
+            </Text>
+          </View>
+          <View style={styles.countPill}>
+            <Text style={styles.statusValue}>{uploadedCount} / 3</Text>
+          </View>
         </View>
 
         <View style={styles.documentStack}>
@@ -241,10 +263,15 @@ export default function AgentVerificationScreen({navigation, route}) {
         </View>
 
         <View style={styles.securityNote}>
-          <Text style={styles.securityTitle}>Secure document handling</Text>
-          <Text style={styles.securityText}>
-            Your files are encrypted and used only for account verification.
-          </Text>
+          <View style={styles.securityIcon}>
+            <Feather name="lock" size={16} color={AppColors.info} />
+          </View>
+          <View style={styles.securityCopy}>
+            <Text style={styles.securityTitle}>Secure document handling</Text>
+            <Text style={styles.securityText}>
+              Your files are encrypted and used only for account verification.
+            </Text>
+          </View>
         </View>
 
         <AuthPrimaryButton
@@ -262,31 +289,81 @@ export default function AgentVerificationScreen({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 36,
+    backgroundColor: AppColors.background,
   },
   intro: {
-    marginBottom: 22,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 8,
+    backgroundColor: AppColors.textPrimary,
+    overflow: 'hidden',
+  },
+  introGlow: {
+    position: 'absolute',
+    top: -65,
+    right: -40,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(253,109,31,0.14)',
+  },
+  introTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
+  introIcon: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  reviewPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  reviewDot: {
+    width: 6,
+    height: 6,
+    marginRight: 6,
+    borderRadius: 3,
+    backgroundColor: AppColors.success,
+  },
+  reviewText: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 8,
+    letterSpacing: 0.7,
   },
   eyebrow: {
-    color: '#FD6D1F',
+    color: AppColors.primary,
     fontFamily: 'Manrope-Bold',
-    fontSize: 12,
+    fontSize: 9,
+    letterSpacing: 0.9,
   },
   heading: {
     marginTop: 7,
-    color: '#121826',
+    color: AppColors.white,
     fontFamily: 'Manrope-Bold',
-    fontSize: 28,
-    lineHeight: 35,
+    fontSize: 22,
+    lineHeight: 29,
   },
   subheading: {
     marginTop: 7,
-    color: '#6C727F',
+    color: AppColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 14,
     lineHeight: 20,
@@ -295,17 +372,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.white,
+  },
+  statusIcon: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  statusCopy: {
+    flex: 1,
+    marginHorizontal: 11,
   },
   statusLabel: {
-    color: '#596170',
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  statusHint: {
+    marginTop: 2,
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
-    fontSize: 13,
+    fontSize: 9,
+  },
+  countPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
   },
   statusValue: {
-    color: '#FD6D1F',
+    color: AppColors.primary,
     fontFamily: 'Manrope-Bold',
-    fontSize: 13,
+    fontSize: 10,
   },
   documentStack: {
     width: '100%',
@@ -314,19 +420,33 @@ const styles = StyleSheet.create({
     height: 12,
   },
   securityNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 20,
-    padding: 15,
-    borderRadius: 14,
-    backgroundColor: '#F7F8FA',
+    padding: 13,
+    borderRadius: 8,
+    backgroundColor: AppColors.infoSoft,
+  },
+  securityIcon: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.white,
+  },
+  securityCopy: {
+    flex: 1,
+    marginLeft: 11,
   },
   securityTitle: {
-    color: '#252B36',
+    color: AppColors.info,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },
   securityText: {
     marginTop: 4,
-    color: '#737A86',
+    color: AppColors.info,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
     lineHeight: 17,

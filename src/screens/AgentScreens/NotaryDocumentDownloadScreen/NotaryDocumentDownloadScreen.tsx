@@ -1,115 +1,205 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Pdf from 'react-native-pdf';
 import RNFS from 'react-native-fs';
+import Feather from 'react-native-vector-icons/Feather';
+import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
+import BookingActionButton from '../../../components/Bookings/BookingActionButton';
+import BookingColors from '../../../themes/BookingColors';
 
-const NotaryDocumentDownloadScreen = ({ route, navigation }) => {
-  const { document } = route.params;
-  const [filePath, setFilePath] = useState(null); // State to hold PDF file path
-  const [downloadedFilePath, setDownloadedFilePath] = useState(null); // State to hold downloaded file path
+export default function NotaryDocumentDownloadScreen({route, navigation}) {
+  const {document} = route.params;
+  const [filePath, setFilePath] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Check if a document is provided and download it
-    if (document) {
-      downloadFile(document);
+    if (!document) {
+      setError(true);
+      return;
     }
+
+    const fileUri = `${RNFS.DocumentDirectoryPath}/notarizr-document.pdf`;
+    RNFS.downloadFile({fromUrl: document, toFile: fileUri})
+      .promise.then(() => setFilePath(fileUri))
+      .catch(downloadError => {
+        console.error('Error downloading file:', downloadError);
+        setError(true);
+      });
   }, [document]);
 
-  const downloadFile = (downloadUrl) => {
-    const fileName = 'react-native.pdf';
-    const fileUri = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-
-    RNFS.downloadFile({
-      fromUrl: downloadUrl,
-      toFile: fileUri,
-    }).promise.then(res => {
-      setDownloadedFilePath(fileUri);
-      setFilePath(fileUri);
-    }).catch(error => {
-      console.error('Error downloading file:', error);
-      // Handle file download error (e.g., show error message)
-    });
-  };
-
-  const handleGoBack = () => {
-    navigation.goBack(); // Navigate back to the previous screen
-  };
-
   return (
-    <View style={styles.container}>
-      {filePath ? (
-        // Display PDF if file path is available
-        <Pdf
-          style={styles.pdfView}
-          source={{ uri: filePath }}
-          onLoadComplete={(numberOfPages, filePath) => {
-            console.log('PDF loaded:', numberOfPages, filePath);
-          }}
-          onError={(error) => console.error('PDF error:', error)}
-        />
-      ) : (
-        // Show loading indicator if file path is not yet available
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Downloading PDF...</Text>
-        </View>
-      )}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
+      <ProfileScreenHeader
+        onBack={() => navigation.goBack()}
+        title="Review document"
+      />
 
-      <View style={styles.buttonContainer}>
-        <View style={styles.Textcontainer}>
-          {downloadedFilePath && (
-            <Text style={styles.filePathText}>Downloaded File Path: {downloadedFilePath}</Text>
-          )}
+      <View style={styles.documentMeta}>
+        <View style={styles.fileIcon}>
+          <Feather name="file-text" size={20} color={BookingColors.primary} />
         </View>
-        <View style={styles.buttonStyle}>
-          <Button title="Go Back" onPress={handleGoBack} />
+        <View style={styles.metaCopy}>
+          <Text style={styles.fileName}>Notary document</Text>
+          <Text style={styles.fileHint}>Secure PDF • Ready for review</Text>
+        </View>
+        <View style={styles.secureBadge}>
+          <Feather name="shield" size={12} color={BookingColors.success} />
+          <Text style={styles.secureText}>Protected</Text>
         </View>
       </View>
-    </View>
+
+      <View style={styles.viewerShell}>
+        {filePath ? (
+          <Pdf
+            onError={pdfError => {
+              console.error('PDF error:', pdfError);
+              setError(true);
+            }}
+            source={{uri: filePath}}
+            style={styles.pdf}
+          />
+        ) : error ? (
+          <View style={styles.state}>
+            <View style={styles.errorIcon}>
+              <Feather
+                name="alert-circle"
+                size={25}
+                color={BookingColors.error}
+              />
+            </View>
+            <Text style={styles.stateTitle}>Document unavailable</Text>
+            <Text style={styles.stateText}>
+              The file could not be downloaded. Return to the booking and try
+              again.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.state}>
+            <ActivityIndicator color={BookingColors.primary} size="small" />
+            <Text style={styles.stateTitle}>Preparing document</Text>
+            <Text style={styles.stateText}>
+              Downloading the secure copy for review.
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.actionBar}>
+        <BookingActionButton
+          icon="arrow-right"
+          label="Return to workspace"
+          onPress={() => navigation.goBack()}
+          style={styles.primaryButton}
+        />
+      </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pdfView: {
-    flex: 1,
-    width: '100%',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: '#FFA500',
-  },
-  buttonContainer: {
-
-    alignItems: 'center',
+  safeArea: {flex: 1, backgroundColor: BookingColors.surface},
+  documentMeta: {
+    minHeight: 72,
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-    paddingHorizontal: 25,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.textPrimary,
+    backgroundColor: BookingColors.textPrimary,
   },
-  Textcontainer: {
-    width: '80%',
+  fileIcon: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
   },
-  buttonStyle: {
-    padding: 15,    // Add padding
-    // marginLeft: 20,  // Add left margin
+  metaCopy: {flex: 1, minWidth: 0, marginLeft: 11},
+  fileName: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
   },
-  filePathText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#333',
+  fileHint: {
+    marginTop: 3,
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+  },
+  secureBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 7,
+    backgroundColor: BookingColors.successSoft,
+  },
+  secureText: {
+    marginLeft: 5,
+    color: BookingColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  viewerShell: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: BookingColors.background,
+  },
+  pdf: {
+    flex: 1,
+    overflow: 'hidden',
+    borderRadius: 8,
+    backgroundColor: BookingColors.surface,
+  },
+  state: {flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32},
+  errorIcon: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.errorSoft,
+  },
+  stateTitle: {
+    marginTop: 14,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+  },
+  stateText: {
+    maxWidth: 280,
+    marginTop: 5,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+  actionBar: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
+  },
+  primaryButton: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
   },
 });
-
-export default NotaryDocumentDownloadScreen;
-

@@ -7,16 +7,17 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import AuthTextField from '../../components/AuthFlow/AuthTextField';
 import ScreenHeader from '../../components/Navigation/ScreenHeader';
 import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
+import AppColors from '../../themes/AppColors';
 
 export default function AddressFormScreen({navigation, route}) {
   const existing = route.params?.address;
@@ -119,7 +120,7 @@ export default function AddressFormScreen({navigation, route}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
       <ScreenHeader
         fallback="AddressDetails"
         navigation={navigation}
@@ -134,38 +135,59 @@ export default function AddressFormScreen({navigation, route}) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <View style={styles.mapPreview}>
+            <View style={styles.mapGlow} />
+            <View style={styles.routeLineOne} />
+            <View style={styles.routeLineTwo} />
             <View style={styles.pin}>
-              <Feather name="map-pin" size={23} color="#FD6D1F" />
+              <Feather name="navigation" size={22} color={AppColors.white} />
             </View>
-            <Text style={styles.mapTitle}>Address details</Text>
-            <Text style={styles.mapText}>
-              Enter the location where a notary can meet you.
-            </Text>
+            <View style={styles.mapCopy}>
+              <Text style={styles.mapEyebrow}>SERVICE DESTINATION</Text>
+              <Text style={styles.mapTitle}>
+                Where should the notary meet you?
+              </Text>
+              <Text style={styles.mapText}>
+                Add a clear, complete location to make arrival effortless.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.formHeading}>
+            <View style={styles.formIcon}>
+              <Feather name="edit-3" size={17} color={AppColors.primary} />
+            </View>
+            <View>
+              <Text style={styles.formTitle}>
+                {existing ? 'Update location' : 'Location details'}
+              </Text>
+              <Text style={styles.formSubtitle}>
+                Fields with an address are used for booking.
+              </Text>
+            </View>
           </View>
           <View style={styles.form}>
             <AuthTextField
-              icon="bookmark"
+              icon="tag"
               label="Label"
               onChangeText={setLabel}
               placeholder="Home or work"
               value={label}
             />
             <AuthTextField
-              icon="map-pin"
+              icon="map"
               label="Street address"
               onChangeText={setStreet}
               placeholder="Street address"
               value={street}
             />
             <AuthTextField
-              icon="home"
+              icon="layers"
               label="Apartment, suite, or unit"
               onChangeText={setUnit}
               placeholder="Optional"
               value={unit}
             />
             <AuthTextField
-              icon="navigation"
+              icon="compass"
               label="City"
               onChangeText={setCity}
               placeholder="City"
@@ -193,15 +215,13 @@ export default function AddressFormScreen({navigation, route}) {
           </View>
         </ScrollView>
         <View style={styles.footer}>
-          <TouchableOpacity
-            activeOpacity={0.76}
-            disabled={saving}
+          <AuthPrimaryButton
+            icon="arrow-right"
+            loading={saving}
             onPress={saveAddress}
-            style={styles.saveButton}>
-            <Text style={styles.saveText}>
-              {saving ? 'Saving...' : 'Save address'}
-            </Text>
-          </TouchableOpacity>
+            style={styles.saveButton}
+            title="Save address"
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -210,69 +230,132 @@ export default function AddressFormScreen({navigation, route}) {
 
 const styles = StyleSheet.create({
   content: {
+    backgroundColor: AppColors.background,
     paddingBottom: 24,
   },
   flex: {
     flex: 1,
   },
   footer: {
-    backgroundColor: '#FFFFFF',
-    borderTopColor: '#E5E7EB',
+    backgroundColor: AppColors.white,
+    borderTopColor: AppColors.border,
     borderTopWidth: 1,
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   form: {
-    paddingHorizontal: 20,
-    paddingTop: 22,
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 16,
+    paddingHorizontal: 14,
+    paddingTop: 16,
+  },
+  formHeading: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 20,
+  },
+  formIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 38,
+    justifyContent: 'center',
+    marginRight: 11,
+    width: 38,
+  },
+  formSubtitle: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    marginTop: 2,
+  },
+  formTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  mapCopy: {flex: 1, marginLeft: 14},
+  mapEyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 8,
+    letterSpacing: 0.8,
+  },
+  mapGlow: {
+    backgroundColor: 'rgba(253,109,31,0.14)',
+    borderRadius: 70,
+    height: 140,
+    position: 'absolute',
+    right: -30,
+    top: -70,
+    width: 140,
   },
   mapPreview: {
     alignItems: 'center',
-    backgroundColor: '#F5F6F8',
-    paddingHorizontal: 30,
-    paddingVertical: 28,
+    backgroundColor: AppColors.textPrimary,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingVertical: 23,
   },
   mapText: {
-    color: '#7D8490',
+    color: AppColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
     lineHeight: 18,
     marginTop: 5,
-    textAlign: 'center',
   },
   mapTitle: {
-    color: '#202632',
+    color: AppColors.white,
     fontFamily: 'Manrope-Bold',
-    fontSize: 17,
-    marginTop: 12,
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 4,
   },
   pin: {
     alignItems: 'center',
-    backgroundColor: '#FFF0E8',
-    borderRadius: 25,
-    height: 50,
+    backgroundColor: AppColors.primary,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 48,
     justifyContent: 'center',
-    width: 50,
+    width: 48,
+  },
+  routeLineOne: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    height: 1,
+    left: -20,
+    position: 'absolute',
+    top: 26,
+    transform: [{rotate: '-12deg'}],
+    width: 170,
+  },
+  routeLineTwo: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    bottom: 20,
+    height: 1,
+    position: 'absolute',
+    right: -15,
+    transform: [{rotate: '15deg'}],
+    width: 140,
   },
   row: {
     flexDirection: 'row',
     gap: 12,
   },
   safeArea: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
     flex: 1,
   },
   saveButton: {
-    alignItems: 'center',
-    backgroundColor: '#FD6D1F',
-    borderRadius: 8,
     height: 54,
-    justifyContent: 'center',
-  },
-  saveText: {
-    color: '#FFFFFF',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 15,
+    marginTop: 0,
   },
   stateField: {
     flex: 1,
