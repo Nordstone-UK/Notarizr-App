@@ -28,6 +28,14 @@ import {GET_DOCUMENT_TYPES} from '../../../request/queries/getPaginatedDocumentT
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 
 const TIME_OPTIONS = ['9:00 AM', '10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'];
+const FALLBACK_DOCUMENT_TYPES = [
+  {_id: 'local-power-of-attorney', name: 'Power of attorney', price: 45},
+  {_id: 'local-affidavit', name: 'Affidavit', price: 35},
+  {_id: 'local-real-estate', name: 'Real estate documents', price: 65},
+  {_id: 'local-business', name: 'Business agreement', price: 50},
+  {_id: 'local-estate', name: 'Estate documents', price: 55},
+  {_id: 'local-other', name: 'Other document', price: 40},
+];
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
   'Jan',
@@ -578,6 +586,7 @@ function Confirmation({booking, navigation, serviceName}) {
 
 export default function BookingFlowScreen({navigation, route}) {
   const user = useSelector(state => state.user.user);
+  const previewMode = Boolean(user?.isHomePreview);
   const dispatch = useDispatch();
   const serviceType = route.params?.serviceType || 'mobile_notary';
   const isMobile = serviceType === 'mobile_notary';
@@ -594,7 +603,7 @@ export default function BookingFlowScreen({navigation, route}) {
         limit: 50,
         state: user?.state || 'CA',
       },
-      skip: !user,
+      skip: !user || previewMode,
     },
   );
   const [matchAgent] = useLazyQuery(GET_MATCHED_AGENT, {
@@ -621,16 +630,16 @@ export default function BookingFlowScreen({navigation, route}) {
   const [signers, setSigners] = useState(1);
   const [notes, setNotes] = useState('');
 
-  const documentOptions = useMemo(
-    () =>
-      (documentCatalog?.getPaginatedDocumentTypes?.documentTypes || []).map(
-        option => ({
-          ...option,
-          price: Number(option.statePrices?.[0]?.price || 0),
-        }),
-      ),
-    [documentCatalog],
-  );
+  const documentOptions = useMemo(() => {
+    const catalogOptions = (
+      documentCatalog?.getPaginatedDocumentTypes?.documentTypes || []
+    ).map(option => ({
+      ...option,
+      price: Number(option.statePrices?.[0]?.price || 0),
+    }));
+
+    return catalogOptions.length > 0 ? catalogOptions : FALLBACK_DOCUMENT_TYPES;
+  }, [documentCatalog]);
 
   useEffect(() => {
     if (!documentType && documentOptions.length > 0) {
@@ -840,7 +849,9 @@ export default function BookingFlowScreen({navigation, route}) {
           ) : step === 2 ? (
             <DocumentsStep
               documentOptions={documentOptions}
-              documentsLoading={documentsLoading}
+              documentsLoading={
+                documentsLoading && documentOptions.length === 0
+              }
               documentType={documentType}
               notes={notes}
               onChangeNotes={setNotes}

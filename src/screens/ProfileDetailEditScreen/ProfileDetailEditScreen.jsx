@@ -237,17 +237,21 @@ export default function ProfileDetailEditScreen({navigation, route}) {
             </Text>
             <View style={styles.profileCard}>
               <View style={styles.avatarFrame}>
-                {image && !imageFailed ? (
-                  <Image
-                    onError={() => setImageFailed(true)}
-                    source={{uri: image}}
-                    style={styles.avatar}
-                  />
-                ) : (
-                  <View style={styles.avatarFallback}>
-                    <Text style={styles.avatarInitials}>{initials || 'N'}</Text>
-                  </View>
-                )}
+                <View style={styles.avatarClip}>
+                  {image && !imageFailed ? (
+                    <Image
+                      onError={() => setImageFailed(true)}
+                      source={{uri: image}}
+                      style={styles.avatar}
+                    />
+                  ) : (
+                    <View style={styles.avatarFallback}>
+                      <Text style={styles.avatarInitials}>
+                        {initials || 'N'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 {profileEdit && (
                   <TouchableOpacity
                     accessibilityLabel="Change profile photo"
@@ -395,7 +399,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 3,
   },
-  avatar: {height: '100%', width: '100%'},
+  avatar: {borderRadius: 35, height: '100%', width: '100%'},
+  avatarClip: {
+    borderRadius: 35,
+    height: 70,
+    overflow: 'hidden',
+    width: 70,
+  },
   avatarFallback: {
     alignItems: 'center',
     backgroundColor: AppColors.primarySoft,
@@ -404,11 +414,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   avatarFrame: {
+    alignItems: 'center',
     backgroundColor: AppColors.white,
     borderColor: 'rgba(255,255,255,0.2)',
     borderRadius: 38,
     borderWidth: 3,
     height: 76,
+    justifyContent: 'center',
     width: 76,
   },
   avatarInitials: {
@@ -420,14 +432,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: ORANGE,
     borderColor: AppColors.textPrimary,
-    borderRadius: 15,
+    borderRadius: 16,
     borderWidth: 2,
     bottom: 0,
-    height: 30,
+    height: 32,
     justifyContent: 'center',
     position: 'absolute',
     right: -2,
-    width: 30,
+    width: 32,
   },
   changePhoto: {
     color: ORANGE,

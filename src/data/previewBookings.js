@@ -104,3 +104,80 @@ export const PREVIEW_BOOKINGS = [
       'This request was cancelled before a notary travelled to the address.',
   },
 ];
+
+const previewClient = {
+  _id: 'local-client-noah',
+  first_name: 'Noah',
+  last_name: 'Williams',
+  email: 'noah.local@notarizr.test',
+  phone_number: '+12025550147',
+  location: 'San Francisco, CA',
+  addresses: [
+    {
+      _id: 'local-notary-address',
+      location: '88 King Street, San Francisco, CA 94107',
+    },
+  ],
+};
+
+const createAgentBooking = ({
+  id,
+  status,
+  date,
+  serviceType,
+  price,
+  document,
+}) => ({
+  _id: id,
+  reference: id.slice(-6).toUpperCase(),
+  isPreview: true,
+  __typename: serviceType === 'ron' ? 'Session' : 'Booking',
+  status,
+  service_type: serviceType,
+  booked_by: previewClient,
+  address: 'local-notary-address',
+  date_of_booking: date,
+  date_time_session: serviceType === 'ron' ? date : undefined,
+  time_of_booking: date,
+  document_type: [{name: document, price}],
+  totalPrice: price,
+  additional_signatures: 1,
+  notes:
+    'Please review the identification and attached documents before the appointment.',
+  createdAt: date,
+});
+
+export const PREVIEW_AGENT_BOOKINGS = [
+  createAgentBooking({
+    id: 'agent-booking-accepted-10482',
+    status: 'accepted',
+    date: '2026-08-12T10:30:00.000Z',
+    serviceType: 'mobile_notary',
+    price: 85,
+    document: 'Power of attorney',
+  }),
+  createAgentBooking({
+    id: 'agent-booking-pending-10491',
+    status: 'pending',
+    date: '2026-08-14T16:30:00.000Z',
+    serviceType: 'mobile_notary',
+    price: 95,
+    document: 'Estate documents',
+  }),
+  createAgentBooking({
+    id: 'agent-session-completed-10374',
+    status: 'completed',
+    date: '2026-07-29T11:00:00.000Z',
+    serviceType: 'ron',
+    price: 64,
+    document: 'Business agreement',
+  }),
+  createAgentBooking({
+    id: 'agent-booking-rejected-10218',
+    status: 'rejected',
+    date: '2026-07-18T09:00:00.000Z',
+    serviceType: 'mobile_notary',
+    price: 80,
+    document: 'Loan documents',
+  }),
+];

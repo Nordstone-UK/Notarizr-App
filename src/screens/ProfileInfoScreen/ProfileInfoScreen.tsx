@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,33 +7,43 @@ import {
   Text,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChatClient } from 'react-native-agora-chat';
-import { useDispatch, useSelector } from 'react-redux';
+import {ChatClient} from 'react-native-agora-chat';
+import {useFocusEffect} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
 import LogoutConfirmModal from '../../components/Profile/LogoutConfirmModal';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
 import ProfileMenuItem from '../../components/Profile/ProfileMenuItem';
 import ProfileSection from '../../components/Profile/ProfileSection';
-import { saveUserInfo } from '../../features/user/userSlice';
+import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
 import AppColors from '../../themes/AppColors';
 
-export default function ProfileInfoScreen({ navigation }: any) {
+export default function ProfileInfoScreen({navigation}: any) {
   const user = useSelector((state: any) => state.user.user);
   const dispatch = useDispatch();
-  const { fetchUserInfo } = useFetchUser();
+  const {fetchUserInfo} = useFetchUser();
+  const fetchUserInfoRef = useRef(fetchUserInfo);
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const userId = user?._id;
+  const previewMode = Boolean(user?.isHomePreview);
 
-  useEffect(() => {
-    if (!user || user.isHomePreview) {
-      return undefined;
-    }
+  fetchUserInfoRef.current = fetchUserInfo;
 
-    return navigation.addListener('focus', fetchUserInfo);
-  }, [fetchUserInfo, navigation, user]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId || previewMode) {
+        return;
+      }
+
+      fetchUserInfoRef.current().catch((error: unknown) => {
+        console.error('Profile refresh failed:', error);
+      });
+    }, [previewMode, userId]),
+  );
 
   const openProfile = (profileEdit = false) => {
-    navigation.navigate('ProfileDetailEditScreen', { profileEdit });
+    navigation.navigate('ProfileDetailEditScreen', {profileEdit});
   };
 
   const handleLogout = async () => {
@@ -54,7 +64,7 @@ export default function ProfileInfoScreen({ navigation }: any) {
       setLogoutVisible(false);
       navigation.reset({
         index: 0,
-        routes: [{ name: 'LoginScreen' }],
+        routes: [{name: 'LoginScreen'}],
       });
     }
   };
@@ -89,20 +99,24 @@ export default function ProfileInfoScreen({ navigation }: any) {
             icon="sliders"
             title="Account settings"
             description="Account type, privacy and security"
-            last={isClient}
             tone="gray"
             onPress={() => navigation.navigate('SettingScreen')}
           />
-          {!isClient && (
-            <ProfileMenuItem
-              icon="dollar-sign"
-              title="Payment method"
-              description="Payout and payment details"
-              last
-              tone="green"
-              onPress={() => navigation.navigate('PaymentUpdateScreen')}
-            />
-          )}
+          <ProfileMenuItem
+            icon={isClient ? 'credit-card' : 'dollar-sign'}
+            title="Payment method"
+            description={
+              isClient
+                ? 'Cards and billing details'
+                : 'Payout and payment details'
+            }
+            tone="green"
+            onPress={() =>
+              navigation.navigate(
+                isClient ? 'AddCardScreen' : 'PaymentUpdateScreen',
+              )
+            }
+          />
         </ProfileSection>
 
         {!isClient && (
@@ -113,7 +127,7 @@ export default function ProfileInfoScreen({ navigation }: any) {
               description="Certificate and notary stamp"
               tone="blue"
               onPress={() =>
-                navigation.navigate('AgentVerificationScreen', { user })
+                navigation.navigate('AgentVerificationScreen', {user})
               }
             />
           </ProfileSection>

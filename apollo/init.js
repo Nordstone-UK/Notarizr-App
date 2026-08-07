@@ -1,11 +1,5 @@
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  createHttpLink,
-  from,
-} from '@apollo/client';
-import {PermissionsAndroid, Platform} from 'react-native';
+import {ApolloClient, HttpLink, InMemoryCache, from} from '@apollo/client';
+import {Platform} from 'react-native';
 import {setContext} from 'apollo-link-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
@@ -16,12 +10,13 @@ const DEV_LIVE = BaseURL;
 
 const defaultOptions = {
   watchQuery: {
-    errorPolicy: 'ignore',
-    fetchPolicy: 'no-cache',
+    errorPolicy: 'all',
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
   },
   query: {
     errorPolicy: 'all',
-    fetchPolicy: 'no-cache',
+    fetchPolicy: 'cache-first',
   },
   mutate: {
     errorPolicy: 'all',
@@ -39,7 +34,7 @@ const init = () => {
 
   const authLink = setContext(async (_, {headers}) => {
     const token = await AsyncStorage.getItem('token');
-    const location = await getCurrentLocation();
+    const location = getRequestLocation();
     return {
       headers: {
         ...headers,
@@ -54,31 +49,33 @@ const init = () => {
 
   const hLink = from([authLink, httpLink]);
 
-  const init = new ApolloClient({
+  const client = new ApolloClient({
     link: hLink,
     cache: new InMemoryCache(),
     defaultOptions: defaultOptions,
   });
-  return init;
+  return client;
 };
-const requestLocationPermission = async () => {
-  if (Platform.OS === 'ios') {
-    return Geolocation.requestAuthorization('whenInUse');
+
+const DEFAULT_LOCATION = {latitude: 36.778259, longitude: -119.417931};
+const LOCATION_CACHE_MS = 60000;
+let cachedLocation = DEFAULT_LOCATION;
+let locationUpdatedAt = 0;
+let locationRequest = null;
+
+const getRequestLocation = () => {
+  if (!locationRequest && Date.now() - locationUpdatedAt > LOCATION_CACHE_MS) {
+    locationRequest = getCurrentLocation()
+      .then(location => {
+        cachedLocation = location;
+        locationUpdatedAt = Date.now();
+      })
+      .finally(() => {
+        locationRequest = null;
+      });
   }
 
-  if (Platform.OS === 'android') {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    );
-
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      return 'granted';
-    } else {
-      throw new Error('Location permission denied');
-    }
-  }
-
-  throw new Error('Unsupported platform');
+  return cachedLocation;
 };
 
 const getCurrentLocation = () => {
@@ -93,15 +90,15 @@ const getCurrentLocation = () => {
         },
         error => {
           // reject(error);
-          resolve({latitude: 36.778259, longitude: -119.417931});
+          resolve(DEFAULT_LOCATION);
         },
         Platform.OS === 'android'
           ? {}
-          : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
+          : {enableHighAccuracy: false, timeout: 3000, maximumAge: 60000},
       );
     } catch (error) {
       // reject(error);
-      resolve({latitude: 36.778259, longitude: -119.417931});
+      resolve(DEFAULT_LOCATION);
     }
   });
 };

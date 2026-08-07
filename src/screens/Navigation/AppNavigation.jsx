@@ -118,6 +118,7 @@ function TabNavigation() {
 
   const screenOptions = {
     headerShown: false,
+    lazy: true,
     tabBarHideOnKeyboard: true,
   };
   const tabBar = props => <AppTabBar {...props} />;

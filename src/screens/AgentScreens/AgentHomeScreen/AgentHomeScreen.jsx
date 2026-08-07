@@ -28,6 +28,7 @@ import {
 import useAgentService from '../../../hooks/useAgentService';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import useStripeApi from '../../../hooks/useStripeApi';
+import {PREVIEW_AGENT_BOOKINGS} from '../../../data/previewBookings';
 
 const renderAccountBackdrop = props => (
   <BottomSheetBackdrop
@@ -47,54 +48,83 @@ export default function AgentHomeScreen({navigation}) {
   const {checkUserStipeAccount} = useStripeApi();
   const fetchBookingsRef = useRef(fetchAgentBookingInfo);
   const fetchSessionsRef = useRef(handleAgentSessions);
+  const hasRequestsRef = useRef(false);
   const bottomSheetRef = useRef(null);
   const [requests, setRequests] = useState([]);
   const [completedCount, setCompletedCount] = useState(0);
   const [earnings, setEarnings] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!user?.isHomePreview);
   const [refreshing, setRefreshing] = useState(false);
   const [activeService, setActiveService] = useState(null);
+  const previewMode = Boolean(user?.isHomePreview);
+  const previewRequests = PREVIEW_AGENT_BOOKINGS.filter(
+    booking => booking.status === 'pending',
+  );
+  const previewCompleted = PREVIEW_AGENT_BOOKINGS.filter(
+    booking => booking.status === 'completed',
+  );
+  const visibleRequests = previewMode ? previewRequests : requests;
+  const visibleCompletedCount = previewMode
+    ? previewCompleted.length
+    : completedCount;
+  const visibleEarnings = previewMode
+    ? previewCompleted.reduce(
+        (sum, booking) => sum + Number(booking.totalPrice || 0),
+        0,
+      )
+    : earnings;
 
   fetchBookingsRef.current = fetchAgentBookingInfo;
   fetchSessionsRef.current = handleAgentSessions;
+  hasRequestsRef.current = requests.length > 0;
 
-  const loadDashboard = useCallback(async (isRefresh = false) => {
-    isRefresh ? setRefreshing(true) : setLoading(true);
-    try {
-      const [pending, completedBookings, completedSessions] = await Promise.all(
-        [
-          fetchBookingsRef.current('pending'),
-          fetchBookingsRef.current('completed'),
-          fetchSessionsRef.current('completed'),
-        ],
-      );
-      const safePending = Array.isArray(pending) ? pending : [];
-      const safeBookings = Array.isArray(completedBookings)
-        ? completedBookings
-        : [];
-      const safeSessions = Array.isArray(completedSessions)
-        ? completedSessions
-        : [];
+  const loadDashboard = useCallback(
+    async (isRefresh = false) => {
+      if (previewMode) {
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
 
-      setRequests(safePending);
-      setCompletedCount(safeBookings.length + safeSessions.length);
-      setEarnings(
-        [...safeBookings, ...safeSessions].reduce(
-          (sum, item) => sum + Number(item?.totalPrice ?? item?.price ?? 0),
-          0,
-        ),
-      );
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Dashboard could not refresh',
-        text2: 'Check your connection and try again.',
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      isRefresh
+        ? setRefreshing(true)
+        : !hasRequestsRef.current && setLoading(true);
+      try {
+        const [pending, completedBookings, completedSessions] =
+          await Promise.all([
+            fetchBookingsRef.current('pending', isRefresh),
+            fetchBookingsRef.current('completed', isRefresh),
+            fetchSessionsRef.current('completed', isRefresh),
+          ]);
+        const safePending = Array.isArray(pending) ? pending : [];
+        const safeBookings = Array.isArray(completedBookings)
+          ? completedBookings
+          : [];
+        const safeSessions = Array.isArray(completedSessions)
+          ? completedSessions
+          : [];
+
+        setRequests(safePending);
+        setCompletedCount(safeBookings.length + safeSessions.length);
+        setEarnings(
+          [...safeBookings, ...safeSessions].reduce(
+            (sum, item) => sum + Number(item?.totalPrice ?? item?.price ?? 0),
+            0,
+          ),
+        );
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Dashboard could not refresh',
+          text2: 'Check your connection and try again.',
+        });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [previewMode],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -117,6 +147,13 @@ export default function AgentHomeScreen({navigation}) {
   const openService = async service => {
     setActiveService(service);
     try {
+      if (previewMode) {
+        service === 'mobile'
+          ? dispatchMobile('mobile_notary')
+          : dispatchRON('ron');
+        return;
+      }
+
       const stripeData = await checkUserStipeAccount();
       const stripeAccount = stripeData?.isUserStripeOnboard;
       const canAcceptPayments =
@@ -193,7 +230,7 @@ export default function AgentHomeScreen({navigation}) {
             icon="dollar-sign"
             label="Total earnings"
             onPress={() => navigation.navigate('TransactionScreen')}
-            value={'$' + earnings.toFixed(0)}
+            value={'$' + visibleEarnings.toFixed(0)}
           />
           <View style={styles.metricGap} />
           <AgentMetricCard
@@ -201,7 +238,7 @@ export default function AgentHomeScreen({navigation}) {
             label="Completed jobs"
             onPress={() => navigation.navigate('BookScreen')}
             tone="blue"
-            value={completedCount}
+            value={visibleCompletedCount}
           />
         </View>
 
@@ -235,9 +272,11 @@ export default function AgentHomeScreen({navigation}) {
             <View style={styles.sectionHeadingCopy}>
               <View style={styles.requestTitleRow}>
                 <Text style={styles.sectionTitle}>New requests</Text>
-                {requests.length > 0 && (
+                {visibleRequests.length > 0 && (
                   <View style={styles.countBadge}>
-                    <Text style={styles.countText}>{requests.length}</Text>
+                    <Text style={styles.countText}>
+                      {visibleRequests.length}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -254,13 +293,13 @@ export default function AgentHomeScreen({navigation}) {
             </TouchableOpacity>
           </View>
 
-          {loading ? (
+          {loading && !previewMode ? (
             <View style={styles.loadingState}>
               <ActivityIndicator color="#D65322" />
               <Text style={styles.loadingText}>Loading requests...</Text>
             </View>
-          ) : requests.length > 0 ? (
-            requests
+          ) : visibleRequests.length > 0 ? (
+            visibleRequests
               .slice(0, 2)
               .map(request => (
                 <AgentRequestCard

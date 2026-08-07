@@ -37,6 +37,7 @@ export default function AllBookingScreen({navigation}) {
   const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
   const fetchBookingInfoRef = useRef(fetchBookingInfo);
   const handleClientSessionsRef = useRef(handleClientSessions);
+  const hasBookingsRef = useRef(false);
   const [activeStatus, setActiveStatus] = useState('accepted');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,7 @@ export default function AllBookingScreen({navigation}) {
 
   fetchBookingInfoRef.current = fetchBookingInfo;
   handleClientSessionsRef.current = handleClientSessions;
+  hasBookingsRef.current = bookings.length > 0;
 
   const previewMode = Boolean(user?.isHomePreview);
   const previewBookings = PREVIEW_BOOKINGS.filter(
@@ -58,12 +60,14 @@ export default function AllBookingScreen({navigation}) {
         return;
       }
 
-      refreshingRequest ? setRefreshing(true) : setLoading(true);
+      refreshingRequest
+        ? setRefreshing(true)
+        : !hasBookingsRef.current && setLoading(true);
       setLoadError(false);
       try {
         const [bookingDetails, sessionDetails] = await Promise.all([
-          fetchBookingInfoRef.current(status),
-          handleClientSessionsRef.current(status),
+          fetchBookingInfoRef.current(status, refreshingRequest),
+          handleClientSessionsRef.current(status, refreshingRequest),
         ]);
         const merged = [
           ...(Array.isArray(bookingDetails) ? bookingDetails : []),
@@ -72,7 +76,6 @@ export default function AllBookingScreen({navigation}) {
         setBookings(merged);
       } catch (error) {
         console.error('Failed to load bookings:', error);
-        setBookings([]);
         setLoadError(true);
       } finally {
         setLoading(false);

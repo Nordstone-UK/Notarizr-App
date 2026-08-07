@@ -18,45 +18,22 @@ import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
 import {phoneSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
-import Geolocation from '@react-native-community/geolocation';
 import Svg, {Path} from 'react-native-svg';
 import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import {isLocalTestPhone} from '../../data/localTestAccounts';
 
 const LOGIN_BACKGROUND = Colors.white;
 const HERO_ORANGE_END = '#FD6D1F';
 
 export default function LoginScreen({navigation}) {
   const [phone, setPhone] = useState('');
-  const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP);
+  const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP, {
+    fetchPolicy: 'no-cache',
+  });
   const dispatch = useDispatch();
 
-  const getCurrentLocation = () => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        Geolocation.getCurrentPosition(
-          position => {
-            const {latitude, longitude} = position.coords;
-            resolve({latitude, longitude});
-          },
-          error => {
-            reject(error);
-          },
-          Platform.OS === 'android'
-            ? {}
-            : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
-        );
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
-
   const handleGetPhoneOtp = () => {
-    getCurrentLocation().catch(error => {
-      console.log('Error getting current location:', error);
-    });
-
     // if (!emailRegex.test(email)) {
     //   Toast.show({
     //     type: 'error',
@@ -66,6 +43,16 @@ export default function LoginScreen({navigation}) {
     //   return;
     //  } else {
     dispatch(phoneSet(phone));
+
+    if (__DEV__ && isLocalTestPhone(phone)) {
+      Toast.show({
+        type: 'success',
+        text1: 'Test code ready',
+        text2: 'Enter 0000 to continue.',
+      });
+      navigation.navigate('PhoneVerification', {message: phone});
+      return;
+    }
 
     try {
       getPhoneOtp({

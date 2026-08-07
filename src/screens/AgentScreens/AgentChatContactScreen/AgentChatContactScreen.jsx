@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {useQuery} from '@apollo/client';
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {
   FlatList,
   RefreshControl,
@@ -55,10 +55,12 @@ export default function AgentChatContactScreen({navigation}) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const isFocused = useIsFocused();
   const {data, refetch} = useQuery(GET_ALL_CHATS, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
-    pollInterval: 10000,
+    pollInterval: isFocused ? 30000 : 0,
   });
 
   const loadChats = useCallback(async () => {
@@ -69,14 +71,6 @@ export default function AgentChatContactScreen({navigation}) {
       setRefreshing(false);
     }
   }, [refetch]);
-
-  useFocusEffect(
-    useCallback(() => {
-      refetch().catch(error =>
-        console.error('Failed to refresh notary chats:', error),
-      );
-    }, [refetch]),
-  );
 
   const conversations = useMemo(
     () =>

@@ -9,8 +9,43 @@ import {UPDATE_BOOKING_PRICE} from '../../request/mutations/updateBookingPrice.m
 import {UPDATE_SESSION_PRICEDOCS} from '../../request/mutations/updateSessionPriceDocs.mutation';
 import {UPDATE_SESSION_AGENTDOCS} from '../../request/mutations/updateSessionAgentdocs';
 import {GET_ADMIN_ALLOCATIONS} from '../../request/queries/getAdminAllocation.query';
+import {useSelector} from 'react-redux';
+
+const BOOKING_CACHE_MS = 30000;
+const bookingCache = new Map();
+const bookingRequests = new Map();
+
+const readThroughCache = async (key, loader, forceRefresh = false) => {
+  const cached = bookingCache.get(key);
+  if (
+    !forceRefresh &&
+    cached &&
+    Date.now() - cached.updatedAt < BOOKING_CACHE_MS
+  ) {
+    return cached.value;
+  }
+
+  if (!forceRefresh && bookingRequests.has(key)) {
+    return bookingRequests.get(key);
+  }
+
+  const request = loader()
+    .then(value => {
+      const safeValue = Array.isArray(value) ? value : [];
+      bookingCache.set(key, {updatedAt: Date.now(), value: safeValue});
+      return safeValue;
+    })
+    .finally(() => {
+      bookingRequests.delete(key);
+    });
+
+  bookingRequests.set(key, request);
+  return request;
+};
 
 const useFetchBooking = () => {
+  const currentUserId =
+    useSelector(state => state.user.user?._id) || 'anonymous';
   const [getClientBooking] = useLazyQuery(GET_CLIENT_BOOKING);
   const [getAgentBooking] = useLazyQuery(GET_AGENT_BOOKING);
   const [getAdminAllocation] = useLazyQuery(GET_ADMIN_ALLOCATIONS);
@@ -26,38 +61,39 @@ const useFetchBooking = () => {
     page: 1,
     pageSize: 50,
   };
-  const fetchBookingInfo = async status => {
+  const fetchBookingInfo = async (status, forceRefresh = false) => {
     const request = {
       variables: {
         ...clientBooking,
         status: status,
       },
     };
-    try {
-      const data = await getClientBooking(request);
-      // console.log('frhdkgvhkhdktg', data);
-      return sortBookingByDate(data?.data?.getClientBookings?.bookings);
-    } catch (error) {
-      console.log(error);
-    }
+    return readThroughCache(
+      `${currentUserId}:client-bookings:${status}`,
+      async () => {
+        const data = await getClientBooking(request);
+        return sortBookingByDate(data?.data?.getClientBookings?.bookings);
+      },
+      forceRefresh,
+    );
   };
-  const fetchAgentBookingInfo = async status => {
+  const fetchAgentBookingInfo = async (status, forceRefresh = false) => {
     const request = {
       variables: {
         ...clientBooking,
         status: status,
       },
     };
-    try {
-      console.log('requestdat', request);
-      const {data} = await getAgentBooking(request);
-      // console.log('Agent Booking iNfo', data);
-      return sortBookingByDate(data?.getAgentBookings?.bookings);
-    } catch (error) {
-      console.log(error);
-    }
+    return readThroughCache(
+      `${currentUserId}:agent-bookings:${status}`,
+      async () => {
+        const {data} = await getAgentBooking(request);
+        return sortBookingByDate(data?.getAgentBookings?.bookings);
+      },
+      forceRefresh,
+    );
   };
-  const fetchAdminAllocations = async status => {
+  const fetchAdminAllocations = async (status, forceRefresh = false) => {
     const request = {
       variables: {
         page: 1,
@@ -65,14 +101,14 @@ const useFetchBooking = () => {
         agentRequestStatus: status,
       },
     };
-    try {
-      console.log('requestdat', request);
-      const {data} = await getAdminAllocation(request);
-      console.log('Admin alloction iiiiiiiiii iNfo', data);
-      return sortBookingByDate(data?.getAdminAllocations?.allocation);
-    } catch (error) {
-      console.log(error);
-    }
+    return readThroughCache(
+      `${currentUserId}:agent-allocations:${status}`,
+      async () => {
+        const {data} = await getAdminAllocation(request);
+        return sortBookingByDate(data?.getAdminAllocations?.allocation);
+      },
+      forceRefresh,
+    );
   };
   const updateAgentdocs = async (id, docs) => {
     const request = {
@@ -185,34 +221,37 @@ const useFetchBooking = () => {
       console.log(error);
     }
   };
-  const handleClientSessions = async status => {
+  const handleClientSessions = async (status, forceRefresh = false) => {
     const request = {
       variables: {
         ...clientBooking,
         status: status,
       },
     };
-    try {
-      const {data} = await getClientSession(request);
-
-      return sortBookingByDate(data?.getClientSessions?.sessions);
-    } catch (error) {
-      console.log(error);
-    }
+    return readThroughCache(
+      `${currentUserId}:client-sessions:${status}`,
+      async () => {
+        const {data} = await getClientSession(request);
+        return sortBookingByDate(data?.getClientSessions?.sessions);
+      },
+      forceRefresh,
+    );
   };
-  const handleAgentSessions = async status => {
+  const handleAgentSessions = async (status, forceRefresh = false) => {
     const request = {
       variables: {
         ...clientBooking,
         status: status,
       },
     };
-    try {
-      const {data} = await getAgentSession(request);
-      return sortBookingByDate(data?.getAgentSessions?.sessions);
-    } catch (error) {
-      console.log(error);
-    }
+    return readThroughCache(
+      `${currentUserId}:agent-sessions:${status}`,
+      async () => {
+        const {data} = await getAgentSession(request);
+        return sortBookingByDate(data?.getAgentSessions?.sessions);
+      },
+      forceRefresh,
+    );
   };
   const setBookingPrice = async (
     id,

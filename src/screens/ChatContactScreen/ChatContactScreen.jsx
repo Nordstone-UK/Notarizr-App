@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {useQuery} from '@apollo/client';
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {
   FlatList,
   RefreshControl,
@@ -101,12 +101,14 @@ export default function ChatContactScreen({navigation}) {
   const [filter, setFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
   const [readPreviewIds, setReadPreviewIds] = useState([]);
+  const isFocused = useIsFocused();
 
   const previewMode = Boolean(user?.isHomePreview);
   const {data, refetch} = useQuery(GET_ALL_CHATS, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
-    pollInterval: previewMode ? 0 : 10000,
+    pollInterval: previewMode || !isFocused ? 0 : 30000,
     skip: previewMode,
   });
 
@@ -124,16 +126,6 @@ export default function ChatContactScreen({navigation}) {
       setRefreshing(false);
     }
   }, [previewMode, refetch]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!previewMode) {
-        refetch().catch(error =>
-          console.error('Failed to refresh chats:', error),
-        );
-      }
-    }, [previewMode, refetch]),
-  );
 
   const conversations = useMemo(() => {
     if (previewMode) {

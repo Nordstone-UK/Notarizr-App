@@ -1,37 +1,47 @@
 import {useLazyQuery} from '@apollo/client';
 import {GET_PHONE_OTP} from '../../request/queries/getPhoneOTP.query';
 import {VERIFY_PHONE_OTP} from '../../request/queries/verifyPhoneOTP.query';
-import {Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import {useSelector} from 'react-redux';
-import useFetchBooking from './useFetchBooking';
+import {useDispatch} from 'react-redux';
+import {saveUserInfo} from '../features/user/userSlice';
+import {getLocalTestAccount, LOCAL_TEST_OTP} from '../data/localTestAccounts';
 
 const useLogin = () => {
-  const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP);
-  const [getPhoneOTP] = useLazyQuery(GET_PHONE_OTP);
+  const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP, {
+    fetchPolicy: 'no-cache',
+  });
+  const [getPhoneOTP] = useLazyQuery(GET_PHONE_OTP, {
+    fetchPolicy: 'no-cache',
+  });
   const {fetchUserInfo} = useFetchUser();
   const navigation = useNavigation();
-  const {fetchBookingInfo} = useFetchBooking();
+  const dispatch = useDispatch();
 
   // const user = useSelector(state => state.user.user);
   const handleOtpVerification = async (phone, otp) => {
-    console.log(phone);
+    const localAccount = __DEV__ ? getLocalTestAccount(phone) : null;
+    if (localAccount && otp === LOCAL_TEST_OTP) {
+      await AsyncStorage.setItem('token', `local-preview:${localAccount._id}`);
+      dispatch(saveUserInfo(localAccount));
+      Toast.show({type: 'success', text1: 'Login successful'});
+      navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
+      return;
+    }
 
     await verifYOTP({
       variables: {phone, otp},
     })
       .then(response => {
-        console.log(response.data);
-
         if (response?.data?.verifyPhoneOTP?.status !== '200') {
           Toast.show({
             type: 'error',
-            text1: 'We are Sorry!',
-            text2: 'Something went wrong',
+            text1: 'Verification failed',
+            text2:
+              response?.data?.verifyPhoneOTP?.message ||
+              'Check the code and try again.',
           });
         } else {
           saveAccessTokenToStorage(response?.data?.verifyPhoneOTP?.accessToken);
@@ -56,8 +66,6 @@ const useLogin = () => {
     }
     try {
       const userInfo = await fetchUserInfo();
-      await fetchBookingInfo();
-      // console.log('Received data:', userInfo);
 
       if (userInfo.account_type === 'client') {
         navigation.reset({
