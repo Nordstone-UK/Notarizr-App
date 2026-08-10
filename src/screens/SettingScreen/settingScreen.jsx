@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -23,9 +24,37 @@ import {UPDATE_ACCOUNT_TYPE} from '../../../request/mutations/updateAccountType.
 import AppColors from '../../themes/AppColors';
 
 const ORANGE = AppColors.primary;
+const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
+const DEFAULT_SERVICE_SETTINGS = {
+  deviceCheck: true,
+  identityReminders: true,
+  printByDefault: false,
+  savedAddress: true,
+};
 
 const getAccountLabel = accountType =>
   accountType === 'client' ? 'Client' : 'Notary';
+
+function PreferenceRow({description, icon, last, onChange, title, value}) {
+  return (
+    <View style={[styles.preferenceRow, last && styles.lastPreferenceRow]}>
+      <View style={styles.preferenceIcon}>
+        <Feather name={icon} size={17} color={AppColors.primary} />
+      </View>
+      <View style={styles.preferenceCopy}>
+        <Text style={styles.preferenceTitle}>{title}</Text>
+        <Text style={styles.preferenceDescription}>{description}</Text>
+      </View>
+      <Switch
+        ios_backgroundColor={AppColors.borderStrong}
+        onValueChange={onChange}
+        trackColor={{false: AppColors.borderStrong, true: '#BCE8CF'}}
+        thumbColor={value ? AppColors.success : AppColors.white}
+        value={value}
+      />
+    </View>
+  );
+}
 
 export default function SettingScreen({navigation}) {
   const user = useSelector(state => state.user.user);
@@ -34,8 +63,31 @@ export default function SettingScreen({navigation}) {
     user?.account_type || 'client',
   );
   const [updatingRole, setUpdatingRole] = useState(false);
+  const [serviceSettings, setServiceSettings] = useState(
+    DEFAULT_SERVICE_SETTINGS,
+  );
   const [updateAccountType] = useMutation(UPDATE_ACCOUNT_TYPE);
   const [deleteAccount] = useMutation(DELETE_ACCOUNT);
+
+  useEffect(() => {
+    AsyncStorage.getItem(SERVICE_SETTINGS_KEY)
+      .then(value => {
+        if (value) {
+          setServiceSettings(current => ({...current, ...JSON.parse(value)}));
+        }
+      })
+      .catch(error => console.warn('Service settings could not load:', error));
+  }, []);
+
+  const updateServiceSetting = (key, value) => {
+    setServiceSettings(current => {
+      const next = {...current, [key]: value};
+      AsyncStorage.setItem(SERVICE_SETTINGS_KEY, JSON.stringify(next)).catch(
+        error => console.warn('Service settings could not save:', error),
+      );
+      return next;
+    });
+  };
 
   const goBack = () =>
     goBackOrNavigate(navigation, 'HomeScreen', {
@@ -252,34 +304,77 @@ export default function SettingScreen({navigation}) {
           </View>
         </View>
 
-        <ProfileSection title="Privacy and legal">
-          <ProfileMenuItem
-            icon="shield"
-            title="Privacy policy"
-            description="How we collect and protect your information"
-            tone="green"
-            onPress={() => navigation.navigate('PrivacyPolicyScreen')}
-          />
-          <ProfileMenuItem
-            icon="book-open"
-            title="Terms and conditions"
-            description="Rules and terms for using Notarizr"
-            last
-            tone="gray"
-            onPress={() => navigation.navigate('TermsAndCondition')}
-          />
-        </ProfileSection>
+        {isClientMode ? (
+          <>
+            <View style={styles.preferenceSection}>
+              <View style={styles.preferenceHeading}>
+                <Text style={styles.preferenceEyebrow}>MOBILE NOTARY</Text>
+                <Text style={styles.preferenceHeadingText}>
+                  In-person booking defaults
+                </Text>
+              </View>
+              <View style={styles.preferenceCard}>
+                <PreferenceRow
+                  description="Preselect your primary saved location"
+                  icon="map-pin"
+                  onChange={value =>
+                    updateServiceSetting('savedAddress', value)
+                  }
+                  title="Use saved address"
+                  value={serviceSettings.savedAddress}
+                />
+                <PreferenceRow
+                  description="Ask for one printed copy on new bookings"
+                  icon="printer"
+                  last
+                  onChange={value =>
+                    updateServiceSetting('printByDefault', value)
+                  }
+                  title="Printed copy by default"
+                  value={serviceSettings.printByDefault}
+                />
+              </View>
+            </View>
 
-        <ProfileSection title="Help">
-          <ProfileMenuItem
-            icon="life-buoy"
-            title="Help and FAQ"
-            description="Find answers to common questions"
-            last
-            tone="blue"
-            onPress={() => navigation.navigate('FaqScreen')}
-          />
-        </ProfileSection>
+            <View style={styles.preferenceSection}>
+              <View style={styles.preferenceHeading}>
+                <Text style={styles.preferenceEyebrow}>
+                  REMOTE ONLINE NOTARY
+                </Text>
+                <Text style={styles.preferenceHeadingText}>
+                  Session readiness
+                </Text>
+              </View>
+              <View style={styles.preferenceCard}>
+                <PreferenceRow
+                  description="Check camera and microphone before joining"
+                  icon="video"
+                  onChange={value => updateServiceSetting('deviceCheck', value)}
+                  title="Device check"
+                  value={serviceSettings.deviceCheck}
+                />
+                <PreferenceRow
+                  description="Remind you to prepare an accepted photo ID"
+                  icon="shield"
+                  last
+                  onChange={value =>
+                    updateServiceSetting('identityReminders', value)
+                  }
+                  title="Identity reminders"
+                  value={serviceSettings.identityReminders}
+                />
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={styles.notaryNotice}>
+            <Feather name="info" size={18} color={AppColors.info} />
+            <Text style={styles.notaryNoticeText}>
+              Switch to Client above to manage your mobile and remote booking
+              defaults.
+            </Text>
+          </View>
+        )}
 
         <ProfileSection title="Account management">
           <ProfileMenuItem
@@ -412,6 +507,76 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
+  },
+  lastPreferenceRow: {borderBottomWidth: 0},
+  notaryNotice: {
+    alignItems: 'center',
+    backgroundColor: AppColors.infoSoft,
+    borderColor: '#CFE0F3',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 14,
+  },
+  notaryNoticeText: {
+    color: AppColors.textSecondary,
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+    marginLeft: 10,
+  },
+  preferenceCard: {
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  preferenceCopy: {flex: 1, marginHorizontal: 11},
+  preferenceDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    lineHeight: 13,
+    marginTop: 2,
+  },
+  preferenceEyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 0.8,
+  },
+  preferenceHeading: {marginBottom: 9},
+  preferenceHeadingText: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  preferenceIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  preferenceRow: {
+    alignItems: 'center',
+    borderBottomColor: AppColors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    minHeight: 70,
+    paddingHorizontal: 12,
+  },
+  preferenceSection: {marginHorizontal: 16, marginTop: 20},
+  preferenceTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
   },
   safeArea: {backgroundColor: AppColors.textPrimary, flex: 1},
   securityCopy: {flex: 1, marginLeft: 11},

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import PricingBreakdown from '../BookingFlow/PricingBreakdown';
 import BookingActionButton from './BookingActionButton';
 
 const STATUS_CONFIG = {
@@ -75,7 +76,31 @@ export default function BookingDetailsPreview({booking, navigation}) {
     booking.service_type === 'mobile_notary'
       ? 'Mobile notary'
       : 'Remote online notary';
-  const price = Number(booking.price || booking.totalPrice || 0).toFixed(2);
+  const totalPrice = Number(booking.price || booking.totalPrice || 0);
+  const totalSignatures = Number(
+    booking.total_signatures_required || booking.totalSignaturesRequired || 1,
+  );
+  const additionalSignatureCharge = Number(
+    booking.additionalSignatureCharge ?? Math.max(0, totalSignatures - 1) * 10,
+  );
+  const printCopies = Number(
+    booking.printCopies || booking.notes?.match(/Print request:\s*(\d+)/i)?.[1],
+  );
+  const printingCharge = Number(
+    booking.printingCharge ?? (printCopies ? printCopies * 5 : 0),
+  );
+  const listedDocumentCharge = Array.isArray(booking.document_type)
+    ? booking.document_type.reduce(
+        (total, document) => total + Number(document?.price || 0),
+        0,
+      )
+    : 0;
+  const documentCharge = Number(
+    booking.documentCharge ??
+      (totalPrice
+        ? Math.max(0, totalPrice - additionalSignatureCharge - printingCharge)
+        : listedDocumentCharge),
+  );
   const paymentLabel =
     booking.status === 'rejected'
       ? 'No charge'
@@ -208,13 +233,15 @@ export default function BookingDetailsPreview({booking, navigation}) {
         </Section>
 
         <Section title="Payment summary">
-          <View style={styles.paymentRow}>
-            <View>
-              <Text style={styles.paymentLabel}>{paymentLabel}</Text>
-              <Text style={styles.paymentMethod}>Notarizr secure payment</Text>
-            </View>
-            <Text style={styles.price}>${price}</Text>
-          </View>
+          <Text style={styles.paymentLabel}>{paymentLabel}</Text>
+          <Text style={styles.paymentMethod}>Notarizr secure payment</Text>
+          <PricingBreakdown
+            additionalSignatures={additionalSignatureCharge}
+            documentCharge={documentCharge}
+            printingCharge={printingCharge}
+            style={styles.detailsPricing}
+            total={totalPrice}
+          />
         </Section>
       </ScrollView>
 
@@ -397,12 +424,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
   },
-  paymentRow: {
-    minHeight: 72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+  detailsPricing: {marginHorizontal: 0, marginBottom: 16, marginTop: 10},
   paymentLabel: {
     color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
@@ -413,11 +435,6 @@ const styles = StyleSheet.create({
     color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
-  },
-  price: {
-    color: BookingColors.textPrimary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 20,
   },
   actionBar: {
     paddingHorizontal: 20,

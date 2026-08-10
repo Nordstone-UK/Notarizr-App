@@ -5,9 +5,6 @@ import {useNavigation} from '@react-navigation/native';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import {useDispatch} from 'react-redux';
-import {saveUserInfo} from '../features/user/userSlice';
-import {getLocalTestAccount, LOCAL_TEST_OTP} from '../data/localTestAccounts';
 
 const useLogin = () => {
   const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP, {
@@ -18,19 +15,9 @@ const useLogin = () => {
   });
   const {fetchUserInfo} = useFetchUser();
   const navigation = useNavigation();
-  const dispatch = useDispatch();
 
   // const user = useSelector(state => state.user.user);
   const handleOtpVerification = async (phone, otp) => {
-    const localAccount = __DEV__ ? getLocalTestAccount(phone) : null;
-    if (localAccount && otp === LOCAL_TEST_OTP) {
-      await AsyncStorage.setItem('token', `local-preview:${localAccount._id}`);
-      dispatch(saveUserInfo(localAccount));
-      Toast.show({type: 'success', text1: 'Login successful'});
-      navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
-      return;
-    }
-
     await verifYOTP({
       variables: {phone, otp},
     })

@@ -1,928 +1,1234 @@
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
+  ActivityIndicator,
   Image,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
-  // ScrollView,
-  View,
-  TouchableOpacity,
-  SafeAreaView,
-  FlatList,
   TextInput,
-  ActivityIndicator,
-  SectionList,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
-import Colors from '../../../themes/Colors';
-import {
-  calculateTotalPrice,
-  heightToDp,
-  widthToDp,
-} from '../../../utils/Responsive';
-import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
-import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
-import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
-import MainButton from '../../../components/MainGradientButton/MainButton';
+import Feather from 'react-native-vector-icons/Feather';
 import moment from 'moment-timezone';
-import {Picker} from '@react-native-picker/picker';
-import DocumentPicker, {types} from 'react-native-document-picker';
-import GradientButton from '../../../components/MainGradientButton/GradientButton';
-import ObserversModal from '../../../components/ModalComponent/ObserversModal';
+import DatePicker from 'react-native-date-picker';
+import SplashScreen from 'react-native-splash-screen';
+import Toast from 'react-native-toast-message';
+
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
+import GradientButton from '../../../components/MainGradientButton/GradientButton';
+import AppColors from '../../../themes/AppColors';
 import {handleGetLocation} from '../../../utils/Geocode';
 import useFetchUser from '../../../hooks/useFetchUser';
-import MultipSelectDropDown from '../../../components/MultiSelectDropDown/MultipSelectDropDown';
-import {ScrollView} from 'react-native-gesture-handler';
-import DatePicker from 'react-native-date-picker';
 import useRegister from '../../../hooks/useRegister';
-import SplashScreen from 'react-native-splash-screen';
 import {useSession} from '../../../hooks/useSession';
-import Toast from 'react-native-toast-message';
-import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
+
+const IDENTITY_OPTIONS = [
+  {label: 'Let client choose', value: 'client_choose'},
+  {label: 'ID card', value: 'user_id'},
+  {label: 'Passport', value: 'user_passport'},
+];
+
+const getName = person =>
+  [person?.first_name, person?.last_name].filter(Boolean).join(' ') ||
+  'Notarizr client';
+
+const getInitials = person => {
+  const initials = [person?.first_name, person?.last_name]
+    .filter(Boolean)
+    .map(value => value.charAt(0))
+    .join('');
+  return (initials || person?.email?.charAt(0) || 'N').toUpperCase();
+};
+
+function SectionHeader({eyebrow, title, description}) {
+  return (
+    <View style={styles.sectionHeader}>
+      {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {description ? (
+        <Text style={styles.sectionDescription}>{description}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+function SearchField({value, onChangeText, onClear, placeholder, loading}) {
+  return (
+    <View style={styles.searchField}>
+      <Feather name="search" size={19} color={AppColors.textSecondary} />
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={AppColors.textMuted}
+        style={styles.searchInput}
+        value={value}
+      />
+      {loading ? (
+        <ActivityIndicator color={AppColors.primary} size="small" />
+      ) : value ? (
+        <TouchableOpacity
+          accessibilityLabel="Clear search"
+          onPress={onClear}
+          style={styles.smallIconButton}>
+          <Feather name="x" size={18} color={AppColors.textSecondary} />
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
+
+function PersonAvatar({person, size = 44}) {
+  const hasPicture =
+    person?.profile_picture && person.profile_picture !== 'none';
+
+  return (
+    <View
+      style={[
+        styles.avatar,
+        {width: size, height: size, borderRadius: size / 2},
+      ]}>
+      {hasPicture ? (
+        <Image
+          source={{uri: person.profile_picture}}
+          style={{width: size, height: size, borderRadius: size / 2}}
+        />
+      ) : (
+        <Text style={styles.avatarText}>{getInitials(person)}</Text>
+      )}
+    </View>
+  );
+}
+
+function PersonRow({person, onPress, onRemove, caption}) {
+  return (
+    <TouchableOpacity
+      activeOpacity={onPress ? 0.72 : 1}
+      disabled={!onPress}
+      onPress={onPress}
+      style={styles.personRow}>
+      <PersonAvatar person={person} />
+      <View style={styles.personCopy}>
+        <Text numberOfLines={1} style={styles.personName}>
+          {getName(person)}
+        </Text>
+        <Text numberOfLines={1} style={styles.personEmail}>
+          {caption || person?.email}
+        </Text>
+      </View>
+      {onRemove ? (
+        <TouchableOpacity
+          accessibilityLabel={`Remove ${getName(person)}`}
+          onPress={onRemove}
+          style={styles.removeButton}>
+          <Feather name="x" size={19} color={AppColors.textSecondary} />
+        </TouchableOpacity>
+      ) : (
+        <Feather name="plus" size={20} color={AppColors.primary} />
+      )}
+    </TouchableOpacity>
+  );
+}
+
+function SearchResults({results, onSelect}) {
+  if (!results.length) {
+    return null;
+  }
+
+  return (
+    <View style={styles.resultsPanel}>
+      {results.map((person, index) => (
+        <View key={person?._id || person?.email}>
+          <PersonRow person={person} onPress={() => onSelect(person)} />
+          {index < results.length - 1 ? <View style={styles.divider} /> : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function SelectCard({selected, title, description, onPress, icon}) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.75}
+      onPress={onPress}
+      style={[styles.selectCard, selected && styles.selectCardActive]}>
+      <View style={[styles.selectIcon, selected && styles.selectIconActive]}>
+        <Feather
+          name={icon}
+          size={19}
+          color={selected ? AppColors.primary : AppColors.textSecondary}
+        />
+      </View>
+      <View style={styles.selectCopy}>
+        <Text style={styles.selectTitle}>{title}</Text>
+        <Text style={styles.selectDescription}>{description}</Text>
+      </View>
+      <View style={[styles.radio, selected && styles.radioActive]}>
+        {selected ? <View style={styles.radioDot} /> : null}
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function AgentSessionInviteScreen({navigation}) {
-  const [selected, setSelected] = useState('client_choose');
   const {uploadDocArray, uploadMultipleFiles} = useRegister();
   const {handleSessionCreation} = useSession();
+  const {fetchDocumentTypes, searchUserByEmail} = useFetchUser();
+  const fetchDocumentTypesRef = useRef(fetchDocumentTypes);
+  const searchUserByEmailRef = useRef(searchUserByEmail);
+
+  const [selectedIdentity, setSelectedIdentity] = useState('client_choose');
   const [fileResponse, setFileResponse] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [visible, setVisible] = useState(false);
-  const [uploadedDocs, setUploadedDocs] = useState();
-  const [page, setPage] = useState(1);
-  const [Limit, setLimit] = useState(10);
-  const {fetchDocumentTypes} = useFetchUser();
-  const {searchUserByEmail} = useFetchUser();
-  const [documentArray, setDocumentArray] = useState();
-  const [totalDocs, setTotalDocs] = useState();
-  const DOCUMENTS_PER_LOAD = 5;
-  const [documentSelect, setDocumentSelected] = useState([]);
-  const [searchedUser, setSearchedUser] = useState([]);
-  const [observerEmail, setObserverEmail] = useState([]);
-  const [isLoading, setisLoading] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [selectedDocs, setSelectedDocs] = useState([]);
-
   const [selectedClientData, setSelectedClientData] = useState(null);
-
   const [observers, setObservers] = useState([]);
-
-  const [searchFor, setSearchFor] = useState('');
-  const [showObserverSearchView, setShowObserverSearchView] = useState(false);
-
+  const [documentArray, setDocumentArray] = useState();
+  const [documentSelect, setDocumentSelected] = useState([]);
+  const [documentPickerOpen, setDocumentPickerOpen] = useState(false);
+  const [clientQuery, setClientQuery] = useState('');
+  const [observerQuery, setObserverQuery] = useState('');
+  const [clientResults, setClientResults] = useState([]);
+  const [observerResults, setObserverResults] = useState([]);
+  const [clientSearching, setClientSearching] = useState(false);
+  const [observerSearching, setObserverSearching] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
-  let urlResponse;
+
   useEffect(() => {
     SplashScreen.hide();
-    getState();
+
+    const loadDocumentTypes = async () => {
+      try {
+        const state = await handleGetLocation();
+        const data = await fetchDocumentTypesRef.current(1, 25, state);
+        setDocumentArray(data?.documentTypes || []);
+      } catch (error) {
+        setDocumentArray([]);
+      }
+    };
+
+    loadDocumentTypes();
   }, []);
-  const addTextToArray = text => {
-    setObserverEmail(prevs => [...prevs, text]);
+
+  useEffect(() => {
+    if (clientQuery.trim().length < 2 || selectedClientData) {
+      setClientResults([]);
+      setClientSearching(false);
+      return undefined;
+    }
+
+    let active = true;
+    setClientSearching(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await searchUserByEmailRef.current(clientQuery.trim());
+        if (active) {
+          setClientResults(Array.isArray(response) ? response : []);
+        }
+      } catch (error) {
+        if (active) {
+          setClientResults([]);
+        }
+      } finally {
+        if (active) {
+          setClientSearching(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+  }, [clientQuery, selectedClientData]);
+
+  useEffect(() => {
+    if (observerQuery.trim().length < 2) {
+      setObserverResults([]);
+      setObserverSearching(false);
+      return undefined;
+    }
+
+    let active = true;
+    setObserverSearching(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await searchUserByEmailRef.current(
+          observerQuery.trim(),
+        );
+        if (active) {
+          const selectedIds = new Set(observers.map(item => item._id));
+          setObserverResults(
+            (Array.isArray(response) ? response : []).filter(
+              person =>
+                !selectedIds.has(person._id) &&
+                person._id !== selectedClientData?._id,
+            ),
+          );
+        }
+      } catch (error) {
+        if (active) {
+          setObserverResults([]);
+        }
+      } finally {
+        if (active) {
+          setObserverSearching(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+  }, [observerQuery, observers, selectedClientData]);
+
+  const documentOptions = useMemo(
+    () =>
+      (documentArray || []).map(item => {
+        const price = Number(item?.statePrices?.[0]?.price || 0);
+        return {
+          id: item?._id || item?.name,
+          label: item?.name || 'Notary document',
+          price,
+          value: `${item?.name || 'Notary document'} - $${price}`,
+        };
+      }),
+    [documentArray],
+  );
+
+  const totalPrice = useMemo(
+    () =>
+      documentOptions
+        .filter(item => documentSelect.includes(item.value))
+        .reduce((total, item) => total + item.price, 0),
+    [documentOptions, documentSelect],
+  );
+
+  const selectedDocuments = documentOptions.filter(item =>
+    documentSelect.includes(item.value),
+  );
+
+  const toggleDocument = value => {
+    setDocumentSelected(current =>
+      current.includes(value)
+        ? current.filter(item => item !== value)
+        : [...current, value],
+    );
   };
-  const removeItem = index => {
-    const updatedList = [...observerEmail];
-    updatedList.splice(index, 1);
-    setObserverEmail(updatedList);
-  };
+
   const handleDocumentSelection = async () => {
     const response = await uploadMultipleFiles();
     if (response) {
       setFileResponse(response);
-      console.log('responsf,', response);
     }
   };
 
-  const getState = async query => {
-    const reponse = await handleGetLocation();
-    const data = await fetchDocumentTypes(page, Limit, reponse, query);
-    setTotalDocs(data?.totalDocs);
-    setDocumentArray(data?.documentTypes);
+  const clearClient = () => {
+    setSelectedClient(null);
+    setSelectedClientData(null);
+    setClientQuery('');
+    setClientResults([]);
+  };
 
-    if (Limit < data?.totalDocs) {
-      setLimit(Limit + DOCUMENTS_PER_LOAD);
+  const submitInvitation = async () => {
+    if (!fileResponse.length || !selectedClient || !observers.length) {
+      Toast.show({
+        type: 'error',
+        text1: 'Complete the invitation',
+        text2: 'Add a client, observer and document before continuing.',
+      });
+      return;
     }
-  };
-  const SearchUser = async query => {
-    setisLoading(true);
-    const response = await searchUserByEmail(query);
-    setSearchedUser(response);
-    setisLoading(false);
-  };
 
-  const printEverything = async () => {
     setLoading(true);
-    if (
-      fileResponse.length !== 0 &&
-      selectedClient &&
-      observers.length !== 0
-      // documentSelect.length !== 0
-    ) {
-      let urlResponse;
-      if (fileResponse) {
-        urlResponse = await uploadDocArray(fileResponse);
-      }
-
+    try {
+      const uploadedUrls = await uploadDocArray(fileResponse);
       const documentObjects = documentSelect.map(item => {
         const [name, price] = item.split(' - $');
         return {name, price: parseFloat(price)};
       });
-      console.log('urlrespn', urlResponse);
-      console.log('responsssssssssssssssssssssssssse', paymentMethod);
       const response = await handleSessionCreation(
-        urlResponse,
+        uploadedUrls,
         selectedClient,
         'schedule_later',
         date,
-        selected,
+        selectedIdentity,
         observers.map(item => item.email),
         totalPrice,
         documentObjects,
         paymentMethod,
       );
-      console.log('respsoos', response);
+
       if (response === '200') {
         navigation.navigate('SessionCreation');
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Something went wrong',
-        });
+        Toast.show({type: 'error', text1: 'Something went wrong'});
       }
-      setLoading(false);
-    } else {
+    } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Please fill in all the fields',
+        text1: 'Invitation could not be sent',
+        text2: 'Please check the details and try again.',
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
-  console.log('payment', paymentMethod);
-  console.log('paymentinfo', paymentMethod);
-  console.log('seracedusere', searchedUser);
+
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader Title="Invite Signer" />
-      <BottomSheetStyle>
-        <ScrollView
-          // scrollEnabled={true}
-          nestedScrollEnabled={true}
-          contentContainerStyle={{
-            marginHorizontal: widthToDp(3),
-          }}>
-          <LabelTextInput
-            placeholder="Search client by email"
-            defaultValue={selectedClient}
-            onChangeText={text => {
-              SearchUser(text);
-              setSearchFor('Client');
-            }}
-            InputStyles={{padding: widthToDp(2)}}
-            AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
-            rightImageSoucre={require('../../../../assets/close.png')}
-            rightImagePress={() => {
-              setSearchedUser([]);
-              setSelectedClient(null);
-            }}
+      <NavigationHeader Title="Invite signer" />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.hero}>
+          <View style={styles.heroIcon}>
+            <Feather name="send" size={23} color={AppColors.primary} />
+          </View>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroTitle}>Create a remote session</Text>
+            <Text style={styles.heroDescription}>
+              Add everyone involved, choose verification and schedule the call.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader
+            eyebrow="PARTICIPANTS"
+            title="Client"
+            description="Search for the person who will sign the documents."
           />
-
-          {selectedClientData && (
-            <View
-              style={{
-                width: widthToDp(90),
-
-                backgroundColor: 'red',
-                flexDirection: 'row',
-                alignItems: 'center',
-                padding: widthToDp(3),
-                borderRadius: widthToDp(2),
-                backgroundColor: 'white',
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 2,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-
-                elevation: 5,
-                marginLeft: 3,
-              }}>
-              <View style={{marginRight: 10}}>
-                <Image
-                  source={{
-                    uri:
-                      selectedClientData.profile_picture != 'none'
-                        ? selectedClientData.profile_picture
-                        : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
-                  }}
-                  style={{
-                    width: widthToDp(14),
-                    height: widthToDp(14),
-                    borderRadius: widthToDp(7),
-                  }}
-                />
-              </View>
-              <View>
-                <Text style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
-                  {selectedClientData?.email}
-                </Text>
-                <Text style={{color: 'black', fontFamily: 'Poppins-Regular'}}>
-                  {selectedClientData.first_name} {selectedClientData.last_name}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedClient(null);
-                  setSelectedClientData(null);
-                  setSearchedUser([]);
+          {selectedClientData ? (
+            <PersonRow person={selectedClientData} onRemove={clearClient} />
+          ) : (
+            <>
+              <SearchField
+                loading={clientSearching}
+                onChangeText={setClientQuery}
+                onClear={() => {
+                  setClientQuery('');
+                  setClientResults([]);
                 }}
-                style={{position: 'absolute', right: 5, top: 5}}>
-                <Xmark
-                  width={24}
-                  height={24}
-                  strokeWidth={2}
-                  color={Colors.Orange}
-                />
-              </TouchableOpacity>
-            </View>
+                placeholder="Client email address"
+                value={clientQuery}
+              />
+              <SearchResults
+                onSelect={person => {
+                  setSelectedClient(person.email);
+                  setSelectedClientData(person);
+                  setClientQuery('');
+                  setClientResults([]);
+                }}
+                results={clientResults}
+              />
+            </>
           )}
 
-          {searchFor == 'Client' &&
-          searchedUser.length !== 0 &&
-          selectedClient === null ? (
-            isLoading ? (
-              <ActivityIndicator
-                size="large"
-                color={Colors.Orange}
-                style={{height: heightToDp(40)}}
+          <View style={styles.subsectionDivider} />
+
+          <Text style={styles.fieldTitle}>Observers</Text>
+          <Text style={styles.fieldDescription}>
+            Add anyone who needs to attend or provide information during the
+            session.
+          </Text>
+          <SearchField
+            loading={observerSearching}
+            onChangeText={setObserverQuery}
+            onClear={() => {
+              setObserverQuery('');
+              setObserverResults([]);
+            }}
+            placeholder="Observer email address"
+            value={observerQuery}
+          />
+          <SearchResults
+            onSelect={person => {
+              setObservers(current => [...current, person]);
+              setObserverQuery('');
+              setObserverResults([]);
+            }}
+            results={observerResults}
+          />
+          {observers.map(observer => (
+            <View key={observer._id || observer.email} style={styles.personGap}>
+              <PersonRow
+                person={observer}
+                onRemove={() =>
+                  setObservers(current =>
+                    current.filter(item => item._id !== observer._id),
+                  )
+                }
               />
-            ) : (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={{height: heightToDp(40), marginBottom: widthToDp(3)}}>
-                {searchedUser.map(item => (
-                  <TouchableOpacity
-                    key={item._id}
-                    onPress={() => {
-                      setSelectedClient(item.email);
-                      setSelectedClientData(item);
-                    }}
-                    style={{
-                      borderColor: Colors.Orange,
-                      borderWidth: 1,
-                      padding: widthToDp(1),
-                      marginLeft: widthToDp(3),
-                      marginBottom: widthToDp(3),
-                      borderRadius: widthToDp(2),
-                      width: widthToDp(88),
-                    }}>
-                    <Text
-                      style={{
-                        color: Colors.TextColor,
-                        fontSize: widthToDp(4),
-                      }}>
-                      {item.email}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader
+            eyebrow="DOCUMENTS"
+            title="Notarization request"
+            description="Choose the document types and attach the files for the session."
+          />
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => setDocumentPickerOpen(true)}
+            style={styles.documentPickerButton}>
+            <View style={styles.fieldIcon}>
+              <Feather name="file-text" size={20} color={AppColors.primary} />
+            </View>
+            <View style={styles.documentPickerCopy}>
+              <Text style={styles.documentPickerLabel}>Document types</Text>
+              <Text numberOfLines={1} style={styles.documentPickerValue}>
+                {selectedDocuments.length
+                  ? `${selectedDocuments.length} selected - $${totalPrice}`
+                  : 'Select one or more document types'}
+              </Text>
+            </View>
+            <Feather
+              name="chevron-right"
+              size={21}
+              color={AppColors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          {selectedDocuments.length ? (
+            <View style={styles.chips}>
+              {selectedDocuments.map(item => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => toggleDocument(item.value)}
+                  style={styles.chip}>
+                  <Text numberOfLines={1} style={styles.chipText}>
+                    {item.label} - ${item.price}
+                  </Text>
+                  <Feather name="x" size={14} color={AppColors.primary} />
+                </TouchableOpacity>
+              ))}
+            </View>
           ) : null}
 
-          {documentArray && (
-            <MultipSelectDropDown
-              setSelected={val => setDocumentSelected(val)}
-              data={documentArray.map(item => ({
-                value: `${item.name} - $${item.statePrices[0].price}`,
-              }))}
-              save="value"
-              label="Documents"
-              placeholder="Search for Documents"
-            />
-          )}
-
-          <View style={styles.headingContainer}>
-            <Text style={styles.Heading}>Observers</Text>
-            <Text style={styles.lightHeading}>
-              An Observer is anyone with relevant information for all the
-              signing that may need to be on the notarization session.
-            </Text>
-
-            <LabelTextInput
-              placeholder="Search observer by email"
-              defaultValue={''}
-              onChangeText={text => {
-                SearchUser(text);
-                setSearchFor('Observer');
-                setShowObserverSearchView(true);
-              }}
-              InputStyles={{padding: widthToDp(2)}}
-              AdjustWidth={{width: widthToDp(92), borderColor: Colors.Orange}}
-              rightImageSoucre={require('../../../../assets/close.png')}
-              rightImagePress={() => {
-                setSearchedUser([]);
-              }}
-            />
-
-            {observers.length > 0 && (
-              <View>
-                {observers.map(item => {
-                  return (
-                    <View
-                      style={{
-                        width: widthToDp(90),
-                        marginTop: 10,
-
-                        backgroundColor: 'red',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        padding: widthToDp(3),
-                        borderRadius: widthToDp(2),
-                        backgroundColor: 'white',
-                        shadowColor: '#000',
-                        shadowOffset: {
-                          width: 0,
-                          height: 2,
-                        },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 3.84,
-
-                        elevation: 5,
-                        marginLeft: 3,
-                      }}>
-                      <View style={{marginRight: 10}}>
-                        <Image
-                          source={{
-                            uri:
-                              item.profile_picture != 'none'
-                                ? item.profile_picture
-                                : 'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png',
-                          }}
-                          style={{
-                            width: widthToDp(14),
-                            height: widthToDp(14),
-                            borderRadius: widthToDp(7),
-                          }}
-                        />
-                      </View>
-                      <View>
-                        <Text
-                          style={{color: 'black', fontFamily: 'Poppins-Bold'}}>
-                          {item?.email}
-                        </Text>
-                        <Text
-                          style={{
-                            color: 'black',
-                            fontFamily: 'Poppins-Regular',
-                          }}>
-                          {item.first_name} {item.last_name}
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          setObservers(
-                            observers.filter(i => i._id !== item._id),
-                          );
-                        }}
-                        style={{position: 'absolute', right: 5, top: 5}}>
-                        <Xmark
-                          width={24}
-                          height={24}
-                          strokeWidth={2}
-                          color={Colors.Orange}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            {showObserverSearchView &&
-            searchFor == 'Observer' &&
-            searchedUser.length !== 0 ? (
-              isLoading ? (
-                <ActivityIndicator
-                  size="large"
-                  color={Colors.Orange}
-                  style={{height: heightToDp(40)}}
-                />
-              ) : (
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  style={{height: heightToDp(40), marginBottom: widthToDp(3)}}>
-                  {searchedUser.map(item => (
-                    <TouchableOpacity
-                      key={item._id}
-                      onPress={() => {
-                        setObservers(prev => [...prev, item]);
-                        setShowObserverSearchView(false);
-                      }}
-                      style={{
-                        borderColor: Colors.Orange,
-                        borderWidth: 1,
-                        padding: widthToDp(1),
-                        marginLeft: widthToDp(3),
-                        marginBottom: widthToDp(3),
-                        borderRadius: widthToDp(2),
-                        width: widthToDp(88),
-                      }}>
-                      <Text
-                        style={{
-                          color: Colors.TextColor,
-                          fontSize: widthToDp(4),
-                        }}>
-                        {item.email}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )
-            ) : null}
-            {/* <View
-style={{
-marginTop: heightToDp(3),
-marginHorizontal: widthToDp(2),
-alignSelf: 'flex-start',
-}}>
-<MainButton
-Title="Add Observer"
-colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-GradiStyles={{
-paddingVertical: heightToDp(1),
-paddingHorizontal: widthToDp(5),
-}}
-styles={{
-padding: heightToDp(2),
-fontSize: widthToDp(3.5),
-}}
-onPress={() => setVisible(true)}
-/>
-</View>
-<View
-style={{
-flexDirection: 'row',
-flexWrap: 'wrap',
-marginTop: widthToDp(4),
-columnGap: widthToDp(2),
-rowGap: heightToDp(2),
-marginHorizontal: widthToDp(3),
-}}>
-{observerEmail.map((entry, index) => (
-<TouchableOpacity
-key={index}
-onPress={() => props.removeItem(index)}
-style={{
-padding: widthToDp(1.5),
-borderRadius: 5,
-backgroundColor: Colors.Orange,
-}}>
-<Text style={{color: Colors.white, fontSize: widthToDp(4)}}>
-{entry}
-</Text>
-</TouchableOpacity>
-))}
-</View> */}
-          </View>
-          <View style={styles.headingContainer}>
-            <Text style={styles.Heading}>
-              Type of identity Authentication for Session
-            </Text>
-            <View style={styles.buttonBottom}>
-              <MainButton
-                Title="Allow user to choose"
-                colors={
-                  selected === 'client_choose'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={handleDocumentSelection}
+            style={[
+              styles.uploadArea,
+              fileResponse.length && styles.uploadAreaComplete,
+            ]}>
+            <View
+              style={[
+                styles.uploadIcon,
+                fileResponse.length && styles.uploadIconComplete,
+              ]}>
+              <Feather
+                name={fileResponse.length ? 'check' : 'upload-cloud'}
+                size={22}
+                color={
+                  fileResponse.length ? AppColors.success : AppColors.primary
                 }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => setSelected('client_choose')}
-              />
-              <MainButton
-                Title="ID Card"
-                colors={
-                  selected === 'user_id'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => setSelected('user_id')}
-              />
-              <MainButton
-                Title="Passport"
-                colors={
-                  selected === 'user_passport'
-                    ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                    : [Colors.DisableColor, Colors.DisableColor]
-                }
-                GradiStyles={{
-                  paddingVertical: heightToDp(1),
-                  paddingHorizontal: widthToDp(5),
-                }}
-                styles={{
-                  padding: heightToDp(2),
-                  fontSize: widthToDp(3.5),
-                }}
-                onPress={() => setSelected('user_passport')}
               />
             </View>
-          </View>
-          <View style={styles.headingContainer}>
-            <Text style={styles.Heading}>Session Schedule</Text>
-          </View>
-          <View style={styles.buttonFlex}>
-            <TouchableOpacity onPress={() => setOpen(true)}>
-              <Text
-                style={{
-                  color: Colors.Orange,
-                  fontFamily: 'Manrope-Bold',
-                  fontSize: widthToDp(5),
-                  borderWidth: 1,
-                  borderColor: Colors.Orange,
-                  paddingHorizontal: widthToDp(2),
-                  borderRadius: widthToDp(2),
-                }}>
-                {moment(date).format('MM-DD-YYYY hh:mm A')}
+            <View style={styles.uploadCopy}>
+              <Text style={styles.uploadTitle}>
+                {fileResponse.length
+                  ? `${fileResponse.length} document${
+                      fileResponse.length === 1 ? '' : 's'
+                    } attached`
+                  : 'Upload session documents'}
               </Text>
-            </TouchableOpacity>
-            <DatePicker
-              modal
-              mode="datetime"
-              minimumDate={new Date()}
-              open={open}
-              date={date}
-              onConfirm={date => {
-                setOpen(false);
-                setDate(date);
-              }}
-              onCancel={() => {
-                setOpen(false);
-              }}
-            />
+              <Text style={styles.uploadDescription}>
+                {fileResponse.length
+                  ? 'Tap to replace the selected files'
+                  : 'PDF, JPG or PNG files'}
+              </Text>
+            </View>
+            <Text style={styles.uploadAction}>
+              {fileResponse.length ? 'Replace' : 'Browse'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader
+            eyebrow="SESSION"
+            title="Identity verification"
+            description="Choose which identity document the client must present."
+          />
+          <View style={styles.segmentedControl}>
+            {IDENTITY_OPTIONS.map(option => {
+              const isSelected = selectedIdentity === option.value;
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  key={option.value}
+                  onPress={() => setSelectedIdentity(option.value)}
+                  style={[styles.segment, isSelected && styles.segmentActive]}>
+                  <Text
+                    numberOfLines={2}
+                    style={[
+                      styles.segmentText,
+                      isSelected && styles.segmentTextActive,
+                    ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          <View style={styles.headingContainer}>
-            <Text style={styles.Heading}>Payment Info</Text>
-            <View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginTop: 10,
-                }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setPaymentMethod('on_agent');
-                  }}>
-                  {paymentMethod == 'on_agent' ? (
-                    <CheckCircleSolid
-                      width={24}
-                      height={24}
-                      strokeWidth={2}
-                      color={Colors.Orange}
-                    />
-                  ) : (
-                    <CheckCircle
-                      width={24}
-                      height={24}
-                      strokeWidth={2}
-                      color={'gray'}
-                    />
-                  )}
-                </TouchableOpacity>
-                <Text style={{color: 'black', marginLeft: 10}}>
-                  Invoice the client on your own{' '}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginTop: 10,
-                }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setPaymentMethod('on_notarizr');
-                  }}>
-                  {paymentMethod == 'on_notarizr' ? (
-                    <CheckCircleSolid
-                      width={24}
-                      height={24}
-                      strokeWidth={2}
-                      color={Colors.Orange}
-                    />
-                  ) : (
-                    <CheckCircle
-                      width={24}
-                      height={24}
-                      strokeWidth={2}
-                      color={'gray'}
-                    />
-                  )}
-                </TouchableOpacity>
-                <Text style={{color: 'black', marginLeft: 10}}>
-                  Invoice the client on Notarizr{' '}
-                </Text>
-              </View>
+          <Text style={styles.fieldTitle}>Date and time</Text>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => setDatePickerOpen(true)}
+            style={styles.scheduleRow}>
+            <View style={styles.fieldIcon}>
+              <Feather name="calendar" size={20} color={AppColors.primary} />
             </View>
+            <View style={styles.scheduleCopy}>
+              <Text style={styles.scheduleDate}>
+                {moment(date).format('dddd, MMM D')}
+              </Text>
+              <Text style={styles.scheduleTime}>
+                {moment(date).format('YYYY [at] h:mm A')}
+              </Text>
+            </View>
+            <Text style={styles.changeText}>Change</Text>
+          </TouchableOpacity>
+          <DatePicker
+            date={date}
+            minimumDate={new Date()}
+            modal
+            mode="datetime"
+            onCancel={() => setDatePickerOpen(false)}
+            onConfirm={newDate => {
+              setDatePickerOpen(false);
+              setDate(newDate);
+            }}
+            open={datePickerOpen}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader
+            eyebrow="PAYMENT"
+            title="How will the client pay?"
+            description="Select who will collect payment for this session."
+          />
+          <SelectCard
+            description="You collect payment directly from the client."
+            icon="briefcase"
+            onPress={() => setPaymentMethod('on_agent')}
+            selected={paymentMethod === 'on_agent'}
+            title="Invoice independently"
+          />
+          <View style={styles.cardGap} />
+          <SelectCard
+            description="Notarizr sends the invoice and records payment."
+            icon="credit-card"
+            onPress={() => setPaymentMethod('on_notarizr')}
+            selected={paymentMethod === 'on_notarizr'}
+            title="Invoice through Notarizr"
+          />
+        </View>
+
+        <View style={styles.summaryRow}>
+          <View>
+            <Text style={styles.summaryLabel}>Session total</Text>
+            <Text style={styles.summaryHint}>
+              {selectedDocuments.length
+                ? `${selectedDocuments.length} document type${
+                    selectedDocuments.length === 1 ? '' : 's'
+                  }`
+                : 'No document types selected'}
+            </Text>
           </View>
-          <View style={styles.headingContainer}>
-            <Text style={styles.Heading}>Document</Text>
-            {fileResponse?.length === 0 ? (
-              <TouchableOpacity
-                style={styles.dottedContianer}
-                onPress={handleDocumentSelection}>
-                <Image source={require('../../../../assets/upload.png')} />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    columnGap: widthToDp(2),
-                    alignItems: 'center',
-                  }}>
-                  <Text
-                    style={{color: Colors.TextColor, fontSize: widthToDp(4)}}>
-                    Upload
-                  </Text>
-                  <Image
-                    source={require('../../../../assets/uploadIcon.png')}
-                  />
-                </View>
-                <Text>Upload your File here...</Text>
-              </TouchableOpacity>
-            ) : (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  marginLeft: widthToDp(5),
-                  columnGap: widthToDp(3),
-                }}>
-                {fileResponse?.map((item, index) => (
-                  <TouchableOpacity key={index}>
-                    <Image
-                      source={require('../../../../assets/docPic.png')}
-                      style={{width: widthToDp(10), height: heightToDp(10)}}
-                    />
-                  </TouchableOpacity>
-                ))}
+          <Text style={styles.summaryPrice}>${totalPrice}</Text>
+        </View>
+
+        <GradientButton
+          Title="Send invitation"
+          loading={loading}
+          onPress={submitInvitation}
+          viewStyle={styles.submitButton}
+        />
+      </ScrollView>
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setDocumentPickerOpen(false)}
+        transparent
+        visible={documentPickerOpen}>
+        <View style={styles.modalRoot}>
+          <Pressable
+            onPress={() => setDocumentPickerOpen(false)}
+            style={styles.modalBackdrop}
+          />
+          <SafeAreaView style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Document types</Text>
+                <Text style={styles.modalDescription}>
+                  Select everything included in this session.
+                </Text>
               </View>
-            )}
-          </View>
-          <View style={{marginBottom: widthToDp(5)}}>
+              <TouchableOpacity
+                accessibilityLabel="Close document types"
+                onPress={() => setDocumentPickerOpen(false)}
+                style={styles.modalClose}>
+                <Feather name="x" size={20} color={AppColors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.documentOptions}>
+              {documentArray === undefined ? (
+                <ActivityIndicator
+                  color={AppColors.primary}
+                  style={styles.documentLoading}
+                />
+              ) : documentOptions.length ? (
+                documentOptions.map(item => {
+                  const isSelected = documentSelect.includes(item.value);
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      onPress={() => toggleDocument(item.value)}
+                      style={styles.documentOption}>
+                      <View style={styles.documentOptionCopy}>
+                        <Text style={styles.documentOptionTitle}>
+                          {item.label}
+                        </Text>
+                        <Text style={styles.documentOptionPrice}>
+                          ${item.price}
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          isSelected && styles.checkboxActive,
+                        ]}>
+                        {isSelected ? (
+                          <Feather name="check" size={15} color="#FFFFFF" />
+                        ) : null}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
+              ) : (
+                <View style={styles.emptyDocuments}>
+                  <Feather
+                    name="file-text"
+                    size={24}
+                    color={AppColors.textSecondary}
+                  />
+                  <Text style={styles.emptyDocumentsTitle}>
+                    No document types available
+                  </Text>
+                  <Text style={styles.emptyDocumentsText}>
+                    Try again when your service location is available.
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
             <GradientButton
-              Title="Send Invitation"
-              loading={loading}
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              // onPress={() => navigation.navigate('WaitingRoomScreen')}
-              onPress={() => printEverything()}
+              Title={`Done${
+                documentSelect.length ? ` (${documentSelect.length})` : ''
+              }`}
+              onPress={() => setDocumentPickerOpen(false)}
+              viewStyle={styles.modalDoneButton}
             />
-          </View>
-        </ScrollView>
-      </BottomSheetStyle>
-      <ObserversModal
-        modalVisible={visible}
-        setModalVisible={bool => setVisible(bool)}
-        onAdd={text => addTextToArray(text)}
-        email={observerEmail}
-        removeItem={removeItem}
-      />
+          </SafeAreaView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
-  },
-  con: {
+  avatar: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
     justifyContent: 'center',
   },
-  picker: {
-    width: widthToDp(60),
-    marginTop: heightToDp(5),
-    borderWidth: 2,
-    borderColor: Colors.Orange,
+  avatarText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
   },
-  buttonFlex: {
-    flexDirection: 'row',
+  cardGap: {height: 10},
+  changeText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  checkbox: {
     alignItems: 'center',
-    justifyContent: 'space-around',
-    marginTop: heightToDp(5),
+    borderColor: AppColors.borderStrong,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    height: 24,
+    justifyContent: 'center',
+    width: 24,
   },
-  lightHeading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(5),
+  checkboxActive: {
+    backgroundColor: AppColors.primary,
+    borderColor: AppColors.primary,
+  },
+  chip: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 6,
+    flexDirection: 'row',
+    gap: 6,
+    maxWidth: '100%',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  chipText: {
+    color: AppColors.primaryPressed,
+    flexShrink: 1,
     fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
   },
-  picker: {
-    borderWidth: 2,
-    borderColor: Colors.DisableColor,
-    width: widthToDp(90),
-    marginVertical: widthToDp(5),
-    borderRadius: 15,
+  chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10},
+  container: {backgroundColor: AppColors.background, flex: 1},
+  content: {paddingBottom: 28},
+  divider: {
+    backgroundColor: AppColors.border,
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 56,
   },
-  Heading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(5),
-    fontFamily: 'Manrope-Bold',
-    marginHorizontal: widthToDp(3),
+  documentLoading: {marginVertical: 50},
+  documentOption: {
+    alignItems: 'center',
+    borderBottomColor: AppColors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    minHeight: 64,
+    paddingVertical: 10,
   },
-  lightHeading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(3.5),
+  documentOptionCopy: {flex: 1, paddingRight: 12},
+  documentOptionPrice: {
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
-    marginHorizontal: widthToDp(3),
+    fontSize: 12,
+    marginTop: 2,
   },
-  headingContainer: {
-    marginVertical: widthToDp(5),
+  documentOptionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 14,
   },
-  insideHeading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(5),
-    fontFamily: 'Manrope-Bold',
-    marginVertical: widthToDp(2),
-  },
-  insideContainer: {
-    flex: 1,
-    flexDirection: 'row',
+  documentOptions: {paddingBottom: 12, paddingHorizontal: 20},
+  documentPickerButton: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: heightToDp(2),
-    marginHorizontal: widthToDp(5),
-  },
-  flexContainer: {
-    flex: 1,
+    backgroundColor: AppColors.backgroundSubtle,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: heightToDp(2),
+    minHeight: 72,
+    padding: 12,
   },
-  iconContainer: {
-    alignContent: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    alignItems: 'center',
+  documentPickerCopy: {flex: 1, marginHorizontal: 12},
+  documentPickerLabel: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
   },
-  insideText: {
-    fontSize: widthToDp(4),
-    color: Colors.TextColor,
+  documentPickerValue: {
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 3,
   },
-  greenIcon: {
-    width: widthToDp(5),
-    height: heightToDp(5),
+  emptyDocuments: {alignItems: 'center', paddingHorizontal: 24, paddingTop: 50},
+  emptyDocumentsText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: 'center',
   },
-  preference: {
-    marginVertical: widthToDp(1),
-    fontSize: widthToDp(4),
-    color: Colors.DullTextColor,
+  emptyDocumentsTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    marginTop: 12,
   },
-  detail: {
-    marginVertical: widthToDp(2),
-    fontSize: widthToDp(4),
-    color: Colors.DullTextColor,
+  eyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    marginBottom: 5,
   },
-  sheetContainer: {},
-  locationImage: {
-    tintColor: Colors.DullTextColor,
+  fieldDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 12,
   },
-  addressView: {
-    flexDirection: 'row',
+  fieldIcon: {
     alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 7,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
   },
-  buttonBottom: {
-    flexDirection: 'row',
-    marginTop: heightToDp(3),
-    alignSelf: 'flex-start',
-    flexWrap: 'wrap',
-    rowGap: widthToDp(2),
-    columnGap: heightToDp(1),
-    marginHorizontal: widthToDp(2),
+  fieldTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    marginBottom: 4,
   },
-
-  dottedContianer: {
+  hero: {
     alignItems: 'center',
+    backgroundColor: '#121826',
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+  },
+  heroCopy: {flex: 1, marginLeft: 14},
+  heroDescription: {
+    color: '#AEB4BF',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  heroTitle: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  modalBackdrop: {backgroundColor: 'rgba(18, 24, 38, 0.45)', flex: 1},
+  modalClose: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  modalDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  modalDoneButton: {marginHorizontal: 8},
+  modalHandle: {
     alignSelf: 'center',
-    borderStyle: 'dotted',
-    borderWidth: 2,
-    borderColor: Colors.DisableColor,
+    backgroundColor: AppColors.borderStrong,
+    borderRadius: 2,
+    height: 4,
+    marginBottom: 12,
+    width: 40,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    borderBottomColor: AppColors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  modalRoot: {flex: 1, justifyContent: 'flex-end'},
+  modalSheet: {
+    backgroundColor: AppColors.surface,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '78%',
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
+  modalTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  personCopy: {flex: 1, marginHorizontal: 12, minWidth: 0},
+  personEmail: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  personGap: {marginTop: 8},
+  personName: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
+  personRow: {
+    alignItems: 'center',
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    minHeight: 66,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  radio: {
+    alignItems: 'center',
+    borderColor: AppColors.borderStrong,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    height: 20,
+    justifyContent: 'center',
+    width: 20,
+  },
+  radioActive: {borderColor: AppColors.primary},
+  radioDot: {
+    backgroundColor: AppColors.primary,
     borderRadius: 5,
-    marginVertical: heightToDp(3),
-    paddingVertical: heightToDp(2),
-    width: widthToDp(80),
+    height: 10,
+    width: 10,
+  },
+  removeButton: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 7,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  resultsPanel: {
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 6,
+    overflow: 'hidden',
+  },
+  scheduleCopy: {flex: 1, marginHorizontal: 12},
+  scheduleDate: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
+  scheduleRow: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginTop: 10,
+    minHeight: 72,
+    padding: 12,
+  },
+  scheduleTime: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  searchField: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderColor: AppColors.borderStrong,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    height: 52,
+    paddingHorizontal: 14,
+  },
+  searchInput: {
+    color: AppColors.textPrimary,
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    height: 50,
+    marginLeft: 10,
+    paddingVertical: 0,
+  },
+  section: {
+    backgroundColor: AppColors.surface,
+    borderBottomColor: AppColors.border,
+    borderBottomWidth: 1,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+  },
+  sectionDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  sectionHeader: {marginBottom: 16},
+  sectionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  segment: {
+    alignItems: 'center',
+    borderRadius: 6,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 50,
+    paddingHorizontal: 7,
+    paddingVertical: 8,
+  },
+  segmentActive: {backgroundColor: AppColors.surface},
+  segmentText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  segmentTextActive: {color: AppColors.primary},
+  segmentedControl: {
+    backgroundColor: '#EFF1F4',
+    borderRadius: 8,
+    flexDirection: 'row',
+    marginBottom: 22,
+    padding: 4,
+  },
+  selectCard: {
+    alignItems: 'center',
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    minHeight: 78,
+    padding: 12,
+  },
+  selectCardActive: {
+    backgroundColor: '#FFF9F4',
+    borderColor: '#FFC9A8',
+  },
+  selectCopy: {flex: 1, marginHorizontal: 12},
+  selectDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  selectIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 7,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  selectIconActive: {backgroundColor: AppColors.primarySoft},
+  selectTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
+  smallIconButton: {
+    alignItems: 'center',
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  subsectionDivider: {
+    backgroundColor: AppColors.border,
+    height: 1,
+    marginVertical: 22,
+  },
+  submitButton: {marginHorizontal: 8, marginTop: 2},
+  summaryHint: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  summaryLabel: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
+  summaryPrice: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 22,
+  },
+  summaryRow: {
+    alignItems: 'center',
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    margin: 20,
+    padding: 16,
+  },
+  uploadAction: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  uploadArea: {
+    alignItems: 'center',
+    backgroundColor: '#FFF9F4',
+    borderColor: '#FFB98D',
+    borderRadius: 8,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginTop: 14,
+    minHeight: 82,
+    padding: 12,
+  },
+  uploadAreaComplete: {
+    backgroundColor: AppColors.successSoft,
+    borderColor: '#A9DDBF',
+    borderStyle: 'solid',
+  },
+  uploadCopy: {flex: 1, marginHorizontal: 12},
+  uploadDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  uploadIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  uploadIconComplete: {backgroundColor: '#DFF3E7'},
+  uploadTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
   },
 });
-{
-  /* <SingleSelectDropDown
-setSelected={val => setDocumentSelected(val)}
-data={searchedUser.map(item => ({
-value: item.email,
-}))}
-save="value"
-label="Documents"
-placeholder="Search for Documents"
-/> */
-}
-{
-  /* <DocumentDropDown
-placeholder={'Search Client by Email'}
-multiple={false}
-documentData={searchedUser}
-SearchUser={SearchUser}
-/> */
-}
-// <View style={{flex: 1, justifyContent: 'center'}}>
-// <Picker
-// selectedValue={selectedCategory}
-// onValueChange={itemValue => {
-// setSelectedCategory(itemValue);
-// setSelectedDocument(null);
-// }}
-// style={{
-// borderWidth: 5,
-// borderColor: 'orange',
-// marginBottom: 20,
-// }}>
-// <Picker.Item label="Select Category" value={null} />
-// {categoriesData.map(category => (
-// <Picker.Item
-// key={category._id}
-// label={category.name}
-// value={category.name}
-// />
-// ))}
-// </Picker>
-
-// {selectedCategoryData && (
-// <Picker
-// selectedValue={selectedDocument}
-// style={{borderWidth: 2, borderColor: 'orange'}}
-// onValueChange={itemValue => setSelectedDocument(itemValue)}>
-// <Picker.Item label="Select Document" value={null} />
-// {selectedCategoryData.document.map(document => (
-// <Picker.Item
-// key={document._id}
-// label={document.name}
-// value={document.name}
-// />
-// ))}
-// </Picker>
-// )}
-// </View>;
-{
-  /* <View style={styles.buttonBottom}>
-<MainButton
-Title="Notarize Now"
-colors={
-session === 'Notarize Now'
-? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-: [Colors.DisableColor, Colors.DisableColor]
-}
-GradiStyles={{
-paddingVertical: heightToDp(1),
-paddingHorizontal: widthToDp(5),
-}}
-styles={{
-padding: heightToDp(2),
-fontSize: widthToDp(3.5),
-}}
-onPress={() => handleNotarizeNow()}
-/>
-<MainButton
-Title="Schedule for Later"
-colors={
-session === 'Schedule for Later'
-? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-: [Colors.DisableColor, Colors.DisableColor]
-}
-GradiStyles={{
-paddingVertical: heightToDp(1),
-paddingHorizontal: widthToDp(5),
-}}
-styles={{
-padding: heightToDp(2),
-fontSize: widthToDp(3.5),
-}}
-onPress={() => handleSchedule()}
-/>
-</View> */
-}

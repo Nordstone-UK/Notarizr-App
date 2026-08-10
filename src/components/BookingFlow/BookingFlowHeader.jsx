@@ -2,8 +2,13 @@ import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 
-export default function BookingFlowHeader({onBack, serviceName, step}) {
-  const progress = Math.min(step / 3, 1) * 100;
+export default function BookingFlowHeader({
+  onBack,
+  serviceName,
+  step,
+  totalSteps = 3,
+}) {
+  const progress = Math.min(step / totalSteps, 1) * 100;
 
   return (
     <View style={styles.container}>
@@ -19,7 +24,9 @@ export default function BookingFlowHeader({onBack, serviceName, step}) {
           <Text numberOfLines={1} style={styles.title}>
             {serviceName}
           </Text>
-          <Text style={styles.stepText}>Step {step} of 3</Text>
+          <Text style={styles.stepText}>
+            Step {step} of {totalSteps}
+          </Text>
         </View>
         <View style={styles.secureBadge}>
           <Feather name="shield" size={13} color="#168A52" />

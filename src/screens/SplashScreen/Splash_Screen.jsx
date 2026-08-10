@@ -8,13 +8,9 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
-import {useDispatch} from 'react-redux';
 import useFetchUser from '../../hooks/useFetchUser';
-import {saveUserInfo} from '../../features/user/userSlice';
-import {getLocalTestAccountById} from '../../data/localTestAccounts';
 
 export default function Splash_Screen({navigation}) {
-  const dispatch = useDispatch();
   const {fetchUserInfo} = useFetchUser();
   const fetchUserInfoRef = useRef(fetchUserInfo);
 
@@ -49,15 +45,10 @@ export default function Splash_Screen({navigation}) {
           return;
         }
 
-        if (__DEV__ && token.startsWith('local-preview:')) {
-          const localAccount = getLocalTestAccountById(
-            token.replace('local-preview:', ''),
-          );
-          if (localAccount) {
-            dispatch(saveUserInfo(localAccount));
-            navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
-            return;
-          }
+        if (token.startsWith('local-preview:')) {
+          await AsyncStorage.removeItem('token');
+          openLogin();
+          return;
         }
 
         const user = await fetchUserInfoRef.current();
@@ -87,7 +78,7 @@ export default function Splash_Screen({navigation}) {
     };
 
     bootstrap();
-  }, [dispatch, navigation]);
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -21,6 +21,9 @@ export const PREVIEW_BOOKINGS = [
     document_type: 'Power of attorney',
     payment_type: 'on_notarizr',
     price: 85,
+    documentCharge: 45,
+    additionalSignatureCharge: 20,
+    printingCharge: 20,
     notes: 'Please bring a valid photo ID and the unsigned original document.',
   },
   {
@@ -41,6 +44,9 @@ export const PREVIEW_BOOKINGS = [
     document_type: 'Affidavit',
     payment_type: 'on_notarizr',
     price: 59,
+    documentCharge: 49,
+    additionalSignatureCharge: 10,
+    printingCharge: 0,
     notes: 'Join from a quiet place with your original identification ready.',
   },
   {
@@ -60,6 +66,9 @@ export const PREVIEW_BOOKINGS = [
     document_type: 'Estate documents',
     payment_type: 'on_notarizr',
     price: 95,
+    documentCharge: 55,
+    additionalSignatureCharge: 20,
+    printingCharge: 20,
     notes: 'We are finding an available mobile notary for this request.',
   },
   {
@@ -80,6 +89,9 @@ export const PREVIEW_BOOKINGS = [
     document_type: 'Business agreement',
     payment_type: 'on_notarizr',
     price: 64,
+    documentCharge: 54,
+    additionalSignatureCharge: 10,
+    printingCharge: 0,
     notes: 'Session completed and notarized files are ready.',
   },
   {
@@ -100,6 +112,9 @@ export const PREVIEW_BOOKINGS = [
     document_type: 'Loan documents',
     payment_type: 'on_notarizr',
     price: 80,
+    documentCharge: 60,
+    additionalSignatureCharge: 10,
+    printingCharge: 10,
     notes:
       'This request was cancelled before a notary travelled to the address.',
   },

@@ -16,10 +16,13 @@ import {useLazyQuery, useMutation, useQuery} from '@apollo/client';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
+import DatePicker from 'react-native-date-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BookingChoice from '../../components/BookingFlow/BookingChoice';
 import BookingFlowFooter from '../../components/BookingFlow/BookingFlowFooter';
 import BookingFlowHeader from '../../components/BookingFlow/BookingFlowHeader';
 import BookingFlowSection from '../../components/BookingFlow/BookingFlowSection';
+import PricingBreakdown from '../../components/BookingFlow/PricingBreakdown';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import useRegister from '../../hooks/useRegister';
 import {CREATE_BOOKING} from '../../../request/mutations/createBooking.mutation';
@@ -28,6 +31,9 @@ import {GET_DOCUMENT_TYPES} from '../../../request/queries/getPaginatedDocumentT
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 
 const TIME_OPTIONS = ['9:00 AM', '10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'];
+const ADDITIONAL_SIGNATURE_PRICE = 10;
+const PRINT_COPY_PRICE = 5;
+const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const FALLBACK_DOCUMENT_TYPES = [
   {_id: 'local-power-of-attorney', name: 'Power of attorney', price: 45},
   {_id: 'local-affidavit', name: 'Affidavit', price: 35},
@@ -36,35 +42,27 @@ const FALLBACK_DOCUMENT_TYPES = [
   {_id: 'local-estate', name: 'Estate documents', price: 55},
   {_id: 'local-other', name: 'Other document', price: 40},
 ];
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+const getMinimumBookingDate = () => {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + 1);
+  return date;
+};
 
-const createDateOptions = () =>
-  [1, 2, 3, 4].map(offset => {
-    const date = new Date();
-    date.setDate(date.getDate() + offset);
-    return {
-      id: date.toISOString().slice(0, 10),
-      day: WEEKDAYS[date.getDay()],
-      date: date.getDate(),
-      month: MONTHS[date.getMonth()],
-      full: `${WEEKDAYS[date.getDay()]}, ${
-        MONTHS[date.getMonth()]
-      } ${date.getDate()}`,
-    };
+const formatDateId = date =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    '0',
+  )}-${String(date.getDate()).padStart(2, '0')}`;
+
+const parseDateId = date => new Date(`${date}T12:00:00`);
+
+const formatDateLabel = date =>
+  parseDateId(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
   });
 
 const getDocumentIcon = name => {
@@ -131,7 +129,7 @@ function AppointmentStep({
   addresses,
   bookingFor,
   customAddress,
-  dateOptions,
+  datePickerOpen,
   isMobile,
   onAddAddress,
   onChangeBookingFor,
@@ -142,6 +140,7 @@ function AppointmentStep({
   onSelectAddress,
   onSelectDate,
   onSelectTime,
+  onToggleDatePicker,
   otherName,
   otherPhone,
   selectedAddress,
@@ -154,40 +153,38 @@ function AppointmentStep({
       <BookingFlowSection
         subtitle="Choose a preferred appointment slot."
         title="Date and time">
-        <ScrollView
-          contentContainerStyle={styles.dateList}
-          horizontal
-          showsHorizontalScrollIndicator={false}>
-          {dateOptions.map(option => {
-            const selected = selectedDate === option.id;
-            return (
-              <TouchableOpacity
-                key={option.id}
-                activeOpacity={0.7}
-                onPress={() => onSelectDate(option.id)}
-                style={[styles.dateTile, selected && styles.selectedDateTile]}>
-                <Text
-                  style={[styles.dateDay, selected && styles.selectedDateText]}>
-                  {option.day}
-                </Text>
-                <Text
-                  style={[
-                    styles.dateNumber,
-                    selected && styles.selectedDateText,
-                  ]}>
-                  {option.date}
-                </Text>
-                <Text
-                  style={[
-                    styles.dateMonth,
-                    selected && styles.selectedDateText,
-                  ]}>
-                  {option.month}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <TouchableOpacity
+          activeOpacity={0.72}
+          onPress={() => onToggleDatePicker(true)}
+          style={styles.datePickerField}>
+          <View style={styles.datePickerIcon}>
+            <Feather name="calendar" size={20} color="#FD6D1F" />
+          </View>
+          <View style={styles.datePickerCopy}>
+            <Text style={styles.datePickerLabel}>Preferred date</Text>
+            <Text style={styles.datePickerValue}>
+              {formatDateLabel(selectedDate)}
+            </Text>
+          </View>
+          <View style={styles.datePickerAction}>
+            <Text style={styles.datePickerActionText}>Change</Text>
+            <Feather name="chevron-right" size={18} color="#FD6D1F" />
+          </View>
+        </TouchableOpacity>
+        <DatePicker
+          date={parseDateId(selectedDate)}
+          minimumDate={getMinimumBookingDate()}
+          modal
+          mode="date"
+          onCancel={() => onToggleDatePicker(false)}
+          onConfirm={date => {
+            onToggleDatePicker(false);
+            onSelectDate(formatDateId(date));
+          }}
+          open={datePickerOpen}
+          title="Choose appointment date"
+        />
+        <Text style={styles.timeSectionLabel}>Available times</Text>
         <View style={styles.timeList}>
           {TIME_OPTIONS.map(time => {
             const selected = selectedTime === time;
@@ -310,7 +307,7 @@ function AppointmentStep({
   );
 }
 
-function DocumentsStep({
+function DocumentDetailsStep({
   documentOptions,
   documentsLoading,
   documentType,
@@ -318,11 +315,8 @@ function DocumentsStep({
   onChangeNotes,
   onChangeSigners,
   onSelectDocumentType,
-  onChooseDocuments,
   signers,
-  uploadedDocuments,
 }) {
-  const uploaded = uploadedDocuments.length > 0;
   return (
     <>
       <BookingFlowSection
@@ -376,41 +370,6 @@ function DocumentsStep({
           </View>
         )}
       </BookingFlowSection>
-
-      <BookingFlowSection
-        subtitle="Upload a readable copy. You can replace it later."
-        title="Document upload">
-        <TouchableOpacity
-          activeOpacity={0.74}
-          onPress={onChooseDocuments}
-          style={[styles.uploadArea, uploaded && styles.uploadedArea]}>
-          <View style={[styles.uploadIcon, uploaded && styles.uploadedIcon]}>
-            <Feather
-              name={uploaded ? 'check' : 'upload-cloud'}
-              size={23}
-              color={uploaded ? '#168A52' : '#FD6D1F'}
-            />
-          </View>
-          <View style={styles.uploadCopy}>
-            <Text style={styles.uploadTitle}>
-              {uploaded
-                ? `${uploadedDocuments.length} document${
-                    uploadedDocuments.length === 1 ? '' : 's'
-                  } selected`
-                : 'Choose a document'}
-            </Text>
-            <Text style={styles.uploadSubtitle}>
-              {uploaded
-                ? 'Ready to attach to this booking'
-                : 'PDF, JPG, or PNG up to 10 MB'}
-            </Text>
-          </View>
-          <Text style={styles.uploadAction}>
-            {uploaded ? 'Replace' : 'Browse'}
-          </Text>
-        </TouchableOpacity>
-      </BookingFlowSection>
-
       <BookingFlowSection
         subtitle="Include everyone who needs to sign."
         title="Signing details">
@@ -459,6 +418,141 @@ function DocumentsStep({
   );
 }
 
+function PrintOption({label, onPress, selected, subtitle}) {
+  return (
+    <TouchableOpacity
+      accessibilityRole="radio"
+      accessibilityState={{selected}}
+      activeOpacity={0.72}
+      onPress={onPress}
+      style={[styles.printOption, selected && styles.selectedPrintOption]}>
+      <View style={[styles.radio, selected && styles.selectedRadio]}>
+        {selected ? <View style={styles.radioDot} /> : null}
+      </View>
+      <View style={styles.printOptionCopy}>
+        <Text
+          style={[
+            styles.printOptionLabel,
+            selected && styles.selectedPrintOptionLabel,
+          ]}>
+          {label}
+        </Text>
+        <Text style={styles.printOptionSubtitle}>{subtitle}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function UploadAndPrintStep({
+  isMobile,
+  onChangePrintCopies,
+  onChooseDocuments,
+  onTogglePrint,
+  printCopies,
+  uploadedDocuments,
+  wantsPrint,
+}) {
+  const uploaded = uploadedDocuments.length > 0;
+
+  return (
+    <>
+      <BookingFlowSection
+        subtitle="Upload a readable copy for the assigned notary."
+        title="Document upload">
+        <TouchableOpacity
+          activeOpacity={0.74}
+          onPress={onChooseDocuments}
+          style={[styles.uploadArea, uploaded && styles.uploadedArea]}>
+          <View style={[styles.uploadIcon, uploaded && styles.uploadedIcon]}>
+            <Feather
+              name={uploaded ? 'check' : 'upload-cloud'}
+              size={23}
+              color={uploaded ? '#168A52' : '#FD6D1F'}
+            />
+          </View>
+          <View style={styles.uploadCopy}>
+            <Text style={styles.uploadTitle}>
+              {uploaded
+                ? `${uploadedDocuments.length} document${
+                    uploadedDocuments.length === 1 ? '' : 's'
+                  } selected`
+                : 'Choose a document'}
+            </Text>
+            <Text style={styles.uploadSubtitle}>
+              {uploaded
+                ? 'Ready to attach to this booking'
+                : 'PDF, JPG, or PNG up to 10 MB'}
+            </Text>
+          </View>
+          <Text style={styles.uploadAction}>
+            {uploaded ? 'Replace' : 'Browse'}
+          </Text>
+        </TouchableOpacity>
+      </BookingFlowSection>
+
+      {isMobile ? (
+        <BookingFlowSection
+          subtitle={`Printed copies are $${PRINT_COPY_PRICE.toFixed(
+            2,
+          )} each and are added to your estimate.`}
+          title="Document printout">
+          <View style={styles.printOptions}>
+            <PrintOption
+              label="No printout"
+              onPress={() => onTogglePrint(false)}
+              selected={!wantsPrint}
+              subtitle="I will bring the original document"
+            />
+            <PrintOption
+              label="Print for me"
+              onPress={() => onTogglePrint(true)}
+              selected={wantsPrint}
+              subtitle={`$${PRINT_COPY_PRICE.toFixed(2)} per copy`}
+            />
+          </View>
+          {wantsPrint ? (
+            <View style={styles.printQuantityRow}>
+              <View>
+                <Text style={styles.stepperLabel}>Number of copies</Text>
+                <Text style={styles.stepperHint}>
+                  Added cost: ${(printCopies * PRINT_COPY_PRICE).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.stepper}>
+                <TouchableOpacity
+                  accessibilityLabel="Remove printed copy"
+                  activeOpacity={0.7}
+                  disabled={printCopies === 1}
+                  onPress={() =>
+                    onChangePrintCopies(Math.max(1, printCopies - 1))
+                  }
+                  style={styles.stepperButton}>
+                  <Feather
+                    name="minus"
+                    size={17}
+                    color={printCopies === 1 ? '#C4C8CE' : '#303642'}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.stepperValue}>{printCopies}</Text>
+                <TouchableOpacity
+                  accessibilityLabel="Add printed copy"
+                  activeOpacity={0.7}
+                  disabled={printCopies === 10}
+                  onPress={() =>
+                    onChangePrintCopies(Math.min(10, printCopies + 1))
+                  }
+                  style={styles.stepperButton}>
+                  <Feather name="plus" size={17} color="#303642" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
+        </BookingFlowSection>
+      ) : null}
+    </>
+  );
+}
+
 function SummaryRow({icon, label, last, value}) {
   return (
     <View style={[styles.summaryRow, last && styles.lastSummaryRow]}>
@@ -474,12 +568,16 @@ function SummaryRow({icon, label, last, value}) {
 }
 
 function ReviewStep({
+  additionalSignatureCharge,
   bookingFor,
   dateLabel,
+  documentCharge,
   documentType,
   isMobile,
   location,
   otherName,
+  printCopies,
+  printingCharge,
   price,
   serviceName,
   signers,
@@ -503,6 +601,17 @@ function ReviewStep({
             value={location}
           />
           <SummaryRow icon="file-text" label="Document" value={documentType} />
+          {isMobile ? (
+            <SummaryRow
+              icon="printer"
+              label="Printed copies"
+              value={
+                printCopies > 0
+                  ? `${printCopies} ${printCopies === 1 ? 'copy' : 'copies'}`
+                  : 'Not requested'
+              }
+            />
+          ) : null}
           <SummaryRow
             icon="users"
             label="Signing for"
@@ -521,15 +630,12 @@ function ReviewStep({
       <BookingFlowSection
         subtitle="You will only be charged after a notary accepts."
         title="Estimated total">
-        <View style={styles.priceRow}>
-          <View>
-            <Text style={styles.priceLabel}>Service estimate</Text>
-            <Text style={styles.priceHint}>
-              Secure payment through Notarizr
-            </Text>
-          </View>
-          <Text style={styles.price}>${price.toFixed(2)}</Text>
-        </View>
+        <PricingBreakdown
+          additionalSignatures={additionalSignatureCharge}
+          documentCharge={documentCharge}
+          printingCharge={printingCharge}
+          total={price}
+        />
         <View style={styles.paymentNotice}>
           <Feather name="shield" size={16} color="#168A52" />
           <Text style={styles.paymentNoticeText}>
@@ -592,7 +698,6 @@ export default function BookingFlowScreen({navigation, route}) {
   const isMobile = serviceType === 'mobile_notary';
   const backendServiceType = isMobile ? 'mobile_notary' : 'ron';
   const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
-  const dateOptions = useMemo(createDateOptions, []);
   const scrollRef = useRef(null);
   const {uploadAllDocuments, uploadMultipleFiles} = useRegister();
   const {data: documentCatalog, loading: documentsLoading} = useQuery(
@@ -614,7 +719,10 @@ export default function BookingFlowScreen({navigation, route}) {
   const [step, setStep] = useState(1);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(dateOptions[0].id);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    formatDateId(getMinimumBookingDate()),
+  );
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]);
   const [bookingFor, setBookingFor] = useState('self');
   const [otherName, setOtherName] = useState('');
@@ -629,6 +737,8 @@ export default function BookingFlowScreen({navigation, route}) {
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
   const [signers, setSigners] = useState(1);
   const [notes, setNotes] = useState('');
+  const [wantsPrint, setWantsPrint] = useState(false);
+  const [printCopies, setPrintCopies] = useState(1);
 
   const documentOptions = useMemo(() => {
     const catalogOptions = (
@@ -648,23 +758,46 @@ export default function BookingFlowScreen({navigation, route}) {
   }, [documentOptions, documentType]);
 
   useEffect(() => {
+    if (!isMobile) {
+      return;
+    }
+
+    AsyncStorage.getItem(SERVICE_SETTINGS_KEY)
+      .then(value => {
+        if (value) {
+          setWantsPrint(Boolean(JSON.parse(value)?.printByDefault));
+        }
+      })
+      .catch(error => console.warn('Print preference could not load:', error));
+  }, [isMobile]);
+
+  useEffect(() => {
     scrollRef.current?.scrollTo({animated: false, y: 0});
   }, [step]);
 
-  const dateLabel =
-    dateOptions.find(option => option.id === selectedDate)?.full ||
-    selectedDate;
+  const dateLabel = formatDateLabel(selectedDate);
   const location = isMobile
     ? selectedAddress?.location
     : 'Secure video appointment';
-  const price =
-    Number(documentType?.price || 0) + Math.max(0, signers - 1) * 10;
+  const documentCharge = Number(documentType?.price || 0);
+  const additionalSignatureCharge =
+    Math.max(0, signers - 1) * ADDITIONAL_SIGNATURE_PRICE;
+  const printingCharge =
+    isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
+  const price = documentCharge + additionalSignatureCharge + printingCharge;
   const stepOneValid =
     Boolean(selectedDate && selectedTime && (!isMobile || selectedAddress)) &&
     (bookingFor === 'self' || Boolean(otherName.trim() && otherPhone.trim()));
-  const stepTwoValid = Boolean(documentType && uploadedDocuments.length > 0);
+  const stepTwoValid = Boolean(documentType);
+  const stepThreeValid = Boolean(uploadedDocuments.length > 0);
   const disabled =
-    step === 1 ? !stepOneValid : step === 2 ? !stepTwoValid : false;
+    step === 1
+      ? !stepOneValid
+      : step === 2
+      ? !stepTwoValid
+      : step === 3
+      ? !stepThreeValid
+      : false;
 
   const handleBack = () => {
     if (step > 1) {
@@ -675,7 +808,7 @@ export default function BookingFlowScreen({navigation, route}) {
   };
 
   const handleContinue = async () => {
-    if (step < 3) {
+    if (step < 4) {
       setStep(current => current + 1);
       return;
     }
@@ -702,6 +835,15 @@ export default function BookingFlowScreen({navigation, route}) {
 
       const appointment = buildAppointmentDate(selectedDate, selectedTime);
       const nameParts = otherName.trim().split(/\s+/);
+      const printInstruction =
+        isMobile && wantsPrint
+          ? `Print request: ${printCopies} ${
+              printCopies === 1 ? 'copy' : 'copies'
+            }.`
+          : '';
+      const bookingNotes = [notes.trim(), printInstruction]
+        .filter(Boolean)
+        .join('\n');
       const bookingResponse = await createBooking({
         variables: {
           serviceType: backendServiceType,
@@ -715,7 +857,7 @@ export default function BookingFlowScreen({navigation, route}) {
             : null,
           dateOfBooking: appointment,
           timeOfBooking: appointment,
-          notes: notes.trim() || null,
+          notes: bookingNotes || null,
           bookingType: bookingFor,
           bookedFor: {
             first_name:
@@ -817,6 +959,7 @@ export default function BookingFlowScreen({navigation, route}) {
           onBack={handleBack}
           serviceName={`Book ${serviceName.toLowerCase()}`}
           step={step}
+          totalSteps={4}
         />
         <ScrollView
           ref={scrollRef}
@@ -828,7 +971,7 @@ export default function BookingFlowScreen({navigation, route}) {
               addresses={addresses}
               bookingFor={bookingFor}
               customAddress={customAddress}
-              dateOptions={dateOptions}
+              datePickerOpen={datePickerOpen}
               isMobile={isMobile}
               onAddAddress={() => setShowAddressInput(true)}
               onChangeBookingFor={setBookingFor}
@@ -839,6 +982,7 @@ export default function BookingFlowScreen({navigation, route}) {
               onSelectAddress={setSelectedAddress}
               onSelectDate={setSelectedDate}
               onSelectTime={setSelectedTime}
+              onToggleDatePicker={setDatePickerOpen}
               otherName={otherName}
               otherPhone={otherPhone}
               selectedAddress={selectedAddress}
@@ -847,7 +991,7 @@ export default function BookingFlowScreen({navigation, route}) {
               showAddressInput={showAddressInput}
             />
           ) : step === 2 ? (
-            <DocumentsStep
+            <DocumentDetailsStep
               documentOptions={documentOptions}
               documentsLoading={
                 documentsLoading && documentOptions.length === 0
@@ -857,18 +1001,30 @@ export default function BookingFlowScreen({navigation, route}) {
               onChangeNotes={setNotes}
               onChangeSigners={setSigners}
               onSelectDocumentType={setDocumentType}
-              onChooseDocuments={chooseDocuments}
               signers={signers}
+            />
+          ) : step === 3 ? (
+            <UploadAndPrintStep
+              isMobile={isMobile}
+              onChangePrintCopies={setPrintCopies}
+              onChooseDocuments={chooseDocuments}
+              onTogglePrint={setWantsPrint}
+              printCopies={printCopies}
               uploadedDocuments={uploadedDocuments}
+              wantsPrint={wantsPrint}
             />
           ) : (
             <ReviewStep
+              additionalSignatureCharge={additionalSignatureCharge}
               bookingFor={bookingFor}
               dateLabel={dateLabel}
+              documentCharge={documentCharge}
               documentType={documentType?.name || ''}
               isMobile={isMobile}
               location={location}
               otherName={otherName}
+              printCopies={isMobile && wantsPrint ? printCopies : 0}
+              printingCharge={printingCharge}
               price={price}
               serviceName={serviceName}
               signers={signers}
@@ -878,7 +1034,7 @@ export default function BookingFlowScreen({navigation, route}) {
         </ScrollView>
         <BookingFlowFooter
           disabled={disabled}
-          label={step === 3 ? 'Confirm request' : 'Continue'}
+          label={step === 4 ? 'Confirm request' : 'Continue'}
           loading={submitting}
           onPress={handleContinue}
         />
@@ -899,47 +1055,62 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     backgroundColor: '#F7F8FA',
   },
-  dateList: {
-    paddingHorizontal: 16,
+  datePickerField: {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E0E3E7',
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
   },
-  dateTile: {
-    width: 72,
-    height: 82,
+  datePickerIcon: {
+    width: 42,
+    height: 42,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: '#E1E4E8',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF0E7',
   },
-  selectedDateTile: {
-    borderColor: '#FD6D1F',
-    backgroundColor: '#FD6D1F',
+  datePickerCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 12,
   },
-  dateDay: {
-    color: '#858C97',
-    fontFamily: 'Manrope-SemiBold',
+  datePickerLabel: {
+    color: '#9298A2',
+    fontFamily: 'Manrope-Regular',
     fontSize: 9,
   },
-  dateNumber: {
-    marginVertical: 2,
+  datePickerValue: {
+    marginTop: 3,
     color: '#202632',
     fontFamily: 'Manrope-Bold',
-    fontSize: 22,
+    fontSize: 12,
   },
-  dateMonth: {
-    color: '#858C97',
-    fontFamily: 'Manrope-SemiBold',
+  datePickerAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  datePickerActionText: {
+    marginRight: 2,
+    color: '#D65322',
+    fontFamily: 'Manrope-Bold',
     fontSize: 9,
   },
-  selectedDateText: {
-    color: '#FFFFFF',
+  timeSectionLabel: {
+    marginTop: 16,
+    marginHorizontal: 20,
+    color: '#303642',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
   },
   timeList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 10,
+    marginTop: 2,
     paddingHorizontal: 20,
   },
   timeChip: {
@@ -1220,6 +1391,69 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
   },
+  printOption: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E0E3E7',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    minHeight: 64,
+    padding: 11,
+    width: '48.5%',
+  },
+  printOptionCopy: {flex: 1, marginLeft: 9},
+  printOptionLabel: {
+    color: '#3D4450',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  printOptionSubtitle: {
+    color: '#9298A2',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 8,
+    lineHeight: 12,
+    marginTop: 2,
+  },
+  printOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+  printQuantityRow: {
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    borderColor: '#E0E3E7',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginTop: 12,
+    minHeight: 62,
+    paddingHorizontal: 12,
+  },
+  radio: {
+    alignItems: 'center',
+    borderColor: '#B8BEC7',
+    borderRadius: 9,
+    borderWidth: 1,
+    height: 18,
+    justifyContent: 'center',
+    width: 18,
+  },
+  radioDot: {
+    backgroundColor: '#FD6D1F',
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  selectedPrintOption: {
+    backgroundColor: '#FFF9F5',
+    borderColor: '#FD6D1F',
+  },
+  selectedPrintOptionLabel: {color: '#D65322'},
+  selectedRadio: {borderColor: '#FD6D1F'},
   summaryList: {
     paddingHorizontal: 20,
   },

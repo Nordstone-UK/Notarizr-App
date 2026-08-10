@@ -81,7 +81,6 @@ export default function ProfileInfoScreen({navigation}: any) {
       <ProfileHeader
         user={user}
         onDetails={() => openProfile(false)}
-        onEdit={() => openProfile(true)}
         onSettings={() => navigation.navigate('SettingScreen')}
       />
       <ScrollView
@@ -98,7 +97,7 @@ export default function ProfileInfoScreen({navigation}: any) {
           <ProfileMenuItem
             icon="sliders"
             title="Account settings"
-            description="Account type, privacy and security"
+            description="Booking preferences and account type"
             tone="gray"
             onPress={() => navigation.navigate('SettingScreen')}
           />

@@ -6,7 +6,7 @@ import AppColors from '../../themes/AppColors';
 const formatAccountType = accountType =>
   accountType === 'client' ? 'Client account' : 'Notary professional';
 
-export default function ProfileHeader({user, onDetails, onEdit, onSettings}) {
+export default function ProfileHeader({user, onDetails, onSettings}) {
   const [imageFailed, setImageFailed] = useState(false);
   const fullName = [user?.first_name, user?.last_name]
     .filter(Boolean)
@@ -76,25 +76,6 @@ export default function ProfileHeader({user, onDetails, onEdit, onSettings}) {
         <TouchableOpacity
           accessibilityRole="button"
           activeOpacity={0.76}
-          onPress={onEdit}
-          style={styles.action}>
-          <View style={styles.primaryIcon}>
-            <Feather name="edit-3" size={17} color={AppColors.white} />
-          </View>
-          <View style={styles.actionCopy}>
-            <Text style={styles.actionTitle}>Edit profile</Text>
-            <Text style={styles.actionText}>Update your information</Text>
-          </View>
-          <Feather
-            name="arrow-up-right"
-            size={17}
-            color={AppColors.textMuted}
-          />
-        </TouchableOpacity>
-        <View style={styles.actionDivider} />
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={0.76}
           onPress={onDetails}
           style={styles.action}>
           <View style={styles.secondaryIcon}>
@@ -106,7 +87,9 @@ export default function ProfileHeader({user, onDetails, onEdit, onSettings}) {
           </View>
           <View style={styles.actionCopy}>
             <Text style={styles.actionTitle}>Personal details</Text>
-            <Text style={styles.actionText}>View account information</Text>
+            <Text style={styles.actionText}>
+              View and edit your account information
+            </Text>
           </View>
           <Feather name="chevron-right" size={18} color={AppColors.textMuted} />
         </TouchableOpacity>
@@ -152,7 +135,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   actionCopy: {flex: 1, marginHorizontal: 12},
-  actionDivider: {backgroundColor: AppColors.border, height: 1, marginLeft: 58},
   actionText: {
     color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
@@ -249,14 +231,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 25,
     marginTop: 1,
-  },
-  primaryIcon: {
-    alignItems: 'center',
-    backgroundColor: AppColors.primary,
-    borderRadius: 8,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
   },
   secondaryIcon: {
     alignItems: 'center',

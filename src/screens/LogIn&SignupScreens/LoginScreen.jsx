@@ -21,7 +21,6 @@ import Toast from 'react-native-toast-message';
 import Svg, {Path} from 'react-native-svg';
 import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
-import {isLocalTestPhone} from '../../data/localTestAccounts';
 
 const LOGIN_BACKGROUND = Colors.white;
 const HERO_ORANGE_END = '#FD6D1F';
@@ -43,16 +42,6 @@ export default function LoginScreen({navigation}) {
     //   return;
     //  } else {
     dispatch(phoneSet(phone));
-
-    if (__DEV__ && isLocalTestPhone(phone)) {
-      Toast.show({
-        type: 'success',
-        text1: 'Test code ready',
-        text2: 'Enter 0000 to continue.',
-      });
-      navigation.navigate('PhoneVerification', {message: phone});
-      return;
-    }
 
     try {
       getPhoneOtp({
@@ -199,11 +188,19 @@ export default function LoginScreen({navigation}) {
           source={require('../../../assets/loginBackground.png')}
           style={styles.heroImage}
           resizeMode="stretch">
-          <Image
-            source={require('../../../assets/notarizrLogo1.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.logoLockup}>
+            <View style={styles.logoAccent} />
+            <Image
+              source={require('../../../assets/notarizrLogo1.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <View style={styles.brandBars}>
+              <View style={[styles.brandBar, styles.brandBarNavy]} />
+              <View style={[styles.brandBar, styles.brandBarOrange]} />
+              <View style={[styles.brandBar, styles.brandBarSoft]} />
+            </View>
+          </View>
           <Svg
             style={styles.waveOverlay}
             viewBox="0 0 400 90"
@@ -249,12 +246,58 @@ const styles = StyleSheet.create({
     paddingBottom: heightToDp(6),
     backgroundColor: LOGIN_BACKGROUND,
   },
-  logo: {
+  logoLockup: {
     position: 'absolute',
-    left: widthToDp(7),
-    top: Platform.OS === 'ios' ? heightToDp(14) : heightToDp(8),
-    width: widthToDp(31),
-    height: heightToDp(6),
+    left: widthToDp(6),
+    top: Platform.OS === 'ios' ? heightToDp(16) : heightToDp(8),
+    width: widthToDp(51),
+    height: heightToDp(16),
+    justifyContent: 'center',
+    paddingHorizontal: widthToDp(4),
+    borderWidth: 1,
+    borderColor: 'rgba(18, 24, 38, 0.09)',
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    shadowColor: '#121826',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  logoAccent: {
+    position: 'absolute',
+    left: 0,
+    top: '22%',
+    width: 4,
+    height: '56%',
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: HERO_ORANGE_END,
+  },
+  logo: {
+    width: widthToDp(42),
+    height: heightToDp(10.5),
+  },
+  brandBars: {
+    position: 'absolute',
+    right: widthToDp(2.5),
+    bottom: heightToDp(1.5),
+    flexDirection: 'row',
+    columnGap: 3,
+  },
+  brandBar: {
+    width: 10,
+    height: 3,
+    borderRadius: 2,
+  },
+  brandBarNavy: {
+    backgroundColor: '#121826',
+  },
+  brandBarOrange: {
+    backgroundColor: HERO_ORANGE_END,
+  },
+  brandBarSoft: {
+    backgroundColor: '#FFB98D',
   },
   heroImage: {
     width: '100%',
