@@ -38,6 +38,7 @@ const AGENT_TABS = [
 ];
 
 const STATUS_META = {
+  // ── Active / accepted family ───────────────────────────────
   accepted: {
     background: BookingColors.successSoft,
     card: BookingColors.surface,
@@ -45,6 +46,49 @@ const STATUS_META = {
     color: BookingColors.success,
     label: 'Accepted',
   },
+  to_be_paid: {
+    background: BookingColors.warningSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.warning,
+    label: 'To be paid',
+  },
+  paid: {
+    background: BookingColors.infoSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.info,
+    label: 'Paid',
+  },
+  payment_confirmed: {
+    background: BookingColors.infoSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.info,
+    label: 'Payment confirmed',
+  },
+  travelling: {
+    background: BookingColors.infoSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.info,
+    label: 'Travelling',
+  },
+  ongoing: {
+    background: BookingColors.infoSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.info,
+    label: 'Ongoing',
+  },
+  completed: {
+    background: BookingColors.successSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.success,
+    label: 'Completed',
+  },
+  // ── Pending ────────────────────────────────────────────────
   pending: {
     background: BookingColors.warningSoft,
     card: BookingColors.surface,
@@ -52,7 +96,15 @@ const STATUS_META = {
     color: BookingColors.warning,
     label: 'Pending',
   },
+  // ── Cancelled / rejected family ────────────────────────────
   rejected: {
+    background: BookingColors.errorSoft,
+    card: BookingColors.surface,
+    border: BookingColors.border,
+    color: BookingColors.error,
+    label: 'Cancelled',
+  },
+  cancelled: {
     background: BookingColors.errorSoft,
     card: BookingColors.surface,
     border: BookingColors.border,

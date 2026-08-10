@@ -73,6 +73,25 @@ export default function ProfileHeader({user, onDetails, onSettings}) {
       </View>
 
       <View style={styles.actionCard}>
+        {/* <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={0.76}
+          onPress={onEdit}
+          style={styles.action}>
+          <View style={styles.primaryIcon}>
+            <Feather name="edit-3" size={17} color={AppColors.white} />
+          </View>
+          <View style={styles.actionCopy}>
+            <Text style={styles.actionTitle}>Edit profile</Text>
+            <Text style={styles.actionText}>Update your information</Text>
+          </View>
+          <Feather
+            name="arrow-up-right"
+            size={17}
+            color={AppColors.textMuted}
+          />
+        </TouchableOpacity> */}
+        <View style={styles.actionDivider} />
         <TouchableOpacity
           accessibilityRole="button"
           activeOpacity={0.76}

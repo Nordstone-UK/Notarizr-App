@@ -1,13 +1,23 @@
 import React, {useMemo, useState} from 'react';
 import {
+  LayoutAnimation,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
+  UIManager,
   View,
 } from 'react-native';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import {useMutation} from '@apollo/client';
 import {useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
@@ -99,6 +109,148 @@ function Section({children, title}) {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionBody}>{children}</View>
+    </View>
+  );
+}
+
+const SIGNATURE_RATE = 2;
+const PRINT_RATE = 1;
+
+function PricingBreakdown({booking, price}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const docTypes = Array.isArray(booking?.document_type)
+    ? booking.document_type
+    : booking?.document_type
+    ? [booking.document_type]
+    : [];
+
+  const signatures = Array.isArray(booking?.signatures)
+    ? booking.signatures
+    : [];
+
+  const isMobile =
+    (booking?.service_type || booking?.service?.service_type) ===
+    'mobile_notary';
+
+  if (price <= 0) {
+    return (
+      <DetailRow
+        icon="dollar-sign"
+        label="Estimated total"
+        last
+        value="Set in booking workspace"
+      />
+    );
+  }
+
+  const documentFee = docTypes.reduce(
+    (sum, doc) => sum + Number(doc.price || 0),
+    0,
+  );
+  const signatureFee = signatures.length * SIGNATURE_RATE;
+  const printingFee = isMobile ? docTypes.length * PRINT_RATE : 0;
+  const computedSum = documentFee + signatureFee + printingFee;
+  const serviceFee = Math.max(0, price - computedSum);
+
+  const lineItems = [
+    ...docTypes
+      .filter(doc => Number(doc.price || 0) > 0)
+      .map(doc => ({
+        icon: 'file-text',
+        label: doc.name || 'Document',
+        sublabel: 'Notarization fee',
+        amount: Number(doc.price),
+      })),
+    signatures.length > 0 && {
+      icon: 'edit-3',
+      label: 'Signatures',
+      sublabel: `${signatures.length} signer${
+        signatures.length !== 1 ? 's' : ''
+      } × $${SIGNATURE_RATE.toFixed(2)}`,
+      amount: signatureFee,
+    },
+    isMobile &&
+      docTypes.length > 0 && {
+        icon: 'printer',
+        label: 'Printing',
+        sublabel: `${docTypes.length} document${
+          docTypes.length !== 1 ? 's' : ''
+        }  × $${PRINT_RATE.toFixed(2)}`,
+        amount: printingFee,
+      },
+    serviceFee > 0 && {
+      icon: 'briefcase',
+      label: 'Notary service fee',
+      sublabel: isMobile ? 'Includes travel' : 'Remote session',
+      amount: serviceFee,
+    },
+  ].filter(Boolean);
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(v => !v);
+  };
+
+  return (
+    <View>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={toggle}
+        style={[styles.detailRow, !expanded && styles.lastDetailRow]}>
+        <View style={styles.detailIcon}>
+          <Feather name="dollar-sign" size={16} color={BookingColors.primary} />
+        </View>
+        <View style={styles.detailCopy}>
+          <Text style={styles.detailLabel}>Estimated total</Text>
+          <Text style={styles.detailValue}>${price.toFixed(2)}</Text>
+        </View>
+        <View style={styles.breakdownToggle}>
+          <Text style={styles.breakdownToggleLabel}>
+            {expanded ? 'Hide' : 'Details'}
+          </Text>
+          <Feather
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={13}
+            color={BookingColors.primary}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={styles.breakdownPanel}>
+          <Text style={styles.breakdownHeading}>Cost breakdown</Text>
+          {lineItems.map((item, index) => (
+            <View
+              key={index}
+              style={[
+                styles.breakdownRow,
+                index < lineItems.length - 1 && styles.breakdownRowBorder,
+              ]}>
+              <View style={styles.breakdownIconWrap}>
+                <Feather
+                  name={item.icon}
+                  size={12}
+                  color={BookingColors.textSecondary}
+                />
+              </View>
+              <View style={styles.breakdownCopy}>
+                <Text style={styles.breakdownLabel}>{item.label}</Text>
+                {item.sublabel ? (
+                  <Text style={styles.breakdownSublabel}>{item.sublabel}</Text>
+                ) : null}
+              </View>
+              <Text style={styles.breakdownAmount}>
+                ${item.amount.toFixed(2)}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.breakdownTotalRow}>
+            <Text style={styles.breakdownTotalLabel}>Estimated total</Text>
+            <Text style={styles.breakdownTotalAmount}>${price.toFixed(2)}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -390,14 +542,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             label="Instructions"
             value={booking?.notes || 'No additional instructions provided.'}
           />
-          <DetailRow
-            icon="dollar-sign"
-            label="Estimated total"
-            last
-            value={
-              price > 0 ? `$${price.toFixed(2)}` : 'Set in booking workspace'
-            }
-          />
+          <PricingBreakdown booking={booking} price={price} />
         </Section>
       </ScrollView>
 
@@ -633,5 +778,93 @@ const styles = StyleSheet.create({
     color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
+  },
+  breakdownToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  breakdownToggleLabel: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+  },
+  breakdownPanel: {
+    marginHorizontal: 14,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  breakdownHeading: {
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  breakdownRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  breakdownIconWrap: {
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+    backgroundColor: BookingColors.surface,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+  },
+  breakdownCopy: {flex: 1, marginLeft: 10},
+  breakdownLabel: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  breakdownSublabel: {
+    marginTop: 1,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+  },
+  breakdownAmount: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  breakdownTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: BookingColors.border,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  breakdownTotalLabel: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  breakdownTotalAmount: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
   },
 });

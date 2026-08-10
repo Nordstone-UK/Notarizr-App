@@ -33,7 +33,11 @@ const init = () => {
   });
 
   const authLink = setContext(async (_, {headers}) => {
-    const token = await AsyncStorage.getItem('token');
+    const rawToken = await AsyncStorage.getItem('token');
+    // local-preview tokens are fake IDs used for offline UI dev — strip them
+    // so they are never sent to the server as Bearer tokens (they fail JWT verify)
+    const token =
+      rawToken && !rawToken.startsWith('local-preview:') ? rawToken : null;
     const location = getRequestLocation();
     return {
       headers: {
