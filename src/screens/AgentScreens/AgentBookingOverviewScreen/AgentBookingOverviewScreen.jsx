@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {
   LayoutAnimation,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -90,9 +91,9 @@ const formatStatus = value =>
     .replaceAll('_', ' ')
     .replace(/\b\w/g, character => character.toUpperCase());
 
-function DetailRow({icon, label, value, last = false}) {
-  return (
-    <View style={[styles.detailRow, last && styles.lastDetailRow]}>
+function DetailRow({icon, label, value, last = false, onPress}) {
+  const content = (
+    <>
       <View style={styles.detailIcon}>
         <Feather name={icon} size={16} color={BookingColors.primary} />
       </View>
@@ -100,9 +101,63 @@ function DetailRow({icon, label, value, last = false}) {
         <Text style={styles.detailLabel}>{label}</Text>
         <Text style={styles.detailValue}>{value}</Text>
       </View>
+      {onPress ? (
+        <Feather
+          name="chevron-right"
+          size={18}
+          color={BookingColors.textMuted}
+        />
+      ) : null}
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={onPress}
+        style={[styles.detailRow, last && styles.lastDetailRow]}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={[styles.detailRow, last && styles.lastDetailRow]}>
+      {content}
     </View>
   );
 }
+
+const openLocationInMaps = async address => {
+  const query = String(address || '').trim();
+  if (!query) {
+    Toast.show({
+      type: 'error',
+      text1: 'Location unavailable',
+      text2: 'No address is available for this booking.',
+    });
+    return;
+  }
+
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    query,
+  )}`;
+
+  try {
+    const canOpen = await Linking.canOpenURL(url);
+    if (!canOpen) {
+      throw new Error('Cannot open maps');
+    }
+    await Linking.openURL(url);
+  } catch {
+    Toast.show({
+      type: 'error',
+      text1: 'Unable to open Maps',
+      text2: 'Please try again later.',
+    });
+  }
+};
 
 function Section({children, title}) {
   return (
@@ -257,7 +312,9 @@ function PricingBreakdown({booking, price}) {
 
 export default function AgentBookingOverviewScreen({navigation, route}) {
   const storedBooking = useSelector(state => state.booking.booking);
+  const authenticatedAgent = useSelector(state => state.user.user);
   const booking = route.params?.clientDetail || storedBooking;
+
   const normalized = useMemo(() => normalizeAgentBooking(booking), [booking]);
   const client = getBookingClient(booking);
   const initialStatus =
@@ -336,6 +393,9 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       setActiveAction(null);
     }
   };
+
+  console.log(booking, 'booking');
+  console.log(client, 'client');
 
   const openWorkspace = () =>
     navigation.navigate('AgentBookingWorkspace', {clientDetail: booking});
@@ -497,7 +557,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
               activeOpacity={0.7}
               onPress={() =>
                 navigation.navigate('ChatScreen', {
-                  sender: booking?.agent,
+                  sender: authenticatedAgent || booking?.agent,
                   receiver: client,
                   chat: booking?._id,
                   channel: booking?.agora_channel_name,
@@ -532,6 +592,11 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             }
             last
             value={normalized.location}
+            onPress={
+              normalized.service_type === 'mobile_notary'
+                ? () => openLocationInMaps(normalized.location)
+                : undefined
+            }
           />
         </Section>
 

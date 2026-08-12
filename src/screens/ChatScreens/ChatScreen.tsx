@@ -1,866 +1,648 @@
+import {useMutation} from '@apollo/client';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  ActivityIndicator,
   Image,
+  SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView,
-  Platform,
-  PermissionsAndroid,
-  Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import { height, heightToDp, widthToDp } from '../../utils/Responsive';
-import Colors from '../../themes/Colors';
-import { Actions, GiftedChat, IMessage } from 'react-native-gifted-chat';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  ChatClient,
-  ChatOptions,
-  ChatMessageChatType,
-  ChatMessage,
-  ChatFetchMessageOptions,
-  ChatConversation,
-  ChatConversationType,
-} from 'react-native-agora-chat';
-import {
-  ClientRoleType,
-  createAgoraRtcEngine,
-  IRtcEngine,
-  ChannelProfileType,
-} from 'react-native-agora';
-import useChatService from '../../hooks/useChatService';
-import { Token } from 'graphql';
-import { GET_CHAT_TOKEN } from '../../../request/mutations/getUserChatToken.mutation';
-import { useMutation } from '@apollo/client';
-import { setChatToken } from '../../features/chats/chatsSlice';
+import {Actions, GiftedChat} from 'react-native-gifted-chat';
+import {launchImageLibrary} from 'react-native-image-picker';
 import Toast from 'react-native-toast-message';
-import { socket } from '../../utils/Socket';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { captureImage, chooseFile } from '../../utils/ImagePicker';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {GET_CHAT_TOKEN} from '../../../request/mutations/getUserChatToken.mutation';
+import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
+import {setChatToken} from '../../features/chats/chatsSlice';
 import useRegister from '../../hooks/useRegister';
-import { Iconoir } from 'iconoir-react-native';
-export default function ChatScreen({ route, navigation }: any) {
-  const { handleCompression, uploadBlobToS3, handleRegister } = useRegister();
+import Colors from '../../themes/Colors';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {socket} from '../../utils/Socket';
 
+const AGORA_CHAT_APP_KEY = '411048105#1224670';
 
+/**
+ * Load the SDK when the chat screen is opened. A static import executes the
+ * SDK's NativeEventEmitter while the app bundle is loading and produces an
+ * unhelpful Hermes `ChatClient of undefined` crash when the native binary has
+ * not yet been rebuilt. Loading it here lets us report/retry that state safely.
+ */
+function loadAgoraChatSdk() {
+  try {
+    const module = require('react-native-agora-chat');
+    const sdk = module?.ChatClient ? module : module?.default;
 
-
-  const [getChatToken] = useMutation(GET_CHAT_TOKEN);
-  const dispatch = useDispatch();
-  const getPermission = async () => {
-    if (Platform.OS === 'android') {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-      ]);
+    if (!sdk?.ChatClient || !sdk?.ChatMessage) {
+      throw new Error('Agora Chat SDK is unavailable in this app build.');
     }
-  };
-  const { getAgoraCallToken } = useChatService();
-  const token = useSelector(state => state?.chats?.chatToken);
-  console.log("tokeren", token)
-  const { sender, receiver, chat, channel, voiceToken } = route.params;
-  const appKey = '411048105#1224670';
-  const uid = 0;
-  const [channelName, setChannelName] = useState('');
-  const [callToken, setCallToken] = useState('');
-  const [chatToken, setchatToken] = React.useState(token);
-  const [targetId, setTargetId] = React.useState(receiver?._id);
-  const [username, setUsername] = React.useState(sender?._id);
-  const [content, setContent] = React.useState([]);
-  const chatClient = ChatClient.getInstance();
-  const chatManager = chatClient.chatManager;
-  const createIfNeed = true;
-  const convType = ChatConversationType.PeerChat;
-  let convID: string;
-  const agoraEngineRef = useRef<IRtcEngine>(); // Agora engine instance
-  const [isJoined, setIsJoined] = useState(false); // Indicates if the local user has joined the channel
-  const [remoteUid, setRemoteUid] = useState(0); // Uid of the remote user
-  const [message, setMessage] = useState('');
-  const [inputMessage, setInputMessage] = useState("");
-  const [selectedImages, setSelectedImages] = useState([]);
 
-
-
-
-  const getVoiceToken = async () => {
-    try {
-      const { channelName, token } = await getAgoraCallToken(receiver._id);
-      // console.log("tkfdfdfd", channelName, token)
-      setChannelName(channelName);
-      setCallToken(token);
-    } catch (error) {
-      console.log('API Error:', error);
-    }
-  };
-  function showMessage(msg: string) {
-    setMessage(msg);
+    return sdk;
+  } catch (error: any) {
+    const nativeMessage = error?.description || error?.message;
+    throw new Error(
+      nativeMessage ||
+        'Agora Chat is not linked. Rebuild the native app after installing pods.',
+    );
   }
-  const retreiveConverstation = async () => {
-    chatManager
-      .getAllConversations()
-      .then(data => {
-        // console.log("getconversationdate", data)
-        convID = data[0]?.convId;
-        console.log
-        fetchHistoryMessages(convID, convType);
-      })
-      .catch(reason => {
-        console.log('Loading conversations fails', reason);
-      });
-  };
-  const fetchHistoryMessages = async () => {
-    try {
-      const convList = await chatManager.getAllConversations();
-      console.log("consversatiocn", convList)
-      if (convList && convList.length > 0) {
-        const conversation = convList.find(conv => conv.convType === ChatConversationType.PeerChat && conv.convId === targetId);
-
-
-
-
-        if (conversation) {
-          const messages = await chatManager.fetchHistoryMessagesByOptions(conversation.convId, ChatConversationType.PeerChat, {
-            cursor: '',
-            pageSize: 100,
-          });
-          console.log("messsssagesss", messages.list.body)
-          if (messages && messages.list) {
-            const formattedMessages = formatMessages(messages.list);
-            console.log("foramtedmessag", formattedMessages)
-            setContent(previousMessages => GiftedChat.append(previousMessages, formattedMessages));
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch history messages:', error);
-    }
-  };
-  useEffect(() => {
-
-
-
-
-    const setMessageListener = () => {
-      let msgListener = {
-        onMessagesReceived(messages: string | any[]) {
-          console.log('Received messages:', messages);
-          for (let index = 0; index < messages.length; index++) {
-            const newMessages = [
-              {
-                _id: messages[index].msgId,
-                text: messages[index].body.content,
-                createdAt: messages[index].localTime,
-                user: {
-                  _id: receiver?._id,
-                },
-              },
-            ];
-            console.log('Generated new message:', newMessages);
-            setContent((previousMessages: any) =>
-              GiftedChat.append(previousMessages, newMessages),
-            );
-          }
-        },
-        onCmdMessagesReceived: (messages: any) => { },
-        onMessagesRead: (messages: any) => { },
-        onGroupMessageRead: (groupMessageAcks: any) => { },
-        onMessagesDelivered: (messages: any) => { },
-        onMessagesRecalled: (messages: any) => { },
-        onConversationsUpdate: () => { },
-        onConversationRead: (from: any, to: any) => { },
-      };
-      chatManager.removeAllMessageListener();
-      chatManager.addMessageListener(msgListener);
-    };
-    const init = () => {
-      let o = new ChatOptions({
-        autoLogin: false,
-        appKey: appKey,
-      });
-      chatClient.removeAllConnectionListener();
-      chatClient
-        .init(o)
-        .then(() => {
-          console.log('init success');
-          this.isInitialized = true;
-          let listener = {
-            onTokenWillExpire() {
-              console.log('token expire.');
-            },
-            onTokenDidExpire() {
-              console.log('token did expire');
-            },
-            onConnected() {
-              console.log('onConnected');
-              setMessageListener();
-              retreiveConverstation();
-            },
-            onDisconnected(errorCode: string) {
-              console.log('onDisconnected:' + errorCode);
-            },
-          };
-          login();
-          chatClient.addConnectionListener(listener);
-        })
-        .catch(error => {
-          console.log(
-            'init fail: ' +
-            (error instanceof Object ? JSON.stringify(error) : error),
-          );
-        });
-    };
-    init();
-    getVoiceToken();
-  }, [chatClient, chatManager, appKey, getChatToken]);
-  const refreshChatTokenAndRetryLogin = async () => {
-    try {
-      const { data } = await getChatToken();
-      const newToken = data?.getUserChatToken?.token;
-
-
-
-
-      if (newToken) {
-        // Dispatch the new token
-        dispatch(setChatToken(newToken));
-
-
-
-
-        // Retry login
-        await chatClient.loginWithAgoraToken(username, token);
-        console.log('Login retry successful.');
-      } else {
-        console.error('Failed to fetch a new chat token.');
-      }
-    } catch (error) {
-      console.error('Error refreshing token and retrying login:', error);
-    }
-  };
-  const logout = () => {
-    if (this.isInitialized === false || this.isInitialized === undefined) {
-      console.log('Perform initialization first.');
-      return;
-    }
-    console.log('start logout ...');
-    chatClient
-      .logout()
-      .then(() => {
-        console.log('logout success.');
-      })
-      .catch(reason => {
-        console.log('logout fail:' + JSON.stringify(reason));
-      });
-  };
-  const login = async () => {
-    if (this.isInitialized === false || this.isInitialized === undefined) {
-      console.log('Perform initialization first.');
-      return;
-    }
-    chatClient
-      .loginWithAgoraToken(username, chatToken)
-      .then(() => {
-        console.log('login operation success.');
-      })
-      .catch(reason => {
-        if (reason.code === 108) {
-          logout()
-          refreshChatTokenAndRetryLogin();
-        }
-        else if (reason.code === 202) {
-          logout()
-          refreshChatTokenAndRetryLogin();
-        }
-        else if (reason.code === 201) {
-
-
-
-
-          login();
-
-
-
-
-        }
-        else if (reason.code === 104) {
-          logout()
-          refreshChatTokenAndRetryLogin();
-        }
-        else if (reason.code === 200) {
-          // User already logged in, log out and retry login
-          console.log('User already logged in, attempting to log out and retry login...');
-          try {
-            logout()
-            console.log('Logout successful, retrying login...');
-            login();
-          } catch (logoutError) {
-            console.error('Logout failed:', logoutError);
-          }
-        }
-        else {
-          console.error('Login failed for another reason:', reason);
-        }
-        console.log('login fail: ' + JSON.stringify(reason));
-      });
-  };
-  const sendmsg = async (newMessage: string) => {
-
-    console.log("newmessagere", newMessage)
-
-
-    const chatType = ChatMessageChatType.PeerChat;
-    let content;
-    console.log('Sending message:sss', newMessage);
-
-
-
-
-    if (this.isInitialized === false || this.isInitialized === undefined) {
-      console.log('Perform initialization first.');
-      return;
-    }
-
-
-
-
-    let msg: ChatMessage;
-
-
-
-
-
-
-
-
-    if (newMessage.text) {
-      // Sending text message
-      content = newMessage.text;
-      msg = ChatMessage.createTextMessage(targetId, content, chatType);
-    }
-    else if (newMessage.image) {
-      // Sending image message
-
-
-
-
-      let imageBlob = await handleCompression(newMessage.image.uri)
-      const url = await uploadBlobToS3(imageBlob);
-
-
-
-
-      const filePath = newMessage.image.uri; // Image file path
-      const fileName = newMessage.image.fileName || 'image.jpg'; // Default file name
-      const fileSize = newMessage.image.fileSize; // Optional file size
-      content = filePath;
-      console.log("filepath", filePath)
-      msg = ChatMessage.createImageMessage(
-        targetId,
-        filePath,
-        chatType,
-        fileName,
-        fileSize
-      );
-    }
-    const callback = new (class {
-      onProgress(locaMsgId: any, progress: any) {
-        console.log(`send message process: ${locaMsgId}, ${progress}`);
-
-
-
-
-      }
-
-
-
-
-      onError(locaMsgId: any, error: any) {
-        console.log(
-          `send message fail: ${locaMsgId}, ${JSON.stringify(error)}`,
-        );
-        if (error.code === 500) {
-          try {
-            // Perform relogin operation
-            refreshChatTokenAndRetryLogin();
-            Toast.show({
-              type: 'error',
-              text1: 'Message Failed',
-              text2: 'Failed to send the message. Please try again.',
-            });
-          }
-          // // Fetch the original message using locaMsgId or any stored reference
-          // const message = getMessageById(locaMsgId); // Implement this function to retrieve the original message
-          // console.log("messagere", message)
-          // if (message) {
-          //   message.status = 'pending';
-          //   const resendCallback = new (class {
-          //     onProgress(resendMsgId: string, resendProgress: any) {
-          //       console.log(
-          //         `Resending progress: ${resendMsgId}, ${resendProgress}`
-          //       );
-          //     }
-          //     onError(resendMsgId: string, resendError: any) {
-          //       console.error(
-          //         `Resending failed: ${resendMsgId}, ${JSON.stringify(resendError)}`
-          //       );
-          //     }
-          //     onSuccess(resendMsg: { localMsgId: string }) {
-          //       console.log(`Resent successfully: ${resendMsg.localMsgId}`);
-          //     }
-          //   })();
-
-
-
-
-          //   chatClient.chatManager.sendMessage(message, resendCallback);
-          // } else {
-          //   console.error(`Original message not found: ${localMsgId}`);
-          // }
-          catch (e) {
-            console.error(`Error during relogin or resend: ${e.message}`);
-          }
-        }
-      }
-      onSuccess(message: { localMsgId: string }) {
-        console.log('send message success: ' + content);
-        const data = {
-          receiverId: receiver?._id,
-          text: newMessage.text
-            ? newMessage.text
-            : "Image sent",
-          senderName: `${sender?.first_name} ${sender?.last_name}`,
-        }
-        socket.emit('send-message', data);
-        const newMessages = formatMessages([
-          {
-            msgId: message.localMsgId,
-            serverTime: Date.now(),
-            from: sender?._id,
-            body: {
-              type: newMessage.text ? "txt" : "img",
-              content: content,
-              remotePath: content, // For images, this would be the uploaded URL
-              thumbnailRemotePath: newMessage.image?.thumbnail || "",
-              displayName: newMessage.image?.fileName || "image",
-              fileSize: newMessage.image?.fileSize || 0,
-            },
-          },
-        ]);
-
-
-
-
-        setContent((previousMessages: any) =>
-          GiftedChat.append(previousMessages, newMessages),
-        );
-      }
-    })();
-
-
-
-
-    chatClient.chatManager
-      .sendMessage(msg, callback)
-      .then(() => {
-        console.log('send message: ' + msg.localMsgId);
-      })
-      .catch(reason => {
-        console.log('send fail: ' + JSON.stringify(reason));
-      });
-  };
-  function getMessageById(localMsgId: string): ChatMessage | undefined {
-    // Retrieve the original message from storage or memory using the local message ID.
-    return chatMessageCache[localMsgId]; // Replace with actual retrieval logic
-  }
-  const formatMessages = (messageList: any[]) => {
-    console.log('messageList', messageList);
-
-
-
-
-    if (!messageList || !Array.isArray(messageList)) {
-      return [];
-    }
-
-
-
-
-    return messageList.map(message => {
-      // Determine if the message is an image or text
-      const isImage = message.body?.type === "img";
-      const isText = message.body?.type === "txt";
-
-
-
-
-      // Handle formatting for each type of message
-      const formattedMessage = {
-        _id: message.msgId,
-        createdAt: new Date(message.serverTime),
-        user: {
-          _id: message.from,
-        },
+}
+
+function formatAgoraMessages(messageList: any[] = []) {
+  return messageList
+    .map(message => {
+      const baseMessage = {
+        _id: message.msgId || message.localMsgId,
+        createdAt: new Date(
+          message.serverTime || message.localTime || Date.now(),
+        ),
+        user: {_id: message.from},
       };
 
-
-
-
-      if (isImage) {
-        // Image message
+      if (message.body?.type === 'img') {
         return {
-          ...formattedMessage,
-          image: message.body?.remotePath || "", // Use the remote path for the image
-          thumbnail: message.body?.thumbnailRemotePath || "", // Optional thumbnail path
-          fileName: message.body?.displayName || "image", // File name for display
-          fileSize: message.body?.fileSize || 0, // Size of the image
-        };
-      } else if (isText) {
-        // Text message
-        return {
-          ...formattedMessage,
-          text: message.body?.content || "", // Text content
-        };
-      } else {
-        // Default case for unsupported types
-        return {
-          ...formattedMessage,
-          text: "[Unsupported message type]",
+          ...baseMessage,
+          image:
+            message.body.remotePath ||
+            message.body.thumbnailRemotePath ||
+            message.body.localPath ||
+            '',
         };
       }
-    });
-  };
 
+      return {
+        ...baseMessage,
+        text:
+          message.body?.type === 'txt'
+            ? message.body.content || ''
+            : '[Unsupported message type]',
+      };
+    })
+    .filter(message => Boolean(message._id))
+    .sort(
+      (first, second) => second.createdAt.getTime() - first.createdAt.getTime(),
+    );
+}
 
-
-
-  const renderCustomActions = (props) => (
-    <Actions
-      {...props}
-      containerStyle={styles.actionContainer}
-      icon={() => (
-        <Image
-          source={require('../../../assets/camera1.png')} // Replace with your icon path
-          style={styles.imageIcon}
-        />
-      )}
-      onPressActionButton={pickImage}
+function CameraActionIcon() {
+  return (
+    <Image
+      source={require('../../../assets/camera1.png')}
+      style={styles.imageIcon}
     />
   );
-  const handleCloseImage = (index) => {
-    const updatedImages = [...selectedImages];
-    updatedImages.splice(index, 1); // Remove image at the given index
-    setSelectedImages(updatedImages); // Update the selected images state
-  };
+}
 
+export default function ChatScreen({route, navigation}: any) {
+  const {
+    sender: routeSender,
+    receiver,
+    channel,
+    voiceToken,
+  } = route.params || {};
+  const authenticatedUser = useSelector((state: any) => state?.user?.user);
+  const cachedToken = useSelector((state: any) => state?.chats?.chatToken);
+  const sender = authenticatedUser?._id ? authenticatedUser : routeSender;
+  const senderId = sender?._id;
+  const receiverId = receiver?._id;
 
+  const dispatch = useDispatch();
+  const [getChatToken] = useMutation(GET_CHAT_TOKEN);
+  const {handleCompression, uploadBlobToS3} = useRegister();
 
+  const [messages, setMessages] = useState<any[]>([]);
+  const [selectedImages, setSelectedImages] = useState<any[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [connectionState, setConnectionState] = useState<
+    'connecting' | 'ready' | 'error'
+  >('connecting');
+  const [connectionError, setConnectionError] = useState('');
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
 
+  const sdkRef = useRef<any>();
+  const chatClientRef = useRef<any>();
+  const chatManagerRef = useRef<any>();
+  const cachedTokenRef = useRef(cachedToken);
+  const connectionListenerRef = useRef<any>();
+  const messageListenerRef = useRef<any>();
+  const mountedRef = useRef(true);
 
+  useEffect(() => {
+    cachedTokenRef.current = cachedToken;
+  }, [cachedToken]);
 
+  const getFreshToken = useCallback(async () => {
+    const {data} = await getChatToken();
+    const nextToken = data?.getUserChatToken?.token;
 
-
-  const pickImage = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', selectionLimit: 5 }, // Adjust limit as needed
-      (response) => {
-        if (!response.didCancel && response.assets) {
-          setSelectedImages([...selectedImages, ...response.assets.map(asset => asset)]);
-        }
-      }
-    );
-  };
-
-
-
-
-  // Function to send multiple images
-  const handleSendImage = async () => {
-    if (selectedImages.length > 0) {
-      for (const image of selectedImages) {
-        try {
-          console.log("imagesssssss", image)
-          // Assuming sendmsg is an async function
-          await sendmsg({ image: image });
-        } catch (error) {
-          console.error('Error sending image:', error);
-        }
-      }
-
-
-
-
-      // Clear selected images after sending
-      setSelectedImages([]);
-    } else {
-      console.log('No images to send.');
+    if (!nextToken) {
+      throw new Error('The server did not return an Agora Chat token.');
     }
-  };
 
+    dispatch(setChatToken(nextToken));
+    return nextToken;
+  }, [dispatch, getChatToken]);
 
+  const fetchHistory = useCallback(async () => {
+    const sdk = sdkRef.current;
+    const chatManager = chatManagerRef.current;
+    if (!sdk || !chatManager || !receiverId) {
+      return;
+    }
 
-  const textInputStyle = {
-    flex: 1,
-    marginHorizontal: 10,
-    color: 'black',
-    fontSize: 16,
-    height: selectedImages.length > 0 ? heightToDp(15) : heightToDp(10), // Default height when no images are selected
-  };
-  console.log("newmessagerer", inputMessage)
-  const handleSend = async () => {
-    // console.log("newmessage", newmessage)
-    const messageToSend = {
-      _id: Math.random().toString(),
-      text: inputMessage, // The text input content
-      createdAt: new Date(),
-      user: {
-        _id: sender?._id, // Sender ID
-        name: sender?.name, // Sender name
-      },
+    try {
+      const result = await chatManager.fetchHistoryMessagesByOptions(
+        receiverId,
+        sdk.ChatConversationType.PeerChat,
+        {cursor: '', pageSize: 50},
+      );
+
+      if (mountedRef.current) {
+        setMessages(formatAgoraMessages(result?.list));
+      }
+    } catch (error) {
+      console.warn('Unable to load Agora Chat history:', error);
+    }
+  }, [receiverId]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+
+    const connect = async () => {
+      if (!senderId || !receiverId) {
+        setConnectionState('error');
+        setConnectionError('The agent or client information is missing.');
+        return;
+      }
+
+      setConnectionState('connecting');
+      setConnectionError('');
+
+      try {
+        const sdk = loadAgoraChatSdk();
+        const chatClient = sdk.ChatClient.getInstance();
+        const chatManager = chatClient.chatManager;
+
+        sdkRef.current = sdk;
+        chatClientRef.current = chatClient;
+        chatManagerRef.current = chatManager;
+
+        await chatClient.init(
+          new sdk.ChatOptions({
+            appKey: AGORA_CHAT_APP_KEY,
+            autoLogin: true,
+          }),
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        const renewToken = async () => {
+          try {
+            const nextToken = await getFreshToken();
+            await chatClient.renewAgoraToken(nextToken);
+          } catch (error) {
+            console.warn('Unable to renew Agora Chat token:', error);
+          }
+        };
+
+        const connectionListener = {
+          onTokenWillExpire: renewToken,
+          onTokenDidExpire: renewToken,
+          onConnected: () => {
+            if (mountedRef.current) {
+              setConnectionState('ready');
+            }
+            fetchHistory();
+          },
+          onDisconnected: (errorCode: number) => {
+            console.warn('Agora Chat disconnected:', errorCode);
+          },
+        };
+        const messageListener = {
+          onMessagesReceived: (incomingMessages: any[]) => {
+            const peerMessages = incomingMessages.filter(
+              message =>
+                message.from === receiverId || message.to === receiverId,
+            );
+            if (peerMessages.length && mountedRef.current) {
+              setMessages(previous =>
+                GiftedChat.append(previous, formatAgoraMessages(peerMessages)),
+              );
+            }
+          },
+        };
+
+        connectionListenerRef.current = connectionListener;
+        messageListenerRef.current = messageListener;
+        chatClient.addConnectionListener(connectionListener);
+        chatManager.addMessageListener(messageListener);
+
+        let loggedInUser = '';
+        try {
+          loggedInUser = await chatClient.getCurrentUsername();
+        } catch (_) {
+          // No prior login is a normal first-use state.
+        }
+
+        if (loggedInUser && loggedInUser !== senderId) {
+          await chatClient.logout();
+          loggedInUser = '';
+        }
+
+        if (!loggedInUser) {
+          const loginToken = cachedTokenRef.current || (await getFreshToken());
+          try {
+            await chatClient.loginWithAgoraToken(senderId, loginToken);
+          } catch (loginError: any) {
+            // The cached Redux token may have expired while the app was open.
+            if (
+              cachedTokenRef.current &&
+              [104, 108, 202, 500].includes(loginError?.code)
+            ) {
+              const freshToken = await getFreshToken();
+              await chatClient.loginWithAgoraToken(senderId, freshToken);
+            } else if (loginError?.code !== 200) {
+              throw loginError;
+            }
+          }
+        }
+
+        if (!cancelled) {
+          setConnectionState('ready');
+          await fetchHistory();
+        }
+      } catch (error: any) {
+        console.error('Agora Chat connection failed:', error);
+        if (!cancelled) {
+          setConnectionState('error');
+          setConnectionError(
+            error?.description ||
+              error?.message ||
+              'Unable to connect to Agora Chat.',
+          );
+        }
+      }
     };
-    sendmsg(messageToSend);
-    // setInputMessage(newmessage)
-    if (selectedImages.length > 0) {
-      for (const image of selectedImages) {
-        try {
-          console.log("imagesssssss", image)
-          // Assuming sendmsg is an async function
-          await sendmsg({ image: image });
-        } catch (error) {
-          console.error('Error sending image:', error);
-        }
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      const client = chatClientRef.current;
+      const manager = chatManagerRef.current;
+      if (client && connectionListenerRef.current) {
+        client.removeConnectionListener(connectionListenerRef.current);
       }
-      text: ""
+      if (manager && messageListenerRef.current) {
+        manager.removeMessageListener(messageListenerRef.current);
+      }
+    };
+  }, [connectionAttempt, fetchHistory, getFreshToken, receiverId, senderId]);
+
+  const sendMessage = useCallback(
+    async (outgoing: {text?: string; image?: any}) => {
+      const sdk = sdkRef.current;
+      const chatManager = chatManagerRef.current;
+
+      if (connectionState !== 'ready' || !sdk || !chatManager || !receiverId) {
+        Toast.show({
+          type: 'error',
+          text1: 'Chat is still connecting',
+          text2: 'Please wait a moment and try again.',
+        });
+        return;
+      }
+
+      try {
+        let message;
+        let displayImage = '';
+        if (outgoing.text?.trim()) {
+          message = sdk.ChatMessage.createTextMessage(
+            receiverId,
+            outgoing.text.trim(),
+            sdk.ChatMessageChatType.PeerChat,
+          );
+        } else if (outgoing.image?.uri) {
+          const compressedImage = await handleCompression(outgoing.image.uri);
+          displayImage = await uploadBlobToS3(compressedImage);
+          message = sdk.ChatMessage.createImageMessage(
+            receiverId,
+            outgoing.image.uri,
+            sdk.ChatMessageChatType.PeerChat,
+            outgoing.image.fileName || 'image.jpg',
+            outgoing.image.fileSize,
+          );
+        } else {
+          return;
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          chatManager
+            .sendMessage(message, {
+              onProgress: () => {},
+              onError: (_localId: string, error: any) => reject(error),
+              onSuccess: (sentMessage: any) => {
+                const optimisticMessage = outgoing.text
+                  ? {
+                      _id: sentMessage.localMsgId,
+                      text: outgoing.text.trim(),
+                      createdAt: new Date(),
+                      user: {_id: senderId},
+                    }
+                  : {
+                      _id: sentMessage.localMsgId,
+                      image: displayImage || outgoing.image.uri,
+                      createdAt: new Date(),
+                      user: {_id: senderId},
+                    };
+                setMessages(previous =>
+                  GiftedChat.append(previous, [optimisticMessage]),
+                );
+                resolve();
+              },
+            })
+            .catch(reject);
+        });
+
+        socket.emit('send-message', {
+          receiverId,
+          text: outgoing.text?.trim() || 'Image sent',
+          senderName: [sender?.first_name, sender?.last_name]
+            .filter(Boolean)
+            .join(' '),
+        });
+      } catch (error: any) {
+        console.error('Agora Chat message failed:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Message failed',
+          text2: error?.description || 'Please try again.',
+        });
+      }
+    },
+    [
+      connectionState,
+      handleCompression,
+      receiverId,
+      sender,
+      senderId,
+      uploadBlobToS3,
+    ],
+  );
+
+  const pickImages = useCallback(() => {
+    launchImageLibrary({mediaType: 'photo', selectionLimit: 5}, response => {
+      if (!response.didCancel && response.assets) {
+        setSelectedImages(previous => [...previous, ...response.assets!]);
+      }
+    });
+  }, []);
+
+  const handleSend = useCallback(async () => {
+    const text = inputMessage.trim();
+    if (text) {
+      await sendMessage({text});
     }
-
-
-    setInputMessage("")
+    for (const image of selectedImages) {
+      await sendMessage({image});
+    }
+    setInputMessage('');
     setSelectedImages([]);
-  };
+  }, [inputMessage, selectedImages, sendMessage]);
+
+  const receiverName = useMemo(
+    () =>
+      [receiver?.first_name, receiver?.last_name].filter(Boolean).join(' ') ||
+      'Client',
+    [receiver?.first_name, receiver?.last_name],
+  );
+
+  const renderChatActions = useCallback(
+    (props: any) => (
+      <Actions
+        {...props}
+        containerStyle={styles.actionContainer}
+        icon={CameraActionIcon}
+        onPressActionButton={pickImages}
+      />
+    ),
+    [pickImages],
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader
-        Title={receiver?.first_name + ' ' + receiver?.last_name}
-        ProfilePic={receiver?.profile_picture
-          ? { uri: receiver.profile_picture }
-          : require('../../../assets/UserIcon.png')}
+        Title={receiverName}
+        ProfilePic={
+          receiver?.profile_picture
+            ? {uri: receiver.profile_picture}
+            : require('../../../assets/UserIcon.png')
+        }
         profileImgPress={() =>
-          navigation.navigate('ChatingProfiledetailScreen', {
-
-
-
-
-            receiver: receiver,
-
-
-
-
-          })
+          navigation.navigate('ChatingProfiledetailScreen', {receiver})
         }
         lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
         lastImgPress={() =>
           navigation.navigate('VoiceCallScreen', {
-            sender: sender,
-            receiver: receiver,
+            sender,
+            receiver,
             channelName: channel,
             token: voiceToken,
           })
         }
       />
-      <View style={[styles.bottonSheet, { marginBottom: selectedImages.length > 0 ? heightToDp(2) : heightToDp(-9) }]}>
 
-
-
+      <View style={styles.bottomSheet}>
+        {connectionState === 'connecting' && (
+          <View style={styles.connectionBanner}>
+            <ActivityIndicator size="small" color={Colors.Primary} />
+            <Text style={styles.connectionText}>Connecting securely…</Text>
+          </View>
+        )}
+        {connectionState === 'error' && (
+          <View style={[styles.connectionBanner, styles.errorBanner]}>
+            <View style={styles.errorCopy}>
+              <Text style={styles.errorTitle}>Chat could not connect</Text>
+              <Text style={styles.errorText}>{connectionError}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setConnectionAttempt(value => value + 1)}
+              style={styles.retryButton}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <GiftedChat
-          messages={content.map((msg, index) => ({
-            ...msg,
-            _id: msg._id || index.toString(), // Ensure unique key
-          }))}
-          onSend={newMessages => handleSend(newMessages[0])}
-          // onSend={(newMessages) => handleAction(newMessages)}
-          user={{
-            _id: sender?._id,
-          }}
-          renderActions={renderCustomActions}
+          messages={messages}
+          onSend={nextMessages => sendMessage({text: nextMessages[0]?.text})}
+          user={{_id: senderId || 'agent'}}
+          renderActions={renderChatActions}
           textInputProps={{
-            value: inputMessage,  // Control the text input value
-            onChangeText: setInputMessage,  // Update the state when typing
-            style: textInputStyle,
+            value: inputMessage,
+            onChangeText: setInputMessage,
+            editable: connectionState === 'ready',
+            style: styles.textInput,
           }}
-
-          // renderMessage={(props) => {
-          //   return (
-          //     <View>
-          //       {props.currentMessage?.image && (
-          //         <Image
-          //           source={{ uri: props.currentMessage.image }}
-          //           style={{ width: 200, height: 200, borderRadius: 10 }}
-          //         />
-          //       )}
-          //       {/* Render other message components if needed */}
-          //     </View>
-          //   );
-          // }}
-          renderAccessory={() => (
-            <View style={styles.accessoryContainer}>
-              {selectedImages.map((assert, index) => (
-                <View key={index} style={styles.imageContainer}>
-                  <Image source={{ uri: assert.uri }} style={styles.selectedImage} />
-                  {/* Close Button */}
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => handleCloseImage(index)} // Pass index to identify the image to close
-                  >
-                    <Text style={styles.closeButtonText}>X</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-              {(inputMessage || selectedImages.length > 0) && (
-                <TouchableOpacity onPress={handleSend} style={styles.sendImageButton}>
-                  <Icon name="send" size={20} color="black" style={styles.sendImageIcon} />
+          renderAccessory={() =>
+            selectedImages.length ? (
+              <View style={styles.accessoryContainer}>
+                {selectedImages.map((asset, index) => (
+                  <View
+                    key={`${asset.uri}-${index}`}
+                    style={styles.imageContainer}>
+                    <Image
+                      source={{uri: asset.uri}}
+                      style={styles.selectedImage}
+                    />
+                    <TouchableOpacity
+                      accessibilityLabel="Remove selected image"
+                      onPress={() =>
+                        setSelectedImages(previous =>
+                          previous.filter(
+                            (_, imageIndex) => imageIndex !== index,
+                          ),
+                        )
+                      }
+                      style={styles.closeButton}>
+                      <Text style={styles.closeButtonText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity
+                  onPress={handleSend}
+                  style={styles.sendButton}>
+                  <Icon name="send" size={17} color="#FFFFFF" />
                 </TouchableOpacity>
-              )}
-
-
-
-
-
-
-            </View>
-
-
-
-
-          )}
+              </View>
+            ) : null
+          }
         />
       </View>
     </SafeAreaView>
   );
 }
 
-
-
-
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: Colors.PinkBackground,
-    flex: 1,
   },
-  bottonSheet: {
+  bottomSheet: {
+    flex: 1,
     marginTop: widthToDp(2),
-
-
-
-
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    flex: 1,
-    justifyContent: 'flex-end',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
-  inputContainer: {
-    width: widthToDp(90),
-    backgroundColor: Colors.DullWhite,
+  connectionBanner: {
+    minHeight: 48,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 15,
-    alignSelf: 'center',
-    marginBottom: widthToDp(5),
+    justifyContent: 'center',
+    gap: 9,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E4E7EB',
+    backgroundColor: '#FFF4EA',
   },
-  input: {
+  connectionText: {
+    color: '#7A818D',
+    fontSize: 13,
+  },
+  errorBanner: {
+    justifyContent: 'space-between',
+    backgroundColor: '#FCEEEE',
+  },
+  errorCopy: {
     flex: 1,
-    height: heightToDp(15),
-    marginRight: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
-  icon: {
-    width: widthToDp(7),
-    height: heightToDp(7),
+  errorTitle: {
+    color: '#C44242',
+    fontSize: 13,
+    fontWeight: '600',
   },
-  button: {
-    paddingVertical: heightToDp(2),
-    paddingHorizontal: heightToDp(2),
+  errorText: {
+    marginTop: 2,
+    color: '#7A818D',
+    fontSize: 11,
+  },
+  retryButton: {
+    marginLeft: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: Colors.Primary,
+  },
+  retryText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   actionContainer: {
-    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    justifyContent: 'center',
+    marginRight: 8,
   },
   imageIcon: {
     width: 28,
     height: 28,
   },
+  textInput: {
+    flex: 1,
+    minHeight: heightToDp(5),
+    maxHeight: heightToDp(12),
+    marginHorizontal: 10,
+    color: '#121826',
+    fontSize: 16,
+  },
   accessoryContainer: {
+    minHeight: 64,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-
-
-
-
-    height: 50,
+  },
+  imageContainer: {
+    position: 'relative',
+    marginRight: 10,
   },
   selectedImage: {
     width: 50,
     height: 50,
-    marginRight: 10,
-    borderRadius: 5,
-  },
-  imageContainer: {
-    position: 'relative',
-    marginBottom: 10,
-  },
-  sendImageButton: {
-    backgroundColor: Colors.Primary,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    position: 'absolute',
-    top: -42,
-    right: 10,
-
-
-
-
-    zIndex: 1,
-
-
-
-
-  },
-  sendImageIcon: {
-    width: 20,
-    height: 20
+    borderRadius: 8,
   },
   closeButton: {
     position: 'absolute',
-    top: -5,
-    left: 40,
-    backgroundColor: Colors.Red,
-    borderRadius: 12,
-    zIndex: 1,
+    top: -6,
+    right: -6,
     width: 20,
     height: 20,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: '#C44242',
   },
   closeButtonText: {
-    color: 'white',
-    fontSize: 12,
+    color: '#FFFFFF',
+    fontSize: 15,
+    lineHeight: 17,
+  },
+  sendButton: {
+    marginLeft: 'auto',
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: Colors.Primary,
   },
 });
-
-
-
-
-
-
-
-
-
-
-
