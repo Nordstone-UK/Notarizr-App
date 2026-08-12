@@ -1,7 +1,9 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -17,6 +19,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
 import DatePicker from 'react-native-date-picker';
+import Pdf from 'react-native-pdf';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BookingChoice from '../../components/BookingFlow/BookingChoice';
 import BookingFlowFooter from '../../components/BookingFlow/BookingFlowFooter';
@@ -70,6 +73,23 @@ const getDocumentIcon = name => {
   }
   return 'file-text';
 };
+
+const formatFileSize = size => {
+  if (!size) {
+    return 'File ready';
+  }
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const isImageDocument = document =>
+  document?.type?.startsWith('image/') ||
+  /\.(jpe?g|png|heic|webp)$/i.test(document?.name || '');
+
+const isPdfDocument = document =>
+  document?.type === 'application/pdf' || /\.pdf$/i.test(document?.name || '');
 
 const buildAppointmentDate = (date, time) => {
   const [, clock, meridiem] = time.match(/^(\d{1,2}:\d{2})\s(AM|PM)$/) || [];
@@ -456,12 +476,15 @@ function UploadAndPrintStep({
   isMobile,
   onChangePrintCopies,
   onChooseDocuments,
+  onRemoveDocument,
+  onReplaceDocument,
   onTogglePrint,
   printCopies,
   uploadedDocuments,
   wantsPrint,
 }) {
   const uploaded = uploadedDocuments.length > 0;
+  const [previewDocument, setPreviewDocument] = useState(null);
 
   return (
     <>
@@ -532,36 +555,143 @@ function UploadAndPrintStep({
             : 'Upload a readable copy for the assigned notary.'
         }
         title={isMobile ? 'Document upload (optional)' : 'Document upload'}>
-        <TouchableOpacity
-          activeOpacity={0.74}
-          onPress={onChooseDocuments}
-          style={[styles.uploadArea, uploaded && styles.uploadedArea]}>
-          <View style={[styles.uploadIcon, uploaded && styles.uploadedIcon]}>
-            <Feather
-              name={uploaded ? 'check' : 'upload-cloud'}
-              size={23}
-              color={uploaded ? '#168A52' : '#FD6D1F'}
-            />
+        {uploaded ? (
+          <View style={styles.documentList}>
+            {uploadedDocuments.map((document, index) => (
+              <View key={document.id} style={styles.uploadedDocumentCard}>
+                <TouchableOpacity
+                  accessibilityLabel={`Preview ${document.name}`}
+                  activeOpacity={0.75}
+                  onPress={() => setPreviewDocument(document)}
+                  style={styles.documentPreviewButton}>
+                  {isImageDocument(document) ? (
+                    <Image
+                      resizeMode="cover"
+                      source={{uri: document.uri}}
+                      style={styles.documentThumbnail}
+                    />
+                  ) : isPdfDocument(document) ? (
+                    <View pointerEvents="none" style={styles.documentThumbnail}>
+                      <Pdf
+                        page={1}
+                        singlePage
+                        source={{uri: document.uri}}
+                        style={styles.documentPdfThumbnail}
+                      />
+                    </View>
+                  ) : (
+                    <View style={styles.documentFileIcon}>
+                      <Feather name="file" size={21} color="#FD6D1F" />
+                    </View>
+                  )}
+                  <View style={styles.documentFileCopy}>
+                    <Text numberOfLines={1} style={styles.documentFileName}>
+                      {document.name || `Document ${index + 1}`}
+                    </Text>
+                    <Text style={styles.documentFileMeta}>
+                      {formatFileSize(document.size)} · Tap to preview
+                    </Text>
+                  </View>
+                  <Feather name="eye" size={18} color="#737B87" />
+                </TouchableOpacity>
+                <View style={styles.documentActions}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => onReplaceDocument(document.id)}
+                    style={styles.documentActionButton}>
+                    <Feather name="edit-2" size={15} color="#D65322" />
+                    <Text style={styles.documentEditText}>Replace</Text>
+                  </TouchableOpacity>
+                  <View style={styles.documentActionDivider} />
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => onRemoveDocument(document.id)}
+                    style={styles.documentActionButton}>
+                    <Feather name="trash-2" size={15} color="#C93C3C" />
+                    <Text style={styles.documentRemoveText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+            <TouchableOpacity
+              activeOpacity={0.72}
+              onPress={onChooseDocuments}
+              style={styles.addDocumentButton}>
+              <Feather name="plus" size={17} color="#D65322" />
+              <Text style={styles.addDocumentText}>Add another document</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.uploadCopy}>
-            <Text style={styles.uploadTitle}>
-              {uploaded
-                ? `${uploadedDocuments.length} document${
-                    uploadedDocuments.length === 1 ? '' : 's'
-                  } selected`
-                : 'Choose a document'}
-            </Text>
-            <Text style={styles.uploadSubtitle}>
-              {uploaded
-                ? 'Ready to attach to this booking'
-                : 'PDF, JPG, or PNG up to 10 MB'}
-            </Text>
-          </View>
-          <Text style={styles.uploadAction}>
-            {uploaded ? 'Replace' : 'Browse'}
-          </Text>
-        </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.74}
+            onPress={onChooseDocuments}
+            style={styles.uploadArea}>
+            <View style={styles.uploadIcon}>
+              <Feather name="upload-cloud" size={23} color="#FD6D1F" />
+            </View>
+            <View style={styles.uploadCopy}>
+              <Text style={styles.uploadTitle}>Choose documents</Text>
+              <Text style={styles.uploadSubtitle}>
+                PDF, JPG, PNG, or document files up to 10 MB
+              </Text>
+            </View>
+            <Text style={styles.uploadAction}>Browse</Text>
+          </TouchableOpacity>
+        )}
       </BookingFlowSection>
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setPreviewDocument(null)}
+        transparent
+        visible={Boolean(previewDocument)}>
+        <View style={styles.previewBackdrop}>
+          <View style={styles.previewSheet}>
+            <View style={styles.previewHeader}>
+              <View style={styles.previewHeadingCopy}>
+                <Text numberOfLines={1} style={styles.previewTitle}>
+                  {previewDocument?.name}
+                </Text>
+                <Text style={styles.previewSubtitle}>
+                  {formatFileSize(previewDocument?.size)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                accessibilityLabel="Close preview"
+                onPress={() => setPreviewDocument(null)}
+                style={styles.previewCloseButton}>
+                <Feather name="x" size={21} color="#303642" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.previewBody}>
+              {isImageDocument(previewDocument) ? (
+                <Image
+                  resizeMode="contain"
+                  source={{uri: previewDocument?.uri}}
+                  style={styles.imagePreview}
+                />
+              ) : isPdfDocument(previewDocument) ? (
+                <Pdf
+                  source={{uri: previewDocument?.uri}}
+                  style={styles.pdfPreview}
+                />
+              ) : (
+                <View style={styles.genericPreview}>
+                  <View style={styles.genericPreviewIcon}>
+                    <Feather name="file" size={36} color="#FD6D1F" />
+                  </View>
+                  <Text style={styles.genericPreviewTitle}>
+                    Preview unavailable
+                  </Text>
+                  <Text style={styles.genericPreviewText}>
+                    This file is selected and ready to attach.
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -716,7 +846,7 @@ export default function BookingFlowScreen({navigation, route}) {
   const backendServiceType = isMobile ? 'mobile_notary' : 'ron';
   const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
   const scrollRef = useRef(null);
-  const {uploadAllDocuments, uploadMultipleFiles} = useRegister();
+  const {pickDocumentDetails, uploadAllDocuments} = useRegister();
   const {
     data: documentCatalog,
     error: documentsError,
@@ -941,17 +1071,41 @@ export default function BookingFlowScreen({navigation, route}) {
   };
 
   const chooseDocuments = async () => {
-    const documentUris = await uploadMultipleFiles();
-    if (!documentUris?.length) {
+    const selectedDocuments = await pickDocumentDetails(true);
+    if (!selectedDocuments.length) {
       return;
     }
-    setUploadedDocuments(
-      documentUris.map((uri, index) => ({
-        id: index + 1,
-        name: `Document ${index + 1}`,
-        uri,
-        url: uri,
-      })),
+    const selectionTime = Date.now();
+    setUploadedDocuments(current => [
+      ...current,
+      ...selectedDocuments
+        .filter(document =>
+          current.every(existing => existing.uri !== document.uri),
+        )
+        .map((document, index) => ({
+          ...document,
+          id: `${selectionTime}-${index}`,
+        })),
+    ]);
+  };
+
+  const replaceDocument = async documentId => {
+    const [replacement] = await pickDocumentDetails(false);
+    if (!replacement) {
+      return;
+    }
+    setUploadedDocuments(current =>
+      current.map(document =>
+        document.id === documentId
+          ? {...replacement, id: documentId}
+          : document,
+      ),
+    );
+  };
+
+  const removeDocument = documentId => {
+    setUploadedDocuments(current =>
+      current.filter(document => document.id !== documentId),
     );
   };
 
@@ -1023,6 +1177,8 @@ export default function BookingFlowScreen({navigation, route}) {
               isMobile={isMobile}
               onChangePrintCopies={setPrintCopies}
               onChooseDocuments={chooseDocuments}
+              onRemoveDocument={removeDocument}
+              onReplaceDocument={replaceDocument}
               onTogglePrint={setWantsPrint}
               printCopies={printCopies}
               uploadedDocuments={uploadedDocuments}
@@ -1409,6 +1565,196 @@ const styles = StyleSheet.create({
     color: '#D65322',
     fontFamily: 'Manrope-Bold',
     fontSize: 9,
+  },
+  documentList: {
+    paddingHorizontal: 20,
+  },
+  uploadedDocumentCard: {
+    marginBottom: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0E3E7',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  documentPreviewButton: {
+    minHeight: 90,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  documentThumbnail: {
+    width: 58,
+    height: 70,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0E3E7',
+    borderRadius: 6,
+    backgroundColor: '#F0F2F4',
+  },
+  documentPdfThumbnail: {
+    width: 58,
+    height: 70,
+    backgroundColor: '#FFFFFF',
+  },
+  documentFileIcon: {
+    width: 58,
+    height: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+    backgroundColor: '#FFF0E7',
+  },
+  documentFileCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 11,
+  },
+  documentFileName: {
+    color: '#282E3A',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  documentFileMeta: {
+    marginTop: 3,
+    color: '#8C929C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 8,
+  },
+  documentActions: {
+    height: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderColor: '#ECEEF0',
+    backgroundColor: '#FAFAFB',
+  },
+  documentActionButton: {
+    flex: 1,
+    height: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  documentActionDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E0E3E7',
+  },
+  documentEditText: {
+    marginLeft: 6,
+    color: '#D65322',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  documentRemoveText: {
+    marginLeft: 6,
+    color: '#C93C3C',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  addDocumentButton: {
+    height: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F3B18D',
+    borderRadius: 8,
+    backgroundColor: '#FFF9F5',
+  },
+  addDocumentText: {
+    marginLeft: 7,
+    color: '#D65322',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  previewBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(18, 23, 34, 0.48)',
+  },
+  previewSheet: {
+    height: '78%',
+    overflow: 'hidden',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: '#FFFFFF',
+  },
+  previewHeader: {
+    minHeight: 68,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    borderBottomWidth: 1,
+    borderColor: '#E8EAED',
+  },
+  previewHeadingCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginRight: 12,
+  },
+  previewTitle: {
+    color: '#202632',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  previewSubtitle: {
+    marginTop: 2,
+    color: '#8C929C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+  },
+  previewCloseButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 7,
+    backgroundColor: '#F3F4F6',
+  },
+  previewBody: {
+    flex: 1,
+    padding: 14,
+    backgroundColor: '#F4F5F7',
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  pdfPreview: {
+    flex: 1,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  genericPreview: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  genericPreviewIcon: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#FFF0E7',
+  },
+  genericPreviewTitle: {
+    marginTop: 16,
+    color: '#282E3A',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  genericPreviewText: {
+    marginTop: 5,
+    color: '#8C929C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
   },
   stepperRow: {
     minHeight: 58,

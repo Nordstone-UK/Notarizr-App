@@ -154,6 +154,32 @@ const useRegister = () => {
       console.warn(err);
     }
   }, []);
+
+  const pickDocumentDetails = useCallback(
+    async (allowMultiSelection = true) => {
+      try {
+        const results = await DocumentPicker.pick({
+          allowMultiSelection,
+          copyTo: 'cachesDirectory',
+          type: [DocumentPicker.types.allFiles],
+        });
+
+        return results.map(result => ({
+          name: result.name || 'Untitled document',
+          size: result.size || 0,
+          type: result.type || '',
+          uri: result.fileCopyUri || result.uri,
+          url: result.fileCopyUri || result.uri,
+        }));
+      } catch (error) {
+        if (!DocumentPicker.isCancel(error)) {
+          console.warn('Document selection failed:', error);
+        }
+        return [];
+      }
+    },
+    [],
+  );
   const uploadAllDocuments = async documentURIs => {
     try {
       const uploadedFiles = await Promise.all(
@@ -223,6 +249,7 @@ const useRegister = () => {
     uploadFiles,
     uploadFilestoS3,
     uploadMultipleFiles,
+    pickDocumentDetails,
     uploadDocmmentToS3,
     uploadAllDocuments,
     uploadDocArray,
