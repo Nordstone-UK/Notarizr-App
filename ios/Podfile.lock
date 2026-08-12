@@ -893,7 +893,7 @@ SPEC CHECKSUMS:
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: 71803c074f6325f10b5ec891c443b6bbabef0ca7
-  FBReactNativeSpec: dbd968f331b1b77af53fb15fd45a5bdb854d04a0
+  FBReactNativeSpec: 448e08a759d29a96e15725ae532445bf4343567c
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   Google-Maps-iOS-Utils: 3343332b18dfd5be8f1f44edd7d481ace3da4d9a
@@ -951,7 +951,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 4b95d26ebc88bfd3b6535b2d7904914ff88dbfc2
   React-RCTText: ce4499e4f2d8f85dc4b93ff0559313a016c4f3e2
   React-RCTVibration: 45372e61b35e96d16893540958d156675afbeb63
-  React-rncore: bc04c1b8e53773fd381c5bb215bad8861c4bdb59
+  React-rncore: a79d1cb3d6c01b358a8aa0b31ccc04ab5f0dbebc
   React-runtimeexecutor: 7e31e2bc6d0ecc83d4ba05eadc98401007abc10c
   React-runtimescheduler: ab7903607aad767fa6cd95feb910fb11501f9946
   React-utils: 5b4df8692e966fd50e2d75c0f9659e176a292384
@@ -963,7 +963,7 @@ SPEC CHECKSUMS:
   RNCPicker: 7d6904dbc66524ecaf2053aa9e14ee99431768c9
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: f3902a2694346e4836112a2ef5524b3dcf408678
-  RNReanimated: a3d004c254c9624031996e96213dcc672da71225
+  RNReanimated: 49a1e0d191bdaefe1b394eb258bc52a42bcf704c
   RNScreens: c04e015e917ce64d0983974d8efb8fa1dc1ddc56
   RNShare: 694e19d7f74ac4c04de3a8af0649e9ccc03bd8b1
   RNSketchCanvas: f7da2786bf042a29d5ca7a65571507d5c3108a29

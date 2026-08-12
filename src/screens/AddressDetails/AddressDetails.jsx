@@ -37,11 +37,14 @@ export default function AddressDetails({navigation}) {
   }, [fetchUserInfo, navigation, previewMode]);
 
   const openAddress = address => {
-    navigation.navigate('AddressFormScreen', {address});
+    navigation.navigate('CurrentLocationScreen', {
+      address,
+      directSave: true,
+    });
   };
 
   const addAddress = () => {
-    navigation.navigate('AddressFormScreen');
+    navigation.navigate('CurrentLocationScreen', {directSave: true});
   };
 
   const deleteAddress = async address => {

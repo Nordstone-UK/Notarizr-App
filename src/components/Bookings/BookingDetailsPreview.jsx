@@ -77,11 +77,11 @@ export default function BookingDetailsPreview({booking, navigation}) {
       ? 'Mobile notary'
       : 'Remote online notary';
   const totalPrice = Number(booking.price || booking.totalPrice || 0);
-  const totalSignatures = Number(
-    booking.total_signatures_required || booking.totalSignaturesRequired || 1,
+  const additionalSignatures = Number(
+    booking.total_signatures_required || booking.totalSignaturesRequired || 0,
   );
   const additionalSignatureCharge = Number(
-    booking.additionalSignatureCharge ?? Math.max(0, totalSignatures - 1) * 10,
+    booking.additionalSignatureCharge ?? additionalSignatures * 10,
   );
   const printCopies = Number(
     booking.printCopies || booking.notes?.match(/Print request:\s*(\d+)/i)?.[1],
@@ -118,6 +118,9 @@ export default function BookingDetailsPreview({booking, navigation}) {
   const agentRole = booking.unassigned
     ? 'Notary assignment in progress'
     : 'Verified Notarizr professional';
+  const documentLabel = Array.isArray(booking.document_type)
+    ? booking.document_type[0]?.name
+    : booking.document_type?.name || booking.document_type;
 
   const handlePrimaryAction = () => {
     if (booking.status === 'accepted') {
@@ -222,8 +225,26 @@ export default function BookingDetailsPreview({booking, navigation}) {
           <DetailRow
             icon="file-text"
             label="Document"
-            value={booking.document_type || 'Notary document'}
+            value={documentLabel || 'Bring to appointment'}
           />
+          <DetailRow
+            icon="edit-3"
+            label="Additional signatures"
+            value={`${additionalSignatures} ($${additionalSignatureCharge.toFixed(
+              2,
+            )})`}
+          />
+          {booking.service_type === 'mobile_notary' ? (
+            <DetailRow
+              icon="printer"
+              label="Printouts"
+              value={
+                printCopies
+                  ? `${printCopies} ${printCopies === 1 ? 'copy' : 'copies'}`
+                  : 'Not requested'
+              }
+            />
+          ) : null}
           <DetailRow
             icon="info"
             label="Instructions"
@@ -236,9 +257,13 @@ export default function BookingDetailsPreview({booking, navigation}) {
           <Text style={styles.paymentLabel}>{paymentLabel}</Text>
           <Text style={styles.paymentMethod}>Notarizr secure payment</Text>
           <PricingBreakdown
+            additionalSignatureCount={additionalSignatures}
             additionalSignatures={additionalSignatureCharge}
             documentCharge={documentCharge}
+            documentLabel={documentLabel}
             printingCharge={printingCharge}
+            printingCopies={printCopies}
+            serviceLabel={service}
             style={styles.detailsPricing}
             total={totalPrice}
           />

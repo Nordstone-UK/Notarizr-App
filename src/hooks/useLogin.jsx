@@ -18,70 +18,29 @@ const useLogin = () => {
 
   // const user = useSelector(state => state.user.user);
   const handleOtpVerification = async (phone, otp) => {
-    await verifYOTP({
-      variables: {phone, otp},
-    })
-      .then(response => {
-        if (response?.data?.verifyPhoneOTP?.status !== '200') {
-          Toast.show({
-            type: 'error',
-            text1: 'Verification failed',
-            text2:
-              response?.data?.verifyPhoneOTP?.message ||
-              'Check the code and try again.',
-          });
-        } else {
-          saveAccessTokenToStorage(response?.data?.verifyPhoneOTP?.accessToken);
-          resetStack('login');
-        }
-      })
-      .catch(error => {
-        console.error(error);
-    // Always try real server auth first — works in local dev (OTP 0000 accepted)
-    // and in production. Fall back to local-preview only when the server is
-    // unreachable (network error), so API calls work whenever the backend is up.
+    try {
+      const response = await verifYOTP({variables: {phone, otp}});
+      const verification = response?.data?.verifyPhoneOTP;
 
-    // TODO: Uncomment this when we have a real server
-    // try {
-    //   const response = await verifYOTP({variables: {phone, otp}});
-    //   if (response?.data?.verifyPhoneOTP?.status === '200') {
-    //     saveAccessTokenToStorage(response.data.verifyPhoneOTP.accessToken);
-    //     resetStack('login');
-    //     return;
-    //   }
+      if (verification?.status !== '200') {
+        Toast.show({
+          type: 'error',
+          text1: 'Verification failed',
+          text2: verification?.message || 'Check the code and try again.',
+        });
+        return;
+      }
 
-    //   // Server returned a non-200 (wrong OTP / unknown phone). If this is a
-    //   // recognised dev-only number and OTP, fall through to local-preview.
-    //   const localAccount = __DEV__ ? getLocalTestAccount(phone) : null;
-    //   if (localAccount && otp === LOCAL_TEST_OTP) {
-    //     await AsyncStorage.setItem('token', `local-preview:${localAccount._id}`);
-    //     dispatch(saveUserInfo(localAccount));
-    //     Toast.show({type: 'success', text1: 'Login successful (offline preview)'});
-    //     navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
-    //     return;
-    //   }
-
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Verification failed',
-    //     text2: response?.data?.verifyPhoneOTP?.message || 'Check the code and try again.',
-    //   });
-    // } catch {
-    //   // Network error — backend likely not running. Use local-preview in dev.
-    //   if (__DEV__) {
-    //     const localAccount = getLocalTestAccount(phone);
-    //     if (localAccount && otp === LOCAL_TEST_OTP) {
-    //       await AsyncStorage.setItem('token', `local-preview:${localAccount._id}`);
-    //       dispatch(saveUserInfo(localAccount));
-    //       Toast.show({type: 'success', text1: 'Login successful (offline preview)'});
-    //       navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
-    //       return;
-    //     }
-    //   }
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Login failed',
-    //     text2: 'Could not reach the server. Check your connection.',
+      // The user query reads this token from AsyncStorage. Await the write so it
+      // cannot accidentally fetch the previously signed-in account.
+      await saveAccessTokenToStorage(verification.accessToken);
+      await resetStack('login');
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Verification failed',
+        text2: 'Please try again.',
       });
     }
   };
@@ -99,6 +58,10 @@ const useLogin = () => {
     }
     try {
       const userInfo = await fetchUserInfo();
+
+      if (!userInfo) {
+        throw new Error('Unable to load the signed-in account.');
+      }
 
       if (userInfo.account_type === 'client') {
         navigation.reset({

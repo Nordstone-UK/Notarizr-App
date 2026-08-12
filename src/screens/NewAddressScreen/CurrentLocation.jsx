@@ -1,381 +1,746 @@
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
-  FlatList,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  PermissionsAndroid,
+  Platform,
+  SafeAreaView,
+  StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView,
-  TextInput,
-  PermissionsAndroid,
-  ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useState, useRef} from 'react';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import AgentReviewCard from '../../components/AgentReviewCard/AgentReviewCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import Feather from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
 import axios from 'axios';
-import Colors from '../../themes/Colors';
-import {useNavigation} from '@react-navigation/native';
-import {getLocation, handleGetLocation} from '../../utils/Geocode';
-const MAX_RETRIES = 3;
-const TIMEOUT = 5000; // 5 seconds
+import {useDispatch, useSelector} from 'react-redux';
+import {saveUserInfo} from '../../features/user/userSlice';
+import useFetchUser from '../../hooks/useFetchUser';
+import AppColors from '../../themes/AppColors';
 
-const getAddressFromCoordinates = async (latitude, longitude) => {
-  const apiKey = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
-  const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await axios.get(apiUrl, {timeout: TIMEOUT});
-      if (response.data.results.length > 0) {
-        return response.data.results[0].formatted_address;
-      } else {
-        return 'Address not found';
-      }
-    } catch (error) {
-      if (attempt === MAX_RETRIES) {
-        throw new Error('Error fetching address: ' + error);
-      } else {
-        console.warn(`Attempt ${attempt} failed. Retrying...`);
-      }
-    }
-  }
+const GOOGLE_MAPS_KEY = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
+const BOOKING_ADDRESS_KEY = 'notarizr_booking_selected_address';
+const DEFAULT_COORDINATE = {latitude: 37.7749, longitude: -122.4194};
+const DEFAULT_REGION = {
+  ...DEFAULT_COORDINATE,
+  latitudeDelta: 0.012,
+  longitudeDelta: 0.012,
 };
-export default function CurrentLocationScreen({route}) {
-  const {previousScreen, address, service} = route?.params || {};
-  console.log('routessss', route?.params);
-  const navigation = useNavigation();
 
-  console.log('navigation', navigation.navigate);
-  const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState(null);
-  const [markerLocation, setMarkerLocation] = useState(null);
-  const [selectedAddress, setSelectedAddress] = useState('');
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
-  const [agents, setAgents] = useState([]); // Add this if you have agents data
-  const [searchText, setSearchText] = useState('');
-  const googlePlacesRef = useRef();
+const getStoredCoordinate = address => {
+  const coordinates = address?.location_coordinates || [];
+  const first = Number(coordinates[0]);
+  const second = Number(coordinates[1]);
+  if (!Number.isFinite(first) || !Number.isFinite(second)) {
+    return null;
+  }
+  if (Math.abs(first) > 90 && Math.abs(second) <= 90) {
+    return {latitude: second, longitude: first};
+  }
+  return {latitude: first, longitude: second};
+};
 
-  // const handleGetLocation = async () => {
-  //   try {
-  //     console.log('cccccccccdddddccc');
-  //     const coordinates = await getLocation();
-  //     console.log('cccccccccccc', coor);
-  //     setLocation(coordinates);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     console.log(error);
-  //     setLoading(false);
-  //   }
-  // };
+const reverseGeocode = async coordinate => {
+  const response = await axios.get(
+    'https://maps.googleapis.com/maps/api/geocode/json',
+    {
+      params: {
+        key: GOOGLE_MAPS_KEY,
+        latlng: `${coordinate.latitude},${coordinate.longitude}`,
+      },
+      timeout: 6000,
+    },
+  );
+  return response.data?.results?.[0]?.formatted_address || '';
+};
 
-  const requestLocationPermission = async () => {
+const forwardGeocode = async address => {
+  const response = await axios.get(
+    'https://maps.googleapis.com/maps/api/geocode/json',
+    {
+      params: {address, key: GOOGLE_MAPS_KEY},
+      timeout: 6000,
+    },
+  );
+  const result = response.data?.results?.[0];
+  if (!result?.geometry?.location) {
+    return null;
+  }
+  return {
+    address: result.formatted_address,
+    coordinate: {
+      latitude: result.geometry.location.lat,
+      longitude: result.geometry.location.lng,
+    },
+  };
+};
+
+export default function CurrentLocationScreen({navigation, route}) {
+  const existingAddress = route.params?.address;
+  const returnToBooking = Boolean(route.params?.returnToBooking);
+  const directSave = Boolean(route.params?.directSave || returnToBooking);
+  const user = useSelector(state => state.user.user);
+  const dispatch = useDispatch();
+  const previewMode = Boolean(user?.isHomePreview);
+  const {fetchUserInfo, hadleUpdateAddress, handleEditAddress} = useFetchUser();
+  const mapRef = useRef(null);
+  const searchRef = useRef(null);
+  const reverseLookupRef = useRef(0);
+  const [coordinate, setCoordinate] = useState(
+    getStoredCoordinate(existingAddress) || DEFAULT_COORDINATE,
+  );
+  const [addressText, setAddressText] = useState(
+    existingAddress?.location || '',
+  );
+  const [label, setLabel] = useState(
+    existingAddress?.label || existingAddress?.tag || 'Home',
+  );
+  const [loadingMap, setLoadingMap] = useState(true);
+  const [locating, setLocating] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const moveMap = useCallback(nextCoordinate => {
+    setCoordinate(nextCoordinate);
+    mapRef.current?.animateToRegion(
+      {...nextCoordinate, latitudeDelta: 0.008, longitudeDelta: 0.008},
+      350,
+    );
+  }, []);
+
+  const locateCurrentPosition = useCallback(async () => {
+    setLocating(true);
     try {
-      const fineLocationGranted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission',
-          message: 'This app needs access to your location.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-
-      const backgroundLocationGranted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        {
-          title: 'Background Location Permission',
-          message: 'This app needs access to your location in the background.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-
-      if (
-        fineLocationGranted === PermissionsAndroid.RESULTS.GRANTED &&
-        backgroundLocationGranted === PermissionsAndroid.RESULTS.GRANTED
-      ) {
-        console.log('Location permissions granted');
-        setLoading(false);
-      } else {
-        console.log('Location permission denied');
-        Alert.alert(
-          'Permission Denied',
-          'Location permission is required for this app to work. Please grant the permission from settings.',
+      if (Platform.OS === 'android') {
+        const permission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
-        setLoading(false);
-      }
-    } catch (err) {
-      console.warn(err);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    requestLocationPermission();
-  }, []);
-  useEffect(() => {
-    getState();
-  }, []);
-  const getState = async query => {
-    // setLoading(true);
-
-    const locationResponse = await handleGetLocation();
-    const currentlocation = await getLocation();
-    setLocation(currentlocation);
-    const {latitude, longitude} = currentlocation;
-  };
-
-  const handlePlaceSelected = (data, details) => {
-    const {lat, lng} = details.geometry.location;
-    const newLocation = {latitude: lat, longitude: lng};
-    setMarkerLocation(newLocation);
-    setLocation(newLocation);
-    setSelectedAddress(details.formatted_address);
-    setLatitude(lat);
-    setLongitude(lng);
-    setSearchText(''); // Clear the search text
-  };
-
-  const handleMapPress = async event => {
-    const {latitude, longitude} = event.nativeEvent.coordinate;
-    setMarkerLocation({latitude, longitude});
-    setLatitude(latitude);
-    setLongitude(longitude);
-    console.log('latidid and longitusd', event.nativeEvent);
-    try {
-      const address = await getAddressFromCoordinates(latitude, longitude);
-      setSelectedAddress(address);
-      const {results} = address;
-      console.log('adddress', address);
-      if (results.length > 0) {
-        const addressComponents = results[0].address_components;
-        let country = null;
-        let state = null;
-
-        // Loop through address components to find country and state
-        addressComponents.forEach(component => {
-          if (component.types.includes('country')) {
-            country = component.long_name;
-          }
-          if (component.types.includes('administrative_area_level_1')) {
-            state = component.long_name;
-          }
-        });
-
-        console.log('Country:', country);
-        console.log('State:', state);
+        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
+          throw new Error('Location permission was not granted.');
+        }
       } else {
-        console.log('Address not found');
+        Geolocation.requestAuthorization?.();
       }
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
-  const handleConfirmLocation = () => {
-    if (markerLocation) {
-      console.log('selectred address', selectedAddress);
-      navigation.navigate('AddNewAddress', {
-        previousScreen: previousScreen,
-        service: service,
-        address: address,
-        location: selectedAddress,
-        location_coordinates: [
-          markerLocation.latitude,
-          markerLocation.longitude,
-        ],
+      Geolocation.getCurrentPosition(
+        async position => {
+          const nextCoordinate = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          moveMap(nextCoordinate);
+          try {
+            const nextAddress = await reverseGeocode(nextCoordinate);
+            if (nextAddress) {
+              setAddressText(nextAddress);
+            }
+          } catch (error) {
+            console.warn('Current location could not be named:', error);
+          } finally {
+            setLocating(false);
+          }
+        },
+        error => {
+          setLocating(false);
+          Toast.show({
+            type: 'error',
+            text1: 'Location unavailable',
+            text2: error.message || 'Move the map pin manually instead.',
+          });
+        },
+        {enableHighAccuracy: true, maximumAge: 10000, timeout: 8000},
+      );
+    } catch (error) {
+      setLocating(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Location unavailable',
+        text2: error.message,
       });
     }
-  };
-  // const MAX_RETRIES = 3;
-  // const TIMEOUT = 5000; // 5 seconds
+  }, [moveMap]);
 
-  // console.log('mardkere', latitude, longitude);
-  const getAddressFromCoordinates = async (latitude, longitude) => {
-    const apiKey = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
-    const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+  useEffect(() => {
+    let active = true;
+    const prepareMap = async () => {
+      try {
+        if (existingAddress?.location) {
+          const resolved = await forwardGeocode(existingAddress.location);
+          if (active && resolved) {
+            moveMap(resolved.coordinate);
+            setAddressText(resolved.address);
+          }
+        } else {
+          locateCurrentPosition();
+        }
+      } catch (error) {
+        console.warn('Saved address could not be positioned:', error);
+      } finally {
+        if (active) {
+          setLoadingMap(false);
+        }
+      }
+    };
+    prepareMap();
+    return () => {
+      active = false;
+    };
+  }, [existingAddress?.location, locateCurrentPosition, moveMap]);
 
+  const updateAddressForCoordinate = async nextCoordinate => {
+    const lookupId = Date.now();
+    reverseLookupRef.current = lookupId;
+    setCoordinate(nextCoordinate);
     try {
-      const response = await axios.get(apiUrl);
-      if (response.data.results.length > 0) {
-        return response.data.results[0].formatted_address;
-      } else {
-        return 'Address not found';
+      const nextAddress = await reverseGeocode(nextCoordinate);
+      if (reverseLookupRef.current === lookupId && nextAddress) {
+        setAddressText(nextAddress);
       }
     } catch (error) {
-      throw new Error('Error fetching address: ' + error);
+      console.warn('Map location could not be named:', error);
     }
   };
 
-  const clearSearch = () => {
-    setSearchText('');
-    googlePlacesRef.current?.setAddressText('');
+  const locateTypedAddress = async () => {
+    if (!addressText.trim()) {
+      return;
+    }
+    setLocating(true);
+    try {
+      const resolved = await forwardGeocode(addressText.trim());
+      if (!resolved) {
+        throw new Error('Try a more complete street address.');
+      }
+      setAddressText(resolved.address);
+      moveMap(resolved.coordinate);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Address not found',
+        text2: error.message || 'Move the pin to the correct location.',
+      });
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  const saveDirectly = async () => {
+    if (!addressText.trim() || saving) {
+      return;
+    }
+
+    setSaving(true);
+    const nextAddress = {
+      ...existingAddress,
+      _id: existingAddress?._id || `local-address-${Date.now()}`,
+      label: label.trim() || 'Saved location',
+      tag: label.trim() || existingAddress?.tag || 'Home',
+      location: addressText.trim(),
+      location_coordinates: [coordinate.latitude, coordinate.longitude],
+    };
+
+    try {
+      if (!previewMode) {
+        const params = {
+          location: nextAddress.location,
+          tag: nextAddress.tag,
+          lat: String(coordinate.latitude),
+          lng: String(coordinate.longitude),
+        };
+        const result = existingAddress?._id
+          ? await handleEditAddress({...params, addressId: existingAddress._id})
+          : await hadleUpdateAddress(params);
+        if (!result) {
+          throw new Error('The address service did not accept the update.');
+        }
+      }
+
+      const currentAddresses = user?.addresses || [];
+      const nextAddresses = existingAddress?._id
+        ? currentAddresses.map(item =>
+            item._id === existingAddress._id ? nextAddress : item,
+          )
+        : [...currentAddresses, nextAddress];
+      dispatch(saveUserInfo({...user, addresses: nextAddresses}));
+
+      if (!previewMode) {
+        await fetchUserInfo().catch(error =>
+          console.warn('Saved address refresh failed:', error),
+        );
+      }
+      if (returnToBooking) {
+        await AsyncStorage.setItem(
+          BOOKING_ADDRESS_KEY,
+          JSON.stringify(nextAddress),
+        );
+      }
+      Toast.show({type: 'success', text1: 'Location saved'});
+      navigation.goBack();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Address not saved',
+        text2: error.message || 'Please try again.',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmLocation = () => {
+    if (directSave) {
+      saveDirectly();
+      return;
+    }
+    navigation.navigate('AddNewAddress', {
+      previousScreen: route.params?.previousScreen,
+      service: route.params?.service,
+      address: existingAddress,
+      location: addressText.trim(),
+      location_coordinates: [coordinate.latitude, coordinate.longitude],
+    });
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{zIndex: 999}}>
-        {navigation && <NavigationHeader Title="Select Location" />}
-      </View>
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={Colors.Primary}
-          style={styles.loader}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.white} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.container}>
+        <MapView
+          initialRegion={{...DEFAULT_REGION, ...coordinate}}
+          onMapReady={() => setLoadingMap(false)}
+          onRegionChangeComplete={region =>
+            updateAddressForCoordinate({
+              latitude: region.latitude,
+              longitude: region.longitude,
+            })
+          }
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+          ref={mapRef}
+          showsCompass={false}
+          showsMyLocationButton={false}
+          showsUserLocation
+          style={StyleSheet.absoluteFillObject}
         />
-      ) : (
-        <>
-          {location && (
-            <>
-              <GooglePlacesAutocomplete
-                ref={googlePlacesRef}
-                placeholder="Search for a place"
-                onPress={handlePlaceSelected}
-                query={{
-                  key: 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA', // Replace with your actual API key
-                  language: 'en',
-                }}
-                fetchDetails={true}
-                textInputProps={{
-                  value: searchText,
-                  onChangeText: text => setSearchText(text),
-                  placeholderTextColor: Colors.DisableColor || '#A9A9A9',
-                }}
-                renderRightButton={() =>
-                  searchText.length > 0 && (
-                    <TouchableOpacity
-                      onPress={clearSearch}
-                      style={styles.clearButton}>
-                      <Text style={styles.clearButtonText}>X</Text>
-                    </TouchableOpacity>
-                  )
-                }
-                styles={{
-                  container: styles.searchContainer,
-                  textInput: styles.searchInput,
-                }}
+
+        <View pointerEvents="none" style={styles.centerPinWrap}>
+          <View style={styles.centerPin}>
+            <Feather name="map-pin" size={27} color={AppColors.white} />
+          </View>
+          <View style={styles.pinShadow} />
+        </View>
+
+        <View style={styles.topArea}>
+          <View style={styles.topBar}>
+            <TouchableOpacity
+              accessibilityLabel="Go back"
+              onPress={() => navigation.goBack()}
+              style={styles.iconButton}>
+              <Feather
+                name="arrow-left"
+                size={22}
+                color={AppColors.textPrimary}
               />
-              <MapView
-                zoomEnabled={true}
-                region={{
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                }}
-                onPress={handleMapPress}
-                showsUserLocation={true}
-                provider={PROVIDER_GOOGLE}
-                style={styles.map}>
-                {markerLocation && (
-                  <Marker
-                    coordinate={markerLocation}
-                    draggable
-                    onDragEnd={handleMapPress}
-                  />
-                )}
-                {agents.map(agent => (
-                  <Marker
-                    key={agent._id}
-                    coordinate={{
-                      latitude: agent.current_location.coordinates[1],
-                      longitude: agent.current_location.coordinates[0],
-                    }}
-                    title={agent.first_name + ' ' + agent.last_name}
-                    description={agent.location}
-                  />
-                ))}
-              </MapView>
-            </>
-          )}
-        </>
-      )}
-      <View style={styles.footer}>
-        {latitude && longitude && (
-          <Text style={styles.coordinatesText}>
-            Latitude: {latitude.toFixed(6)}, Longitude: {longitude.toFixed(6)}
-          </Text>
-        )}
-        <Text style={styles.addressText}>{selectedAddress}</Text>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmLocation}>
-          <Text style={styles.confirmButtonText}>Confirm Location</Text>
-        </TouchableOpacity>
-      </View>
+            </TouchableOpacity>
+            <View style={styles.titleCopy}>
+              <Text style={styles.title}>Choose location</Text>
+              <Text style={styles.subtitle}>Move the map to place the pin</Text>
+            </View>
+            <TouchableOpacity
+              accessibilityLabel="Use current location"
+              disabled={locating}
+              onPress={locateCurrentPosition}
+              style={styles.locateButton}>
+              {locating ? (
+                <ActivityIndicator color={AppColors.primary} size="small" />
+              ) : (
+                <Feather name="crosshair" size={20} color={AppColors.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <GooglePlacesAutocomplete
+            debounce={250}
+            enablePoweredByContainer={false}
+            fetchDetails
+            keyboardShouldPersistTaps="handled"
+            listViewDisplayed="auto"
+            onPress={(_, details) => {
+              const place = details?.geometry?.location;
+              if (!place) {
+                return;
+              }
+              const nextCoordinate = {
+                latitude: place.lat,
+                longitude: place.lng,
+              };
+              setAddressText(details.formatted_address || details.name || '');
+              moveMap(nextCoordinate);
+              searchRef.current?.setAddressText('');
+            }}
+            placeholder="Search area, street or landmark"
+            query={{key: GOOGLE_MAPS_KEY, language: 'en'}}
+            ref={searchRef}
+            renderLeftButton={() => (
+              <View style={styles.searchIcon}>
+                <Feather
+                  name="search"
+                  size={18}
+                  color={AppColors.textSecondary}
+                />
+              </View>
+            )}
+            styles={placesStyles}
+            textInputProps={{
+              placeholderTextColor: AppColors.textMuted,
+              returnKeyType: 'search',
+            }}
+          />
+        </View>
+
+        {loadingMap ? (
+          <View style={styles.mapLoader}>
+            <ActivityIndicator color={AppColors.primary} size="large" />
+          </View>
+        ) : null}
+
+        <View style={styles.confirmCard}>
+          <View style={styles.dragHandle} />
+          <Text style={styles.cardEyebrow}>SELECTED LOCATION</Text>
+          <View style={styles.addressRow}>
+            <View style={styles.addressPin}>
+              <Feather name="navigation" size={19} color={AppColors.primary} />
+            </View>
+            <TextInput
+              multiline
+              onChangeText={setAddressText}
+              placeholder="Enter the full address manually"
+              placeholderTextColor={AppColors.textMuted}
+              style={styles.addressInput}
+              value={addressText}
+            />
+            <TouchableOpacity
+              accessibilityLabel="Find typed address on map"
+              onPress={locateTypedAddress}
+              style={styles.findButton}>
+              <Feather name="search" size={17} color={AppColors.primary} />
+            </TouchableOpacity>
+          </View>
+          {directSave ? (
+            <View style={styles.labelRow}>
+              {['Home', 'Work', 'Other'].map(item => {
+                const selected = label.toLowerCase() === item.toLowerCase();
+                return (
+                  <TouchableOpacity
+                    key={item}
+                    onPress={() => setLabel(item)}
+                    style={[
+                      styles.labelChip,
+                      selected && styles.labelChipSelected,
+                    ]}>
+                    <Text
+                      style={[
+                        styles.labelChipText,
+                        selected && styles.labelChipTextSelected,
+                      ]}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : null}
+          <TouchableOpacity
+            activeOpacity={0.78}
+            disabled={!addressText.trim() || saving}
+            onPress={confirmLocation}
+            style={[
+              styles.confirmButton,
+              (!addressText.trim() || saving) && styles.confirmButtonDisabled,
+            ]}>
+            {saving ? (
+              <ActivityIndicator color={AppColors.white} />
+            ) : (
+              <>
+                <Text style={styles.confirmButtonText}>
+                  {existingAddress
+                    ? 'Update this location'
+                    : 'Save this location'}
+                </Text>
+                <Feather name="arrow-right" size={20} color={AppColors.white} />
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const placesStyles = {
   container: {
-    // ...StyleSheet.absoluteFillObject,
-    flex: 1,
+    flex: 0,
+    marginHorizontal: 14,
+    marginTop: 10,
+    zIndex: 20,
   },
-  searchContainer: {
-    // position: 'absolute',
-    width: '100%',
-    zIndex: 1,
-  },
-  searchInput: {
-    backgroundColor: '#FFF',
-    height: 50,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    margin: 10,
-  },
-  clearButton: {
-    position: 'absolute',
-    right: 10,
-    top: 15,
-    padding: 5,
-  },
-  clearButtonText: {
-    fontSize: 16,
-    color: '#FF6347',
-  },
-  map: {
-    flex: 1,
-    ...StyleSheet.absoluteFillObject,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFF',
-    padding: 10,
+  textInputContainer: {
     alignItems: 'center',
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    backgroundColor: AppColors.white,
+    flexDirection: 'row',
+    minHeight: 52,
+    shadowColor: '#121826',
+    shadowOffset: {width: 0, height: 5},
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  coordinatesText: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: Colors.Black,
+  textInput: {
+    backgroundColor: 'transparent',
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+    height: 50,
+    marginBottom: 0,
+    marginLeft: 0,
+    marginTop: 0,
+    paddingLeft: 0,
+    paddingRight: 12,
   },
-  addressText: {
-    fontSize: 16,
-    marginBottom: 10,
-    color: Colors.Black,
+  listView: {
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 6,
+    overflow: 'hidden',
+  },
+  row: {
+    minHeight: 48,
+    paddingHorizontal: 14,
+  },
+  description: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+  },
+};
+
+const styles = StyleSheet.create({
+  addressInput: {
+    color: AppColors.textPrimary,
+    flex: 1,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+    lineHeight: 18,
+    maxHeight: 66,
+    minHeight: 48,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  addressPin: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  addressRow: {
+    alignItems: 'center',
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginTop: 9,
+    padding: 7,
+  },
+  cardEyebrow: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  centerPin: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primary,
+    borderColor: AppColors.white,
+    borderRadius: 25,
+    borderWidth: 3,
+    height: 50,
+    justifyContent: 'center',
+    shadowColor: AppColors.black,
+    shadowOffset: {width: 0, height: 7},
+    shadowOpacity: 0.2,
+    shadowRadius: 9,
+    width: 50,
+  },
+  centerPinWrap: {
+    alignItems: 'center',
+    left: '50%',
+    marginLeft: -25,
+    marginTop: -47,
+    position: 'absolute',
+    top: '48%',
+    zIndex: 4,
   },
   confirmButton: {
-    backgroundColor: '#FF6347',
-    borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    backgroundColor: AppColors.primary,
+    borderRadius: 8,
+    flexDirection: 'row',
+    height: 52,
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  confirmButtonDisabled: {
+    backgroundColor: AppColors.borderStrong,
   },
   confirmButtonText: {
-    color: '#FFF',
-    fontSize: 18,
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    marginRight: 9,
   },
-  loader: {
-    // Add loader style
+  confirmCard: {
+    backgroundColor: AppColors.white,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    bottom: 0,
+    left: 0,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 16,
+    paddingHorizontal: 16,
+    paddingTop: 11,
+    position: 'absolute',
+    right: 0,
+    shadowColor: AppColors.black,
+    shadowOffset: {width: 0, height: -8},
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 14,
+  },
+  container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  dragHandle: {
+    alignSelf: 'center',
+    backgroundColor: AppColors.borderStrong,
+    borderRadius: 2,
+    height: 4,
+    marginBottom: 12,
+    width: 42,
+  },
+  findButton: {
     alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  iconButton: {
+    alignItems: 'center',
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  labelChip: {
+    alignItems: 'center',
+    borderColor: AppColors.border,
+    borderRadius: 7,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: 'center',
+    marginRight: 8,
+    paddingHorizontal: 14,
+  },
+  labelChipSelected: {
+    backgroundColor: AppColors.primarySoft,
+    borderColor: AppColors.primary,
+  },
+  labelChipText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+  },
+  labelChipTextSelected: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  locateButton: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  mapLoader: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    backgroundColor: AppColors.background,
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  pinShadow: {
+    backgroundColor: 'rgba(18, 24, 38, 0.2)',
+    borderRadius: 8,
+    height: 7,
+    marginTop: 5,
+    width: 18,
+  },
+  safeArea: {
+    backgroundColor: AppColors.white,
+    flex: 1,
+  },
+  searchIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 14,
+    paddingRight: 9,
+  },
+  subtitle: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    marginTop: 2,
+  },
+  title: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+  },
+  titleCopy: {
+    flex: 1,
+    marginHorizontal: 11,
+  },
+  topArea: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 10,
+  },
+  topBar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingHorizontal: 14,
+    paddingTop: 8,
   },
 });

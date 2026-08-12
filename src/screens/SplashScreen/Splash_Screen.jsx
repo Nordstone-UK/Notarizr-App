@@ -1,33 +1,25 @@
 import React, {useEffect, useRef} from 'react';
 import {
+  ActivityIndicator,
   Image,
   PermissionsAndroid,
   Platform,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
 import useFetchUser from '../../hooks/useFetchUser';
 import {saveUserInfo} from '../../features/user/userSlice';
-import {getLocalTestAccountById} from '../../data/localTestAccounts';
-import {ServerURL} from '../../utils/ApiUtils';
-
-const isServerReachable = async () => {
-  try {
-    const res = await fetch(`${ServerURL}/api/v1/app`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({query: '{__typename}'}),
-    });
-    return res.status < 500;
-  } catch {
-    return false;
-  }
-};
+import {useDispatch} from 'react-redux';
+import AppColors from '../../themes/AppColors';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
+  const dispatch = useDispatch();
   const fetchUserInfoRef = useRef(fetchUserInfo);
 
   fetchUserInfoRef.current = fetchUserInfo;
@@ -49,6 +41,7 @@ export default function Splash_Screen({navigation}) {
     };
 
     const openLogin = () => {
+      dispatch(saveUserInfo(null));
       navigation.reset({index: 0, routes: [{name: 'LoginScreen'}]});
     };
 
@@ -119,15 +112,34 @@ export default function Splash_Screen({navigation}) {
     };
 
     bootstrap();
-  }, [navigation]);
+  }, [dispatch, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Image
-        source={require('../../../assets/launch_screen.png')}
-        resizeMode="cover"
-        style={styles.image}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.white} />
+      <View style={styles.topAccent} />
+      <View style={styles.content}>
+        <Image
+          source={require('../../../assets/mainLogo.png')}
+          resizeMode="contain"
+          style={styles.mark}
+        />
+        <Image
+          source={require('../../../assets/notarizrLogo1.png')}
+          resizeMode="contain"
+          style={styles.wordmark}
+        />
+        <View style={styles.brandRule} />
+        <Text style={styles.caption}>
+          Notary services, made straightforward.
+        </Text>
+      </View>
+      <View style={styles.footer}>
+        <ActivityIndicator color={AppColors.primary} size="small" />
+        <Text style={styles.loadingText}>Preparing your workspace</Text>
+        <Text style={styles.trustText}>SECURE • SIMPLE • PROFESSIONAL</Text>
+        <View style={styles.footerRule} />
+      </View>
     </SafeAreaView>
   );
 }
@@ -135,10 +147,66 @@ export default function Splash_Screen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.white,
   },
-  image: {
-    width: '100%',
-    height: '100%',
+  caption: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    marginTop: 16,
+  },
+  brandRule: {
+    backgroundColor: AppColors.primary,
+    height: 3,
+    marginTop: 20,
+    width: 40,
+  },
+  content: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingBottom: 30,
+  },
+  footer: {
+    alignItems: 'center',
+    bottom: 28,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  loadingText: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+    marginTop: 9,
+  },
+  mark: {
+    height: 120,
+    marginBottom: 26,
+    width: 120,
+  },
+  topAccent: {
+    backgroundColor: AppColors.primary,
+    height: 8,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  wordmark: {
+    height: 70,
+    width: 280,
+  },
+  trustText: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    marginTop: 25,
+  },
+  footerRule: {
+    backgroundColor: AppColors.primary,
+    height: 3,
+    marginTop: 14,
+    width: 40,
   },
 });

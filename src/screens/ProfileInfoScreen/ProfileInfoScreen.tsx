@@ -56,8 +56,8 @@ export default function ProfileInfoScreen({navigation}: any) {
 
     try {
       await ChatClient.getInstance().logout();
-    } catch (error) {
-      console.warn('Agora chat logout skipped:', error);
+    } catch {
+      // Agora may not be initialized when the GraphQL chat flow is active.
     } finally {
       dispatch(saveUserInfo(null));
       setLogoutLoading(false);

@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useMutation, useQuery} from '@apollo/client';
+import {useIsFocused} from '@react-navigation/native';
 import moment from 'moment';
 import {useSelector} from 'react-redux';
 import {
@@ -52,13 +53,14 @@ const INITIAL_MESSAGES = [
 export default function PreviewChatScreen({navigation, route}) {
   const conversation = route.params?.conversation;
   const user = useSelector(state => state.user.user);
+  const isFocused = useIsFocused();
   const previewMode = Boolean(conversation?.preview || user?.isHomePreview);
   const [previewMessages, setPreviewMessages] = useState(INITIAL_MESSAGES);
   const [draft, setDraft] = useState('');
   const listRef = useRef(null);
   const {data, refetch} = useQuery(GET_ALL_MESSAGES, {
     fetchPolicy: 'network-only',
-    pollInterval: previewMode ? 0 : 5000,
+    pollInterval: previewMode || !isFocused ? 0 : 3000,
     skip: previewMode || !conversation?.id,
     variables: {chatId: conversation?.id || ''},
   });
@@ -89,14 +91,17 @@ export default function PreviewChatScreen({navigation, route}) {
   }, [data?.getAllMessages, previewMessages, previewMode, user?._id]);
 
   useEffect(() => {
-    if (previewMode || !conversation?.id) {
+    if (previewMode || !isFocused || !conversation?.id) {
       return;
     }
 
+    refetch().catch(error =>
+      console.error('Failed to refresh conversation:', error),
+    );
     markChatRead({variables: {chatId: conversation.id}}).catch(error =>
       console.error('Failed to mark chat as read:', error),
     );
-  }, [conversation?.id, markChatRead, previewMode]);
+  }, [conversation?.id, isFocused, markChatRead, previewMode, refetch]);
 
   const sendMessage = async () => {
     const text = draft.trim();

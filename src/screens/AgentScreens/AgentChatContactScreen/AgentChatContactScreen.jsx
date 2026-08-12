@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useQuery} from '@apollo/client';
 import {useIsFocused} from '@react-navigation/native';
 import {
@@ -9,46 +9,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import {useSelector} from 'react-redux';
-import moment from 'moment';
 import ConversationRow from '../../../components/Messages/ConversationRow';
 import MessagesEmptyState from '../../../components/Messages/MessagesEmptyState';
 import MessagesHeader from '../../../components/Messages/MessagesHeader';
 import {GET_ALL_CHATS} from '../../../../request/queries/getAllChats.query';
-
-const formatMessageTime = createdAt => {
-  if (!createdAt) {
-    return '';
-  }
-  const numericDate = Number(createdAt);
-  const date = moment(Number.isNaN(numericDate) ? createdAt : numericDate);
-  return date.isValid() ? date.fromNow(true) : '';
-};
-
-const normalizeConversation = (item, currentUserId) => {
-  const participant =
-    item.users?.find(chatUser => chatUser._id !== currentUserId) ||
-    item.users?.[0] ||
-    {};
-  const recipientId = item.isReadSendTo?._id;
-
-  return {
-    id: item._id,
-    name:
-      [participant.first_name, participant.last_name]
-        .filter(Boolean)
-        .join(' ') || 'Notarizr client',
-    avatar: participant.profile_picture
-      ? {uri: participant.profile_picture}
-      : null,
-    message: item.latestMessage?.text || 'Start the conversation',
-    service: 'Client conversation',
-    time: formatMessageTime(item.latestMessage?.createdAt),
-    unreadCount: !item.isRead && recipientId === currentUserId ? 1 : 0,
-    online: Boolean(participant.isOnline),
-    participant,
-    raw: item,
-  };
-};
+import {normalizeChatConversation} from '../../../utils/chatUtils';
 
 export default function AgentChatContactScreen({navigation}) {
   const user = useSelector(state => state.user.user);
@@ -63,6 +28,14 @@ export default function AgentChatContactScreen({navigation}) {
     pollInterval: isFocused ? 30000 : 0,
   });
 
+  useEffect(() => {
+    if (isFocused) {
+      refetch().catch(error =>
+        console.error('Failed to refresh notary chats:', error),
+      );
+    }
+  }, [isFocused, refetch]);
+
   const loadChats = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -75,7 +48,7 @@ export default function AgentChatContactScreen({navigation}) {
   const conversations = useMemo(
     () =>
       (data?.getAllChat || []).map(item =>
-        normalizeConversation(item, user?._id),
+        normalizeChatConversation(item, user?._id, 'Client conversation'),
       ),
     [data?.getAllChat, user?._id],
   );

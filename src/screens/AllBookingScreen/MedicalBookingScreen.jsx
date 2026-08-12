@@ -61,6 +61,7 @@ import AddressCard from '../../components/AddressCard/AddressCard';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import Toast from 'react-native-toast-message';
 import BookingDetailsPreview from '../../components/Bookings/BookingDetailsPreview';
+import ClientBookingDetailsView from '../../components/Bookings/ClientBookingDetailsView';
 
 export default function MedicalBookingScreen(props) {
   const bookingDetail = useSelector(state => state.booking.booking);
@@ -645,8 +646,67 @@ function LiveMedicalBookingScreen({route, navigation}) {
   const handleAccept = async () => {
     await handleStatusChange('payment_confirmed');
   };
+  const handleOpenMessages = () => {
+    navigation.navigate('HomeScreen', {screen: 'ChatContactScreen'});
+  };
+  const handleJoinSession = () => {
+    navigation.navigate('WaitingRoomScreen', {
+      uid: bookingDetail?._id,
+      channel: bookingDetail?.agora_channel_name,
+      token: bookingDetail?.agora_channel_token,
+      time: bookingDetail?.time_of_booking,
+      date: bookingDetail?.date_of_booking,
+    });
+  };
+  const handleCancelBooking = () => {
+    Alert.alert(
+      'Cancel this booking?',
+      'This request will be moved to your cancelled bookings.',
+      [
+        {text: 'Keep booking', style: 'cancel'},
+        {
+          text: 'Cancel booking',
+          style: 'destructive',
+          onPress: () => handleStatusChange('cancelled'),
+        },
+      ],
+    );
+  };
+  const handleDownloadDocuments = () => {
+    const downloadableDocuments =
+      bookingDetail?.notarized_docs?.length > 0
+        ? bookingDetail.notarized_docs
+        : bookingDetail?.agent_document;
+
+    if (downloadableDocuments?.length > 0) {
+      handleNotarizrDocumentPress(downloadableDocuments, 'completedDocuments');
+    }
+  };
+  const handleBookAgain = () => {
+    navigation.navigate('HomeScreen', {screen: 'Home'});
+  };
   console.log('setBookedByAddress', bookingDetail.payment_type);
   console.log('bookingdetails', bookingDetail);
+  return (
+    <ClientBookingDetailsView
+      booking={bookingDetail}
+      loading={loading || refreshing}
+      onBack={() => navigation.goBack()}
+      onBookAgain={handleBookAgain}
+      onCancel={handleCancelBooking}
+      onDownload={handleDownloadDocuments}
+      onHelp={handleCallSupport}
+      onJoin={handleJoinSession}
+      onMessage={handleOpenMessages}
+      onPay={handleMakePayment}
+      onRefresh={getBookingStatus}
+      onTrack={() => handleAddressPress(bookedByAddress?.location_coordinates)}
+      onUpload={selectDocuments}
+      status={status || bookingDetail?.status}
+    />
+  );
+  // Kept as a temporary fallback while the booking data migration is completed.
+  // eslint-disable-next-line no-unreachable
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader

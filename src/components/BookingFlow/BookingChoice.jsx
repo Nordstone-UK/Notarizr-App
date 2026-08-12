@@ -1,11 +1,18 @@
 import React from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
 
 export default function BookingChoice({
   icon,
   label,
+  onAction,
   onPress,
   selected,
   subtitle,
@@ -33,6 +40,15 @@ export default function BookingChoice({
         </Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
+      {onAction ? (
+        <TouchableOpacity
+          accessibilityLabel={`Edit ${label}`}
+          activeOpacity={0.7}
+          onPress={onAction}
+          style={styles.actionButton}>
+          <Feather name="edit-2" size={15} color={BookingColors.primary} />
+        </TouchableOpacity>
+      ) : null}
       <View style={[styles.radio, selected && styles.selectedRadio]}>
         {selected ? <View style={styles.radioDot} /> : null}
       </View>
@@ -41,6 +57,15 @@ export default function BookingChoice({
 }
 
 const styles = StyleSheet.create({
+  actionButton: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    borderRadius: 7,
+    backgroundColor: BookingColors.primarySoft,
+  },
   container: {
     minHeight: 62,
     flexDirection: 'row',

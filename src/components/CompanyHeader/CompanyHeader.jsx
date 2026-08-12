@@ -1,6 +1,6 @@
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {useNavigation} from '@react-navigation/native';
 
 export default function CompanyHeader(props) {
@@ -40,9 +40,9 @@ const styles = StyleSheet.create({
   imagestyles: {
     resizeMode: 'contain',
     alignSelf: 'center',
-    width: widthToDp(65),
-    height: heightToDp(20),
-    marginVertical: widthToDp(8),
+    width: widthToDp(75),
+    height: heightToDp(22),
+    marginVertical: widthToDp(6),
   },
   textHeading: {
     color: '#000',

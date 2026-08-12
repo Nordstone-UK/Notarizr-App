@@ -38,6 +38,8 @@
 		EC0D74A7A9A9406186B3BAB1 /* ProtestGuerrilla-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 776018053A3843CF8BCB053C /* ProtestGuerrilla-Regular.ttf */; };
 		EF63E2EFE9243DC8625A25D0 /* libPods-OneSignalNotificationServiceExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6662BE3F93912CAC4A2FBF73 /* libPods-OneSignalNotificationServiceExtension.a */; };
 		EF6BC99F6B3547C0909B2207 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 24DF74C2B1EF47E781CFACB1 /* Poppins-SemiBold.ttf */; };
+		F102030405060708090A0B0C /* mainLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = F102030405060708090A0B0E /* mainLogo.png */; };
+		F102030405060708090A0B0D /* notarizrLogo1.png in Resources */ = {isa = PBXBuildFile; fileRef = F102030405060708090A0B0F /* notarizrLogo1.png */; };
 		F54AC3856CD24B0BBC1B0587 /* PlaywriteCU-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B0211BAFB26B4E58AB2AB21B /* PlaywriteCU-ExtraLight.ttf */; };
 		F5F4F9688A824E4096A70CE7 /* DancingScript-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B38640B86F554B7C85DB5CDE /* DancingScript-VariableFont_wght.ttf */; };
 		F825EB9097B44F87AFB003A6 /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F4DADF6CDC374897BD16A59F /* Poppins-Bold.ttf */; };
@@ -145,6 +147,8 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F4DADF6CDC374897BD16A59F /* Poppins-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; };
 		FA7B51016B2B43F5A8F6CAB4 /* Poppins-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Thin.ttf"; path = "../assets/fonts/Poppins-Thin.ttf"; sourceTree = "<group>"; };
+		F102030405060708090A0B0E /* mainLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mainLogo.png; path = ../assets/mainLogo.png; sourceTree = "<group>"; };
+		F102030405060708090A0B0F /* notarizrLogo1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = notarizrLogo1.png; path = ../assets/notarizrLogo1.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -221,6 +225,8 @@
 		46F0351A229B40919528EFB2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				F102030405060708090A0B0E /* mainLogo.png */,
+				F102030405060708090A0B0F /* notarizrLogo1.png */,
 				8DD3EEE28DA343A4BB51100D /* Manrope-Bold.ttf */,
 				CA05E86AD193411FB5736C6C /* Manrope-ExtraBold.ttf */,
 				772261F8F6F642E2B9FA4A22 /* Manrope-ExtraLight.ttf */,
@@ -452,6 +458,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F102030405060708090A0B0C /* mainLogo.png in Resources */,
+				F102030405060708090A0B0D /* notarizrLogo1.png in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				C92BA60B2D014E16BF400AA3 /* Manrope-Bold.ttf in Resources */,
@@ -766,6 +774,7 @@
 				CURRENT_PROJECT_VERSION = 50;
 				DEVELOPMENT_TEAM = 2QUL8T8AKF;
 				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				INFOPLIST_FILE = Notarizr/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Notarizr;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -796,6 +805,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 50;
 				DEVELOPMENT_TEAM = 2QUL8T8AKF;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				INFOPLIST_FILE = Notarizr/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Notarizr;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;

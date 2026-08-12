@@ -34,14 +34,6 @@ const TIME_OPTIONS = ['9:00 AM', '10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'];
 const ADDITIONAL_SIGNATURE_PRICE = 10;
 const PRINT_COPY_PRICE = 5;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
-const FALLBACK_DOCUMENT_TYPES = [
-  {_id: 'local-power-of-attorney', name: 'Power of attorney', price: 45},
-  {_id: 'local-affidavit', name: 'Affidavit', price: 35},
-  {_id: 'local-real-estate', name: 'Real estate documents', price: 65},
-  {_id: 'local-business', name: 'Business agreement', price: 50},
-  {_id: 'local-estate', name: 'Estate documents', price: 55},
-  {_id: 'local-other', name: 'Other document', price: 40},
-];
 const getMinimumBookingDate = () => {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
@@ -128,15 +120,12 @@ function SegmentedControl({onChange, value}) {
 function AppointmentStep({
   addresses,
   bookingFor,
-  customAddress,
   datePickerOpen,
   isMobile,
-  onAddAddress,
+  onManageAddresses,
   onChangeBookingFor,
-  onChangeCustomAddress,
   onChangeOtherName,
   onChangeOtherPhone,
-  onSaveAddress,
   onSelectAddress,
   onSelectDate,
   onSelectTime,
@@ -146,7 +135,6 @@ function AppointmentStep({
   selectedAddress,
   selectedDate,
   selectedTime,
-  showAddressInput,
 }) {
   return (
     <>
@@ -257,38 +245,13 @@ function AppointmentStep({
               }
             />
           ))}
-          {showAddressInput ? (
-            <View style={styles.addressEditor}>
-              <View style={styles.inputShell}>
-                <Feather name="map-pin" size={17} color="#7D8490" />
-                <TextInput
-                  onChangeText={onChangeCustomAddress}
-                  placeholder="Enter full address"
-                  placeholderTextColor="#A2A7B0"
-                  style={styles.textInput}
-                  value={customAddress}
-                />
-              </View>
-              <TouchableOpacity
-                activeOpacity={0.72}
-                disabled={!customAddress.trim()}
-                onPress={onSaveAddress}
-                style={[
-                  styles.saveAddressButton,
-                  !customAddress.trim() && styles.disabledSmallButton,
-                ]}>
-                <Text style={styles.saveAddressText}>Use address</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={onAddAddress}
-              style={styles.addAddressButton}>
-              <Feather name="plus" size={16} color="#FD6D1F" />
-              <Text style={styles.addAddressText}>Add another address</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onManageAddresses}
+            style={styles.addAddressButton}>
+            <Feather name="settings" size={16} color="#FD6D1F" />
+            <Text style={styles.addAddressText}>Manage saved addresses</Text>
+          </TouchableOpacity>
         </BookingFlowSection>
       ) : (
         <BookingFlowSection
@@ -309,19 +272,46 @@ function AppointmentStep({
 
 function DocumentDetailsStep({
   documentOptions,
+  documentsError,
   documentsLoading,
   documentType,
+  isMobile,
   notes,
   onChangeNotes,
   onChangeSigners,
   onSelectDocumentType,
-  signers,
+  onRetryDocuments,
+  additionalSignatures,
 }) {
   return (
     <>
       <BookingFlowSection
         subtitle="Choose the document that best matches your request."
         title="Document type">
+        {isMobile ? (
+          <TouchableOpacity
+            activeOpacity={0.72}
+            onPress={() => onSelectDocumentType(null)}
+            style={[
+              styles.skipDocumentOption,
+              !documentType && styles.selectedSkipDocumentOption,
+            ]}>
+            <View style={styles.skipDocumentIcon}>
+              <Feather name="clock" size={18} color="#FD6D1F" />
+            </View>
+            <View style={styles.skipDocumentCopy}>
+              <Text style={styles.skipDocumentTitle}>
+                Decide at the appointment
+              </Text>
+              <Text style={styles.skipDocumentSubtitle}>
+                Document selection is optional for mobile notary.
+              </Text>
+            </View>
+            {!documentType ? (
+              <Feather name="check-circle" size={18} color="#168A52" />
+            ) : null}
+          </TouchableOpacity>
+        ) : null}
         {documentsLoading ? (
           <View style={styles.catalogLoading}>
             <ActivityIndicator color="#FD6D1F" size="small" />
@@ -329,7 +319,16 @@ function DocumentDetailsStep({
               Loading document types
             </Text>
           </View>
-        ) : (
+        ) : documentsError ? (
+          <View style={styles.catalogError}>
+            <Text style={styles.catalogErrorTitle}>
+              Document types could not load
+            </Text>
+            <TouchableOpacity onPress={onRetryDocuments}>
+              <Text style={styles.catalogRetry}>Try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : documentOptions.length ? (
           <View style={styles.documentGrid}>
             {documentOptions.map(option => {
               const selected = documentType?._id === option._id;
@@ -368,35 +367,45 @@ function DocumentDetailsStep({
               );
             })}
           </View>
+        ) : (
+          <Text style={styles.catalogEmpty}>No document types available.</Text>
         )}
       </BookingFlowSection>
       <BookingFlowSection
-        subtitle="Include everyone who needs to sign."
+        subtitle={`Each additional signature adds $${ADDITIONAL_SIGNATURE_PRICE.toFixed(
+          2,
+        )} to the estimate.`}
         title="Signing details">
         <View style={styles.stepperRow}>
           <View>
-            <Text style={styles.stepperLabel}>Number of signers</Text>
-            <Text style={styles.stepperHint}>Includes you</Text>
+            <Text style={styles.stepperLabel}>
+              Additional signatures required
+            </Text>
+            <Text style={styles.stepperHint}>Beyond the primary signature</Text>
           </View>
           <View style={styles.stepper}>
             <TouchableOpacity
               accessibilityLabel="Remove signer"
               activeOpacity={0.7}
-              disabled={signers === 1}
-              onPress={() => onChangeSigners(Math.max(1, signers - 1))}
+              disabled={additionalSignatures === 0}
+              onPress={() =>
+                onChangeSigners(Math.max(0, additionalSignatures - 1))
+              }
               style={styles.stepperButton}>
               <Feather
                 name="minus"
                 size={17}
-                color={signers === 1 ? '#C4C8CE' : '#303642'}
+                color={additionalSignatures === 0 ? '#C4C8CE' : '#303642'}
               />
             </TouchableOpacity>
-            <Text style={styles.stepperValue}>{signers}</Text>
+            <Text style={styles.stepperValue}>{additionalSignatures}</Text>
             <TouchableOpacity
               accessibilityLabel="Add signer"
               activeOpacity={0.7}
-              disabled={signers === 6}
-              onPress={() => onChangeSigners(Math.min(6, signers + 1))}
+              disabled={additionalSignatures === 10}
+              onPress={() =>
+                onChangeSigners(Math.min(10, additionalSignatures + 1))
+              }
               style={styles.stepperButton}>
               <Feather name="plus" size={17} color="#303642" />
             </TouchableOpacity>
@@ -456,9 +465,73 @@ function UploadAndPrintStep({
 
   return (
     <>
+      {isMobile ? (
+        <BookingFlowSection
+          subtitle={`Printed copies cost $${PRINT_COPY_PRICE.toFixed(
+            2,
+          )} each. A document upload is required if you choose yes.`}
+          title="Do you need printed copies?">
+          <View style={styles.printOptions}>
+            <PrintOption
+              label="No, I'll bring it"
+              onPress={() => onTogglePrint(false)}
+              selected={!wantsPrint}
+              subtitle="No printing charge"
+            />
+            <PrintOption
+              label="Yes, print it"
+              onPress={() => onTogglePrint(true)}
+              selected={wantsPrint}
+              subtitle={`$${PRINT_COPY_PRICE.toFixed(2)} per copy`}
+            />
+          </View>
+          {wantsPrint ? (
+            <View style={styles.printQuantityRow}>
+              <View>
+                <Text style={styles.stepperLabel}>Number of printouts</Text>
+                <Text style={styles.stepperHint}>
+                  Added cost: ${(printCopies * PRINT_COPY_PRICE).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.stepper}>
+                <TouchableOpacity
+                  accessibilityLabel="Remove printed copy"
+                  disabled={printCopies === 1}
+                  onPress={() =>
+                    onChangePrintCopies(Math.max(1, printCopies - 1))
+                  }
+                  style={styles.stepperButton}>
+                  <Feather
+                    name="minus"
+                    size={17}
+                    color={printCopies === 1 ? '#C4C8CE' : '#303642'}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.stepperValue}>{printCopies}</Text>
+                <TouchableOpacity
+                  accessibilityLabel="Add printed copy"
+                  disabled={printCopies === 10}
+                  onPress={() =>
+                    onChangePrintCopies(Math.min(10, printCopies + 1))
+                  }
+                  style={styles.stepperButton}>
+                  <Feather name="plus" size={17} color="#303642" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
+        </BookingFlowSection>
+      ) : null}
+
       <BookingFlowSection
-        subtitle="Upload a readable copy for the assigned notary."
-        title="Document upload">
+        subtitle={
+          isMobile
+            ? wantsPrint
+              ? 'Required so the notary can prepare your printouts.'
+              : 'Optional for mobile notary. You can bring the document with you.'
+            : 'Upload a readable copy for the assigned notary.'
+        }
+        title={isMobile ? 'Document upload (optional)' : 'Document upload'}>
         <TouchableOpacity
           activeOpacity={0.74}
           onPress={onChooseDocuments}
@@ -489,66 +562,6 @@ function UploadAndPrintStep({
           </Text>
         </TouchableOpacity>
       </BookingFlowSection>
-
-      {isMobile ? (
-        <BookingFlowSection
-          subtitle={`Printed copies are $${PRINT_COPY_PRICE.toFixed(
-            2,
-          )} each and are added to your estimate.`}
-          title="Document printout">
-          <View style={styles.printOptions}>
-            <PrintOption
-              label="No printout"
-              onPress={() => onTogglePrint(false)}
-              selected={!wantsPrint}
-              subtitle="I will bring the original document"
-            />
-            <PrintOption
-              label="Print for me"
-              onPress={() => onTogglePrint(true)}
-              selected={wantsPrint}
-              subtitle={`$${PRINT_COPY_PRICE.toFixed(2)} per copy`}
-            />
-          </View>
-          {wantsPrint ? (
-            <View style={styles.printQuantityRow}>
-              <View>
-                <Text style={styles.stepperLabel}>Number of copies</Text>
-                <Text style={styles.stepperHint}>
-                  Added cost: ${(printCopies * PRINT_COPY_PRICE).toFixed(2)}
-                </Text>
-              </View>
-              <View style={styles.stepper}>
-                <TouchableOpacity
-                  accessibilityLabel="Remove printed copy"
-                  activeOpacity={0.7}
-                  disabled={printCopies === 1}
-                  onPress={() =>
-                    onChangePrintCopies(Math.max(1, printCopies - 1))
-                  }
-                  style={styles.stepperButton}>
-                  <Feather
-                    name="minus"
-                    size={17}
-                    color={printCopies === 1 ? '#C4C8CE' : '#303642'}
-                  />
-                </TouchableOpacity>
-                <Text style={styles.stepperValue}>{printCopies}</Text>
-                <TouchableOpacity
-                  accessibilityLabel="Add printed copy"
-                  activeOpacity={0.7}
-                  disabled={printCopies === 10}
-                  onPress={() =>
-                    onChangePrintCopies(Math.min(10, printCopies + 1))
-                  }
-                  style={styles.stepperButton}>
-                  <Feather name="plus" size={17} color="#303642" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : null}
-        </BookingFlowSection>
-      ) : null}
     </>
   );
 }
@@ -568,6 +581,7 @@ function SummaryRow({icon, label, last, value}) {
 }
 
 function ReviewStep({
+  additionalSignatures,
   additionalSignatureCharge,
   bookingFor,
   dateLabel,
@@ -580,7 +594,6 @@ function ReviewStep({
   printingCharge,
   price,
   serviceName,
-  signers,
   time,
 }) {
   return (
@@ -600,7 +613,11 @@ function ReviewStep({
             label={isMobile ? 'Meeting address' : 'Session format'}
             value={location}
           />
-          <SummaryRow icon="file-text" label="Document" value={documentType} />
+          <SummaryRow
+            icon="file-text"
+            label="Document"
+            value={documentType || 'Bring to appointment'}
+          />
           {isMobile ? (
             <SummaryRow
               icon="printer"
@@ -613,16 +630,12 @@ function ReviewStep({
             />
           ) : null}
           <SummaryRow
-            icon="users"
-            label="Signing for"
+            icon="edit-3"
+            label="Additional signatures"
             last
-            value={
-              bookingFor === 'self'
-                ? `Myself, ${signers} ${signers === 1 ? 'signer' : 'signers'}`
-                : `${otherName}, ${signers} ${
-                    signers === 1 ? 'signer' : 'signers'
-                  }`
-            }
+            value={`${additionalSignatures} required ($${additionalSignatureCharge.toFixed(
+              2,
+            )}) for ${bookingFor === 'self' ? 'my booking' : otherName}`}
           />
         </View>
       </BookingFlowSection>
@@ -631,9 +644,13 @@ function ReviewStep({
         subtitle="You will only be charged after a notary accepts."
         title="Estimated total">
         <PricingBreakdown
+          additionalSignatureCount={additionalSignatures}
           additionalSignatures={additionalSignatureCharge}
           documentCharge={documentCharge}
+          documentLabel={documentType}
           printingCharge={printingCharge}
+          printingCopies={printCopies}
+          serviceLabel={serviceName}
           total={price}
         />
         <View style={styles.paymentNotice}>
@@ -700,17 +717,19 @@ export default function BookingFlowScreen({navigation, route}) {
   const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
   const scrollRef = useRef(null);
   const {uploadAllDocuments, uploadMultipleFiles} = useRegister();
-  const {data: documentCatalog, loading: documentsLoading} = useQuery(
-    GET_DOCUMENT_TYPES,
-    {
-      variables: {
-        page: 1,
-        limit: 50,
-        state: user?.state || 'CA',
-      },
-      skip: !user || previewMode,
+  const {
+    data: documentCatalog,
+    error: documentsError,
+    loading: documentsLoading,
+    refetch: refetchDocuments,
+  } = useQuery(GET_DOCUMENT_TYPES, {
+    variables: {
+      page: 1,
+      limit: 50,
+      state: user?.state || 'CA',
     },
-  );
+    skip: !user || previewMode,
+  });
   const [matchAgent] = useLazyQuery(GET_MATCHED_AGENT, {
     fetchPolicy: 'no-cache',
   });
@@ -731,11 +750,9 @@ export default function BookingFlowScreen({navigation, route}) {
     user?.addresses?.filter(address => address.location) || [],
   );
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
-  const [showAddressInput, setShowAddressInput] = useState(false);
-  const [customAddress, setCustomAddress] = useState('');
   const [documentType, setDocumentType] = useState(null);
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
-  const [signers, setSigners] = useState(1);
+  const [additionalSignatures, setAdditionalSignatures] = useState(0);
   const [notes, setNotes] = useState('');
   const [wantsPrint, setWantsPrint] = useState(false);
   const [printCopies, setPrintCopies] = useState(1);
@@ -748,14 +765,8 @@ export default function BookingFlowScreen({navigation, route}) {
       price: Number(option.statePrices?.[0]?.price || 0),
     }));
 
-    return catalogOptions.length > 0 ? catalogOptions : FALLBACK_DOCUMENT_TYPES;
+    return catalogOptions;
   }, [documentCatalog]);
-
-  useEffect(() => {
-    if (!documentType && documentOptions.length > 0) {
-      setDocumentType(documentOptions[0]);
-    }
-  }, [documentOptions, documentType]);
 
   useEffect(() => {
     if (!isMobile) {
@@ -775,21 +786,33 @@ export default function BookingFlowScreen({navigation, route}) {
     scrollRef.current?.scrollTo({animated: false, y: 0});
   }, [step]);
 
+  useEffect(() => {
+    const savedAddresses =
+      user?.addresses?.filter(address => address.location) || [];
+    if (!savedAddresses.length) {
+      return;
+    }
+    setAddresses(savedAddresses);
+    setSelectedAddress(current => current || savedAddresses[0]);
+  }, [user?.addresses]);
+
   const dateLabel = formatDateLabel(selectedDate);
   const location = isMobile
     ? selectedAddress?.location
     : 'Secure video appointment';
   const documentCharge = Number(documentType?.price || 0);
   const additionalSignatureCharge =
-    Math.max(0, signers - 1) * ADDITIONAL_SIGNATURE_PRICE;
+    additionalSignatures * ADDITIONAL_SIGNATURE_PRICE;
   const printingCharge =
     isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
   const price = documentCharge + additionalSignatureCharge + printingCharge;
   const stepOneValid =
     Boolean(selectedDate && selectedTime && (!isMobile || selectedAddress)) &&
     (bookingFor === 'self' || Boolean(otherName.trim() && otherPhone.trim()));
-  const stepTwoValid = Boolean(documentType);
-  const stepThreeValid = Boolean(uploadedDocuments.length > 0);
+  const stepTwoValid = isMobile || Boolean(documentType);
+  const stepThreeValid = isMobile
+    ? !wantsPrint || uploadedDocuments.length > 0
+    : uploadedDocuments.length > 0;
   const disabled =
     step === 1
       ? !stepOneValid
@@ -824,7 +847,7 @@ export default function BookingFlowScreen({navigation, route}) {
       }
 
       let documents = uploadedDocuments;
-      if (!__DEV__) {
+      if (!__DEV__ && uploadedDocuments.length > 0) {
         documents = await uploadAllDocuments(
           uploadedDocuments.map(document => document.uri),
         );
@@ -849,9 +872,14 @@ export default function BookingFlowScreen({navigation, route}) {
           serviceType: backendServiceType,
           service: matchedAgent.service._id,
           agent: matchedAgent._id,
-          documentType: [
-            {name: documentType.name, price: Math.round(documentType.price)},
-          ],
+          documentType: documentType
+            ? [
+                {
+                  name: documentType.name,
+                  price: Math.round(documentType.price),
+                },
+              ]
+            : [],
           address: isMobile
             ? selectedAddress?._id || selectedAddress?.location
             : null,
@@ -874,7 +902,7 @@ export default function BookingFlowScreen({navigation, route}) {
           preferenceAnalysis: 'distance',
           documents,
           totalPrice: price,
-          totalSignaturesRequired: signers,
+          totalSignaturesRequired: additionalSignatures,
         },
       });
 
@@ -927,18 +955,6 @@ export default function BookingFlowScreen({navigation, route}) {
     );
   };
 
-  const saveAddress = () => {
-    const nextAddress = customAddress.trim();
-    if (!nextAddress) {
-      return;
-    }
-    const address = {location: nextAddress, tag: 'custom'};
-    setAddresses(current => [...current, address]);
-    setSelectedAddress(address);
-    setCustomAddress('');
-    setShowAddressInput(false);
-  };
-
   if (confirmedBooking) {
     return (
       <Confirmation
@@ -970,15 +986,12 @@ export default function BookingFlowScreen({navigation, route}) {
             <AppointmentStep
               addresses={addresses}
               bookingFor={bookingFor}
-              customAddress={customAddress}
               datePickerOpen={datePickerOpen}
               isMobile={isMobile}
-              onAddAddress={() => setShowAddressInput(true)}
+              onManageAddresses={() => navigation.navigate('AddressDetails')}
               onChangeBookingFor={setBookingFor}
-              onChangeCustomAddress={setCustomAddress}
               onChangeOtherName={setOtherName}
               onChangeOtherPhone={setOtherPhone}
-              onSaveAddress={saveAddress}
               onSelectAddress={setSelectedAddress}
               onSelectDate={setSelectedDate}
               onSelectTime={setSelectedTime}
@@ -988,20 +1001,22 @@ export default function BookingFlowScreen({navigation, route}) {
               selectedAddress={selectedAddress}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
-              showAddressInput={showAddressInput}
             />
           ) : step === 2 ? (
             <DocumentDetailsStep
               documentOptions={documentOptions}
+              documentsError={documentsError}
               documentsLoading={
                 documentsLoading && documentOptions.length === 0
               }
               documentType={documentType}
+              isMobile={isMobile}
               notes={notes}
               onChangeNotes={setNotes}
-              onChangeSigners={setSigners}
+              onChangeSigners={setAdditionalSignatures}
               onSelectDocumentType={setDocumentType}
-              signers={signers}
+              onRetryDocuments={refetchDocuments}
+              additionalSignatures={additionalSignatures}
             />
           ) : step === 3 ? (
             <UploadAndPrintStep
@@ -1015,6 +1030,7 @@ export default function BookingFlowScreen({navigation, route}) {
             />
           ) : (
             <ReviewStep
+              additionalSignatures={additionalSignatures}
               additionalSignatureCharge={additionalSignatureCharge}
               bookingFor={bookingFor}
               dateLabel={dateLabel}
@@ -1027,7 +1043,6 @@ export default function BookingFlowScreen({navigation, route}) {
               printingCharge={printingCharge}
               price={price}
               serviceName={serviceName}
-              signers={signers}
               time={selectedTime}
             />
           )}
@@ -1230,6 +1245,66 @@ const styles = StyleSheet.create({
     color: '#D65322',
     fontFamily: 'Manrope-Bold',
     fontSize: 11,
+  },
+  skipDocumentOption: {
+    minHeight: 66,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 11,
+    borderWidth: 1,
+    borderColor: '#E0E3E7',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  selectedSkipDocumentOption: {
+    borderColor: '#9FD5B4',
+    backgroundColor: '#F2FAF5',
+  },
+  skipDocumentIcon: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFF0E7',
+  },
+  skipDocumentCopy: {flex: 1, minWidth: 0, marginLeft: 10},
+  skipDocumentTitle: {
+    color: '#282E3A',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  skipDocumentSubtitle: {
+    marginTop: 2,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 8,
+  },
+  catalogError: {
+    alignItems: 'center',
+    marginHorizontal: 20,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: '#FFF4F4',
+  },
+  catalogErrorTitle: {
+    color: '#B33B3B',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+  },
+  catalogRetry: {
+    marginTop: 7,
+    color: '#D65322',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  catalogEmpty: {
+    marginHorizontal: 20,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
   },
   documentGrid: {
     flexDirection: 'row',

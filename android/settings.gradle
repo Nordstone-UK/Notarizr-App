@@ -6,5 +6,3 @@ project(':react-native-vector-icons').projectDir = new File(rootProject.projectD
 include ':react-native-immediate-phone-call', ':app'
 project(':react-native-immediate-phone-call').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-immediate-phone-call/android')
 includeBuild('../node_modules/@react-native/gradle-plugin')
-include ':@terrylinla_react-native-sketch-canvas'
-project(':@terrylinla_react-native-sketch-canvas').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-immediate-phone-call/android')

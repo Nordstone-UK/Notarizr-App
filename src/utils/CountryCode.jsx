@@ -1225,3 +1225,8 @@ export const removeCountryCode = phoneNumber => {
 
   return {countryCode, phoneNumberWithoutCode};
 };
+
+export const normalizePhoneNumber = phoneNumber => {
+  const digits = String(phoneNumber || '').replace(/\D/g, '');
+  return digits ? `+${digits}` : '';
+};

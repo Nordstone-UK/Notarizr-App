@@ -137,12 +137,12 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   logo: {
-    width: 168,
-    height: 38,
+    width: 230,
+    height: 58,
     alignSelf: 'center',
   },
   intro: {
-    marginTop: 28,
+    marginTop: 22,
     marginBottom: 22,
   },
   eyebrow: {
