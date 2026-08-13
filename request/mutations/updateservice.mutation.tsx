@@ -34,9 +34,13 @@ export const UPDATE_SERVICE_BY_ID = gql`
         createdAt
         updatedAt
         availability {
-          weekdays
-          startTime
-          endTime
+          schedule {
+            day
+            slots {
+              startTime
+              endTime
+            }
+          }
         }
       }
     }

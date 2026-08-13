@@ -50,9 +50,13 @@ export const GET_AGENT_BOOKING = gql`
           status
           service_type
           availability {
-            weekdays
-            startTime
-            endTime
+            schedule {
+              day
+              slots {
+                startTime
+                endTime
+              }
+            }
           }
           location
           can_print

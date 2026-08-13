@@ -52,9 +52,13 @@ export const UPDATE_BOOKING_INFO = gql`
           status
           service_type
           availability {
-            weekdays
-            startTime
-            endTime
+            schedule {
+              day
+              slots {
+                startTime
+                endTime
+              }
+            }
           }
           location
           agent {

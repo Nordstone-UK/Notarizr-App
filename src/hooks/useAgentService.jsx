@@ -40,15 +40,8 @@ const useAgentService = () => {
     navigation.navigate('AgentMainAvailabilityScreen');
     // navigation.navigate('AgentAvailabilitySetupScreen');
   };
-  const dispatchAvailability = async (
-    weeks,
-    startTime,
-    endTime,
-    canPrint,
-    serviceData,
-  ) => {
-    const availability = orderWeekdays(weeks);
-    dispatch(setAvailability({availability, startTime, endTime}));
+  const dispatchAvailability = async (schedule, canPrint, serviceData) => {
+    dispatch(setAvailability({schedule}));
     navigation.navigate('AgentRONLocationScreen', {
       canPrint: canPrint,
       serviceData: serviceData,
@@ -81,19 +74,6 @@ const useAgentService = () => {
       ? LocalNotaryRegister(agentService)
       : navigation.navigate('AgentRONLocationScreen');
   };
-  function orderWeekdays(weekdays) {
-    const selectedWeekdays = convertWeekdaysToLowerCase(weekdays);
-    const weekdaysOrder = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun'];
-
-    const validWeekdays = selectedWeekdays.filter(day =>
-      weekdaysOrder.includes(day),
-    );
-    const orderedWeekdays = validWeekdays.sort(
-      (a, b) => weekdaysOrder.indexOf(a) - weekdaysOrder.indexOf(b),
-    );
-
-    return orderedWeekdays;
-  }
   const getCurrentLocation = async variables => {
     const {data} = await getLiveLocation({variables});
     // console.log('dsssssssssadfdf', data);
@@ -159,9 +139,6 @@ const useAgentService = () => {
       });
     }
   };
-  function convertWeekdaysToLowerCase(weekdays) {
-    return weekdays.map(weekday => weekday.toLowerCase());
-  }
   return {
     dispatchMobile,
     dispatchLocal,

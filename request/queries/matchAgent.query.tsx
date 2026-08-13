@@ -34,9 +34,13 @@ export const GET_MATCHED_AGENT = gql`
           status
           service_type
           availability {
-            weekdays
-            startTime
-            endTime
+            schedule {
+              day
+              slots {
+                startTime
+                endTime
+              }
+            }
           }
           location
           createdAt

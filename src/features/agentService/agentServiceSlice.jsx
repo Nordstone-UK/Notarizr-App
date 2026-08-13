@@ -5,9 +5,7 @@ const initialState = {
   serviceType: 'null',
   location: 'null',
   availability: {
-    endTime: null,
-    startTime: null,
-    weekdays: null,
+    schedule: [],
   },
   canPrint: null,
 };
@@ -21,9 +19,7 @@ export const agentServiceSlice = createSlice({
       // consle.log('ServiceType Set', state.serviceType);
     },
     setAvailability: (state, action) => {
-      state.availability.weekdays = action.payload.availability;
-      state.availability.startTime = action.payload.startTime;
-      state.availability.endTime = action.payload.endTime;
+      state.availability.schedule = action.payload.schedule;
     },
     setCategories: (state, action) => {
       state.category = action.payload;

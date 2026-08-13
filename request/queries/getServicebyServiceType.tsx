@@ -52,9 +52,13 @@ export const GET_SERVICE_BY_SERVICE_TYPE = gql`
             updatedAt
           }
           availability {
-            weekdays
-            startTime
-            endTime
+            schedule {
+              day
+              slots {
+                startTime
+                endTime
+              }
+            }
           }
           location
           agent {

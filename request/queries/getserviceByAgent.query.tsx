@@ -16,9 +16,13 @@ export const SERVICE_BY_AGENT_AND_TYPE = gql`
         createdAt
         updatedAt
         availability {
-          weekdays
-          startTime
-          endTime
+          schedule {
+            day
+            slots {
+              startTime
+              endTime
+            }
+          }
         }
         agent {
           _id
