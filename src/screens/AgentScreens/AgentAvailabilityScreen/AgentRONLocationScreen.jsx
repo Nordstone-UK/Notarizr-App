@@ -28,7 +28,20 @@ export default function AgentRONLocationScreen({route, navigation}) {
   const existingService = serviceData?.service;
 
   const saveService = async () => {
-    if (selectedStates.length === 0) {
+    const location = [...new Set(selectedStates)]
+      .filter(state => typeof state === 'string' && state.trim())
+      .map(state => state.trim());
+    const schedule = (agentService.availability?.schedule || [])
+      .filter(day => day?.day && day?.slots?.length)
+      .map(day => ({
+        day: day.day,
+        slots: day.slots.map(slot => ({
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        })),
+      }));
+
+    if (location.length === 0) {
       Toast.show({
         type: 'warning',
         text1: 'Choose a service area',
@@ -37,25 +50,34 @@ export default function AgentRONLocationScreen({route, navigation}) {
       return;
     }
 
+    if (schedule.length === 0) {
+      Toast.show({
+        type: 'warning',
+        text1: 'Choose your availability',
+        text2: 'Add at least one time block before saving.',
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const params = {
-        ...agentService,
-        location: selectedStates,
-        canPrint,
+        serviceType: agentService.serviceType,
+        availability: {schedule},
+        location,
+        canPrint: Boolean(canPrint),
         ...(existingService?._id ? {id: existingService._id} : {}),
       };
-      if (existingService) {
+      if (existingService?._id) {
         await handleUpdateService(params);
       } else {
         await handleRegistration(params);
       }
     } catch (error) {
-      console.log(error, 'error');
       Toast.show({
         type: 'error',
         text1: 'Service areas not saved',
-        text2: 'Please try again in a moment.',
+        text2: error?.message || 'Please try again in a moment.',
       });
     } finally {
       setSaving(false);

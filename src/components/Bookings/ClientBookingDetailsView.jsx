@@ -13,6 +13,7 @@ import moment from 'moment';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
+import AvailabilitySchedule from './AvailabilitySchedule';
 
 const STATUS_CONFIG = {
   accepted: {
@@ -484,6 +485,10 @@ export default function ClientBookingDetailsView({
             value={location}
           />
         </Section>
+
+        <AvailabilitySchedule
+          schedule={booking?.service?.availability?.schedule}
+        />
 
         <Section title="Request">
           {documents.map((document, index) => (

@@ -13,6 +13,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
 import BookingActionButton from './BookingActionButton';
+import AvailabilitySchedule from './AvailabilitySchedule';
 
 const STATUS_CONFIG = {
   accepted: {
@@ -220,6 +221,10 @@ export default function BookingDetailsPreview({booking, navigation}) {
             value={booking.location}
           />
         </Section>
+
+        <AvailabilitySchedule
+          schedule={booking?.service?.availability?.schedule}
+        />
 
         <Section title="Request details">
           <DetailRow

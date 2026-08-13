@@ -25,6 +25,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
 import BookingActionButton from '../../../components/Bookings/BookingActionButton';
+import AvailabilitySchedule from '../../../components/Bookings/AvailabilitySchedule';
 import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import BookingColors from '../../../themes/BookingColors';
 import {
@@ -599,6 +600,10 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             }
           />
         </Section>
+
+        <AvailabilitySchedule
+          schedule={booking?.service?.availability?.schedule}
+        />
 
         <Section title="Request">
           <DetailRow icon="file-text" label="Documents" value={documentLabel} />

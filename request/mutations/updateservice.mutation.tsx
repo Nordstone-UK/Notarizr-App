@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import {gql} from '@apollo/client';
 
 export const UPDATE_SERVICE_BY_ID = gql`
   mutation UpdateServiceById(
@@ -8,7 +8,7 @@ export const UPDATE_SERVICE_BY_ID = gql`
     $status: String
     $serviceType: String
     $availability: AvailabilityInput
-    $location: [String]
+    $location: [String!]
     $canPrint: Boolean
   ) {
     updateServiceById(

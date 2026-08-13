@@ -3,7 +3,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {
   setAvailability,
   setCategories,
-  setServiceLocation,
   setServiceType,
 } from '../features/agentService/agentServiceSlice';
 import {useNavigation} from '@react-navigation/native';
@@ -25,6 +24,12 @@ const useAgentService = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const serviceType = useSelector(state => state.agentService.serviceType);
+
+  const getMutationErrorMessage = (error, fallback) =>
+    error?.networkError?.result?.errors?.[0]?.message ||
+    error?.graphQLErrors?.[0]?.message ||
+    error?.message ||
+    fallback;
 
   const dispatchMobile = async service_type => {
     dispatch(setServiceType(service_type));
@@ -93,22 +98,23 @@ const useAgentService = () => {
       },
     };
     // console.log(request);
-    const {data} = await createService(request);
-    // console.log('wdawd', data);
+    try {
+      const {data, errors} = await createService(request);
+      const result = data?.createService;
 
-    if (data.createService.status === '201') {
+      if (errors?.length) {
+        throw new Error(errors[0].message);
+      }
+      if (result?.status !== '201') {
+        throw new Error(result?.message || 'Unable to create service.');
+      }
+
       navigation.navigate('ProfilePreferenceCompletion');
-    } else if (data?.createService?.status === '400') {
-      Toast.show({
-        type: 'error',
-        text1: 'Service already exists for this agent!',
-      });
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Something went wrong!',
-        text2: 'Please try again later',
-      });
+      return result;
+    } catch (error) {
+      throw new Error(
+        getMutationErrorMessage(error, 'Unable to create service.'),
+      );
     }
   };
   const handleUpdateService = async variables => {
@@ -119,24 +125,23 @@ const useAgentService = () => {
         name: first_name + ' ' + last_name,
       },
     };
-    console.log('reidfododofdo', request);
+    try {
+      const {data, errors} = await updateServiceById(request);
+      const result = data?.updateServiceById;
 
-    const {data} = await updateServiceById(request);
-    console.log('datafdfdfd', data);
+      if (errors?.length) {
+        throw new Error(errors[0].message);
+      }
+      if (result?.status !== '200') {
+        throw new Error(result?.message || 'Unable to update service.');
+      }
 
-    if (data.updateServiceById.status === '200') {
       navigation.navigate('ProfilePreferenceCompletion');
-    } else if (data?.updateServiceById?.status === '400') {
-      Toast.show({
-        type: 'error',
-        text1: 'Error updating service!',
-      });
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Something went wrong!',
-        text2: 'Please try again later',
-      });
+      return result;
+    } catch (error) {
+      throw new Error(
+        getMutationErrorMessage(error, 'Unable to update service.'),
+      );
     }
   };
   return {

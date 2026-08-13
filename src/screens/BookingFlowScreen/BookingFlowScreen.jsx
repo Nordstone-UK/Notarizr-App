@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useLazyQuery, useMutation, useQuery} from '@apollo/client';
+import {useMutation, useQuery} from '@apollo/client';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
@@ -33,7 +33,6 @@ import {UPDATE_BOOKING_STATUS} from '../../../request/mutations/updateBookingSta
 import {GET_DOCUMENT_TYPES} from '../../../request/queries/getPaginatedDocumentTypes.query';
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 
-const TIME_OPTIONS = ['9:00 AM', '10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'];
 const ADDITIONAL_SIGNATURE_PRICE = 10;
 const PRINT_COPY_PRICE = 5;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
@@ -51,6 +50,53 @@ const formatDateId = date =>
   )}-${String(date.getDate()).padStart(2, '0')}`;
 
 const parseDateId = date => new Date(`${date}T12:00:00`);
+
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat'];
+
+const parseTimeToMinutes = value => {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
+  if (!match) {
+    return null;
+  }
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const period = match[3].toUpperCase();
+  if (period === 'PM' && hours !== 12) {
+    hours += 12;
+  }
+  if (period === 'AM' && hours === 12) {
+    hours = 0;
+  }
+  return hours * 60 + minutes;
+};
+
+const formatMinutes = value => {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours % 12 || 12;
+  return `${displayHour}:${String(minutes).padStart(2, '0')} ${period}`;
+};
+
+const getAvailableTimes = (schedule, selectedDate) => {
+  const day = DAY_KEYS[parseDateId(selectedDate).getDay()];
+  const daySchedule = (schedule || []).find(entry => entry?.day === day);
+  const times = [];
+
+  (daySchedule?.slots || []).forEach(slot => {
+    const start = parseTimeToMinutes(slot.startTime);
+    const end = parseTimeToMinutes(slot.endTime);
+    if (start === null || end === null) {
+      return;
+    }
+    for (let cursor = start; cursor + 60 <= end; cursor += 60) {
+      times.push(cursor);
+    }
+  });
+
+  return [...new Set(times)].sort((a, b) => a - b).map(formatMinutes);
+};
 
 const formatDateLabel = date =>
   parseDateId(date).toLocaleDateString('en-US', {
@@ -139,6 +185,8 @@ function SegmentedControl({onChange, value}) {
 
 function AppointmentStep({
   addresses,
+  availableTimes,
+  availabilityLoading,
   bookingFor,
   datePickerOpen,
   isMobile,
@@ -193,26 +241,45 @@ function AppointmentStep({
           title="Choose appointment date"
         />
         <Text style={styles.timeSectionLabel}>Available times</Text>
-        <View style={styles.timeList}>
-          {TIME_OPTIONS.map(time => {
-            const selected = selectedTime === time;
-            return (
-              <TouchableOpacity
-                key={time}
-                activeOpacity={0.7}
-                onPress={() => onSelectTime(time)}
-                style={[styles.timeChip, selected && styles.selectedTimeChip]}>
-                <Text
+        {availabilityLoading ? (
+          <View style={styles.availabilityState}>
+            <ActivityIndicator color="#FD6D1F" size="small" />
+            <Text style={styles.availabilityStateText}>
+              Loading notary availability…
+            </Text>
+          </View>
+        ) : availableTimes.length ? (
+          <View style={styles.timeList}>
+            {availableTimes.map(time => {
+              const selected = selectedTime === time;
+              return (
+                <TouchableOpacity
+                  key={time}
+                  activeOpacity={0.7}
+                  onPress={() => onSelectTime(time)}
                   style={[
-                    styles.timeText,
-                    selected && styles.selectedTimeText,
+                    styles.timeChip,
+                    selected && styles.selectedTimeChip,
                   ]}>
-                  {time}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <Text
+                    style={[
+                      styles.timeText,
+                      selected && styles.selectedTimeText,
+                    ]}>
+                    {time}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : (
+          <View style={styles.availabilityState}>
+            <Feather name="calendar" size={17} color="#969CA6" />
+            <Text style={styles.availabilityStateText}>
+              This notary is not available on the selected day.
+            </Text>
+          </View>
+        )}
       </BookingFlowSection>
 
       <BookingFlowSection
@@ -860,7 +927,13 @@ export default function BookingFlowScreen({navigation, route}) {
     },
     skip: !user || previewMode,
   });
-  const [matchAgent] = useLazyQuery(GET_MATCHED_AGENT, {
+  const {
+    data: matchedAgentData,
+    loading: availabilityLoading,
+    refetch: refetchMatchedAgent,
+  } = useQuery(GET_MATCHED_AGENT, {
+    variables: {serviceType: backendServiceType},
+    skip: !user || previewMode,
     fetchPolicy: 'no-cache',
   });
   const [createBooking] = useMutation(CREATE_BOOKING);
@@ -872,7 +945,7 @@ export default function BookingFlowScreen({navigation, route}) {
     formatDateId(getMinimumBookingDate()),
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]);
+  const [selectedTime, setSelectedTime] = useState(null);
   const [bookingFor, setBookingFor] = useState('self');
   const [otherName, setOtherName] = useState('');
   const [otherPhone, setOtherPhone] = useState('');
@@ -897,6 +970,22 @@ export default function BookingFlowScreen({navigation, route}) {
 
     return catalogOptions;
   }, [documentCatalog]);
+
+  const matchedAgent = matchedAgentData?.matchAgent?.user;
+  const availableTimes = useMemo(
+    () =>
+      getAvailableTimes(
+        matchedAgent?.service?.availability?.schedule,
+        selectedDate,
+      ),
+    [matchedAgent?.service?.availability?.schedule, selectedDate],
+  );
+
+  useEffect(() => {
+    setSelectedTime(current =>
+      availableTimes.includes(current) ? current : availableTimes[0] || null,
+    );
+  }, [availableTimes]);
 
   useEffect(() => {
     if (!isMobile) {
@@ -968,12 +1057,29 @@ export default function BookingFlowScreen({navigation, route}) {
 
     setSubmitting(true);
     try {
-      const matchedAgentResponse = await matchAgent({
-        variables: {serviceType: backendServiceType},
+      const accessToken = await AsyncStorage.getItem('token');
+      if (!accessToken || accessToken.startsWith('local-preview:')) {
+        throw new Error(
+          'Please sign in with a real account before creating a booking.',
+        );
+      }
+
+      const matchedAgentResponse = await refetchMatchedAgent({
+        serviceType: backendServiceType,
       });
-      const matchedAgent = matchedAgentResponse?.data?.matchAgent?.user;
-      if (!matchedAgent?.service?._id) {
+      const bookingAgent = matchedAgentResponse?.data?.matchAgent?.user;
+      if (!bookingAgent?.service?._id) {
         throw new Error('No verified notary is available for this service.');
+      }
+
+      const validTimes = getAvailableTimes(
+        bookingAgent.service.availability?.schedule,
+        selectedDate,
+      );
+      if (!validTimes.includes(selectedTime)) {
+        throw new Error(
+          'This time is no longer available. Choose another appointment slot.',
+        );
       }
 
       let documents = uploadedDocuments;
@@ -1000,8 +1106,8 @@ export default function BookingFlowScreen({navigation, route}) {
       const bookingResponse = await createBooking({
         variables: {
           serviceType: backendServiceType,
-          service: matchedAgent.service._id,
-          agent: matchedAgent._id,
+          service: bookingAgent.service._id,
+          agent: bookingAgent._id,
           documentType: documentType
             ? [
                 {
@@ -1139,6 +1245,8 @@ export default function BookingFlowScreen({navigation, route}) {
           {step === 1 ? (
             <AppointmentStep
               addresses={addresses}
+              availableTimes={availableTimes}
+              availabilityLoading={availabilityLoading}
               bookingFor={bookingFor}
               datePickerOpen={datePickerOpen}
               isMobile={isMobile}
@@ -1283,6 +1391,26 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 2,
     paddingHorizontal: 20,
+  },
+  availabilityState: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginHorizontal: 20,
+    paddingHorizontal: 13,
+    borderWidth: 1,
+    borderColor: '#E0E3E7',
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
+  },
+  availabilityStateText: {
+    flex: 1,
+    marginLeft: 8,
+    color: '#7A818D',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
   },
   timeChip: {
     height: 36,
