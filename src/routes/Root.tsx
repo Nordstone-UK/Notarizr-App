@@ -11,6 +11,7 @@ import {
   setUser,
 } from '../features/booking/bookingSlice';
 import { useSession } from '../hooks/useSession';
+import IncomingCallManager from '../components/Calls/IncomingCallManager';
 
 const Root: FC = (): JSX.Element => {
   const navigation: any = useNavigation();
@@ -63,7 +64,12 @@ const Root: FC = (): JSX.Element => {
       EventRegister.removeAllListeners();
     };
   }, [navigation]);
-  return <AppNavigation />;
+  return (
+    <>
+      <AppNavigation />
+      <IncomingCallManager navigation={navigation} />
+    </>
+  );
 };
 
 const Wrapper: FC<{}> = ({ }) => {

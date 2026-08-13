@@ -9,7 +9,7 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicat
 import { Picker } from '@react-native-picker/picker';
 import RNPickerSelect from 'react-native-picker-select'; // Import the picker
 import { widthToDp } from '../../../utils/Responsive';
-import { uploadSignatureOnS3 } from '../../../utils/s3Helper';
+import { uploadSignatureToSpaces } from '../../../utils/spacesHelper';
 import { launchImageLibrary } from 'react-native-image-picker'; // Import the image picker
 import useUpdate from '../../../hooks/useUpdate';
 import useFetchUser from '../../../hooks/useFetchUser';
@@ -42,7 +42,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
   const { fetchUserInfo, handleDeleteSign } = useFetchUser();
   const insertObject = useLiveblocks(state => state.insertObject);
   console.log("insertobject", insertObject)
-  const { uploadimageToS3 } = useRegister();
+  const { uploadImageToStorage } = useRegister();
   const { handleNotarysignUpdate } = useUpdate();
   const [selectedOption, setSelectedOption] = useState('');
   const [selectedSignType, setSelectedSignType] = useState(''); // New state for selected sign type
@@ -73,8 +73,8 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
     const uri = await viewShotRef.current.capture();
     console.log("Captured image URI:", uri);
     setUploadedImageUri(uri);
-    const signaturesigns = await uploadimageToS3(uri);
-    // let signaturesigns = await uploadSignatureOnS3(uri);
+    const signaturesigns = await uploadImageToStorage(uri);
+    // let signaturesigns = await uploadSignatureToSpaces(uri);
     console.log("signupdfdfd", signaturesigns)
     const signupdated = await handleNotarysignUpdate(signaturesigns);
     if (signupdated) {
@@ -103,7 +103,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
   const handleSignature = async (signature) => {
     console.log("Signature received:", signature);
     try {
-      let signaturesigns = await uploadSignatureOnS3(signature);
+      let signaturesigns = await uploadSignatureToSpaces(signature);
       const signupdated = await handleNotarysignUpdate(signaturesigns);
       if (signupdated) {
         await fetchUserInfo();
@@ -142,7 +142,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClos
 
       if (result.assets && result.assets.length > 0) {
         const { uri } = result.assets[0];
-        const s3Url = await uploadimageToS3(uri);
+        const s3Url = await uploadImageToStorage(uri);
         setUploadedImageUri(s3Url);
         insertObject(new Date().toISOString(), {
           type: 'image',

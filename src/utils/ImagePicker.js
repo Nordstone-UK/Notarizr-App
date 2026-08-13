@@ -1,4 +1,4 @@
-import {PermissionsAndroid} from 'react-native';
+import {PermissionsAndroid, Platform} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 import {Blob} from 'react-native-blob-util';
@@ -19,29 +19,14 @@ const requestCameraPermission = async () => {
       console.warn(err);
       return false;
     }
-  } else return true;
-};
-const requestExternalWritePermission = async () => {
-  if (Platform.OS === 'android') {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        // {
-        //   title: 'External Storage Write Permission',
-        //   message: 'App needs write permission',
-        // },
-      );
-      // If WRITE_EXTERNAL_STORAGE Permission is granted
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } catch (err) {
-      console.warn(err);
-      alert('Write permission err', err);
-    }
-    return false;
-  } else return true;
+  }
+  return true;
 };
 const requestMediaAccessPermission = async () => {
   if (Platform.OS === 'android') {
+    if (Number(Platform.Version) < 33) {
+      return true;
+    }
     try {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
@@ -49,10 +34,10 @@ const requestMediaAccessPermission = async () => {
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
       console.warn(err);
-      alert('Write permission err', err);
     }
     return false;
-  } else return true;
+  }
+  return true;
 };
 export const captureImage = async type => {
   return new Promise(async (resolve, reject) => {
@@ -60,18 +45,12 @@ export const captureImage = async type => {
       mediaType: type,
       maxWidth: 300,
       maxHeight: 550,
-      saveToPhotos: true,
+      saveToPhotos: false,
     };
 
     try {
       let isCameraPermitted = await requestCameraPermission();
-      let isStoragePermitted = await requestExternalWritePermission();
-      let isMediaPermitted = await requestMediaAccessPermission();
-
-      if (
-        (isCameraPermitted && isStoragePermitted) ||
-        (isCameraPermitted && isMediaPermitted)
-      ) {
+      if (isCameraPermitted) {
         launchCamera(options, response => {
           if (response.didCancel) {
             reject('User cancelled camera picker');
@@ -104,18 +83,13 @@ export const chooseFile = async type => {
       mediaType: type,
       maxWidth: 300,
       maxHeight: 550,
-      saveToPhotos: true,
+      saveToPhotos: false,
     };
 
     try {
-      let isCameraPermitted = await requestCameraPermission();
-      let isStoragePermitted = await requestExternalWritePermission();
       let isMediaPermitted = await requestMediaAccessPermission();
 
-      if (
-        (isCameraPermitted && isStoragePermitted) ||
-        (isCameraPermitted && isMediaPermitted)
-      ) {
+      if (isMediaPermitted) {
         launchImageLibrary(options, response => {
           if (response.didCancel) {
             reject('User cancelled camera picker');

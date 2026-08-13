@@ -15,7 +15,6 @@ import imagePath from '../constants/imagePath';
 import MapViewDirections from 'react-native-maps-directions';
 import Loader from '../components/Loader';
 import {locationPermission, getCurrentLocation} from '../helper/helperFunction';
-import {ConfigurationServicePlaceholders} from 'aws-sdk/lib/config_service_placeholders';
 
 const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;

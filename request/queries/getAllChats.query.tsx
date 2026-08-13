@@ -13,6 +13,7 @@ export const GET_ALL_CHATS = gql`
       latestMessage {
         _id
         text
+        mediaUrl
         createdAt
         user {
           _id

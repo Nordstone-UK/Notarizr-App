@@ -53,9 +53,9 @@ import Signature from 'react-native-signature-canvas';
 import { decode as atob, encode as btoa } from 'base-64';
 import RNFS from 'react-native-fs';
 import {
-  uploadSignatureOnS3,
-  uploadSignedDocumentsOnS3,
-} from '../../utils/s3Helper';
+  uploadSignatureToSpaces,
+  uploadSignedDocumentToSpaces,
+} from '../../utils/spacesHelper';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -83,7 +83,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['25%', '40%'], []);
   const {
-    uploadimageToS3,
+    uploadImageToStorage,
     uploadAllDocuments,
     uploadMultipleFiles,
     uploadDocArray,
@@ -342,7 +342,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const handleSignature = React.useCallback(
     async signature => {
       try {
-        let signaturesigns = await uploadSignatureOnS3(signature);
+        let signaturesigns = await uploadSignatureToSpaces(signature);
         const signupdated = await handleNotarysignUpdate(signaturesigns);
         if (signupdated) {
           await fetchUserInfo();
@@ -373,7 +373,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         mediaType: 'photo',
         includeBase64: true,
       });
-      const s3Url = await uploadimageToS3(result.assets[0].uri);
+      const s3Url = await uploadImageToStorage(result.assets[0].uri);
       if (result && result.assets && result.assets.length > 0) {
         if (isStamp) {
           setStampBase64(result.assets[0].base64);
@@ -493,7 +493,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             setNewPdfPath(path);
             setNewPdfSaved(true);
             setPdfBase64(pdfBase64);
-            const l = await uploadSignedDocumentsOnS3(pdfBase64);
+            const l = await uploadSignedDocumentToSpaces(pdfBase64);
             await updatedDocument(l);
           })
           .catch(err => {
@@ -535,7 +535,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             setPdfBase64(pdfBase64);
             setFilePath(path);
             setNewPdfSaved(true);
-            const l = await uploadSignedDocumentsOnS3(pdfBase64);
+            const l = await uploadSignedDocumentToSpaces(pdfBase64);
             // const d = await uploadAllDocuments(pdfBase64)
             await updatedDocument(l);
             // setPdfFilePath(l);
@@ -563,7 +563,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       if (pickerItems[i].value === selectedItem) {
         const newFilePath = `${RNFS.DocumentDirectoryPath
           }/react-native_signed_${Date.now()}.pdf`;
-        const l = await uploadSignedDocumentsOnS3(pdfBase64);
+        const l = await uploadSignedDocumentToSpaces(pdfBase64);
         setFilePath(newFilePath);
         setNewPdfPath(newFilePath);
         readFile(l);
@@ -740,7 +740,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         if (pickerItems[i].value === selectedItem) {
           const newFilePath = `${RNFS.DocumentDirectoryPath
             }/react-native_signed_${Date.now()}.pdf`;
-          const l = await uploadSignedDocumentsOnS3(pdfBase64);
+          const l = await uploadSignedDocumentToSpaces(pdfBase64);
           setFilePath(newFilePath);
           setNewPdfPath(newFilePath);
           readFile(l);
@@ -897,7 +897,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         setNewPdfPath(path);
         setNewPdfSaved(true);
         setPdfBase64(pdfBase64);
-        const l = await uploadSignedDocumentsOnS3(pdfBase64);
+        const l = await uploadSignedDocumentToSpaces(pdfBase64);
         await updatedDocument(l);
         await handleClearPaths();
       })

@@ -26,6 +26,8 @@ import useFetchUser from '../../hooks/useFetchUser';
 import useRegister from '../../hooks/useRegister';
 import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
+import {UPDATE_PROFILE_PICTURE} from '../../../request/mutations/update.mutation';
+import {useMutation} from '@apollo/client';
 
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState('');
@@ -34,7 +36,8 @@ export default function ProfilePictureScreen({navigation}) {
   const isClient = registerData.accountType === 'client';
   const totalFields = isClient ? 8 : 12;
   const dispatch = useDispatch();
-  const {handleCompression, uploadBlobToS3, handleRegister} = useRegister();
+  const {handleCompression, uploadMedia, handleRegister} = useRegister();
+  const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
   const {registerAuthUser, consentAuth} = useAuthenticate();
   const {fetchUserInfo} = useFetchUser();
 
@@ -68,13 +71,19 @@ export default function ProfilePictureScreen({navigation}) {
     ]);
   };
 
-  const finishClientRegistration = async profilePicture => {
+  const finishClientRegistration = async localProfilePicture => {
     const isRegistered = await handleRegister({
       ...registerData,
-      profilePicture,
+      profilePicture: '',
     });
     if (!isRegistered) {
       return false;
+    }
+
+    if (localProfilePicture) {
+      const imageBlob = await handleCompression(localProfilePicture);
+      const profilePicture = await uploadMedia(imageBlob, 'profile');
+      await updateProfilePicture({variables: {profilePicture}});
     }
 
     await registerAuthUser();
@@ -110,15 +119,15 @@ export default function ProfilePictureScreen({navigation}) {
 
     setLoading(true);
     try {
-      const imageBlob = await handleCompression(image);
-      const profilePicture = await uploadBlobToS3(imageBlob);
       if (isClient) {
-        const completed = await finishClientRegistration(profilePicture);
+        const completed = await finishClientRegistration(image);
         if (!completed) {
           throw new Error('Registration failed');
         }
       } else {
-        continueNotaryRegistration(profilePicture);
+        // The authenticated Spaces upload runs after the notary account is
+        // created on the verification step.
+        continueNotaryRegistration(image);
       }
     } catch (error) {
       Toast.show({
@@ -140,6 +149,7 @@ export default function ProfilePictureScreen({navigation}) {
           throw new Error('Registration failed');
         }
       } else {
+        dispatch(profilePictureSet(''));
         continueNotaryRegistration('');
       }
     } catch (error) {

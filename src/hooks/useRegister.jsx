@@ -1,15 +1,18 @@
 import {useMutation} from '@apollo/client';
 import {REGISTER_USER} from '../../request/mutations/register.mutation';
 import {compressImage} from '../utils/ImageResizer';
-import {uploadDirectOnS3, uploadDocumentsOnS3} from '../utils/s3Helper';
+import {
+  uploadDocumentToSpaces,
+  uploadFileToSpaces,
+} from '../utils/spacesHelper';
 import DocumentPicker from 'react-native-document-picker';
-import React, {useCallback} from 'react';
+import {useCallback} from 'react';
 import useLogin from './useLogin';
-import Toast from 'react-native-toast-message';
 import {
   UPDATE_AGENT_PHOTO_AND_CERTIFICATE,
   UPDATE_NOTARY_SEAL,
 } from '../../request/mutations/updateNotarysign.mutation';
+import {CREATE_MEDIA_UPLOAD} from '../../request/mutations/mediaUpload.mutation';
 
 const useRegister = () => {
   const {saveAccessTokenToStorage} = useLogin();
@@ -18,6 +21,7 @@ const useRegister = () => {
     UPDATE_AGENT_PHOTO_AND_CERTIFICATE,
   );
   const [updateNotarySeal] = useMutation(UPDATE_NOTARY_SEAL);
+  const [createMediaUpload] = useMutation(CREATE_MEDIA_UPLOAD);
 
   const handleCompression = async image => {
     console.log('handleCompression', image);
@@ -31,45 +35,52 @@ const useRegister = () => {
     }
   };
 
-  const uploadBlobToS3 = async imageUri => {
-    const title = 'Profile Pictures';
-    const type = 'images';
-    const url = await uploadDirectOnS3({
-      file: imageUri,
-      title: title,
-      type: type,
-    });
-    return url;
-  };
-  const uploadFilestoS3 = async (fileUri, agentName) => {
-    const title = 'Documents';
-    const type = agentName;
-    const url = await uploadDirectOnS3({
-      file: fileUri,
-      title: title,
-      type: type,
-    });
-    return url;
-  };
-  const uploadDocmmentToS3 = async fileUri => {
-    const title = 'Booking';
-    const type = 'Documents';
+  const uploadMedia = async (imageBlob, purpose = 'profile') => {
+    if (!imageBlob) {
+      throw new Error('No image was selected.');
+    }
 
-    const url = await uploadDocumentsOnS3({
+    const contentType =
+      imageBlob.type || imageBlob?._data?.type || 'image/jpeg';
+    const originalName = imageBlob?._data?.name || `image-${Date.now()}.jpg`;
+    const {data, errors} = await createMediaUpload({
+      variables: {fileName: originalName, contentType, purpose},
+    });
+    const upload = data?.createMediaUpload;
+    if (errors?.length || !upload?.uploadUrl || !upload?.publicUrl) {
+      throw new Error(
+        errors?.[0]?.message || 'Unable to prepare image upload.',
+      );
+    }
+
+    const response = await fetch(upload.uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': contentType,
+        'x-amz-acl': 'public-read',
+      },
+      body: imageBlob,
+    });
+    if (!response.ok) {
+      throw new Error(`Image upload failed (${response.status}).`);
+    }
+    return upload.publicUrl;
+  };
+  const uploadFilesToStorage = async fileUri => {
+    const url = await uploadFileToSpaces({
       file: fileUri,
-      title: title,
-      type: type,
     });
     return url;
   };
-  const uploadimageToS3 = async fileUri => {
-    const title = 'signs';
-    const type = 'stamping';
-
-    const url = await uploadDocumentsOnS3({
+  const uploadDocumentToStorage = async fileUri => {
+    const url = await uploadDocumentToSpaces({
       file: fileUri,
-      title: title,
-      type: type,
+    });
+    return url;
+  };
+  const uploadImageToStorage = async fileUri => {
+    const url = await uploadDocumentToSpaces({
+      file: fileUri,
     });
     return url;
   };
@@ -83,7 +94,7 @@ const useRegister = () => {
       console.log('redfdldldfldfld', request);
       const {data} = await register(request);
       if (data?.register?.status === '201') {
-        saveAccessTokenToStorage(data?.register?.access_token);
+        await saveAccessTokenToStorage(data?.register?.access_token);
         return true;
       } else {
         return false;
@@ -101,7 +112,6 @@ const useRegister = () => {
       const {data} = await updateAgentPhotoAndCertificate(request);
       console.log('dffffaaaaaaaaaaaaaa', data);
       if (data?.updateAgentPhotoAndCertificate?.status === '200') {
-        saveAccessTokenToStorage(data?.register?.access_token);
         return true;
       } else {
         return false;
@@ -119,7 +129,6 @@ const useRegister = () => {
       const {data} = await updateNotarySeal(request);
       console.log('dffffaaaaaaaaaddddddddddddsssssaaaaa', data);
       if (data?.updateNotarySeal?.status === '204') {
-        saveAccessTokenToStorage(data?.register?.access_token);
         return true;
       } else {
         return false;
@@ -184,7 +193,7 @@ const useRegister = () => {
     try {
       const uploadedFiles = await Promise.all(
         documentURIs.map(async (fileUri, index) => {
-          const uploadedLink = await uploadDocmmentToS3(fileUri);
+          const uploadedLink = await uploadDocumentToStorage(fileUri);
           return {
             id: index + 1,
             name: `Document ${index + 1}`,
@@ -210,7 +219,7 @@ const useRegister = () => {
   //   try {
   //     const uploadedFiles = await Promise.all(
   //       documentURIs.map(async fileUri => {
-  //         const uploadedLink = await uploadDocmmentToS3(fileUri);
+  //         const uploadedLink = await uploadDocumentToStorage(fileUri);
 
   //         return uploadedLink;
   //       }),
@@ -231,7 +240,7 @@ const useRegister = () => {
     try {
       const uploadedFiles = await Promise.all(
         documentURIs.map(async fileUri => {
-          const uploadedLink = await uploadDocmmentToS3(fileUri);
+          const uploadedLink = await uploadDocumentToStorage(fileUri);
           return uploadedLink;
         }),
       );
@@ -244,16 +253,16 @@ const useRegister = () => {
   };
   return {
     handleCompression,
-    uploadBlobToS3,
+    uploadMedia,
     handleRegister,
     uploadFiles,
-    uploadFilestoS3,
+    uploadFilesToStorage,
     uploadMultipleFiles,
     pickDocumentDetails,
-    uploadDocmmentToS3,
+    uploadDocumentToStorage,
     uploadAllDocuments,
     uploadDocArray,
-    uploadimageToS3,
+    uploadImageToStorage,
     handleUpdateSeal,
     handleUpdatecertificate,
   };

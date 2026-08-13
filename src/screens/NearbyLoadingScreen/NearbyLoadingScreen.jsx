@@ -16,7 +16,6 @@ import {
   setCoordinates,
   setUser,
 } from '../../features/booking/bookingSlice';
-import {Response} from 'aws-sdk';
 
 export default function NearbyLoadingScreen({route, navigation}) {
   const {serviceType, dateOfBooking, agent} = useSelector(

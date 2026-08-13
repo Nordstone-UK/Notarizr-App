@@ -1,25 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import UserAvatar from '../UserAvatar/UserAvatar';
 
 export default function ConversationHeader({conversation, navigation, onCall}) {
-  const [avatarFailed, setAvatarFailed] = useState(false);
-  const avatarIdentity =
-    typeof conversation.avatar === 'object' && conversation.avatar !== null
-      ? conversation.avatar.uri
-      : conversation.avatar;
-  const initials = conversation.name
-    .split(' ')
-    .filter(Boolean)
-    .map(value => value[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  useEffect(() => {
-    setAvatarFailed(false);
-  }, [avatarIdentity]);
-
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -30,19 +14,12 @@ export default function ConversationHeader({conversation, navigation, onCall}) {
         <Feather name="arrow-left" size={22} color="#202632" />
       </TouchableOpacity>
       <View style={styles.person}>
-        <View>
-          <View style={[styles.avatar, styles.avatarFallback]}>
-            <Text style={styles.avatarText}>{initials || 'C'}</Text>
-            {conversation.avatar && !avatarFailed ? (
-              <Image
-                onError={() => setAvatarFailed(true)}
-                source={conversation.avatar}
-                style={styles.avatarImage}
-              />
-            ) : null}
-          </View>
-          {conversation.online && <View style={styles.onlineDot} />}
-        </View>
+        <UserAvatar
+          name={conversation.name}
+          online={conversation.online}
+          size={42}
+          source={conversation.avatar}
+        />
         <View style={styles.nameWrap}>
           <Text numberOfLines={1} style={styles.name}>
             {conversation.name}
@@ -64,23 +41,6 @@ export default function ConversationHeader({conversation, navigation, onCall}) {
 }
 
 const styles = StyleSheet.create({
-  avatar: {
-    borderRadius: 21,
-    height: 42,
-    width: 42,
-  },
-  avatarFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EEF0F3',
-  },
-  avatarText: {color: '#D65322', fontFamily: 'Manrope-Bold', fontSize: 12},
-  avatarImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-  },
   container: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
@@ -107,17 +67,6 @@ const styles = StyleSheet.create({
   nameWrap: {
     flex: 1,
     marginLeft: 11,
-  },
-  onlineDot: {
-    backgroundColor: '#19A565',
-    borderColor: '#FFFFFF',
-    borderRadius: 5,
-    borderWidth: 2,
-    bottom: 0,
-    height: 10,
-    position: 'absolute',
-    right: 0,
-    width: 10,
   },
   person: {
     alignItems: 'center',

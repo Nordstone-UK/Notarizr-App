@@ -57,7 +57,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
   const [loading, setLoading] = useState(false);
 
   const {fetchUserInfo} = useFetchUser();
-  const {handleCompression, uploadBlobToS3} = useRegister();
+  const {handleCompression, uploadMedia} = useRegister();
   const {handleProfileUpdate} = useUpdate();
   const isClient = user?.account_type === 'client';
 
@@ -172,7 +172,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
       let profilePicture = image;
       if (imageChanged) {
         const imageBlob = await handleCompression(image);
-        profilePicture = await uploadBlobToS3(imageBlob);
+        profilePicture = await uploadMedia(imageBlob, 'profile');
       }
 
       const updated = await handleProfileUpdate({

@@ -7,7 +7,6 @@ import {
   Text,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ChatClient} from 'react-native-agora-chat';
 import {useFocusEffect} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import LogoutConfirmModal from '../../components/Profile/LogoutConfirmModal';
@@ -17,6 +16,7 @@ import ProfileSection from '../../components/Profile/ProfileSection';
 import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
 import AppColors from '../../themes/AppColors';
+import {socket} from '../../utils/Socket';
 
 export default function ProfileInfoScreen({navigation}: any) {
   const user = useSelector((state: any) => state.user.user);
@@ -54,19 +54,14 @@ export default function ProfileInfoScreen({navigation}: any) {
       console.error('Token removal failed:', error);
     }
 
-    try {
-      await ChatClient.getInstance().logout();
-    } catch {
-      // Agora may not be initialized when the GraphQL chat flow is active.
-    } finally {
-      dispatch(saveUserInfo(null));
-      setLogoutLoading(false);
-      setLogoutVisible(false);
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'LoginScreen'}],
-      });
-    }
+    socket.disconnect();
+    dispatch(saveUserInfo(null));
+    setLogoutLoading(false);
+    setLogoutVisible(false);
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'LoginScreen'}],
+    });
   };
 
   if (!user) {

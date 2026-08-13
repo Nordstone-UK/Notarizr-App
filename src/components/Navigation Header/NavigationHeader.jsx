@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {CommonActions, useNavigation} from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import UserAvatar from '../UserAvatar/UserAvatar';
 
 export default function NavigationHeader(props) {
   const navigation = useNavigation();
@@ -32,9 +33,13 @@ export default function NavigationHeader(props) {
           style={styles.iconButton}>
           <Feather name="arrow-left" size={21} color="#171D29" />
         </TouchableOpacity>
-        {props.ProfilePic ? (
+        {props.ProfilePic || props.ProfileName ? (
           <TouchableOpacity activeOpacity={0.7} onPress={props.profileImgPress}>
-            <Image source={props.ProfilePic} style={styles.profilePic} />
+            <UserAvatar
+              name={props.ProfileName || props.Title}
+              size={38}
+              source={props.ProfilePic}
+            />
           </TouchableOpacity>
         ) : null}
         <Text numberOfLines={1} style={styles.title}>

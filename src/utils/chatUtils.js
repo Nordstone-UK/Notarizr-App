@@ -30,7 +30,9 @@ export const normalizeChatConversation = (
     avatar: participant.profile_picture
       ? {uri: participant.profile_picture}
       : null,
-    message: item.latestMessage?.text || 'Start the conversation',
+    message:
+      item.latestMessage?.text ||
+      (item.latestMessage?.mediaUrl ? 'Photo' : 'Start the conversation'),
     service: participantLabel,
     time: formatMessageTime(item.latestMessage?.createdAt),
     unreadCount: !item.isRead && recipientId === currentUserId ? 1 : 0,

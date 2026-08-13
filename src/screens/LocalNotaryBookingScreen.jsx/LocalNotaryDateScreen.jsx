@@ -34,8 +34,7 @@ export default function LocalNotaryDateScreen({route, navigation}) {
   const [selectedTime, setSelectedTime] = useState('');
   const [isEnabled, setIsEnabled] = useState(false);
   const [documents, setDocuments] = useState();
-  const {uploadFiles, uploadMultipleFiles, uploadFilestoS3, handleRegister} =
-    useRegister();
+  const {uploadMultipleFiles} = useRegister();
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
   const {
     setLocalBookingData,

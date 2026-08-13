@@ -23,7 +23,6 @@ import GradientButton from '../../../components/MainGradientButton/GradientButto
 import {useDispatch, useSelector} from 'react-redux';
 import useBookingStatus from '../../../hooks/useBookingStatus';
 import useRegister from '../../../hooks/useRegister';
-import {WorkDocs} from 'aws-sdk';
 import LabelTextInput from '../../../components/LabelTextInput/LabelTextInput';
 import {BottomSheet} from '@rneui/base';
 import ReviewPopup from '../../../components/ReviewPopup/ReviewPopup';

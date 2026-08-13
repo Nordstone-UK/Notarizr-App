@@ -71,7 +71,6 @@ PODS:
   - hermes-engine (0.72.5):
     - hermes-engine/Pre-built (= 0.72.5)
   - hermes-engine/Pre-built (0.72.5)
-  - HyphenateChat (4.10.2)
   - libevent (2.1.12)
   - lottie-ios (4.5.0)
   - lottie-react-native (7.1.0):
@@ -395,9 +394,6 @@ PODS:
     - React-Core
   - react-native-blob-util (0.19.9):
     - React-Core
-  - react-native-chat-sdk (1.3.1):
-    - HyphenateChat (= 4.10.2)
-    - React-Core
   - react-native-date-picker (4.3.3):
     - React-Core
   - react-native-document-picker (9.0.1):
@@ -653,7 +649,6 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-agora (from `../node_modules/react-native-agora`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
-  - react-native-chat-sdk (from `../node_modules/react-native-agora-chat`)
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-document-scanner-plugin (from `../node_modules/react-native-document-scanner-plugin`)
@@ -714,7 +709,6 @@ SPEC REPOS:
     - fmt
     - Google-Maps-iOS-Utils
     - GoogleMaps
-    - HyphenateChat
     - libevent
     - lottie-ios
     - OneSignalXCFramework
@@ -780,8 +774,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-agora"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
-  react-native-chat-sdk:
-    :path: "../node_modules/react-native-agora-chat"
   react-native-date-picker:
     :path: "../node_modules/react-native-date-picker"
   react-native-document-picker:
@@ -899,7 +891,6 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: 3343332b18dfd5be8f1f44edd7d481ace3da4d9a
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: f6cf92a471053245614d9d8097736f6337d5b86c
-  HyphenateChat: 6924f613947f6301bee909fc12c3bb01b50f52c6
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
   lottie-react-native: 19149851c48d272fbc6cf6f2ea8f8150374ab42d
@@ -921,7 +912,6 @@ SPEC CHECKSUMS:
   React-logger: 984811296d6ce8fb1c1619cc8752c1029916d917
   react-native-agora: f0f15f4989e7ed09bee76cb575bd81b011cba26a
   react-native-blob-util: 6560d6fc4b940ec140f9c3ebe21c8669b1df789b
-  react-native-chat-sdk: e1b2434e99a797959e16668a1e87fcf10c3921c0
   react-native-date-picker: 867635d29cb2b9b21db129a638fc368269ae7f51
   react-native-document-picker: 10fce9a283ba4b74533d8378e76b3c38a66347d6
   react-native-document-scanner-plugin: 785325581d4af62ebaa2a5181e4a78416822bd28

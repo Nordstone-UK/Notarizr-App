@@ -121,27 +121,35 @@ const useAgentService = () => {
     const request = {
       variables: {
         ...variables,
-        // id: '667a81a49a4436e6b6702c7c',
         name: first_name + ' ' + last_name,
       },
     };
     try {
       const {data, errors} = await updateServiceById(request);
-      const result = data?.updateServiceById;
+      const response = data?.updateServiceById;
 
+      // The backend uses 204 for a successful update and older deployments
+      // returned 200. Support both response contracts during migration.
       if (errors?.length) {
         throw new Error(errors[0].message);
       }
-      if (result?.status !== '200') {
-        throw new Error(result?.message || 'Unable to update service.');
+      if (!['200', '204'].includes(response?.status)) {
+        throw new Error(response?.message || 'Unable to update service.');
       }
 
       navigation.navigate('ProfilePreferenceCompletion');
-      return result;
+      return response;
     } catch (error) {
-      throw new Error(
-        getMutationErrorMessage(error, 'Unable to update service.'),
+      const message = getMutationErrorMessage(
+        error,
+        'Unable to update service.',
       );
+      Toast.show({
+        type: 'error',
+        text1: 'Service availability not updated',
+        text2: message,
+      });
+      throw new Error(message);
     }
   };
   return {

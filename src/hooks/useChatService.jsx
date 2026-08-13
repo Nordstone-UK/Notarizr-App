@@ -5,8 +5,7 @@ import {GET_ALL_MESSAGES} from '../../request/queries/getAllMessages.query';
 import {GET_CLIENT_BOOKING_CHAT} from '../../request/queries/getClientBookingChat.query';
 import {GET_CLIENT_SESSION_CHAT} from '../../request/queries/getClientSessionChat.query';
 import {useDispatch} from 'react-redux';
-import {setAllChats, setChatToken} from '../features/chats/chatsSlice';
-import {GET_CHAT_TOKEN} from '../../request/mutations/getUserChatToken.mutation';
+import {setAllChats} from '../features/chats/chatsSlice';
 import {GET_AGENT_BOOKING_CHAT} from '../../request/queries/getAgentBookingChat.query';
 import {GET_AGENT_SESSION_CHAT} from '../../request/queries/getAgentSessionChat.query';
 import {GET_AGORA_CALL_TOKEN} from '../../request/queries/getAgoraTokenCName.query';
@@ -19,7 +18,6 @@ function useChatService() {
   const [getClientSession] = useLazyQuery(GET_CLIENT_SESSION_CHAT);
   const [getAgentBooking] = useLazyQuery(GET_AGENT_BOOKING_CHAT);
   const [getAgentSession] = useLazyQuery(GET_AGENT_SESSION_CHAT);
-  const [getChatToken] = useMutation(GET_CHAT_TOKEN);
   const [getAgoraTokenCname] = useLazyQuery(GET_AGORA_CALL_TOKEN);
   const dispatch = useDispatch();
   const clientBooking = {
@@ -34,7 +32,7 @@ function useChatService() {
       },
     };
 
-    const response = await createChat(request);
+    return createChat(request);
   };
 
   const getAllChats = async () => {
@@ -69,7 +67,6 @@ function useChatService() {
     const {data: ClientOngoing} = await getClientBooking(ongong);
     const {data: Clientsess} = await getClientSession(request);
     const {data: sessionOngoing} = await getClientSession(ongong);
-    const {data} = await getChatToken();
     const bookings = Clientbook?.getClientBookings?.bookings;
     const ongoingBook = ClientOngoing?.getClientBookings?.bookings;
     const sessions = Clientsess?.getClientSessions?.sessions;
@@ -83,7 +80,6 @@ function useChatService() {
     const filteredChats = removeDuplicatesByAgentName(mergedDetails);
 
     dispatch(setAllChats(filteredChats));
-    dispatch(setChatToken(data?.getUserChatToken?.token));
   };
   const getAgentChats = async () => {
     const request = {
@@ -102,13 +98,11 @@ function useChatService() {
     const {data: AgentOngoing} = await getAgentBooking(ongong);
     const {data: Agnetsess} = await getAgentSession(request);
     const {data: sessionOngoing} = await getAgentSession(ongong);
-    const {data} = await getChatToken();
     console.log('agents+==================', Agnetsess);
     const bookings = AgentBook?.getAgentBookings?.bookings;
     const ongoingBook = AgentOngoing?.getAgentBookings?.bookings;
     const sessions = Agnetsess?.getAgentSessions?.sessions;
     const sessonoging = sessionOngoing?.getAgentSessions?.sessions;
-    console.log('agenttokenldfdfldld', data.getUserChatToken?.token);
     const mergedDetails = [
       ...bookings,
       ...ongoingBook,
@@ -119,7 +113,6 @@ function useChatService() {
     const filteredChats = removeDuplicatesByClientName(mergedDetails);
     console.log('agentfilterhattsdd', filteredChats);
     dispatch(setAllChats(filteredChats));
-    dispatch(setChatToken(data?.getUserChatToken?.token));
   };
   const removeDuplicatesByAgentName = array => {
     const uniqueAgents = {};

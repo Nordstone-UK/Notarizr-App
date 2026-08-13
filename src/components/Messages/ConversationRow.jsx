@@ -1,24 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import UserAvatar from '../UserAvatar/UserAvatar';
 
 export default function ConversationRow({conversation, onPress, last}) {
-  const [avatarFailed, setAvatarFailed] = useState(false);
   const hasUnread = conversation.unreadCount > 0;
-  const avatarIdentity =
-    typeof conversation.avatar === 'object' && conversation.avatar !== null
-      ? conversation.avatar.uri
-      : conversation.avatar;
-  const initials = conversation.name
-    .split(' ')
-    .filter(Boolean)
-    .map(value => value[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  useEffect(() => {
-    setAvatarFailed(false);
-  }, [avatarIdentity]);
 
   return (
     <TouchableOpacity
@@ -27,17 +12,12 @@ export default function ConversationRow({conversation, onPress, last}) {
       onPress={onPress}
       style={[styles.container, !last && styles.divider]}>
       <View style={styles.avatarWrap}>
-        <View style={[styles.avatar, styles.avatarFallback]}>
-          <Text style={styles.avatarText}>{initials || 'C'}</Text>
-          {conversation.avatar && !avatarFailed ? (
-            <Image
-              onError={() => setAvatarFailed(true)}
-              source={conversation.avatar}
-              style={styles.avatarImage}
-            />
-          ) : null}
-        </View>
-        {conversation.online && <View style={styles.onlineDot} />}
+        <UserAvatar
+          name={conversation.name}
+          online={conversation.online}
+          size={54}
+          source={conversation.avatar}
+        />
       </View>
 
       <View style={styles.copy}>
@@ -90,31 +70,6 @@ const styles = StyleSheet.create({
   avatarWrap: {
     width: 54,
     height: 54,
-  },
-  avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#EEF0F3',
-  },
-  avatarFallback: {alignItems: 'center', justifyContent: 'center'},
-  avatarText: {color: '#D65322', fontFamily: 'Manrope-Bold', fontSize: 14},
-  avatarImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-  },
-  onlineDot: {
-    position: 'absolute',
-    right: 1,
-    bottom: 1,
-    width: 13,
-    height: 13,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderRadius: 7,
-    backgroundColor: '#23A566',
   },
   copy: {
     flex: 1,

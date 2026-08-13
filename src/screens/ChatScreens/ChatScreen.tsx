@@ -1,4 +1,5 @@
-import {useMutation} from '@apollo/client';
+import {useLazyQuery, useMutation} from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -9,169 +10,160 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Actions, GiftedChat} from 'react-native-gifted-chat';
+import {
+  Actions,
+  Bubble,
+  Composer,
+  GiftedChat,
+  InputToolbar,
+  Send,
+} from 'react-native-gifted-chat';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Toast from 'react-native-toast-message';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import {useDispatch, useSelector} from 'react-redux';
+import Feather from 'react-native-vector-icons/Feather';
+import {useSelector} from 'react-redux';
 
-import {GET_CHAT_TOKEN} from '../../../request/mutations/getUserChatToken.mutation';
+import {SAVE_MESSAGE} from '../../../request/mutations/chat.mutation';
+import {CREATE_CHAT} from '../../../request/mutations/createChat.mutation';
+import {GET_ALL_MESSAGES} from '../../../request/queries/getAllMessages.query';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {setChatToken} from '../../features/chats/chatsSlice';
+import UserAvatar from '../../components/UserAvatar/UserAvatar';
 import useRegister from '../../hooks/useRegister';
-import Colors from '../../themes/Colors';
-import {heightToDp, widthToDp} from '../../utils/Responsive';
-import {socket} from '../../utils/Socket';
+import {
+  connectSocket,
+  socket,
+  socketRequest,
+  waitForSocketConnection,
+} from '../../utils/Socket';
 
-const AGORA_CHAT_APP_KEY = '411048105#1224670';
+const getMessageId = message => String(message?._id || message?.id || '');
 
-/**
- * Load the SDK when the chat screen is opened. A static import executes the
- * SDK's NativeEventEmitter while the app bundle is loading and produces an
- * unhelpful Hermes `ChatClient of undefined` crash when the native binary has
- * not yet been rebuilt. Loading it here lets us report/retry that state safely.
- */
-function loadAgoraChatSdk() {
-  try {
-    const module = require('react-native-agora-chat');
-    const sdk = module?.ChatClient ? module : module?.default;
+const formatMessage = message => ({
+  _id: getMessageId(message),
+  text: message?.text || '',
+  image: message?.mediaUrl || message?.image || '',
+  createdAt: new Date(message?.createdAt || Date.now()),
+  user: {
+    _id: String(message?.user?._id || message?.user || ''),
+    name: [message?.user?.first_name, message?.user?.last_name]
+      .filter(Boolean)
+      .join(' '),
+    avatar: message?.user?.profile_picture || '',
+  },
+});
 
-    if (!sdk?.ChatClient || !sdk?.ChatMessage) {
-      throw new Error('Agora Chat SDK is unavailable in this app build.');
-    }
-
-    return sdk;
-  } catch (error: any) {
-    const nativeMessage = error?.description || error?.message;
-    throw new Error(
-      nativeMessage ||
-        'Agora Chat is not linked. Rebuild the native app after installing pods.',
-    );
-  }
-}
-
-function formatAgoraMessages(messageList: any[] = []) {
-  return messageList
-    .map(message => {
-      const baseMessage = {
-        _id: message.msgId || message.localMsgId,
-        createdAt: new Date(
-          message.serverTime || message.localTime || Date.now(),
-        ),
-        user: {_id: message.from},
-      };
-
-      if (message.body?.type === 'img') {
-        return {
-          ...baseMessage,
-          image:
-            message.body.remotePath ||
-            message.body.thumbnailRemotePath ||
-            message.body.localPath ||
-            '',
-        };
-      }
-
-      return {
-        ...baseMessage,
-        text:
-          message.body?.type === 'txt'
-            ? message.body.content || ''
-            : '[Unsupported message type]',
-      };
-    })
-    .filter(message => Boolean(message._id))
-    .sort(
-      (first, second) => second.createdAt.getTime() - first.createdAt.getTime(),
-    );
-}
+const mergeMessage = (current, incoming, temporaryId) => {
+  const formatted = formatMessage(incoming);
+  const filtered = current.filter(
+    item => item._id !== temporaryId && item._id !== formatted._id,
+  );
+  return GiftedChat.append(filtered, [formatted]);
+};
 
 function CameraActionIcon() {
-  return (
-    <Image
-      source={require('../../../assets/camera1.png')}
-      style={styles.imageIcon}
-    />
-  );
+  return <Feather name="paperclip" size={21} color="#6E7685" />;
+}
+
+function ScrollToBottomIcon() {
+  return <Feather name="chevron-down" size={20} color="#FD6D1F" />;
 }
 
 export default function ChatScreen({route, navigation}: any) {
   const {
     sender: routeSender,
-    receiver,
+    receiver: routeReceiver,
+    conversation,
+    chatId: routeChatId,
     channel,
     voiceToken,
   } = route.params || {};
   const authenticatedUser = useSelector((state: any) => state?.user?.user);
-  const cachedToken = useSelector((state: any) => state?.chats?.chatToken);
   const sender = authenticatedUser?._id ? authenticatedUser : routeSender;
-  const senderId = sender?._id;
-  const receiverId = receiver?._id;
+  const receiver = routeReceiver || conversation?.participant;
+  const senderId = String(sender?._id || '');
+  const receiverId = String(receiver?._id || '');
+  const initialChatId = String(routeChatId || conversation?.id || '');
 
-  const dispatch = useDispatch();
-  const [getChatToken] = useMutation(GET_CHAT_TOKEN);
-  const {handleCompression, uploadBlobToS3} = useRegister();
-
+  const [createChat] = useMutation(CREATE_CHAT);
+  const [saveMessageMutation] = useMutation(SAVE_MESSAGE);
+  const [getMessageHistory] = useLazyQuery(GET_ALL_MESSAGES, {
+    fetchPolicy: 'network-only',
+  });
+  const {handleCompression, uploadMedia} = useRegister();
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedImages, setSelectedImages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [connectionState, setConnectionState] = useState<
-    'connecting' | 'ready' | 'error'
+    'connecting' | 'ready' | 'fallback' | 'error'
   >('connecting');
   const [connectionError, setConnectionError] = useState('');
   const [connectionAttempt, setConnectionAttempt] = useState(0);
-
-  const sdkRef = useRef<any>();
-  const chatClientRef = useRef<any>();
-  const chatManagerRef = useRef<any>();
-  const cachedTokenRef = useRef(cachedToken);
-  const connectionListenerRef = useRef<any>();
-  const messageListenerRef = useRef<any>();
+  const chatIdRef = useRef(initialChatId);
   const mountedRef = useRef(true);
 
-  useEffect(() => {
-    cachedTokenRef.current = cachedToken;
-  }, [cachedToken]);
-
-  const getFreshToken = useCallback(async () => {
-    const {data} = await getChatToken();
-    const nextToken = data?.getUserChatToken?.token;
-
-    if (!nextToken) {
-      throw new Error('The server did not return an Agora Chat token.');
-    }
-
-    dispatch(setChatToken(nextToken));
-    return nextToken;
-  }, [dispatch, getChatToken]);
-
-  const fetchHistory = useCallback(async () => {
-    const sdk = sdkRef.current;
-    const chatManager = chatManagerRef.current;
-    if (!sdk || !chatManager || !receiverId) {
-      return;
-    }
-
-    try {
-      const result = await chatManager.fetchHistoryMessagesByOptions(
-        receiverId,
-        sdk.ChatConversationType.PeerChat,
-        {cursor: '', pageSize: 50},
-      );
-
+  const loadGraphQLHistory = useCallback(
+    async chatId => {
+      const {data} = await getMessageHistory({variables: {chatId}});
       if (mountedRef.current) {
-        setMessages(formatAgoraMessages(result?.list));
+        setMessages(
+          (data?.getAllMessages || [])
+            .map(formatMessage)
+            .filter(item => item._id),
+        );
       }
-    } catch (error) {
-      console.warn('Unable to load Agora Chat history:', error);
+    },
+    [getMessageHistory],
+  );
+
+  const joinAndLoad = useCallback(async chatId => {
+    await socketRequest('chat:join', {chatId}, 6000);
+    const response: any = await socketRequest('chat:history', {chatId}, 6000);
+    if (mountedRef.current) {
+      setMessages(
+        (response.messages || []).map(formatMessage).filter(item => item._id),
+      );
+      setConnectionState('ready');
+      setConnectionError('');
     }
-  }, [receiverId]);
+    socketRequest('chat:read', {chatId}, 4000).catch(() => {});
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
 
-    const connect = async () => {
+    const onMessage = payload => {
+      const messageChatId = String(
+        payload?.message?.chat?._id || payload?.message?.chat || '',
+      );
+      if (messageChatId !== chatIdRef.current || !payload?.message) {
+        return;
+      }
+      setMessages(current =>
+        mergeMessage(current, payload.message, payload.tempId),
+      );
+    };
+
+    const enableFallback = async (chatId, error) => {
+      try {
+        await loadGraphQLHistory(chatId);
+        if (!cancelled) {
+          setConnectionState('fallback');
+          setConnectionError(
+            'Live updates are reconnecting. Messages still work.',
+          );
+        }
+      } catch (historyError) {
+        if (!cancelled) {
+          setConnectionState('error');
+          setConnectionError(
+            historyError?.message || error?.message || 'Chat is unavailable.',
+          );
+        }
+      }
+    };
+
+    const initialize = async () => {
       if (!senderId || !receiverId) {
         setConnectionState('error');
         setConnectionError('The agent or client information is missing.');
@@ -182,223 +174,164 @@ export default function ChatScreen({route, navigation}: any) {
       setConnectionError('');
 
       try {
-        const sdk = loadAgoraChatSdk();
-        const chatClient = sdk.ChatClient.getInstance();
-        const chatManager = chatClient.chatManager;
-
-        sdkRef.current = sdk;
-        chatClientRef.current = chatClient;
-        chatManagerRef.current = chatManager;
-
-        await chatClient.init(
-          new sdk.ChatOptions({
-            appKey: AGORA_CHAT_APP_KEY,
-            autoLogin: true,
-          }),
-        );
-
-        if (cancelled) {
-          return;
+        let chatId = initialChatId;
+        if (!chatId) {
+          const result = await createChat({variables: {userId: receiverId}});
+          chatId = String(result.data?.createChat?.chatID || '');
         }
-
-        const renewToken = async () => {
-          try {
-            const nextToken = await getFreshToken();
-            await chatClient.renewAgoraToken(nextToken);
-          } catch (error) {
-            console.warn('Unable to renew Agora Chat token:', error);
-          }
-        };
-
-        const connectionListener = {
-          onTokenWillExpire: renewToken,
-          onTokenDidExpire: renewToken,
-          onConnected: () => {
-            if (mountedRef.current) {
-              setConnectionState('ready');
-            }
-            fetchHistory();
-          },
-          onDisconnected: (errorCode: number) => {
-            console.warn('Agora Chat disconnected:', errorCode);
-          },
-        };
-        const messageListener = {
-          onMessagesReceived: (incomingMessages: any[]) => {
-            const peerMessages = incomingMessages.filter(
-              message =>
-                message.from === receiverId || message.to === receiverId,
-            );
-            if (peerMessages.length && mountedRef.current) {
-              setMessages(previous =>
-                GiftedChat.append(previous, formatAgoraMessages(peerMessages)),
-              );
-            }
-          },
-        };
-
-        connectionListenerRef.current = connectionListener;
-        messageListenerRef.current = messageListener;
-        chatClient.addConnectionListener(connectionListener);
-        chatManager.addMessageListener(messageListener);
-
-        let loggedInUser = '';
-        try {
-          loggedInUser = await chatClient.getCurrentUsername();
-        } catch (_) {
-          // No prior login is a normal first-use state.
+        if (!chatId) {
+          throw new Error('Unable to create this conversation.');
         }
+        chatIdRef.current = chatId;
 
-        if (loggedInUser && loggedInUser !== senderId) {
-          await chatClient.logout();
-          loggedInUser = '';
+        // GraphQL history makes the conversation visible immediately while the
+        // realtime socket completes its connection.
+        await loadGraphQLHistory(chatId);
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          throw new Error('Your session expired. Please log in again.');
         }
-
-        if (!loggedInUser) {
-          const loginToken = cachedTokenRef.current || (await getFreshToken());
-          try {
-            await chatClient.loginWithAgoraToken(senderId, loginToken);
-          } catch (loginError: any) {
-            // The cached Redux token may have expired while the app was open.
-            if (
-              cachedTokenRef.current &&
-              [104, 108, 202, 500].includes(loginError?.code)
-            ) {
-              const freshToken = await getFreshToken();
-              await chatClient.loginWithAgoraToken(senderId, freshToken);
-            } else if (loginError?.code !== 200) {
-              throw loginError;
-            }
-          }
-        }
-
-        if (!cancelled) {
-          setConnectionState('ready');
-          await fetchHistory();
-        }
+        socket.off('chat:message', onMessage);
+        socket.on('chat:message', onMessage);
+        connectSocket(token);
+        await waitForSocketConnection(6000);
+        await joinAndLoad(chatId);
       } catch (error: any) {
-        console.error('Agora Chat connection failed:', error);
-        if (!cancelled) {
+        if (chatIdRef.current) {
+          await enableFallback(chatIdRef.current, error);
+        } else if (!cancelled) {
           setConnectionState('error');
-          setConnectionError(
-            error?.description ||
-              error?.message ||
-              'Unable to connect to Agora Chat.',
-          );
+          setConnectionError(error?.message || 'Unable to connect to chat.');
         }
       }
     };
 
-    connect();
+    initialize();
 
     return () => {
       cancelled = true;
       mountedRef.current = false;
-      const client = chatClientRef.current;
-      const manager = chatManagerRef.current;
-      if (client && connectionListenerRef.current) {
-        client.removeConnectionListener(connectionListenerRef.current);
-      }
-      if (manager && messageListenerRef.current) {
-        manager.removeMessageListener(messageListenerRef.current);
-      }
+      socket.off('chat:message', onMessage);
     };
-  }, [connectionAttempt, fetchHistory, getFreshToken, receiverId, senderId]);
+  }, [
+    connectionAttempt,
+    createChat,
+    initialChatId,
+    joinAndLoad,
+    loadGraphQLHistory,
+    receiverId,
+    senderId,
+  ]);
+
+  useEffect(() => {
+    if (connectionState !== 'fallback' || !chatIdRef.current) {
+      return undefined;
+    }
+
+    const pollingTimer = setInterval(() => {
+      loadGraphQLHistory(chatIdRef.current).catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(pollingTimer);
+  }, [connectionState, loadGraphQLHistory]);
 
   const sendMessage = useCallback(
     async (outgoing: {text?: string; image?: any}) => {
-      const sdk = sdkRef.current;
-      const chatManager = chatManagerRef.current;
-
-      if (connectionState !== 'ready' || !sdk || !chatManager || !receiverId) {
+      if (connectionState === 'connecting' || !chatIdRef.current) {
         Toast.show({
-          type: 'error',
-          text1: 'Chat is still connecting',
-          text2: 'Please wait a moment and try again.',
+          type: 'info',
+          text1: 'Opening conversation',
+          text2: 'Please wait a moment.',
         });
-        return;
+        return false;
       }
 
+      const tempId = `local-${Date.now()}-${Math.random()}`;
+      let mediaUrl = '';
       try {
-        let message;
-        let displayImage = '';
-        if (outgoing.text?.trim()) {
-          message = sdk.ChatMessage.createTextMessage(
-            receiverId,
-            outgoing.text.trim(),
-            sdk.ChatMessageChatType.PeerChat,
-          );
-        } else if (outgoing.image?.uri) {
+        if (outgoing.image?.uri) {
           const compressedImage = await handleCompression(outgoing.image.uri);
-          displayImage = await uploadBlobToS3(compressedImage);
-          message = sdk.ChatMessage.createImageMessage(
-            receiverId,
-            outgoing.image.uri,
-            sdk.ChatMessageChatType.PeerChat,
-            outgoing.image.fileName || 'image.jpg',
-            outgoing.image.fileSize,
-          );
-        } else {
-          return;
+          mediaUrl = await uploadMedia(compressedImage, 'chat');
         }
 
-        await new Promise<void>((resolve, reject) => {
-          chatManager
-            .sendMessage(message, {
-              onProgress: () => {},
-              onError: (_localId: string, error: any) => reject(error),
-              onSuccess: (sentMessage: any) => {
-                const optimisticMessage = outgoing.text
-                  ? {
-                      _id: sentMessage.localMsgId,
-                      text: outgoing.text.trim(),
-                      createdAt: new Date(),
-                      user: {_id: senderId},
-                    }
-                  : {
-                      _id: sentMessage.localMsgId,
-                      image: displayImage || outgoing.image.uri,
-                      createdAt: new Date(),
-                      user: {_id: senderId},
-                    };
-                setMessages(previous =>
-                  GiftedChat.append(previous, [optimisticMessage]),
-                );
-                resolve();
-              },
-            })
-            .catch(reject);
-        });
+        const text = outgoing.text?.trim() || (mediaUrl ? 'Image' : '');
+        if (!text && !mediaUrl) {
+          return false;
+        }
+        const optimisticMessage = {
+          _id: tempId,
+          text: outgoing.text?.trim() || '',
+          image: mediaUrl,
+          createdAt: new Date(),
+          user: {_id: senderId},
+          pending: true,
+        };
+        setMessages(current => GiftedChat.append(current, [optimisticMessage]));
 
-        socket.emit('send-message', {
-          receiverId,
-          text: outgoing.text?.trim() || 'Image sent',
-          senderName: [sender?.first_name, sender?.last_name]
-            .filter(Boolean)
-            .join(' '),
+        if (connectionState === 'ready' && socket.connected) {
+          try {
+            const response: any = await socketRequest('chat:send', {
+              chatId: chatIdRef.current,
+              receiverId,
+              text: outgoing.text?.trim() || '',
+              mediaUrl,
+              tempId,
+            });
+            setMessages(current =>
+              mergeMessage(current, response.message, tempId),
+            );
+            return true;
+          } catch (_) {
+            setConnectionState('fallback');
+          }
+        }
+
+        const {data} = await saveMessageMutation({
+          variables: {
+            chatId: chatIdRef.current,
+            receiverId,
+            text,
+            mediaUrl,
+          },
         });
+        setMessages(current =>
+          mergeMessage(current, data?.saveMessage, tempId),
+        );
+        return true;
       } catch (error: any) {
-        console.error('Agora Chat message failed:', error);
+        setMessages(current => current.filter(item => item._id !== tempId));
         Toast.show({
           type: 'error',
           text1: 'Message failed',
-          text2: error?.description || 'Please try again.',
+          text2: error?.message || 'Please try again.',
         });
+        return false;
       }
     },
     [
       connectionState,
       handleCompression,
       receiverId,
-      sender,
+      saveMessageMutation,
       senderId,
-      uploadBlobToS3,
+      uploadMedia,
     ],
   );
 
   const pickImages = useCallback(() => {
     launchImageLibrary({mediaType: 'photo', selectionLimit: 5}, response => {
-      if (!response.didCancel && response.assets) {
+      if (response.didCancel) {
+        return;
+      }
+      if (response.errorCode) {
+        Toast.show({
+          type: 'error',
+          text1: 'Photo could not be selected',
+          text2: response.errorMessage || 'Please try again.',
+        });
+        return;
+      }
+      if (response.assets) {
         setSelectedImages(previous => [...previous, ...response.assets!]);
       }
     });
@@ -419,35 +352,92 @@ export default function ChatScreen({route, navigation}: any) {
   const receiverName = useMemo(
     () =>
       [receiver?.first_name, receiver?.last_name].filter(Boolean).join(' ') ||
-      'Client',
-    [receiver?.first_name, receiver?.last_name],
+      conversation?.name ||
+      'Conversation',
+    [conversation?.name, receiver?.first_name, receiver?.last_name],
   );
 
-  const renderChatActions = useCallback(
-    (props: any) => (
-      <Actions
+  const renderBubble = useCallback(
+    props => (
+      <Bubble
         {...props}
-        containerStyle={styles.actionContainer}
-        icon={CameraActionIcon}
-        onPressActionButton={pickImages}
+        bottomContainerStyle={{
+          left: styles.bubbleBottom,
+          right: styles.bubbleBottom,
+        }}
+        textStyle={{left: styles.leftText, right: styles.rightText}}
+        timeTextStyle={{left: styles.leftTime, right: styles.rightTime}}
+        wrapperStyle={{left: styles.leftBubble, right: styles.rightBubble}}
       />
     ),
-    [pickImages],
+    [],
+  );
+
+  const renderInputToolbar = useCallback(
+    props => (
+      <InputToolbar
+        {...props}
+        containerStyle={styles.inputToolbar}
+        primaryStyle={styles.inputPrimary}
+      />
+    ),
+    [],
+  );
+
+  const renderSend = useCallback(
+    props => (
+      <Send {...props} alwaysShowSend containerStyle={styles.sendContainer}>
+        <View style={styles.sendCircle}>
+          <Feather name="arrow-up" size={20} color="#FFFFFF" />
+        </View>
+      </Send>
+    ),
+    [],
+  );
+
+  const renderComposer = useCallback(
+    props => (
+      <Composer
+        {...props}
+        textInputStyle={styles.textInput}
+        placeholderTextColor="#A3A9B3"
+      />
+    ),
+    [],
+  );
+
+  const renderChatEmpty = useCallback(
+    () => (
+      <View style={styles.emptyState}>
+        <View style={styles.emptyAvatar}>
+          <Text style={styles.emptyInitials}>
+            {(receiver?.first_name?.[0] || 'N').toUpperCase()}
+            {(receiver?.last_name?.[0] || '').toUpperCase()}
+          </Text>
+        </View>
+        <Text style={styles.emptyTitle}>Start your conversation</Text>
+        <Text style={styles.emptyText}>
+          Message {receiverName} about your appointment or documents.
+        </Text>
+      </View>
+    ),
+    [receiver?.first_name, receiver?.last_name, receiverName],
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <NavigationHeader
         Title={receiverName}
         ProfilePic={
-          receiver?.profile_picture
-            ? {uri: receiver.profile_picture}
-            : require('../../../assets/UserIcon.png')
+          receiver?.profile_picture ? {uri: receiver.profile_picture} : null
         }
+        ProfileName={receiverName}
         profileImgPress={() =>
           navigation.navigate('ChatingProfiledetailScreen', {receiver})
         }
-        lastImg={channel ? require('../../../assets/voiceCallIcon.png') : null}
+        lastImg={
+          receiver?._id ? require('../../../assets/voiceCallIcon.png') : null
+        }
         lastImgPress={() =>
           navigation.navigate('VoiceCallScreen', {
             sender,
@@ -458,70 +448,106 @@ export default function ChatScreen({route, navigation}: any) {
         }
       />
 
-      <View style={styles.bottomSheet}>
-        {connectionState === 'connecting' && (
-          <View style={styles.connectionBanner}>
-            <ActivityIndicator size="small" color={Colors.Primary} />
-            <Text style={styles.connectionText}>Connecting securely…</Text>
-          </View>
-        )}
-        {connectionState === 'error' && (
-          <View style={[styles.connectionBanner, styles.errorBanner]}>
-            <View style={styles.errorCopy}>
-              <Text style={styles.errorTitle}>Chat could not connect</Text>
-              <Text style={styles.errorText}>{connectionError}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setConnectionAttempt(value => value + 1)}
-              style={styles.retryButton}>
-              <Text style={styles.retryText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+      <View style={styles.contextBar}>
+        <View style={styles.onlineDot} />
+        <Text style={styles.contextText}>
+          {conversation?.service || 'Notarizr appointment'}
+        </Text>
+        <View style={styles.securePill}>
+          <Feather name="shield" size={12} color="#168B58" />
+          <Text style={styles.secureText}>Secure</Text>
+        </View>
+      </View>
 
+      {connectionState === 'connecting' ? (
+        <View style={styles.connectionBanner}>
+          <ActivityIndicator size="small" color="#FD6D1F" />
+          <Text style={styles.connectionText}>Loading messages...</Text>
+        </View>
+      ) : null}
+      {connectionState === 'error' ? (
+        <View style={styles.errorBanner}>
+          <Feather name="alert-circle" size={16} color="#C44242" />
+          <Text style={styles.errorText}>{connectionError}</Text>
+          <TouchableOpacity
+            onPress={() => setConnectionAttempt(value => value + 1)}>
+            <Text style={styles.errorRetry}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      <View style={styles.chatArea}>
         <GiftedChat
+          alwaysShowSend
+          bottomOffset={4}
+          infiniteScroll
+          isTyping={false}
           messages={messages}
+          minComposerHeight={46}
+          maxComposerHeight={46}
+          minInputToolbarHeight={68}
           onSend={nextMessages => sendMessage({text: nextMessages[0]?.text})}
-          user={{_id: senderId || 'agent'}}
-          renderActions={renderChatActions}
-          textInputProps={{
-            value: inputMessage,
-            onChangeText: setInputMessage,
-            editable: connectionState === 'ready',
-            style: styles.textInput,
-          }}
-          renderAccessory={() =>
-            selectedImages.length ? (
-              <View style={styles.accessoryContainer}>
-                {selectedImages.map((asset, index) => (
-                  <View
-                    key={`${asset.uri}-${index}`}
-                    style={styles.imageContainer}>
-                    <Image
-                      source={{uri: asset.uri}}
-                      style={styles.selectedImage}
-                    />
+          placeholder="Write a message"
+          renderActions={props => (
+            <Actions
+              {...props}
+              containerStyle={styles.actionContainer}
+              icon={CameraActionIcon}
+              onPressActionButton={pickImages}
+            />
+          )}
+          renderBubble={renderBubble}
+          renderAvatar={props => (
+            <UserAvatar
+              name={props.currentMessage?.user?.name || receiverName}
+              size={36}
+              source={props.currentMessage?.user?.avatar}
+            />
+          )}
+          renderChatEmpty={renderChatEmpty}
+          renderComposer={renderComposer}
+          renderInputToolbar={renderInputToolbar}
+          renderSend={renderSend}
+          scrollToBottom
+          scrollToBottomComponent={ScrollToBottomIcon}
+          text={inputMessage}
+          onInputTextChanged={setInputMessage}
+          textInputProps={{editable: connectionState !== 'connecting'}}
+          user={{_id: senderId || 'user'}}
+          renderAccessory={
+            selectedImages.length
+              ? () => (
+                  <View style={styles.accessoryContainer}>
+                    {selectedImages.map((asset, index) => (
+                      <View
+                        key={`${asset.uri}-${index}`}
+                        style={styles.imageContainer}>
+                        <Image
+                          source={{uri: asset.uri}}
+                          style={styles.selectedImage}
+                        />
+                        <TouchableOpacity
+                          accessibilityLabel="Remove selected image"
+                          onPress={() =>
+                            setSelectedImages(previous =>
+                              previous.filter(
+                                (_, imageIndex) => imageIndex !== index,
+                              ),
+                            )
+                          }
+                          style={styles.closeButton}>
+                          <Feather name="x" size={13} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
                     <TouchableOpacity
-                      accessibilityLabel="Remove selected image"
-                      onPress={() =>
-                        setSelectedImages(previous =>
-                          previous.filter(
-                            (_, imageIndex) => imageIndex !== index,
-                          ),
-                        )
-                      }
-                      style={styles.closeButton}>
-                      <Text style={styles.closeButtonText}>×</Text>
+                      onPress={handleSend}
+                      style={styles.sendCircle}>
+                      <Feather name="arrow-up" size={20} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
-                ))}
-                <TouchableOpacity
-                  onPress={handleSend}
-                  style={styles.sendButton}>
-                  <Icon name="send" size={17} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            ) : null
+                )
+              : undefined
           }
         />
       </View>
@@ -530,96 +556,178 @@ export default function ChatScreen({route, navigation}: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
-  },
-  bottomSheet: {
-    flex: 1,
-    marginTop: widthToDp(2),
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
-  },
-  connectionBanner: {
-    minHeight: 48,
-    paddingHorizontal: 16,
+  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
+  contextBar: {
+    minHeight: 42,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 9,
+    paddingHorizontal: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E4E7EB',
-    backgroundColor: '#FFF4EA',
+    borderBottomColor: '#E6E9ED',
+    backgroundColor: '#F8F9FB',
   },
-  connectionText: {
-    color: '#7A818D',
-    fontSize: 13,
+  onlineDot: {
+    width: 7,
+    height: 7,
+    marginRight: 8,
+    borderRadius: 4,
+    backgroundColor: '#16A166',
   },
-  errorBanner: {
-    justifyContent: 'space-between',
-    backgroundColor: '#FCEEEE',
-  },
-  errorCopy: {
+  contextText: {
     flex: 1,
-    paddingVertical: 8,
-  },
-  errorTitle: {
-    color: '#C44242',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  errorText: {
-    marginTop: 2,
-    color: '#7A818D',
+    color: '#717987',
+    fontFamily: 'Manrope-SemiBold',
     fontSize: 11,
   },
-  retryButton: {
-    marginLeft: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: Colors.Primary,
-  },
-  retryText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  actionContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  imageIcon: {
-    width: 28,
-    height: 28,
-  },
-  textInput: {
-    flex: 1,
-    minHeight: heightToDp(5),
-    maxHeight: heightToDp(12),
-    marginHorizontal: 10,
-    color: '#121826',
-    fontSize: 16,
-  },
-  accessoryContainer: {
-    minHeight: 64,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+  securePill: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: '#EAF7F0',
   },
-  imageContainer: {
-    position: 'relative',
-    marginRight: 10,
+  secureText: {
+    color: '#168B58',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
   },
-  selectedImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
+  connectionBanner: {
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFF7F0',
   },
+  connectionText: {color: '#777F8B', fontSize: 11},
+  errorBanner: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#FCEEEE',
+  },
+  errorText: {flex: 1, color: '#984040', fontSize: 11},
+  errorRetry: {
+    color: '#C44242',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  chatArea: {flex: 1, backgroundColor: '#F7F8FA'},
+  leftBubble: {
+    maxWidth: '82%',
+    paddingHorizontal: 4,
+    paddingVertical: 3,
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E8ED',
+  },
+  rightBubble: {
+    maxWidth: '82%',
+    paddingHorizontal: 4,
+    paddingVertical: 3,
+    borderRadius: 16,
+    borderBottomRightRadius: 4,
+    backgroundColor: '#FD6D1F',
+  },
+  leftText: {color: '#1C2330', fontFamily: 'Manrope-Regular', fontSize: 14},
+  rightText: {color: '#FFFFFF', fontFamily: 'Manrope-Regular', fontSize: 14},
+  leftTime: {color: '#969DA8', fontSize: 9},
+  rightTime: {color: '#FFE1D0', fontSize: 9},
+  bubbleBottom: {marginTop: 1},
+  inputToolbar: {
+    minHeight: 68,
+    marginHorizontal: 12,
+    marginBottom: 8,
+    paddingHorizontal: 5,
+    borderTopWidth: 0,
+    borderWidth: 1,
+    borderColor: '#E0E4E9',
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+  },
+  inputPrimary: {alignItems: 'center'},
+  textInput: {
+    marginHorizontal: 4,
+    paddingTop: 12,
+    color: '#1C2330',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
+  },
+  actionContainer: {
+    width: 42,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+  },
+  sendContainer: {
+    width: 52,
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendCircle: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: '#FD6D1F',
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 36,
+    transform: [{scaleY: -1}],
+  },
+  emptyAvatar: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 36,
+    backgroundColor: '#FFF0E7',
+  },
+  emptyInitials: {
+    color: '#D65322',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 22,
+  },
+  emptyTitle: {
+    marginTop: 18,
+    color: '#1C2330',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+  },
+  emptyText: {
+    maxWidth: 280,
+    marginTop: 7,
+    color: '#858D99',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  accessoryContainer: {
+    minHeight: 68,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#ECEEF1',
+    backgroundColor: '#FFFFFF',
+  },
+  imageContainer: {position: 'relative'},
+  selectedImage: {width: 52, height: 52, borderRadius: 8},
   closeButton: {
     position: 'absolute',
     top: -6,
@@ -630,19 +738,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10,
     backgroundColor: '#C44242',
-  },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    lineHeight: 17,
-  },
-  sendButton: {
-    marginLeft: 'auto',
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: Colors.Primary,
   },
 });

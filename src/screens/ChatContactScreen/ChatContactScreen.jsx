@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useQuery} from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useIsFocused} from '@react-navigation/native';
 import {
   FlatList,
@@ -14,6 +15,7 @@ import MessagesEmptyState from '../../components/Messages/MessagesEmptyState';
 import MessagesHeader from '../../components/Messages/MessagesHeader';
 import {GET_ALL_CHATS} from '../../../request/queries/getAllChats.query';
 import {normalizeChatConversation} from '../../utils/chatUtils';
+import {connectSocket, socket} from '../../utils/Socket';
 
 const PREVIEW_CONVERSATIONS = [
   {
@@ -76,7 +78,6 @@ export default function ChatContactScreen({navigation}) {
     fetchPolicy: 'cache-and-network',
     nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
-    pollInterval: previewMode || !isFocused ? 0 : 30000,
     skip: previewMode,
   });
 
@@ -86,6 +87,24 @@ export default function ChatContactScreen({navigation}) {
         console.error('Failed to refresh client chats:', error),
       );
     }
+  }, [isFocused, previewMode, refetch]);
+
+  useEffect(() => {
+    if (previewMode || !isFocused) {
+      return undefined;
+    }
+
+    const refreshConversations = () => {
+      refetch().catch(error =>
+        console.error('Failed to refresh client chats:', error),
+      );
+    };
+    AsyncStorage.getItem('token')
+      .then(token => token && connectSocket(token))
+      .catch(error => console.error('Failed to connect chat list:', error));
+    socket.on('chat:conversation', refreshConversations);
+
+    return () => socket.off('chat:conversation', refreshConversations);
   }, [isFocused, previewMode, refetch]);
 
   const loadChats = useCallback(async () => {
@@ -146,7 +165,17 @@ export default function ChatContactScreen({navigation}) {
       );
     }
 
-    navigation.navigate('PreviewChatScreen', {conversation});
+    navigation.navigate(
+      conversation.preview ? 'PreviewChatScreen' : 'ChatScreen',
+      conversation.preview
+        ? {conversation}
+        : {
+            conversation,
+            chatId: conversation.id,
+            sender: user,
+            receiver: conversation.participant,
+          },
+    );
   };
 
   return (

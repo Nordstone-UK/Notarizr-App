@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { WithLiveblocks, liveblocks } from '@liveblocks/zustand';
+import {create} from 'zustand';
+import {WithLiveblocks, liveblocks} from '@liveblocks/zustand';
 
-import { client } from '../libs/liveblocks';
-import type { PdfObject } from '../types/liveblocks';
+import {client} from '../libs/liveblocks';
+import type {PdfObject} from '../types/liveblocks';
 
 type State = {
   currentPage: number;
@@ -29,13 +29,13 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       currentPage: 1,
       objects: {},
       selectedObjectId: null,
-      pdfFilePath: "https://notarizr-app-data.s3.us-east-2.amazonaws.com/signed-documents/1716495800641.pdf",
+      pdfFilePath: '',
       isPdfSaved: false,
       setCurrentPage: page => {
-        set({ currentPage: page });
+        set({currentPage: page});
       },
       insertObject: (id, object) => {
-         console.log("Inserting object:", { id, object });
+        console.log('Inserting object:', {id, object});
         set({
           objects: {
             ...get().objects,
@@ -53,21 +53,21 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
           },
         });
       },
-      deleteObject: (id) => {
-        const { [id]: _, ...remainingObjects } = get().objects;
-        set({ objects: remainingObjects, selectedObjectId: null });
+      deleteObject: id => {
+        const {[id]: _, ...remainingObjects} = get().objects;
+        set({objects: remainingObjects, selectedObjectId: null});
       },
       setSelectedObjectId: id => {
-        set({ selectedObjectId: id });
+        set({selectedObjectId: id});
       },
       deleteAllObjects: () => {
-        set({ objects: {} });
+        set({objects: {}});
       },
       setPdfFilePath: path => {
-        set({ pdfFilePath: path });
+        set({pdfFilePath: path});
       },
       setIsPdfSaved: isSaved => {
-        set({ isPdfSaved: isSaved });
+        set({isPdfSaved: isSaved});
       },
     }),
     {

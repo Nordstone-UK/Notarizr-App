@@ -25,6 +25,7 @@ import {uriToBlob} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
 import {UPDATE_VERIFICATION} from '../../../request/mutations/updateVerification.mutation';
 import AppColors from '../../themes/AppColors';
+import {UPDATE_PROFILE_PICTURE} from '../../../request/mutations/update.mutation';
 
 const DOCUMENTS = {
   photoID: {
@@ -58,12 +59,15 @@ export default function AgentVerificationScreen({navigation, route}) {
     ].filter(Boolean),
   );
   const [updateVerification] = useMutation(UPDATE_VERIFICATION);
+  const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
   const registerData = useSelector(state => state.register);
   const dispatch = useDispatch();
   const {resetStack} = useLogin();
   const {
     uploadFiles,
-    uploadFilestoS3,
+    uploadFilesToStorage,
+    uploadMedia,
+    handleCompression,
     handleRegister,
     handleUpdateSeal,
     handleUpdatecertificate,
@@ -125,7 +129,7 @@ export default function AgentVerificationScreen({navigation, route}) {
       return uri;
     }
     const blob = await uriToBlob(uri);
-    return uploadFilestoS3(blob, registerData.firstName);
+    return uploadFilesToStorage(blob);
   };
 
   const submitVerification = async () => {
@@ -140,13 +144,12 @@ export default function AgentVerificationScreen({navigation, route}) {
 
     setLoading(true);
     try {
-      const [photoUrl, certificateUrl, sealUrl] = await Promise.all([
-        uploadDocument(photoID),
-        uploadDocument(certificate),
-        uploadDocument(seal),
-      ]);
-
       if (user) {
+        const [photoUrl, certificateUrl, sealUrl] = await Promise.all([
+          uploadDocument(photoID),
+          uploadDocument(certificate),
+          uploadDocument(seal),
+        ]);
         await handleUpdateSeal({notarySeal: sealUrl});
         await handleUpdatecertificate({
           photoId: photoUrl,
@@ -169,13 +172,33 @@ export default function AgentVerificationScreen({navigation, route}) {
 
       const isRegistered = await handleRegister({
         ...registerData,
-        certificateUrl,
-        photoId: photoUrl,
-        notarySeal: sealUrl,
+        profilePicture: '',
+        certificateUrl: '',
+        photoId: '',
+        notarySeal: '',
       });
       if (!isRegistered) {
         throw new Error('Registration failed');
       }
+      if (
+        registerData.profilePicture &&
+        registerData.profilePicture !== 'none' &&
+        !registerData.profilePicture.startsWith('https://')
+      ) {
+        const imageBlob = await handleCompression(registerData.profilePicture);
+        const profilePicture = await uploadMedia(imageBlob, 'profile');
+        await updateProfilePicture({variables: {profilePicture}});
+      }
+      const [photoUrl, certificateUrl, sealUrl] = await Promise.all([
+        uploadDocument(photoID),
+        uploadDocument(certificate),
+        uploadDocument(seal),
+      ]);
+      await handleUpdateSeal({notarySeal: sealUrl});
+      await handleUpdatecertificate({
+        photoId: photoUrl,
+        certificate_url: certificateUrl,
+      });
       resetStack('signup');
     } catch (error) {
       Toast.show({

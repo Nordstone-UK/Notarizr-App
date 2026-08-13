@@ -2,7 +2,6 @@ import {useLazyQuery, useMutation} from '@apollo/client';
 import {FETCH_USER_INFO} from '../../request/queries/user.query';
 import {useDispatch} from 'react-redux';
 import {saveUserInfo} from '../features/user/userSlice';
-import {GET_CATEGORIES} from '../../request/queries/getCategories.query';
 import {GET_DOCUMENT_TYPES} from '../../request/queries/getPaginatedDocumentTypes.query';
 import {UPDATE_USER_ADDRESS} from '../../request/mutations/updateUserAddress.mutation';
 import {SEARCH_USER} from '../../request/queries/searchUser.query';
@@ -26,11 +25,6 @@ const useFetchUser = () => {
     // console.log('sssssssssssddddddddddddddd', re);
     await user().then(response => {
       info = response.data.user;
-      if (info.profile_picture === null || !info.profile_picture) {
-        info.profile_picture =
-          'https://notarizr-app-data.s3.us-east-2.amazonaws.com/static/unnamed.jpg';
-      }
-
       dispatch(saveUserInfo(info));
     });
     return info;

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useQuery} from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useIsFocused} from '@react-navigation/native';
 import {
   FlatList,
@@ -14,6 +15,7 @@ import MessagesEmptyState from '../../../components/Messages/MessagesEmptyState'
 import MessagesHeader from '../../../components/Messages/MessagesHeader';
 import {GET_ALL_CHATS} from '../../../../request/queries/getAllChats.query';
 import {normalizeChatConversation} from '../../../utils/chatUtils';
+import {connectSocket, socket} from '../../../utils/Socket';
 
 export default function AgentChatContactScreen({navigation}) {
   const user = useSelector(state => state.user.user);
@@ -25,7 +27,6 @@ export default function AgentChatContactScreen({navigation}) {
     fetchPolicy: 'cache-and-network',
     nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
-    pollInterval: isFocused ? 30000 : 0,
   });
 
   useEffect(() => {
@@ -34,6 +35,24 @@ export default function AgentChatContactScreen({navigation}) {
         console.error('Failed to refresh notary chats:', error),
       );
     }
+  }, [isFocused, refetch]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return undefined;
+    }
+
+    const refreshConversations = () => {
+      refetch().catch(error =>
+        console.error('Failed to refresh notary chats:', error),
+      );
+    };
+    AsyncStorage.getItem('token')
+      .then(token => token && connectSocket(token))
+      .catch(error => console.error('Failed to connect chat list:', error));
+    socket.on('chat:conversation', refreshConversations);
+
+    return () => socket.off('chat:conversation', refreshConversations);
   }, [isFocused, refetch]);
 
   const loadChats = useCallback(async () => {
@@ -105,7 +124,12 @@ export default function AgentChatContactScreen({navigation}) {
             conversation={item}
             last={index === visibleConversations.length - 1}
             onPress={() =>
-              navigation.navigate('PreviewChatScreen', {conversation: item})
+              navigation.navigate('ChatScreen', {
+                conversation: item,
+                chatId: item.id,
+                sender: user,
+                receiver: item.participant,
+              })
             }
           />
         )}

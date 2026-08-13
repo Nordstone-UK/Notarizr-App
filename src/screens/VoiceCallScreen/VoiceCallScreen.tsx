@@ -1,261 +1,455 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
+  Image,
+  PermissionsAndroid,
+  Platform,
+  SafeAreaView,
   StyleSheet,
   Text,
-  View,
-  Image,
-  SafeAreaView,
   TouchableOpacity,
-  Platform,
-  PermissionsAndroid,
+  View,
 } from 'react-native';
-import Toast from 'react-native-toast-message';
-import React, { useEffect, useRef, useState } from 'react';
-
-import Colors from '../../themes/Colors';
-import { heightToDp, widthToDp } from '../../utils/Responsive';
 import {
+  ChannelProfileType,
   ClientRoleType,
   createAgoraRtcEngine,
   IRtcEngine,
-  ChannelProfileType,
 } from 'react-native-agora';
+import Toast from 'react-native-toast-message';
+import Feather from 'react-native-vector-icons/Feather';
+
 import useChatService from '../../hooks/useChatService';
-import { socket } from '../../utils/Socket';
-export default function VoiceCallScreen({ route, navigation }: any) {
-  const { sender, receiver, channelName, token } = route.params;
-  const { getAgoraCallToken } = useChatService();
-  const appId = 'abd7df71ee024625b2cc979e12aec405';
+import {
+  connectSocket,
+  socket,
+  socketRequest,
+  waitForSocketConnection,
+} from '../../utils/Socket';
+
+const AGORA_APP_ID = 'abd7df71ee024625b2cc979e12aec405';
+const RING_TIMEOUT_MS = 45000;
+
+const displayName = user =>
+  [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+  'Notarizr user';
+
+export default function VoiceCallScreen({route, navigation}: any) {
+  const {
+    sender,
+    receiver,
+    incoming = false,
+    callerId,
+    callId: suppliedCallId,
+    channelName: suppliedChannel,
+    token: suppliedToken,
+  } = route.params || {};
+  const {getAgoraCallToken} = useChatService();
   const agoraEngineRef = useRef<IRtcEngine>();
-  const [isJoined, setIsJoined] = useState(false);
-  const [remoteUid, setRemoteUid] = useState(0);
-  const [message, setMessage] = useState('');
-  const [CName, setChannelName] = useState<string>('');
-  const [CToken, setCallToken] = useState<string>('');
-  const [callDuration, setCallDuration] = useState(0); // New state for the call duration
   const timerRef = useRef<any>(null);
-  const uid = 0;
+  const ringTimerRef = useRef<any>(null);
+  const acceptResolverRef = useRef<(() => void) | null>(null);
+  const mountedRef = useRef(true);
+  const startedRef = useRef(false);
+  const finishedRef = useRef(false);
+  const acceptedRef = useRef(false);
+  const callIdRef = useRef(
+    suppliedCallId || `${sender?._id || 'caller'}-${Date.now()}`,
+  );
+  const targetId = String(incoming ? callerId : receiver?._id || '');
 
+  const [callDuration, setCallDuration] = useState(0);
+  const [callStatus, setCallStatus] = useState(
+    incoming ? 'Connecting...' : 'Calling...',
+  );
+  const [isMuted, setIsMuted] = useState(false);
+  const [speakerEnabled, setSpeakerEnabled] = useState(false);
+  const [remoteJoined, setRemoteJoined] = useState(false);
 
-  const getVoiceToken = async () => {
-    try {
-      const { channelName, token } = await getAgoraCallToken(receiver._id);
-      setChannelName(channelName);
-      setCallToken(token);
-
-      console.log('Channel Name:', channelName);
-      console.log('Token:', token);
-    } catch (error) {
-      console.log('API Error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Token Error',
-        text2: 'Failed to fetch Agora call token. Please try again later.',
-      });
-    }
-  };
-
-  // const CallSetup = async () => {
-  //   await setupVoiceSDKEngine();
-  //   // await join();
-  // };
-
-  useEffect(() => {
-    const setupVoiceSDKEngine = async () => {
-      try {
-        if (Platform.OS === 'android') {
-          await getPermission();
-        }
-        agoraEngineRef.current = createAgoraRtcEngine();
-        const agoraEngine = agoraEngineRef.current;
-        agoraEngine.registerEventHandler({
-          onJoinChannelSuccess: () => {
-            showMessage('Successfully joined the channel ' + channelName);
-            setIsJoined(true);
-            startTimer();
-            const data = {
-              receiverId: receiver?._id,
-              text: "Voice call initiated",
-              senderName: `${sender?.first_name} ${sender?.last_name}`,
-            }
-            socket.emit('voice-call', data);
-          },
-
-          onUserJoined: (_connection: any, Uid: number) => {
-            showMessage('Remote user joined with uid ' + Uid);
-            setRemoteUid(Uid);
-            console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
-          },
-          onUserOffline: (_connection: any, Uid: number) => {
-            showMessage('Remote user left the channel. uid: ' + Uid);
-            setRemoteUid(0);
-          },
-          onError: (err: any) => {
-            console.error('Agora Error:', err);
-            Toast.show({
-              type: 'error',
-              text1: 'Agora Error',
-              text2: `An error occurred: ${err.message || 'Unknown error'}`,
-            });
-          },
-        });
-        agoraEngine.initialize({
-          appId: appId,
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    setupVoiceSDKEngine().then(() => {
-      join();
-    });
-  }, []);
-  const getPermission = async () => {
-    if (Platform.OS === 'android') {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-      ]);
-    }
-  };
-  // function showMessage(msg: string) {
-  //   console.log(msg);
-  //   setMessage(msg);
-  // }
-  function showMessage(msg: string) {
-    console.log(msg);
-    Toast.show({
-      type: 'success',
-      text1: msg,
-    });
-  }
-
-  const join = async () => {
-    if (isJoined) {
-      return;
-    }
-    try {
-      agoraEngineRef.current?.setChannelProfile(
-        ChannelProfileType.ChannelProfileCommunication,
-      );
-      agoraEngineRef.current?.joinChannel(token, channelName, uid, {
-        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  const leave = () => {
-    try {
-      agoraEngineRef.current?.leaveChannel();
-      setRemoteUid(0);
-      setIsJoined(false);
-      stopTimer(); // Stop the timer when leaving the call
-      setCallDuration(0);
-      showMessage('You left the channel');
-      navigation.goBack();
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  const startTimer = () => {
-    timerRef.current = setInterval(() => {
-      setCallDuration((prevDuration) => prevDuration + 1);
-    }, 1000);
-  };
-  const stopTimer = () => {
+  const clearTimers = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    if (ringTimerRef.current) {
+      clearTimeout(ringTimerRef.current);
+      ringTimerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    if (!timerRef.current) {
+      timerRef.current = setInterval(
+        () => setCallDuration(current => current + 1),
+        1000,
+      );
+    }
+  }, []);
+
+  const leaveChannel = useCallback(() => {
+    clearTimers();
+    try {
+      agoraEngineRef.current?.leaveChannel();
+      agoraEngineRef.current?.release();
+    } catch (error) {
+      console.warn('Agora cleanup failed:', error);
+    }
+    agoraEngineRef.current = undefined;
+  }, [clearTimers]);
+
+  const finishCall = useCallback(
+    async (notifyOtherUser = true) => {
+      if (finishedRef.current) {
+        return;
+      }
+      finishedRef.current = true;
+      acceptResolverRef.current = null;
+
+      if (notifyOtherUser && targetId) {
+        socketRequest('call:end', {
+          callId: callIdRef.current,
+          targetId,
+        }).catch(error =>
+          console.warn('Call end signal was not delivered:', error),
+        );
+      }
+
+      leaveChannel();
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    },
+    [leaveChannel, navigation, targetId],
+  );
+
+  const initializeAgora = useCallback(
+    (channelName: string, token: string) => {
+      if (finishedRef.current || agoraEngineRef.current) {
+        return;
+      }
+
+      const engine = createAgoraRtcEngine();
+      agoraEngineRef.current = engine;
+      engine.registerEventHandler({
+        onJoinChannelSuccess: () => {
+          if (mountedRef.current && !finishedRef.current) {
+            setCallStatus('Connecting...');
+          }
+        },
+        onUserJoined: () => {
+          if (mountedRef.current && !finishedRef.current) {
+            setRemoteJoined(true);
+            setCallStatus('Connected');
+            startTimer();
+          }
+        },
+        onUserOffline: () => {
+          if (mountedRef.current && !finishedRef.current) {
+            setRemoteJoined(false);
+            finishCall(false);
+          }
+        },
+        onError: errorCode => {
+          console.error('Agora call error:', errorCode);
+        },
+      });
+      engine.initialize({appId: AGORA_APP_ID});
+      engine.enableAudio();
+      engine.setChannelProfile(ChannelProfileType.ChannelProfileCommunication);
+      engine.joinChannel(token, channelName, 0, {
+        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+      });
+    },
+    [finishCall, startTimer],
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    const accepted = ({callId}) => {
+      if (callId === callIdRef.current && !finishedRef.current) {
+        acceptedRef.current = true;
+        setCallStatus('Connecting...');
+        acceptResolverRef.current?.();
+        acceptResolverRef.current = null;
+      }
+    };
+    const declined = ({callId}) => {
+      if (callId === callIdRef.current && !finishedRef.current) {
+        Toast.show({
+          type: 'info',
+          text1: 'Call declined',
+          text2: `${displayName(receiver)} is unavailable right now.`,
+        });
+        finishCall(false);
+      }
+    };
+    const ended = ({callId}) => {
+      if (callId === callIdRef.current && !finishedRef.current) {
+        Toast.show({type: 'info', text1: 'Call ended'});
+        finishCall(false);
+      }
+    };
+
+    socket.on('call:accepted', accepted);
+    socket.on('call:declined', declined);
+    socket.on('call:ended', ended);
+
+    return () => {
+      mountedRef.current = false;
+      socket.off('call:accepted', accepted);
+      socket.off('call:declined', declined);
+      socket.off('call:ended', ended);
+      leaveChannel();
+    };
+  }, [finishCall, leaveChannel, receiver]);
+
+  useEffect(() => {
+    if (startedRef.current) {
+      return;
+    }
+    startedRef.current = true;
+
+    const prepareCall = async () => {
+      try {
+        if (!targetId) {
+          throw new Error('The call recipient is unavailable.');
+        }
+        if (Platform.OS === 'android') {
+          const permission = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          );
+          if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
+            throw new Error('Microphone permission is required for calls.');
+          }
+        }
+
+        const accessToken = await AsyncStorage.getItem('token');
+        if (!accessToken) {
+          throw new Error('Please sign in again to start a call.');
+        }
+        connectSocket(accessToken);
+        await waitForSocketConnection();
+
+        let channelName = suppliedChannel;
+        let token = suppliedToken;
+        if (!channelName || !token) {
+          const credentials = await getAgoraCallToken(targetId);
+          channelName = credentials?.channelName;
+          token = credentials?.token;
+        }
+        if (!channelName || !token) {
+          throw new Error('A secure call channel could not be created.');
+        }
+
+        if (incoming) {
+          initializeAgora(channelName, token);
+          return;
+        }
+
+        await socketRequest('call:start', {
+          callId: callIdRef.current,
+          receiverId: targetId,
+          channelName,
+          token,
+        });
+        if (finishedRef.current) {
+          return;
+        }
+        setCallStatus('Ringing...');
+
+        if (!acceptedRef.current) {
+          await new Promise<void>((resolve, reject) => {
+            acceptResolverRef.current = resolve;
+            ringTimerRef.current = setTimeout(() => {
+              acceptResolverRef.current = null;
+              reject(new Error('The call was not answered.'));
+            }, RING_TIMEOUT_MS);
+          });
+        }
+        if (ringTimerRef.current) {
+          clearTimeout(ringTimerRef.current);
+          ringTimerRef.current = null;
+        }
+        initializeAgora(channelName, token);
+      } catch (error) {
+        if (finishedRef.current) {
+          return;
+        }
+        console.error('Voice call setup failed:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Call could not start',
+          text2: error?.message || 'Please try again.',
+        });
+        finishCall(true);
+      }
+    };
+
+    prepareCall();
+  }, [
+    finishCall,
+    getAgoraCallToken,
+    incoming,
+    initializeAgora,
+    suppliedChannel,
+    suppliedToken,
+    targetId,
+  ]);
+
+  const toggleMute = () => {
+    const nextMuted = !isMuted;
+    agoraEngineRef.current?.muteLocalAudioStream(nextMuted);
+    setIsMuted(nextMuted);
   };
-  const formatDuration = (seconds: number) => {
+
+  const toggleSpeaker = () => {
+    const nextSpeaker = !speakerEnabled;
+    agoraEngineRef.current?.setEnableSpeakerphone(nextSpeaker);
+    setSpeakerEnabled(nextSpeaker);
+  };
+
+  const formatDuration = seconds => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.pictureContainer}>
-        <View>
-          <Image
-            source={
-              receiver?.profile_picture
-                ? { uri: receiver.profile_picture }
-                : require('../../../assets/UserIcon.png')
-            } style={{
-              width: widthToDp(30),
-              height: heightToDp(30),
-              borderRadius: widthToDp(25),
-            }}
-          />
-          <Text style={styles.text}>
-            {receiver?.first_name as string} {receiver?.last_name as string}
-          </Text>
-          <Text style={styles.timer}>{formatDuration(callDuration)}</Text>
-        </View>
 
-        <TouchableOpacity
-          onPress={() => leave()}
-          style={{
-            alignItems: 'center',
-            marginBottom: heightToDp(5),
-          }}>
-          <Image
-            source={require('../../../assets/callDrop.png')}
-            style={{ width: widthToDp(15), height: heightToDp(15) }}
-          />
-        </TouchableOpacity>
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.content}>
+        <Text style={styles.eyebrow}>NOTARIZR VOICE CALL</Text>
+        <View style={styles.avatar}>
+          {receiver?.profile_picture ? (
+            <Image
+              source={{uri: receiver.profile_picture}}
+              style={styles.image}
+            />
+          ) : (
+            <Text style={styles.initials}>
+              {(receiver?.first_name?.[0] || 'N').toUpperCase()}
+              {(receiver?.last_name?.[0] || '').toUpperCase()}
+            </Text>
+          )}
+        </View>
+        <Text style={styles.name}>{displayName(receiver)}</Text>
+        <Text style={styles.status}>
+          {remoteJoined ? formatDuration(callDuration) : callStatus}
+        </Text>
+
+        <View style={styles.controls}>
+          <View style={styles.controlGroup}>
+            <TouchableOpacity
+              accessibilityLabel={
+                isMuted ? 'Unmute microphone' : 'Mute microphone'
+              }
+              disabled={!agoraEngineRef.current}
+              onPress={toggleMute}
+              style={[styles.control, isMuted && styles.controlActive]}>
+              <Feather
+                name={isMuted ? 'mic-off' : 'mic'}
+                size={23}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+            <Text style={styles.controlLabel}>
+              {isMuted ? 'Unmute' : 'Mute'}
+            </Text>
+          </View>
+          <View style={styles.controlGroup}>
+            <TouchableOpacity
+              accessibilityLabel="End call"
+              onPress={() => finishCall(true)}
+              style={styles.endCall}>
+              <Feather name="phone-off" size={27} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.controlLabel}>End</Text>
+          </View>
+          <View style={styles.controlGroup}>
+            <TouchableOpacity
+              accessibilityLabel="Toggle speaker"
+              disabled={!agoraEngineRef.current}
+              onPress={toggleSpeaker}
+              style={[styles.control, speakerEnabled && styles.controlActive]}>
+              <Feather name="volume-2" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.controlLabel}>Speaker</Text>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {flex: 1, backgroundColor: '#111827'},
+  content: {
     flex: 1,
-    backgroundColor: Colors.PinkBackground,
-  },
-  pictureContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: widthToDp(10),
+    paddingHorizontal: 24,
+    paddingTop: 70,
   },
-  completeIcon: {
-    marginTop: heightToDp(25),
-  },
-  timer: {
-    marginTop: heightToDp(6),
-    fontSize: widthToDp(5),
+  eyebrow: {
+    color: '#FD7A32',
     fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    textAlign: 'center',
+    fontSize: 11,
   },
-  groupimage: {
-    flex: 1,
+  avatar: {
+    width: 136,
+    height: 136,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    marginTop: 48,
+    borderRadius: 68,
+    borderWidth: 4,
+    borderColor: '#2D3748',
+    backgroundColor: '#FFF0E7',
   },
-  icon: {
-    alignSelf: 'center',
-    marginVertical: heightToDp(2),
-    width: widthToDp(50),
-    height: widthToDp(50),
-    resizeMode: 'contain',
-  },
-  text: {
-    textAlign: 'center',
-    color: Colors.TextColor,
-    fontSize: widthToDp(5.5),
+  image: {width: '100%', height: '100%'},
+  initials: {color: '#D65322', fontFamily: 'Manrope-Bold', fontSize: 40},
+  name: {
+    marginTop: 24,
+    color: '#FFFFFF',
     fontFamily: 'Manrope-Bold',
-    marginTop: widthToDp(5),
+    fontSize: 25,
   },
-
-  complete: {
-    alignSelf: 'flex-end',
-    width: widthToDp(75),
-    height: widthToDp(75),
-    resizeMode: 'contain',
-    flex: 1,
-    justifyContent: 'flex-end',
+  status: {
+    marginTop: 8,
+    color: '#AAB2C1',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
   },
-
+  controls: {
+    width: '100%',
+    maxWidth: 340,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 'auto',
+    marginBottom: 54,
+  },
+  controlGroup: {alignItems: 'center'},
+  control: {
+    width: 62,
+    height: 62,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 31,
+    backgroundColor: '#2C3545',
+  },
+  controlActive: {backgroundColor: '#596579'},
+  endCall: {
+    width: 68,
+    height: 68,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 34,
+    backgroundColor: '#DC4C4C',
+  },
+  controlLabel: {
+    marginTop: 9,
+    color: '#C8CFDA',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
 });

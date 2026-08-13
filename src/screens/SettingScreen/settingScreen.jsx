@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useMutation} from '@apollo/client';
-import {ChatClient} from 'react-native-agora-chat';
 import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
 import ProfileMenuItem from '../../components/Profile/ProfileMenuItem';
@@ -22,6 +21,7 @@ import {goBackOrNavigate} from '../../utils/navigationHelpers';
 import {DELETE_ACCOUNT} from '../../../request/mutations/deleteAccount.mutation';
 import {UPDATE_ACCOUNT_TYPE} from '../../../request/mutations/updateAccountType.mutation';
 import AppColors from '../../themes/AppColors';
+import {socket} from '../../utils/Socket';
 
 const ORANGE = AppColors.primary;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
@@ -163,14 +163,7 @@ export default function SettingScreen({navigation}) {
     await AsyncStorage.removeItem('token');
     dispatch(saveUserInfo(null));
 
-    try {
-      const chatClient = ChatClient.getInstance();
-      if (chatClient?.isInitialized) {
-        await chatClient.logout();
-      }
-    } catch (error) {
-      console.error('Chat logout failed after account deletion:', error);
-    }
+    socket.disconnect();
 
     navigation.reset({
       index: 0,

@@ -20,6 +20,7 @@ const initializeOneSignal = () => {
     console.log("Dattttttttttttttttta", data)
     if (data?.type === "voice_call" && data?.callStatus === "ringing") {
       playRingtone();
+      EventRegister.emit('voice-call', data);
     }
     console.log("dateddddddddddd", data)
     store.dispatch(setNotification(notification));
@@ -34,6 +35,7 @@ const initializeOneSignal = () => {
     // Stop the ringtone if it was a voice call
     if (data?.type === "voice_call") {
       stopRingtone();
+      EventRegister.emit('voice-call', data);
     }
 
     console.log("Notification opened:", notification);

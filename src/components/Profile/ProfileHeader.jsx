@@ -1,25 +1,16 @@
-import React, {useEffect, useState} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import AppColors from '../../themes/AppColors';
+import UserAvatar from '../UserAvatar/UserAvatar';
 
 const formatAccountType = accountType =>
   accountType === 'client' ? 'Client account' : 'Notary professional';
 
 export default function ProfileHeader({user, onDetails, onSettings}) {
-  const [imageFailed, setImageFailed] = useState(false);
   const fullName = [user?.first_name, user?.last_name]
     .filter(Boolean)
     .join(' ');
-  const initials = [user?.first_name, user?.last_name]
-    .filter(Boolean)
-    .map(value => value.trim().charAt(0))
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-  const showImage = Boolean(user?.profile_picture) && !imageFailed;
-
-  useEffect(() => setImageFailed(false), [user?.profile_picture]);
 
   return (
     <View style={styles.container}>
@@ -42,17 +33,11 @@ export default function ProfileHeader({user, onDetails, onSettings}) {
 
         <View style={styles.identityRow}>
           <View style={styles.avatarRing}>
-            <View style={styles.avatar}>
-              {showImage ? (
-                <Image
-                  onError={() => setImageFailed(true)}
-                  source={{uri: user.profile_picture}}
-                  style={styles.avatarImage}
-                />
-              ) : (
-                <Text style={styles.avatarInitials}>{initials || 'N'}</Text>
-              )}
-            </View>
+            <UserAvatar
+              name={fullName}
+              size={74}
+              source={user?.profile_picture}
+            />
             <View style={styles.onlineDot} />
           </View>
           <View style={styles.identityCopy}>
@@ -164,21 +149,6 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
-  },
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: AppColors.primarySoft,
-    borderRadius: 37,
-    height: 74,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    width: 74,
-  },
-  avatarImage: {height: '100%', width: '100%'},
-  avatarInitials: {
-    color: AppColors.primary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 22,
   },
   avatarRing: {
     alignItems: 'center',
