@@ -84,7 +84,14 @@ function DayChip({day, selected, onPress}) {
   );
 }
 
-function TimeBlock({block, index, daySlotCount, onUpdateStart, onUpdateEnd, onRemove}) {
+function TimeBlock({
+  block,
+  index,
+  daySlotCount,
+  onUpdateStart,
+  onUpdateEnd,
+  onRemove,
+}) {
   const sessions = generateSessions(block.startTime, block.endTime);
   const isValid = moment(block.endTime).isAfter(
     moment(block.startTime).add(59, 'minutes'),
@@ -114,7 +121,11 @@ function TimeBlock({block, index, daySlotCount, onUpdateStart, onUpdateEnd, onRe
           Text="Start"
         />
         <View style={styles.arrowWrap}>
-          <Feather name="arrow-right" size={14} color={BookingColors.textMuted} />
+          <Feather
+            name="arrow-right"
+            size={14}
+            color={BookingColors.textMuted}
+          />
         </View>
         <TimePicker date={block.endTime} onConfirm={onUpdateEnd} Text="End" />
       </View>
@@ -147,7 +158,14 @@ function TimeBlock({block, index, daySlotCount, onUpdateStart, onUpdateEnd, onRe
   );
 }
 
-function DayCard({day, blocks, onAddBlock, onRemoveBlock, onUpdateStart, onUpdateEnd}) {
+function DayCard({
+  day,
+  blocks,
+  onAddBlock,
+  onRemoveBlock,
+  onUpdateStart,
+  onUpdateEnd,
+}) {
   return (
     <View style={styles.dayCard}>
       <View style={styles.dayCardHeader}>
@@ -342,16 +360,18 @@ export default function AgentMainAvailabilityScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={BookingColors.surface} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={BookingColors.surface}
+      />
       <ProfileScreenHeader
         onBack={() => navigation.goBack()}
-        title="Service availability"
+        title="Mobile Notary"
       />
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-
         {/* ── Intro banner ───────────────────────────────────────────── */}
         <View style={styles.intro}>
           <View style={styles.introIcon}>
@@ -412,7 +432,11 @@ export default function AgentMainAvailabilityScreen({navigation}) {
         {selectedDays.length === 0 ? (
           <View style={styles.emptyDays}>
             <View style={styles.emptyIcon}>
-              <Feather name="calendar" size={22} color={BookingColors.textMuted} />
+              <Feather
+                name="calendar"
+                size={22}
+                color={BookingColors.textMuted}
+              />
             </View>
             <Text style={styles.emptyTitle}>No days selected</Text>
             <Text style={styles.emptyText}>
@@ -454,8 +478,13 @@ export default function AgentMainAvailabilityScreen({navigation}) {
             <Switch
               ios_backgroundColor={BookingColors.border}
               onValueChange={setCanPrint}
-              trackColor={{false: BookingColors.border, true: BookingColors.successSoft}}
-              thumbColor={canPrint ? BookingColors.success : BookingColors.textMuted}
+              trackColor={{
+                false: BookingColors.border,
+                true: BookingColors.successSoft,
+              }}
+              thumbColor={
+                canPrint ? BookingColors.success : BookingColors.textMuted
+              }
               value={canPrint}
             />
           </View>
@@ -486,7 +515,11 @@ export default function AgentMainAvailabilityScreen({navigation}) {
 
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: BookingColors.surface},
-  content: {padding: 16, paddingBottom: 28, backgroundColor: BookingColors.background},
+  content: {
+    padding: 16,
+    paddingBottom: 28,
+    backgroundColor: BookingColors.background,
+  },
   loadingState: {flex: 1, alignItems: 'center', justifyContent: 'center'},
   loadingText: {
     marginTop: 9,
@@ -514,7 +547,11 @@ const styles = StyleSheet.create({
     backgroundColor: BookingColors.primarySoft,
   },
   introCopy: {flex: 1, marginLeft: 12},
-  introTitle: {color: BookingColors.textPrimary, fontFamily: 'Manrope-Bold', fontSize: 14},
+  introTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
   introSubtitle: {
     marginTop: 3,
     color: BookingColors.textSecondary,
@@ -800,7 +837,11 @@ const styles = StyleSheet.create({
     backgroundColor: BookingColors.infoSoft,
   },
   printCopy: {flex: 1, minWidth: 0, marginHorizontal: 12},
-  printTitle: {color: BookingColors.textPrimary, fontFamily: 'Manrope-Bold', fontSize: 12},
+  printTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
   printText: {
     marginTop: 2,
     color: BookingColors.textMuted,

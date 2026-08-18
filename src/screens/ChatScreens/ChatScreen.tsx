@@ -1,6 +1,6 @@
-import {useLazyQuery, useMutation} from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -18,14 +18,14 @@ import {
   InputToolbar,
   Send,
 } from 'react-native-gifted-chat';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 
-import {SAVE_MESSAGE} from '../../../request/mutations/chat.mutation';
-import {CREATE_CHAT} from '../../../request/mutations/createChat.mutation';
-import {GET_ALL_MESSAGES} from '../../../request/queries/getAllMessages.query';
+import { SAVE_MESSAGE } from '../../../request/mutations/chat.mutation';
+import { CREATE_CHAT } from '../../../request/mutations/createChat.mutation';
+import { GET_ALL_MESSAGES } from '../../../request/queries/getAllMessages.query';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import UserAvatar from '../../components/UserAvatar/UserAvatar';
 import useRegister from '../../hooks/useRegister';
@@ -77,7 +77,7 @@ function ScrollToBottomIcon() {
   return <Feather name="chevron-down" size={20} color="#FD6D1F" />;
 }
 
-export default function ChatScreen({route, navigation}: any) {
+export default function ChatScreen({ route, navigation }: any) {
   const {
     sender: routeSender,
     receiver: routeReceiver,
@@ -99,7 +99,7 @@ export default function ChatScreen({route, navigation}: any) {
   const [getMessageHistory] = useLazyQuery(GET_ALL_MESSAGES, {
     fetchPolicy: 'network-only',
   });
-  const {handleCompression, uploadMedia} = useRegister();
+  const { handleCompression, uploadMedia } = useRegister();
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedImages, setSelectedImages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -113,7 +113,7 @@ export default function ChatScreen({route, navigation}: any) {
 
   const loadGraphQLHistory = useCallback(
     async chatId => {
-      const {data} = await getMessageHistory({variables: {chatId}});
+      const { data } = await getMessageHistory({ variables: { chatId } });
       if (mountedRef.current) {
         setMessages(
           (data?.getAllMessages || [])
@@ -126,8 +126,8 @@ export default function ChatScreen({route, navigation}: any) {
   );
 
   const joinAndLoad = useCallback(async chatId => {
-    await socketRequest('chat:join', {chatId}, 6000);
-    const response: any = await socketRequest('chat:history', {chatId}, 6000);
+    await socketRequest('chat:join', { chatId }, 6000);
+    const response: any = await socketRequest('chat:history', { chatId }, 6000);
     if (mountedRef.current) {
       setMessages(
         (response.messages || []).map(formatMessage).filter(item => item._id),
@@ -135,7 +135,7 @@ export default function ChatScreen({route, navigation}: any) {
       setConnectionState('ready');
       setConnectionError('');
     }
-    socketRequest('chat:read', {chatId}, 4000).catch(() => {});
+    socketRequest('chat:read', { chatId }, 4000).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -186,7 +186,7 @@ export default function ChatScreen({route, navigation}: any) {
       try {
         let chatId = initialChatId;
         if (!chatId) {
-          const result = await createChat({variables: {userId: receiverId}});
+          const result = await createChat({ variables: { userId: receiverId } });
           chatId = String(result.data?.createChat?.chatID || '');
         }
         if (!chatId) {
@@ -239,14 +239,14 @@ export default function ChatScreen({route, navigation}: any) {
     }
 
     const pollingTimer = setInterval(() => {
-      loadGraphQLHistory(chatIdRef.current).catch(() => {});
+      loadGraphQLHistory(chatIdRef.current).catch(() => { });
     }, 4000);
 
     return () => clearInterval(pollingTimer);
   }, [connectionState, loadGraphQLHistory]);
 
   const sendMessage = useCallback(
-    async (outgoing: {text?: string; image?: any; sessionInvite?: any}) => {
+    async (outgoing: { text?: string; image?: any; sessionInvite?: any }) => {
       if (connectionState === 'connecting' || !chatIdRef.current) {
         Toast.show({
           type: 'info',
@@ -276,7 +276,7 @@ export default function ChatScreen({route, navigation}: any) {
           image: outgoing.sessionInvite ? '' : mediaUrl,
           sessionInvite: outgoing.sessionInvite || null,
           createdAt: new Date(),
-          user: {_id: senderId},
+          user: { _id: senderId },
           pending: true,
         };
         setMessages(current => GiftedChat.append(current, [optimisticMessage]));
@@ -299,7 +299,7 @@ export default function ChatScreen({route, navigation}: any) {
           }
         }
 
-        const {data} = await saveMessageMutation({
+        const { data } = await saveMessageMutation({
           variables: {
             chatId: chatIdRef.current,
             receiverId,
@@ -332,7 +332,7 @@ export default function ChatScreen({route, navigation}: any) {
   );
 
   const pickImages = useCallback(() => {
-    launchImageLibrary({mediaType: 'photo', selectionLimit: 5}, response => {
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 5 }, response => {
       if (response.didCancel) {
         return;
       }
@@ -353,10 +353,10 @@ export default function ChatScreen({route, navigation}: any) {
   const handleSend = useCallback(async () => {
     const text = inputMessage.trim();
     if (text) {
-      await sendMessage({text});
+      await sendMessage({ text });
     }
     for (const image of selectedImages) {
-      await sendMessage({image});
+      await sendMessage({ image });
     }
     setInputMessage('');
     setSelectedImages([]);
@@ -398,10 +398,9 @@ export default function ChatScreen({route, navigation}: any) {
           .filter(Boolean)
           .join(' ');
         await sendMessage({
-          text: `${
-            displayName || (isAgent ? 'Your notary' : 'Your client')
-          } has joined the secure session.`,
-          sessionInvite: {...invite, ...callParams, joinedBy: senderId},
+          text: `${displayName || (isAgent ? 'Your notary' : 'Your client')
+            } has joined the secure session.`,
+          sessionInvite: { ...invite, ...callParams, joinedBy: senderId },
         });
       }
 
@@ -446,9 +445,9 @@ export default function ChatScreen({route, navigation}: any) {
               left: styles.bubbleBottom,
               right: styles.bubbleBottom,
             }}
-            textStyle={{left: styles.leftText, right: styles.rightText}}
-            timeTextStyle={{left: styles.leftTime, right: styles.rightTime}}
-            wrapperStyle={{left: styles.leftBubble, right: styles.rightBubble}}
+            textStyle={{ left: styles.leftText, right: styles.rightText }}
+            timeTextStyle={{ left: styles.leftTime, right: styles.rightTime }}
+            wrapperStyle={{ left: styles.leftBubble, right: styles.rightBubble }}
           />
           {invite ? (
             <TouchableOpacity
@@ -526,11 +525,11 @@ export default function ChatScreen({route, navigation}: any) {
       <NavigationHeader
         Title={receiverName}
         ProfilePic={
-          receiver?.profile_picture ? {uri: receiver.profile_picture} : null
+          receiver?.profile_picture ? { uri: receiver.profile_picture } : null
         }
         ProfileName={receiverName}
         profileImgPress={() =>
-          navigation.navigate('ChatingProfiledetailScreen', {receiver})
+          navigation.navigate('ChatingProfiledetailScreen', { receiver })
         }
         lastImg={
           receiver?._id ? require('../../../assets/voiceCallIcon.png') : null
@@ -583,7 +582,7 @@ export default function ChatScreen({route, navigation}: any) {
           minComposerHeight={46}
           maxComposerHeight={46}
           minInputToolbarHeight={68}
-          onSend={nextMessages => sendMessage({text: nextMessages[0]?.text})}
+          onSend={nextMessages => sendMessage({ text: nextMessages[0]?.text })}
           placeholder="Write a message"
           renderActions={props => (
             <Actions
@@ -609,41 +608,41 @@ export default function ChatScreen({route, navigation}: any) {
           scrollToBottomComponent={ScrollToBottomIcon}
           text={inputMessage}
           onInputTextChanged={setInputMessage}
-          textInputProps={{editable: connectionState !== 'connecting'}}
-          user={{_id: senderId || 'user'}}
+          textInputProps={{ editable: connectionState !== 'connecting' }}
+          user={{ _id: senderId || 'user' }}
           renderAccessory={
             selectedImages.length
               ? () => (
-                  <View style={styles.accessoryContainer}>
-                    {selectedImages.map((asset, index) => (
-                      <View
-                        key={`${asset.uri}-${index}`}
-                        style={styles.imageContainer}>
-                        <Image
-                          source={{uri: asset.uri}}
-                          style={styles.selectedImage}
-                        />
-                        <TouchableOpacity
-                          accessibilityLabel="Remove selected image"
-                          onPress={() =>
-                            setSelectedImages(previous =>
-                              previous.filter(
-                                (_, imageIndex) => imageIndex !== index,
-                              ),
-                            )
-                          }
-                          style={styles.closeButton}>
-                          <Feather name="x" size={13} color="#FFFFFF" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                    <TouchableOpacity
-                      onPress={handleSend}
-                      style={styles.sendCircle}>
-                      <Feather name="arrow-up" size={20} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </View>
-                )
+                <View style={styles.accessoryContainer}>
+                  {selectedImages.map((asset, index) => (
+                    <View
+                      key={`${asset.uri}-${index}`}
+                      style={styles.imageContainer}>
+                      <Image
+                        source={{ uri: asset.uri }}
+                        style={styles.selectedImage}
+                      />
+                      <TouchableOpacity
+                        accessibilityLabel="Remove selected image"
+                        onPress={() =>
+                          setSelectedImages(previous =>
+                            previous.filter(
+                              (_, imageIndex) => imageIndex !== index,
+                            ),
+                          )
+                        }
+                        style={styles.closeButton}>
+                        <Feather name="x" size={13} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  <TouchableOpacity
+                    onPress={handleSend}
+                    style={styles.sendCircle}>
+                    <Feather name="arrow-up" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              )
               : undefined
           }
         />
@@ -653,7 +652,7 @@ export default function ChatScreen({route, navigation}: any) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: '#FFFFFF'},
+  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
   contextBar: {
     minHeight: 42,
     flexDirection: 'row',
@@ -698,7 +697,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#FFF7F0',
   },
-  connectionText: {color: '#777F8B', fontSize: 11},
+  connectionText: { color: '#777F8B', fontSize: 11 },
   errorBanner: {
     minHeight: 44,
     flexDirection: 'row',
@@ -707,13 +706,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#FCEEEE',
   },
-  errorText: {flex: 1, color: '#984040', fontSize: 11},
+  errorText: { flex: 1, color: '#984040', fontSize: 11 },
   errorRetry: {
     color: '#C44242',
     fontFamily: 'Manrope-Bold',
     fontSize: 11,
   },
-  chatArea: {flex: 1, backgroundColor: '#F7F8FA'},
+  chatArea: { flex: 1, backgroundColor: '#F7F8FA' },
   leftBubble: {
     maxWidth: '82%',
     paddingHorizontal: 4,
@@ -732,13 +731,13 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
     backgroundColor: '#FD6D1F',
   },
-  leftText: {color: '#1C2330', fontFamily: 'Manrope-Regular', fontSize: 14},
-  rightText: {color: '#FFFFFF', fontFamily: 'Manrope-Regular', fontSize: 14},
-  leftTime: {color: '#969DA8', fontSize: 9},
-  rightTime: {color: '#FFE1D0', fontSize: 9},
-  bubbleBottom: {marginTop: 1},
-  messageGroup: {maxWidth: '86%', alignItems: 'flex-start'},
-  messageGroupRight: {alignItems: 'flex-end'},
+  leftText: { color: '#1C2330', fontFamily: 'Manrope-Regular', fontSize: 14 },
+  rightText: { color: '#FFFFFF', fontFamily: 'Manrope-Regular', fontSize: 14 },
+  leftTime: { color: '#969DA8', fontSize: 9 },
+  rightTime: { color: '#FFE1D0', fontSize: 9 },
+  bubbleBottom: { marginTop: 1 },
+  messageGroup: { maxWidth: '86%', alignItems: 'flex-start' },
+  messageGroupRight: { alignItems: 'flex-end' },
   joinSessionButton: {
     minWidth: 190,
     height: 46,
@@ -751,7 +750,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#171D29',
   },
-  joinSessionButtonRight: {backgroundColor: '#D95218'},
+  joinSessionButtonRight: { backgroundColor: '#D95218' },
   joinSessionText: {
     flex: 1,
     color: '#FFFFFF',
@@ -770,7 +769,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: '#FFFFFF',
   },
-  inputPrimary: {alignItems: 'center'},
+  inputPrimary: { alignItems: 'center' },
   textInput: {
     marginHorizontal: 4,
     paddingTop: 12,
@@ -804,7 +803,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 36,
-    transform: [{scaleY: -1}],
+    transform: [{ scaleY: -1 }],
   },
   emptyAvatar: {
     width: 72,
@@ -845,8 +844,8 @@ const styles = StyleSheet.create({
     borderTopColor: '#ECEEF1',
     backgroundColor: '#FFFFFF',
   },
-  imageContainer: {position: 'relative'},
-  selectedImage: {width: 52, height: 52, borderRadius: 8},
+  imageContainer: { position: 'relative' },
+  selectedImage: { width: 52, height: 52, borderRadius: 8 },
   closeButton: {
     position: 'absolute',
     top: -6,
