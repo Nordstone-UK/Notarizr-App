@@ -86,6 +86,21 @@ export default function AgentMapArrivalScreen({navigation}) {
       }
     } catch (error) {
       console.log(error);
+      // Permission denied or GPS failure — centre on the client destination so
+      // the map still renders and shows the appointment pin.
+      setLocation(prev => {
+        if (prev) {
+          return prev;
+        }
+        return coordinates?.length >= 2
+          ? {latitude: coordinates[0], longitude: coordinates[1]}
+          : DEFAULT_COORDINATES;
+      });
+      Toast.show({
+        type: 'error',
+        text1: 'Location access denied',
+        text2: 'Enable location in Settings for live directions.',
+      });
     } finally {
       setLoading(false);
     }
@@ -256,8 +271,20 @@ export default function AgentMapArrivalScreen({navigation}) {
         </MapView>
       ) : (
         <View style={styles.mapPlaceholder}>
-          <ActivityIndicator size="large" color={BookingColors.primary} />
-          <Text style={styles.mapPlaceholderText}>Locating you…</Text>
+          {loading ? (
+            <>
+              <ActivityIndicator size="large" color={BookingColors.primary} />
+              <Text style={styles.mapPlaceholderText}>Locating you…</Text>
+            </>
+          ) : (
+            <>
+              <Feather name="map-pin" size={28} color={BookingColors.primary} />
+              <Text style={styles.mapPlaceholderText}>Location unavailable</Text>
+              <Text style={styles.mapPlaceholderHint}>
+                Enable location access in Settings to see live directions.
+              </Text>
+            </>
+          )}
         </View>
       )}
       <View style={[styles.floatingHeader, {top: insets.top + 10}]}>
@@ -494,6 +521,15 @@ const styles = StyleSheet.create({
     color: BookingColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 13,
+  },
+  mapPlaceholderHint: {
+    marginTop: 6,
+    maxWidth: 260,
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 16,
   },
   tripPanel: {
     position: 'absolute',
