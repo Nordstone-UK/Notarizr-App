@@ -1063,10 +1063,10 @@ export default function NotaryCallScreen({route, navigation}: any) {
       setLoading(false);
     }
   };
-  // Local-only for now: no storage bucket is wired up yet, so this just
-  // reads the picked file from the device cache and previews it. Swap in
-  // `uploadSessionDocuments` (already implemented above) for the real
-  // upload-to-session flow once storage credentials exist.
+  // Opens a local preview immediately (fast, no network wait) while the
+  // real file uploads to DigitalOcean Spaces and attaches to the session
+  // in the background, same as `uploadSessionDocuments` does for the
+  // agent side, so the notary can see it too.
   const selectClientDocument = async () => {
     const [document] = await pickDocumentDetails(false);
     if (!document) {
@@ -1074,6 +1074,52 @@ export default function NotaryCallScreen({route, navigation}: any) {
     }
     setSelectedLocalDocument(document);
     setClientDocModalVisible(true);
+
+    setLoading(true);
+    try {
+      const uploadedUrl = await uploadDocumentToStorage(
+        document.uri,
+        document.name,
+        document.type,
+      );
+      if (!uploadedUrl) {
+        throw new Error('Document did not finish uploading.');
+      }
+
+      const existingCount = Object.keys(clientDocuments).length;
+      const clientDocumentPayload = [
+        {
+          key: `document-${existingCount + 1}-${Date.now()}`,
+          value: uploadedUrl,
+        },
+      ];
+      const response = await updateSessionClientDocs({
+        variables: {
+          sessionId: bookingData._id,
+          clientDocuments: clientDocumentPayload,
+        },
+      });
+      const updatedSession = response?.data?.createOrUpdateClientDocs?.session;
+      if (updatedSession) {
+        dispatch(setBookingInfoState(updatedSession));
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Document shared',
+        text2: 'Your notary can now see this document.',
+      });
+    } catch (error: any) {
+      console.warn('Client document upload failed:', error?.message || error);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload failed',
+        text2:
+          error?.message || 'Check your connection and choose the file again.',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   const handleDownloadDocument = async () => {
     if (!selectedLocalDocument?.uri) {

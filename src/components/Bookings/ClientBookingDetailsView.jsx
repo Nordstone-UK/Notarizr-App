@@ -567,7 +567,8 @@ export default function ClientBookingDetailsView({
           additionalSignatureCount={additionalSignatures}
           additionalSignatures={additionalSignatureCharge}
           documentCharge={documentCharge}
-          documentLabel={documents[0]?.name}
+          documentCount={documents.length}
+          documentLabel={documents.length > 1 ? 'Notarized documents' : documents[0]?.name}
           printingCharge={printingCharge}
           printingCopies={printCopies}
           serviceLabel={serviceName}

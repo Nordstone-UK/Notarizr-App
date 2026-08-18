@@ -23,6 +23,10 @@ import BookingColors from '../../../themes/BookingColors';
 import useFetchUser from '../../../hooks/useFetchUser';
 import useUpdate from '../../../hooks/useUpdate';
 import {useLiveblocks} from '../../../store/liveblocks';
+import {
+  uploadDocumentToSpaces,
+  uploadSignatureToSpaces,
+} from '../../../utils/spacesHelper';
 
 type SignatureOption = 'saved' | 'draw' | 'type' | 'upload';
 
@@ -78,6 +82,8 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
     fontStyles[0].value,
   );
   const [uploadedImageUri, setUploadedImageUri] = useState<string | null>(null);
+  const [uploadedImageMime, setUploadedImageMime] = useState('image/jpeg');
+  const [uploadedImageName, setUploadedImageName] = useState('signature.jpg');
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const viewShotRef = useRef<ViewShot>(null);
@@ -88,6 +94,8 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       setSelectedOption(signs?.notarysigns?.length ? 'saved' : 'draw');
       setErrorMessage('');
       setUploadedImageUri(null);
+      setUploadedImageMime('image/jpeg');
+      setUploadedImageName('signature.jpg');
     }
   }, [isVisible, signs?.notarysigns?.length]);
 
@@ -147,11 +155,11 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
 
   const handleDrawnSignature = useCallback(
     (signature: string) => {
-      // Local-only for now: no storage bucket is wired up yet, so use the
-      // canvas's own base64 data URI directly instead of uploading it.
-      // `signature` is already a full data:image/png;base64,... string that
-      // <Image> can render as-is.
-      runSave(async () => signature);
+      // `signature` is a full data:image/png;base64,... string from the
+      // canvas. Upload it to Spaces so the result is a real, shareable URL
+      // (the other party's device can't render a base64 blob that only
+      // ever lived in this device's memory).
+      runSave(() => uploadSignatureToSpaces(signature));
     },
     [runSave],
   );
@@ -169,11 +177,13 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       if (result.errorCode) {
         throw new Error(result.errorMessage || 'Unable to open that image.');
       }
-      const uri = result.assets?.[0]?.uri;
-      if (!uri) {
+      const asset = result.assets?.[0];
+      if (!asset?.uri) {
         throw new Error('No image was selected.');
       }
-      setUploadedImageUri(uri);
+      setUploadedImageUri(asset.uri);
+      setUploadedImageMime(asset.type || 'image/jpeg');
+      setUploadedImageName(asset.fileName || `signature-${Date.now()}.jpg`);
     } catch (error: any) {
       setErrorMessage(
         error?.message || 'The image could not be selected. Please retry.',
@@ -186,10 +196,14 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       setErrorMessage('Choose a signature image first.');
       return;
     }
-    // Local-only for now: use the picked photo's own device URI directly
-    // instead of uploading it to storage.
-    runSave(async () => uploadedImageUri);
-  }, [runSave, uploadedImageUri]);
+    runSave(() =>
+      uploadDocumentToSpaces({
+        file: uploadedImageUri,
+        fileName: uploadedImageName,
+        contentType: uploadedImageMime,
+      }),
+    );
+  }, [runSave, uploadedImageUri, uploadedImageMime, uploadedImageName]);
 
   const useTypedSignature = useCallback(() => {
     if (!inputText.trim()) {
@@ -197,13 +211,17 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       return;
     }
     runSave(async () => {
-      // react-native-view-shot writes the capture to a local temp file and
-      // returns that file's URI — already usable as-is, no upload needed.
+      // react-native-view-shot writes the capture to a local temp file;
+      // upload that file so the typed signature is a real, shareable URL.
       const uri = await viewShotRef.current?.capture?.();
       if (!uri) {
         throw new Error('The typed signature preview could not be captured.');
       }
-      return uri;
+      return uploadDocumentToSpaces({
+        file: uri,
+        fileName: `typed-signature-${Date.now()}.png`,
+        contentType: 'image/png',
+      });
     });
   }, [inputText, runSave]);
 

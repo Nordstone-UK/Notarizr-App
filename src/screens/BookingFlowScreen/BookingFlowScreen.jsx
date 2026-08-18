@@ -35,6 +35,7 @@ import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 
 const ADDITIONAL_SIGNATURE_PRICE = 10;
 const PRINT_COPY_PRICE = 5;
+const DOCUMENT_NOTARIZATION_PRICE = 99.99;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const getMinimumBookingDate = () => {
   const date = new Date();
@@ -580,15 +581,24 @@ function UploadAndPrintStep({
     <>
       <BookingFlowSection
         subtitle={
-          isMobile
+          (isMobile
             ? wantsPrint
               ? 'Required so the notary can prepare your printouts.'
               : 'Optional for mobile notary. You can bring the document with you.'
-            : 'Upload a readable copy for the assigned notary.'
+            : 'Upload a readable copy for the assigned notary.') +
+          ` $${DOCUMENT_NOTARIZATION_PRICE.toFixed(2)} per document notarized.`
         }
         title={isMobile ? 'Document upload (optional)' : 'Document upload'}>
         {uploaded ? (
           <View style={styles.documentList}>
+            <Text style={styles.documentCostHint}>
+              Notarization cost: {uploadedDocuments.length}{' '}
+              {uploadedDocuments.length === 1 ? 'document' : 'documents'} × $
+              {DOCUMENT_NOTARIZATION_PRICE.toFixed(2)} = $
+              {(uploadedDocuments.length * DOCUMENT_NOTARIZATION_PRICE).toFixed(
+                2,
+              )}
+            </Text>
             {uploadedDocuments.map((document, index) => (
               <View key={document.id} style={styles.uploadedDocumentCard}>
                 <TouchableOpacity
@@ -872,6 +882,7 @@ function ReviewStep({
   price,
   serviceName,
   time,
+  uploadedDocumentsCount = 0,
 }) {
   return (
     <>
@@ -892,8 +903,14 @@ function ReviewStep({
           />
           <SummaryRow
             icon="file-text"
-            label="Document"
-            value={documentType || 'Bring to appointment'}
+            label="Documents"
+            value={
+              uploadedDocumentsCount > 0
+                ? `${uploadedDocumentsCount} ${
+                    uploadedDocumentsCount === 1 ? 'document' : 'documents'
+                  }${documentType ? ` (${documentType})` : ''} to notarize`
+                : 'Bring to appointment'
+            }
           />
           {isMobile ? (
             <SummaryRow
@@ -924,6 +941,7 @@ function ReviewStep({
           additionalSignatureCount={additionalSignatures}
           additionalSignatures={additionalSignatureCharge}
           documentCharge={documentCharge}
+          documentCount={uploadedDocumentsCount}
           documentLabel={documentType}
           printingCharge={printingCharge}
           printingCopies={printCopies}
@@ -1124,7 +1142,10 @@ export default function BookingFlowScreen({navigation, route}) {
   const location = isMobile
     ? selectedAddress?.location
     : 'Secure video appointment';
-  const documentCharge = Number(documentType?.price || 0);
+  // Every document that gets notarized costs a flat $99.99 — priced by how
+  // many documents are actually uploaded, not by the (optional) document
+  // type label, since a booking can include several documents at once.
+  const documentCharge = uploadedDocuments.length * DOCUMENT_NOTARIZATION_PRICE;
   const additionalSignatureCharge =
     additionalSignatures * ADDITIONAL_SIGNATURE_PRICE;
   const printingCharge =
@@ -1217,13 +1238,15 @@ export default function BookingFlowScreen({navigation, route}) {
           serviceType: backendServiceType,
           service: bookingAgent.service._id,
           agent: bookingAgent._id,
-          documentType: documentType
-            ? [
-                {
-                  name: documentType.name,
-                  price: Math.round(documentType.price),
-                },
-              ]
+          // One priced entry per document being notarized, at the flat
+          // $99.99-per-document rate.
+          documentType: uploadedDocuments.length
+            ? uploadedDocuments.map(document => ({
+                name: documentType?.name || document.name || 'Document',
+                price: DOCUMENT_NOTARIZATION_PRICE,
+              }))
+            : documentType
+            ? [{name: documentType.name, price: documentType.price}]
             : [],
           address: isMobile
             ? selectedAddress?._id || selectedAddress?.location
@@ -1437,6 +1460,7 @@ export default function BookingFlowScreen({navigation, route}) {
               printCopies={isMobile && wantsPrint ? printCopies : 0}
               printingCharge={printingCharge}
               price={price}
+              uploadedDocumentsCount={uploadedDocuments.length}
               serviceName={serviceName}
               time={selectedTime}
             />
@@ -1827,6 +1851,12 @@ const styles = StyleSheet.create({
   },
   documentList: {
     paddingHorizontal: 20,
+  },
+  documentCostHint: {
+    marginBottom: 10,
+    color: '#D65322',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
   },
   uploadedDocumentCard: {
     marginBottom: 10,

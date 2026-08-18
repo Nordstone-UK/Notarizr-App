@@ -265,6 +265,11 @@ export default function BookingDetailsPreview({booking, navigation}) {
             additionalSignatureCount={additionalSignatures}
             additionalSignatures={additionalSignatureCharge}
             documentCharge={documentCharge}
+            documentCount={
+              Array.isArray(booking.document_type)
+                ? booking.document_type.length
+                : 0
+            }
             documentLabel={documentLabel}
             printingCharge={printingCharge}
             printingCopies={printCopies}

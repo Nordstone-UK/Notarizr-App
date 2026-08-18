@@ -24,6 +24,7 @@ export default function PricingBreakdown({
   additionalSignatureCount = 0,
   additionalSignatures = 0,
   documentCharge = 0,
+  documentCount = 0,
   documentLabel = 'Notary document',
   initiallyExpanded = false,
   printingCharge = 0,
@@ -42,11 +43,15 @@ export default function PricingBreakdown({
   );
   const rows = useMemo(() => {
     const costRows = [];
-    if (documentLabel && Number(documentCharge) > 0) {
+    if (Number(documentCharge) > 0) {
+      const count = documentCount || Math.round(Number(documentCharge) / 99.99);
       costRows.push({
         icon: 'file-text',
-        label: documentLabel,
-        subtitle: 'Notarization fee',
+        label: documentLabel || 'Notarized documents',
+        subtitle:
+          count > 0
+            ? `${count} ${count === 1 ? 'document' : 'documents'} × $99.99`
+            : 'Notarization fee',
         value: documentCharge,
       });
     }
@@ -84,6 +89,7 @@ export default function PricingBreakdown({
     additionalSignatures,
     additionalSignatureCount,
     documentCharge,
+    documentCount,
     documentLabel,
     printingCharge,
     printingCopies,
