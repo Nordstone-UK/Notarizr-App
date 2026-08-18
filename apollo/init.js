@@ -43,10 +43,12 @@ const init = () => {
       headers: {
         ...headers,
         authorization: token ? `Bearer ${token}` : '',
-        'X-User-Coordinates':
-          location?.latitude && location?.longitude
-            ? `${location?.longitude},${location?.latitude}`
-            : '-119.417931,36.778259',
+        ...(Number.isFinite(location?.latitude) &&
+        Number.isFinite(location?.longitude)
+          ? {
+              'X-User-Coordinates': `${location.longitude},${location.latitude}`,
+            }
+          : {}),
       },
     };
   });
@@ -61,9 +63,8 @@ const init = () => {
   return client;
 };
 
-const DEFAULT_LOCATION = {latitude: 36.778259, longitude: -119.417931};
 const LOCATION_CACHE_MS = 60000;
-let cachedLocation = DEFAULT_LOCATION;
+let cachedLocation = null;
 let locationUpdatedAt = 0;
 let locationRequest = null;
 
@@ -93,16 +94,14 @@ const getCurrentLocation = () => {
           resolve({latitude, longitude});
         },
         error => {
-          // reject(error);
-          resolve(DEFAULT_LOCATION);
+          resolve(null);
         },
         Platform.OS === 'android'
           ? {}
           : {enableHighAccuracy: false, timeout: 3000, maximumAge: 60000},
       );
     } catch (error) {
-      // reject(error);
-      resolve(DEFAULT_LOCATION);
+      resolve(null);
     }
   });
 };

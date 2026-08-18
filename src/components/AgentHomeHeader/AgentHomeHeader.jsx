@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import {useMutation, useQuery} from '@apollo/client';
 import {useNavigation} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import {UPDATE_ONLINE_STATUS} from '../../../request/mutations/updateOnlineStatus.mutation';
 import {GET_NOTIFICATIONS_BY_ID} from '../../../request/queries/getNotificationsbyId.query';
+import {saveUserInfo} from '../../features/user/userSlice';
 
 export default function AgentHomeHeader({
   SearchEnabled,
@@ -23,6 +24,7 @@ export default function AgentHomeHeader({
   Title,
 }) {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const user = useSelector(state => state.user.user);
   const [isOnline, setIsOnline] = useState(user?.online_status === 'online');
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -57,6 +59,12 @@ export default function AgentHomeHeader({
       if (data?.updateOnlineStatusR?.status !== '204') {
         throw new Error('Status update failed');
       }
+      dispatch(
+        saveUserInfo({
+          ...user,
+          online_status: nextValue ? 'online' : 'offline',
+        }),
+      );
       Toast.show({
         type: 'success',
         text1: nextValue ? 'You are available' : 'You are offline',

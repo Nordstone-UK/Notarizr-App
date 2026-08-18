@@ -53,6 +53,13 @@ const parseDateId = date => new Date(`${date}T12:00:00`);
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat'];
 
+const PREVIEW_NOTARY_SCHEDULE = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat'].map(
+  day => ({
+    day,
+    slots: [{startTime: '9:00 AM', endTime: '5:00 PM'}],
+  }),
+);
+
 const parseTimeToMinutes = value => {
   const match = String(value || '').match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
   if (!match) {
@@ -79,10 +86,10 @@ const formatMinutes = value => {
   return `${displayHour}:${String(minutes).padStart(2, '0')} ${period}`;
 };
 
-const getAvailableTimes = (schedule, selectedDate) => {
+const getAvailableTimeSlots = (schedule, selectedDate) => {
   const day = DAY_KEYS[parseDateId(selectedDate).getDay()];
   const daySchedule = (schedule || []).find(entry => entry?.day === day);
-  const times = [];
+  const slots = [];
 
   (daySchedule?.slots || []).forEach(slot => {
     const start = parseTimeToMinutes(slot.startTime);
@@ -91,11 +98,23 @@ const getAvailableTimes = (schedule, selectedDate) => {
       return;
     }
     for (let cursor = start; cursor + 60 <= end; cursor += 60) {
-      times.push(cursor);
+      slots.push({
+        startTime: formatMinutes(cursor),
+        endTime: formatMinutes(cursor + 60),
+      });
     }
   });
 
-  return [...new Set(times)].sort((a, b) => a - b).map(formatMinutes);
+  const uniqueSlots = new Map();
+  slots.forEach(slot => {
+    uniqueSlots.set(`${slot.startTime}-${slot.endTime}`, slot);
+  });
+
+  return [...uniqueSlots.values()].sort(
+    (first, second) =>
+      parseTimeToMinutes(first.startTime) -
+      parseTimeToMinutes(second.startTime),
+  );
 };
 
 const formatDateLabel = date =>
@@ -185,7 +204,7 @@ function SegmentedControl({onChange, value}) {
 
 function AppointmentStep({
   addresses,
-  availableTimes,
+  availableTimeSlots,
   availabilityLoading,
   bookingFor,
   datePickerOpen,
@@ -248,15 +267,15 @@ function AppointmentStep({
               Loading notary availability…
             </Text>
           </View>
-        ) : availableTimes.length ? (
+        ) : availableTimeSlots.length ? (
           <View style={styles.timeList}>
-            {availableTimes.map(time => {
-              const selected = selectedTime === time;
+            {availableTimeSlots.map(slot => {
+              const selected = selectedTime === slot.startTime;
               return (
                 <TouchableOpacity
-                  key={time}
+                  key={`${slot.startTime}-${slot.endTime}`}
                   activeOpacity={0.7}
-                  onPress={() => onSelectTime(time)}
+                  onPress={() => onSelectTime(slot.startTime)}
                   style={[
                     styles.timeChip,
                     selected && styles.selectedTimeChip,
@@ -266,7 +285,7 @@ function AppointmentStep({
                       styles.timeText,
                       selected && styles.selectedTimeText,
                     ]}>
-                    {time}
+                    {slot.startTime} - {slot.endTime}
                   </Text>
                 </TouchableOpacity>
               );
@@ -540,8 +559,12 @@ function PrintOption({label, onPress, selected, subtitle}) {
 }
 
 function UploadAndPrintStep({
+  additionalSignatures,
   isMobile,
+  notes,
+  onChangeNotes,
   onChangePrintCopies,
+  onChangeSigners,
   onChooseDocuments,
   onRemoveDocument,
   onReplaceDocument,
@@ -555,64 +578,6 @@ function UploadAndPrintStep({
 
   return (
     <>
-      {isMobile ? (
-        <BookingFlowSection
-          subtitle={`Printed copies cost $${PRINT_COPY_PRICE.toFixed(
-            2,
-          )} each. A document upload is required if you choose yes.`}
-          title="Do you need printed copies?">
-          <View style={styles.printOptions}>
-            <PrintOption
-              label="No, I'll bring it"
-              onPress={() => onTogglePrint(false)}
-              selected={!wantsPrint}
-              subtitle="No printing charge"
-            />
-            <PrintOption
-              label="Yes, print it"
-              onPress={() => onTogglePrint(true)}
-              selected={wantsPrint}
-              subtitle={`$${PRINT_COPY_PRICE.toFixed(2)} per copy`}
-            />
-          </View>
-          {wantsPrint ? (
-            <View style={styles.printQuantityRow}>
-              <View>
-                <Text style={styles.stepperLabel}>Number of printouts</Text>
-                <Text style={styles.stepperHint}>
-                  Added cost: ${(printCopies * PRINT_COPY_PRICE).toFixed(2)}
-                </Text>
-              </View>
-              <View style={styles.stepper}>
-                <TouchableOpacity
-                  accessibilityLabel="Remove printed copy"
-                  disabled={printCopies === 1}
-                  onPress={() =>
-                    onChangePrintCopies(Math.max(1, printCopies - 1))
-                  }
-                  style={styles.stepperButton}>
-                  <Feather
-                    name="minus"
-                    size={17}
-                    color={printCopies === 1 ? '#C4C8CE' : '#303642'}
-                  />
-                </TouchableOpacity>
-                <Text style={styles.stepperValue}>{printCopies}</Text>
-                <TouchableOpacity
-                  accessibilityLabel="Add printed copy"
-                  disabled={printCopies === 10}
-                  onPress={() =>
-                    onChangePrintCopies(Math.min(10, printCopies + 1))
-                  }
-                  style={styles.stepperButton}>
-                  <Feather name="plus" size={17} color="#303642" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : null}
-        </BookingFlowSection>
-      ) : null}
-
       <BookingFlowSection
         subtitle={
           isMobile
@@ -706,6 +671,121 @@ function UploadAndPrintStep({
           </TouchableOpacity>
         )}
       </BookingFlowSection>
+
+      {isMobile ? (
+        <BookingFlowSection
+          subtitle={`Printed copies cost $${PRINT_COPY_PRICE.toFixed(
+            2,
+          )} each. A document upload is required if you choose yes.`}
+          title="Do you need printed copies?">
+          <View style={styles.printOptions}>
+            <PrintOption
+              label="No, I'll bring it"
+              onPress={() => onTogglePrint(false)}
+              selected={!wantsPrint}
+              subtitle="No printing charge"
+            />
+            <PrintOption
+              label="Yes, print it"
+              onPress={() => onTogglePrint(true)}
+              selected={wantsPrint}
+              subtitle={`$${PRINT_COPY_PRICE.toFixed(2)} per copy`}
+            />
+          </View>
+          {wantsPrint ? (
+            <View style={styles.printQuantityRow}>
+              <View>
+                <Text style={styles.stepperLabel}>Number of printouts</Text>
+                <Text style={styles.stepperHint}>
+                  Added cost: ${(printCopies * PRINT_COPY_PRICE).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.stepper}>
+                <TouchableOpacity
+                  accessibilityLabel="Remove printed copy"
+                  disabled={printCopies === 1}
+                  onPress={() =>
+                    onChangePrintCopies(Math.max(1, printCopies - 1))
+                  }
+                  style={styles.stepperButton}>
+                  <Feather
+                    name="minus"
+                    size={17}
+                    color={printCopies === 1 ? '#C4C8CE' : '#303642'}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.stepperValue}>{printCopies}</Text>
+                <TouchableOpacity
+                  accessibilityLabel="Add printed copy"
+                  disabled={printCopies === 10}
+                  onPress={() =>
+                    onChangePrintCopies(Math.min(10, printCopies + 1))
+                  }
+                  style={styles.stepperButton}>
+                  <Feather name="plus" size={17} color="#303642" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
+        </BookingFlowSection>
+      ) : null}
+
+      {isMobile ? (
+        <BookingFlowSection
+          subtitle={`Each additional signature adds $${ADDITIONAL_SIGNATURE_PRICE.toFixed(
+            2,
+          )} to the estimate.`}
+          title="Signing details">
+          <View style={styles.stepperRow}>
+            <View>
+              <Text style={styles.stepperLabel}>
+                Additional signatures required
+              </Text>
+              <Text style={styles.stepperHint}>
+                Beyond the primary signature
+              </Text>
+            </View>
+            <View style={styles.stepper}>
+              <TouchableOpacity
+                accessibilityLabel="Remove signer"
+                activeOpacity={0.7}
+                disabled={additionalSignatures === 0}
+                onPress={() =>
+                  onChangeSigners(Math.max(0, additionalSignatures - 1))
+                }
+                style={styles.stepperButton}>
+                <Feather
+                  name="minus"
+                  size={17}
+                  color={additionalSignatures === 0 ? '#C4C8CE' : '#303642'}
+                />
+              </TouchableOpacity>
+              <Text style={styles.stepperValue}>{additionalSignatures}</Text>
+              <TouchableOpacity
+                accessibilityLabel="Add signer"
+                activeOpacity={0.7}
+                disabled={additionalSignatures === 10}
+                onPress={() =>
+                  onChangeSigners(Math.min(10, additionalSignatures + 1))
+                }
+                style={styles.stepperButton}>
+                <Feather name="plus" size={17} color="#303642" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.notesShell}>
+            <TextInput
+              multiline
+              onChangeText={onChangeNotes}
+              placeholder="Optional instructions for your notary"
+              placeholderTextColor="#A2A7B0"
+              style={styles.notesInput}
+              textAlignVertical="top"
+              value={notes}
+            />
+          </View>
+        </BookingFlowSection>
+      ) : null}
 
       <Modal
         animationType="slide"
@@ -927,15 +1007,6 @@ export default function BookingFlowScreen({navigation, route}) {
     },
     skip: !user || previewMode,
   });
-  const {
-    data: matchedAgentData,
-    loading: availabilityLoading,
-    refetch: refetchMatchedAgent,
-  } = useQuery(GET_MATCHED_AGENT, {
-    variables: {serviceType: backendServiceType},
-    skip: !user || previewMode,
-    fetchPolicy: 'no-cache',
-  });
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS);
   const [step, setStep] = useState(1);
@@ -960,6 +1031,30 @@ export default function BookingFlowScreen({navigation, route}) {
   const [wantsPrint, setWantsPrint] = useState(false);
   const [printCopies, setPrintCopies] = useState(1);
 
+  // Saved addresses use [latitude, longitude], while MongoDB geospatial queries
+  // require GeoJSON ordering: [longitude, latitude].
+  const matchingCoordinates = useMemo(() => {
+    const [latitude, longitude] = selectedAddress?.location_coordinates || [];
+    const parsedLatitude = Number(latitude);
+    const parsedLongitude = Number(longitude);
+
+    return Number.isFinite(parsedLatitude) && Number.isFinite(parsedLongitude)
+      ? [parsedLongitude, parsedLatitude]
+      : undefined;
+  }, [selectedAddress?.location_coordinates]);
+  const {
+    data: matchedAgentData,
+    loading: availabilityLoading,
+    refetch: refetchMatchedAgent,
+  } = useQuery(GET_MATCHED_AGENT, {
+    variables: {
+      serviceType: backendServiceType,
+      coordinates: matchingCoordinates,
+    },
+    skip: !user || previewMode,
+    fetchPolicy: 'no-cache',
+  });
+
   const documentOptions = useMemo(() => {
     const catalogOptions = (
       documentCatalog?.getPaginatedDocumentTypes?.documentTypes || []
@@ -971,14 +1066,24 @@ export default function BookingFlowScreen({navigation, route}) {
     return catalogOptions;
   }, [documentCatalog]);
 
-  const matchedAgent = matchedAgentData?.matchAgent?.user;
-  const availableTimes = useMemo(
+  const matchedAgent = previewMode
+    ? {
+        service: {
+          availability: {schedule: PREVIEW_NOTARY_SCHEDULE},
+        },
+      }
+    : matchedAgentData?.matchAgent?.user;
+  const availableTimeSlots = useMemo(
     () =>
-      getAvailableTimes(
+      getAvailableTimeSlots(
         matchedAgent?.service?.availability?.schedule,
         selectedDate,
       ),
     [matchedAgent?.service?.availability?.schedule, selectedDate],
+  );
+  const availableTimes = useMemo(
+    () => availableTimeSlots.map(slot => slot.startTime),
+    [availableTimeSlots],
   );
 
   useEffect(() => {
@@ -1025,6 +1130,7 @@ export default function BookingFlowScreen({navigation, route}) {
   const printingCharge =
     isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
   const price = documentCharge + additionalSignatureCharge + printingCharge;
+  const totalSteps = isMobile ? 3 : 4;
   const stepOneValid =
     Boolean(selectedDate && selectedTime && (!isMobile || selectedAddress)) &&
     (bookingFor === 'self' || Boolean(otherName.trim() && otherPhone.trim()));
@@ -1036,8 +1142,10 @@ export default function BookingFlowScreen({navigation, route}) {
     step === 1
       ? !stepOneValid
       : step === 2
-      ? !stepTwoValid
-      : step === 3
+      ? isMobile
+        ? !stepThreeValid
+        : !stepTwoValid
+      : step === 3 && !isMobile
       ? !stepThreeValid
       : false;
 
@@ -1050,7 +1158,7 @@ export default function BookingFlowScreen({navigation, route}) {
   };
 
   const handleContinue = async () => {
-    if (step < 4) {
+    if (step < totalSteps) {
       setStep(current => current + 1);
       return;
     }
@@ -1066,16 +1174,17 @@ export default function BookingFlowScreen({navigation, route}) {
 
       const matchedAgentResponse = await refetchMatchedAgent({
         serviceType: backendServiceType,
+        coordinates: matchingCoordinates,
       });
       const bookingAgent = matchedAgentResponse?.data?.matchAgent?.user;
       if (!bookingAgent?.service?._id) {
         throw new Error('No verified notary is available for this service.');
       }
 
-      const validTimes = getAvailableTimes(
+      const validTimes = getAvailableTimeSlots(
         bookingAgent.service.availability?.schedule,
         selectedDate,
-      );
+      ).map(slot => slot.startTime);
       if (!validTimes.includes(selectedTime)) {
         throw new Error(
           'This time is no longer available. Choose another appointment slot.',
@@ -1235,7 +1344,7 @@ export default function BookingFlowScreen({navigation, route}) {
           onBack={handleBack}
           serviceName={`Book ${serviceName.toLowerCase()}`}
           step={step}
-          totalSteps={4}
+          totalSteps={totalSteps}
         />
         <ScrollView
           ref={scrollRef}
@@ -1245,7 +1354,7 @@ export default function BookingFlowScreen({navigation, route}) {
           {step === 1 ? (
             <AppointmentStep
               addresses={addresses}
-              availableTimes={availableTimes}
+              availableTimeSlots={availableTimeSlots}
               availabilityLoading={availabilityLoading}
               bookingFor={bookingFor}
               datePickerOpen={datePickerOpen}
@@ -1265,25 +1374,47 @@ export default function BookingFlowScreen({navigation, route}) {
               selectedTime={selectedTime}
             />
           ) : step === 2 ? (
-            <DocumentDetailsStep
-              documentOptions={documentOptions}
-              documentsError={documentsError}
-              documentsLoading={
-                documentsLoading && documentOptions.length === 0
-              }
-              documentType={documentType}
+            isMobile ? (
+              <UploadAndPrintStep
+                additionalSignatures={additionalSignatures}
+                isMobile={isMobile}
+                notes={notes}
+                onChangeNotes={setNotes}
+                onChangePrintCopies={setPrintCopies}
+                onChangeSigners={setAdditionalSignatures}
+                onChooseDocuments={chooseDocuments}
+                onRemoveDocument={removeDocument}
+                onReplaceDocument={replaceDocument}
+                onTogglePrint={setWantsPrint}
+                printCopies={printCopies}
+                uploadedDocuments={uploadedDocuments}
+                wantsPrint={wantsPrint}
+              />
+            ) : (
+              <DocumentDetailsStep
+                documentOptions={documentOptions}
+                documentsError={documentsError}
+                documentsLoading={
+                  documentsLoading && documentOptions.length === 0
+                }
+                documentType={documentType}
+                isMobile={isMobile}
+                notes={notes}
+                onChangeNotes={setNotes}
+                onChangeSigners={setAdditionalSignatures}
+                onSelectDocumentType={setDocumentType}
+                onRetryDocuments={refetchDocuments}
+                additionalSignatures={additionalSignatures}
+              />
+            )
+          ) : step === 3 && !isMobile ? (
+            <UploadAndPrintStep
+              additionalSignatures={additionalSignatures}
               isMobile={isMobile}
               notes={notes}
               onChangeNotes={setNotes}
-              onChangeSigners={setAdditionalSignatures}
-              onSelectDocumentType={setDocumentType}
-              onRetryDocuments={refetchDocuments}
-              additionalSignatures={additionalSignatures}
-            />
-          ) : step === 3 ? (
-            <UploadAndPrintStep
-              isMobile={isMobile}
               onChangePrintCopies={setPrintCopies}
+              onChangeSigners={setAdditionalSignatures}
               onChooseDocuments={chooseDocuments}
               onRemoveDocument={removeDocument}
               onReplaceDocument={replaceDocument}
@@ -1313,7 +1444,7 @@ export default function BookingFlowScreen({navigation, route}) {
         </ScrollView>
         <BookingFlowFooter
           disabled={disabled}
-          label={step === 4 ? 'Confirm request' : 'Continue'}
+          label={step === totalSteps ? 'Confirm request' : 'Continue'}
           loading={submitting}
           onPress={handleContinue}
         />

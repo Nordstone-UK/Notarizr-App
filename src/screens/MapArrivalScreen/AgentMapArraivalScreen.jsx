@@ -1,10 +1,10 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {
-  Alert,
   SafeAreaView,
   StyleSheet,
   View,
   Text,
+  TextInput,
   ActivityIndicator,
   StatusBar,
   TouchableOpacity,
@@ -13,10 +13,12 @@ import {throttle} from 'lodash';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
+import Toast from 'react-native-toast-message';
 import BookingColors from '../../themes/BookingColors';
 import BookingActionButton from '../../components/Bookings/BookingActionButton';
 import MapViewDirections from 'react-native-maps-directions';
 import useAgentService from '../../hooks/useAgentService';
+import useBookingStatus from '../../hooks/useBookingStatus';
 import {setNavigationStatus} from '../../features/booking/bookingSlice';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import Feather from 'react-native-vector-icons/Feather';
@@ -27,14 +29,20 @@ export default function AgentMapArrivalScreen({navigation}) {
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const {agentLocationUpdate, getCurrentLocation} = useAgentService();
+  const {handleVerifyArrivalOtp} = useBookingStatus();
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState(null);
   const [duration, setDuration] = useState(null);
+  const [enteringOtp, setEnteringOtp] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const clientData = useSelector(state => state.booking);
   const coordinates = useSelector(state => state.booking?.coordinates);
   const user = useSelector(state => state.user.user?.account_type);
+  const arrivalOtp = useSelector(state => state.booking?.booking?.arrival_otp);
   console.log('distanceee', distance);
   // useEffect(() => {
   //   const intervalId = setInterval(() => {
@@ -120,21 +128,41 @@ export default function AgentMapArrivalScreen({navigation}) {
     }
   };
   const showConfirmation = useCallback(() => {
-    Alert.alert('Are you at the location?', '', [
-      {
-        text: 'No',
-        onPress: () => {},
-      },
-      {
-        text: 'Yes',
-        onPress: () => {
-          dispatch(setNavigationStatus('completed'));
-          navigation.navigate('ClientDetailsScreen');
-        },
-        style: 'cancel',
-      },
-    ]);
-  }, [dispatch, navigation]);
+    setOtpError('');
+    setOtpValue('');
+    setEnteringOtp(true);
+  }, []);
+
+  const handleConfirmArrival = useCallback(async () => {
+    const bookingId = clientData?.booking?._id;
+    if (!bookingId) {
+      setOtpError('Booking details are missing. Go back and try again.');
+      return;
+    }
+    if (otpValue.trim().length < 4) {
+      setOtpError('Ask the client for their 4-digit arrival code.');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError('');
+    try {
+      const result = await handleVerifyArrivalOtp(bookingId, otpValue.trim());
+      if (result?.status !== '200') {
+        setOtpError(result?.message || 'That code doesn’t match. Try again.');
+        return;
+      }
+      Toast.show({type: 'success', text1: 'Arrival confirmed'});
+      dispatch(setNavigationStatus('completed'));
+      setEnteringOtp(false);
+      navigation.navigate('ClientDetailsScreen');
+    } catch (error) {
+      setOtpError('Could not verify that code. Check your connection.');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  }, [clientData?.booking?._id, dispatch, handleVerifyArrivalOtp, navigation, otpValue]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -288,13 +316,100 @@ export default function AgentMapArrivalScreen({navigation}) {
               <Text style={styles.liveText}>Live</Text>
             </View>
           </View>
-          <BookingActionButton
-            disabled={loading}
-            icon="check-circle"
-            label="I’ve arrived"
-            onPress={showConfirmation}
-            style={styles.arrivedButton}
-          />
+
+          {enteringOtp ? (
+            <View style={styles.otpEntry}>
+              <Text style={styles.otpEntryLabel}>
+                Ask the client for their arrival code
+              </Text>
+              <TextInput
+                autoFocus
+                keyboardType="number-pad"
+                maxLength={4}
+                onChangeText={value => {
+                  setOtpValue(value.replace(/[^0-9]/g, ''));
+                  setOtpError('');
+                }}
+                placeholder="0000"
+                placeholderTextColor={BookingColors.textMuted}
+                style={styles.otpInput}
+                value={otpValue}
+              />
+              {!!otpError && <Text style={styles.otpErrorText}>{otpError}</Text>}
+              <View style={styles.otpActionRow}>
+                <TouchableOpacity
+                  disabled={verifyingOtp}
+                  onPress={() => setEnteringOtp(false)}
+                  style={styles.otpCancelButton}>
+                  <Text style={styles.otpCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <BookingActionButton
+                  disabled={verifyingOtp || otpValue.length < 4}
+                  icon="check-circle"
+                  label="Confirm arrival"
+                  loading={verifyingOtp}
+                  onPress={handleConfirmArrival}
+                  style={styles.otpConfirmButton}
+                />
+              </View>
+            </View>
+          ) : (
+            <BookingActionButton
+              disabled={loading}
+              icon="check-circle"
+              label="I’ve arrived"
+              onPress={showConfirmation}
+              style={styles.arrivedButton}
+            />
+          )}
+        </View>
+      )}
+
+      {user === 'client' && (
+        <View style={styles.tripPanel}>
+          <View style={styles.tripHandle} />
+          <View style={styles.tripSummary}>
+            <View style={styles.routeIcon}>
+              <Feather
+                name="navigation"
+                size={20}
+                color={BookingColors.primary}
+              />
+            </View>
+            <View style={styles.tripCopy}>
+              <Text style={styles.tripTitle}>Your notary is on the way</Text>
+              <Text style={styles.tripText}>
+                {distance && duration
+                  ? `${distance.toFixed(1)} km away • ~${duration.toFixed(
+                      0,
+                    )} min`
+                  : 'Locating your notary…'}
+              </Text>
+            </View>
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Live</Text>
+            </View>
+          </View>
+
+          {arrivalOtp ? (
+            <View style={styles.otpShareCard}>
+              <Text style={styles.otpShareLabel}>
+                Share this code on arrival
+              </Text>
+              <View style={styles.otpDigitsRow}>
+                {arrivalOtp.split('').map((digit, index) => (
+                  <View key={`${digit}-${index}`} style={styles.otpDigitBox}>
+                    <Text style={styles.otpDigitText}>{digit}</Text>
+                  </View>
+                ))}
+              </View>
+              <Text style={styles.otpShareHint}>
+                Your notary enters this to confirm they’re at the right
+                location.
+              </Text>
+            </View>
+          ) : null}
         </View>
       )}
     </SafeAreaView>
@@ -419,5 +534,92 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 14,
     borderRadius: 8,
+  },
+  otpEntry: {marginTop: 16},
+  otpEntryLabel: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    marginBottom: 8,
+  },
+  otpInput: {
+    height: 56,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BookingColors.borderStrong,
+    backgroundColor: BookingColors.surface,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 24,
+    letterSpacing: 10,
+    textAlign: 'center',
+  },
+  otpErrorText: {
+    marginTop: 8,
+    color: BookingColors.error,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  otpActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  otpCancelButton: {
+    height: 50,
+    paddingHorizontal: 18,
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: BookingColors.textSecondary,
+  },
+  otpCancelText: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  otpConfirmButton: {flex: 1, borderRadius: 8},
+  otpShareCard: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  otpShareLabel: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  otpDigitsRow: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  otpDigitBox: {
+    width: 44,
+    height: 52,
+    marginHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.surface,
+  },
+  otpDigitText: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 24,
+  },
+  otpShareHint: {
+    marginTop: 10,
+    maxWidth: 260,
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    textAlign: 'center',
+    lineHeight: 15,
   },
 });

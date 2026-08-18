@@ -38,6 +38,7 @@ const useAuthenticate = () => {
       return response?.data?.testAuthenticationResult?.status;
     } catch (error) {
       console.log(error);
+      throw error;
     }
   };
   const uploadUserID = async (userID, PicFront, PicBack, Country) => {
@@ -53,8 +54,10 @@ const useAuthenticate = () => {
       // console.log('requestttt', request);
       const response = await uploadAuthUserID(request);
       console.log(response?.data);
+      return response?.data?.uploadAuthenticateUsersId?.status;
     } catch (error) {
       console.log('errrr', error);
+      throw error;
     }
   };
   const uploadUserPassport = async (uesrID, Pic) => {
@@ -67,8 +70,10 @@ const useAuthenticate = () => {
     try {
       const response = await uploadAuthUserPassport(request);
       console.log(response?.data);
+      return response?.data?.uploadAuthenticateUsersPassport?.status;
     } catch (error) {
       console.log(error);
+      throw error;
     }
   };
   return {

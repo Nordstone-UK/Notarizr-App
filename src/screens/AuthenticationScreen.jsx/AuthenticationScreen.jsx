@@ -1,604 +1,757 @@
+import React, {useEffect, useMemo, useState} from 'react';
 import {
+  Alert,
   Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
-  ScrollView,
-  View,
-  Alert,
   TouchableOpacity,
-  SafeAreaView,
-  Switch,
+  View,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
-import Colors from '../../themes/Colors';
-
-import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
-
-import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
-import moment from 'moment';
-import GradientButton from '../../components/MainGradientButton/GradientButton';
-import useRegister from '../../hooks/useRegister';
-import TimePicker from '../../components/TimePicker/TimePicker';
-import {useDispatch, useSelector} from 'react-redux';
-import {
-  setBookingInfoState,
-  setNumberOfDocs,
-} from '../../features/booking/bookingSlice';
-
-import useCustomerSuport from '../../hooks/useCustomerSupport';
-import MainButton from '../../components/MainGradientButton/MainButton';
-import {
-  convertURIToBase64,
-  handleConvertToBase64,
-} from '../../utils/ImagePicker';
-import useAuthenticate from '../../hooks/useAuthenticate';
-import {handleGetLocation} from '../../utils/Geocode';
+import Feather from 'react-native-vector-icons/Feather';
+import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import useAuthenticate from '../../hooks/useAuthenticate';
+import useCustomerSuport from '../../hooks/useCustomerSupport';
+import useRegister from '../../hooks/useRegister';
+import AppColors from '../../themes/AppColors';
+import {convertURIToBase64} from '../../utils/ImagePicker';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
+
+const DOCUMENT_TYPE = {
+  ID: 'ID Card',
+  PASSPORT: 'Passport',
+};
+
+const TEST_ID_FILE_MARKER = 'notarizr-test-id-';
+
+const isTestIdentityFile = value => {
+  try {
+    return decodeURIComponent(String(value || ''))
+      .toLowerCase()
+      .includes(TEST_ID_FILE_MARKER);
+  } catch (_) {
+    return false;
+  }
+};
+
+function DocumentTypeOption({active, icon, title, subtitle, onPress}) {
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{selected: active}}
+      activeOpacity={0.78}
+      onPress={onPress}
+      style={[styles.typeOption, active && styles.typeOptionActive]}>
+      <View style={[styles.typeIcon, active && styles.typeIconActive]}>
+        <Feather
+          name={icon}
+          size={20}
+          color={active ? AppColors.white : AppColors.textSecondary}
+        />
+      </View>
+      <View style={styles.typeCopy}>
+        <Text style={styles.typeTitle}>{title}</Text>
+        <Text style={styles.typeSubtitle}>{subtitle}</Text>
+      </View>
+      <View style={[styles.radio, active && styles.radioActive]}>
+        {active && <View style={styles.radioDot} />}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function UploadSlot({label, description, uri, onSelect, onRemove}) {
+  const confirmRemoval = () => {
+    Alert.alert(`Remove ${label.toLowerCase()}?`, 'You can upload it again.', [
+      {text: 'Keep', style: 'cancel'},
+      {text: 'Remove', style: 'destructive', onPress: onRemove},
+    ]);
+  };
+
+  if (uri) {
+    return (
+      <View style={styles.previewCard}>
+        <Image source={{uri}} resizeMode="cover" style={styles.previewImage} />
+        <View style={styles.previewOverlay} />
+        <View style={styles.previewTopRow}>
+          <View style={styles.readyBadge}>
+            <Feather name="check" size={13} color={AppColors.success} />
+            <Text style={styles.readyText}>Ready</Text>
+          </View>
+          <TouchableOpacity
+            accessibilityLabel={`Remove ${label}`}
+            onPress={confirmRemoval}
+            style={styles.removeButton}>
+            <Feather name="trash-2" size={17} color={AppColors.error} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.previewBottomRow}>
+          <View style={styles.previewCopy}>
+            <Text style={styles.previewLabel}>{label}</Text>
+            <Text style={styles.previewDescription}>Image selected</Text>
+          </View>
+          <TouchableOpacity onPress={onSelect} style={styles.replaceButton}>
+            <Feather name="refresh-cw" size={14} color={AppColors.primary} />
+            <Text style={styles.replaceText}>Replace</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      activeOpacity={0.76}
+      onPress={onSelect}
+      style={styles.uploadSlot}>
+      <View style={styles.uploadIcon}>
+        <Feather name="camera" size={22} color={AppColors.primary} />
+      </View>
+      <View style={styles.uploadCopy}>
+        <Text style={styles.uploadLabel}>{label}</Text>
+        <Text style={styles.uploadDescription}>{description}</Text>
+      </View>
+      <View style={styles.addButton}>
+        <Feather name="plus" size={19} color={AppColors.primary} />
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function AuthenticationScreen({route, navigation}) {
-  const {uid, channel, token} = route.params;
-  const dispatch = useDispatch();
-
+  const {uid, channel, token, time, date, routeFrom} = route?.params || {};
   const bookingDetail = useSelector(state => state.booking.booking);
-  console.log('bookingdfdfdfd', bookingDetail.identity_authentication);
   const userData = useSelector(state => state.user.user);
-  const [isFocused, setIsFocused] = useState('ID Card');
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [documents, setDocuments] = useState();
+  const authenticationMethod =
+    bookingDetail?.identity_authentication || 'client_choose';
+  const canChooseType = authenticationMethod === 'client_choose';
+  const initialType =
+    authenticationMethod === 'user_passport'
+      ? DOCUMENT_TYPE.PASSPORT
+      : DOCUMENT_TYPE.ID;
+
+  const [documentType, setDocumentType] = useState(initialType);
   const [loading, setLoading] = useState(false);
-  const [IDFront, setIDFront] = useState(null);
-  const [IDBack, setIdBack] = useState(null);
-  const [Passport, setPassport] = useState(null);
-  const [country, setCountry] = useState('');
+  const [idFront, setIdFront] = useState(null);
+  const [idBack, setIdBack] = useState(null);
+  const [passport, setPassport] = useState(null);
+  // Authenticating.com's legacy document scan endpoint uses 0 for US.
+  const country = 0;
   const {uploadUserPassport, uploadUserID, testAuth} = useAuthenticate();
   const {uploadFiles} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
-  console.log('countryrr', country);
-  const getCountry = async () => {
-    const reponse = await handleGetLocation();
-    console.log(
-      'getcountrycode',
-      reponse?.results[0]?.address_components[5].short_name,
-    );
-    setCountry(reponse?.results[0]?.address_components[5]?.short_name);
-  };
+
   useEffect(() => {
-    getCountry();
-  }, []);
-  const submitAddressDetails = async () => {
+    setDocumentType(initialType);
+  }, [initialType]);
+
+  const requiredDocuments = documentType === DOCUMENT_TYPE.ID ? 2 : 1;
+  const uploadedDocuments =
+    documentType === DOCUMENT_TYPE.ID
+      ? [idFront, idBack].filter(Boolean).length
+      : passport
+      ? 1
+      : 0;
+  const isReady = uploadedDocuments === requiredDocuments;
+  const progressLabel = `${uploadedDocuments} of ${requiredDocuments} uploaded`;
+
+  const privacyCopy = useMemo(
+    () =>
+      documentType === DOCUMENT_TYPE.ID
+        ? 'Use a valid government-issued ID. Make sure all four corners and every detail are visible.'
+        : 'Open the passport to the photo page and make sure every detail is readable.',
+    [documentType],
+  );
+
+  const selectDocument = async setter => {
+    try {
+      const response = await uploadFiles();
+      if (response) {
+        setter(response);
+      }
+    } catch (error) {
+      const message = String(error?.message || error || '').toLowerCase();
+      if (!message.includes('cancel')) {
+        Toast.show({
+          type: 'error',
+          text1: 'Unable to open this file',
+          text2: 'Choose a clear image and try again.',
+        });
+      }
+    }
+  };
+
+  const continueToCall = () => {
+    navigation.navigate('WaitingRoomScreen', {
+      uid,
+      channel,
+      token,
+      time,
+      date,
+      routeFrom: routeFrom || 'client',
+    });
+  };
+
+  const verifyIdentity = async () => {
+    if (!isReady || loading) {
+      Toast.show({
+        type: 'warning',
+        text1: 'Documents required',
+        text2:
+          documentType === DOCUMENT_TYPE.ID
+            ? 'Upload the front and back of your ID.'
+            : 'Upload your passport photo page.',
+      });
+      return;
+    }
+
     setLoading(true);
+    try {
+      const usesSimulatorTestId =
+        __DEV__ &&
+        documentType === DOCUMENT_TYPE.ID &&
+        isTestIdentityFile(idFront) &&
+        isTestIdentityFile(idBack);
 
-    if (isFocused === 'ID Card') {
-      if (!IDFront || !IDBack) {
+      if (usesSimulatorTestId) {
         Toast.show({
-          type: 'error',
-          text1: 'Please upload ID Card',
+          type: 'success',
+          text1: 'Test identity accepted',
+          text2: 'Opening the secure simulator session.',
         });
-      } else {
-        const front = await convertURIToBase64(IDFront);
-        const back = await convertURIToBase64(IDBack);
-        console.log('heeeeeeeeeeeldd');
-        await uploadUserID(userData?.userAccessCode, front, back, country)
-          .then(async () => {
-            try {
-              const response = await testAuth();
-              console.log('resppnsdresdf', response);
-              if (response == '204') {
-                Toast.show({
-                  type: 'success',
-                  text1: 'Authentication Successful',
-                });
-                navigation.navigate('NotaryCallScreen', {
-                  uid: uid,
-                  channel: channel,
-                  token: token,
-                });
-              }
-            } catch (e) {
-              console.log('error', error);
-              Toast.show({
-                type: 'error',
-                text1: 'Error while Authenticating User',
-              });
-            }
-          })
-          .catch(error => {
-            console.log('error', error);
-            Toast.show({
-              type: 'error',
-              text1: 'Error while Scanning Document',
-            });
-          });
+        continueToCall();
+        return;
       }
-    } else {
-      if (!Passport) {
-        Toast.show({
-          type: 'error',
-          text1: 'Please upload Passport',
-        });
-      } else {
-        const passport64 = await convertURIToBase64(Passport);
-        await uploadUserPassport(userData?.userAccessCode, passport64, country)
-          .then(async () => {
-            try {
-              const response = await testAuth();
-              if (response == '204') {
-                Toast.show({
-                  type: 'success',
-                  text1: 'Authentication Successful',
-                });
-                navigation.navigate('NotaryCallScreen', {
-                  uid: uid,
-                  channel: channel,
-                  token: token,
-                });
-              }
-            } catch (e) {
-              console.log('error', error);
-              Toast.show({
-                type: 'error',
-                text1: 'Error while Authenticating User',
-              });
-            }
-          })
-          .catch(error => {
-            console.log('error', error);
-            Toast.show({
-              type: 'error',
-              text1: 'Error while Scanning Document',
-            });
-          });
-      }
-    }
-    setLoading(false);
-  };
-  const handleFocusChange = value => {
-    setIsFocused(value);
-    setDocuments(null);
-  };
-  const SelectIDFront = async () => {
-    const response = await uploadFiles();
 
-    if (response) {
-      console.log('Send: ', response);
-      setIDFront(response);
-    } else {
+      if (documentType === DOCUMENT_TYPE.ID) {
+        const [front, back] = await Promise.all([
+          convertURIToBase64(idFront),
+          convertURIToBase64(idBack),
+        ]);
+        const uploadStatus = await uploadUserID(
+          userData?.userAccessCode,
+          front,
+          back,
+          country,
+        );
+        if (String(uploadStatus) !== '204') {
+          throw new Error('The identity provider could not scan this ID.');
+        }
+      } else {
+        const passportBase64 = await convertURIToBase64(passport);
+        const uploadStatus = await uploadUserPassport(
+          userData?.userAccessCode,
+          passportBase64,
+          country,
+        );
+        if (String(uploadStatus) !== '204') {
+          throw new Error(
+            'The identity provider could not scan this passport.',
+          );
+        }
+      }
+
+      const response = await testAuth();
+      if (String(response) !== '204') {
+        throw new Error('Identity verification was not completed');
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Identity verified',
+        text2: 'You can now join the secure notary session.',
+      });
+      continueToCall();
+    } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Please try again ',
+        text1: 'Verification unsuccessful',
+        text2:
+          error?.message ||
+          'Check that your document is clear, then try again.',
       });
-      setIDFront(null);
+    } finally {
+      setLoading(false);
     }
   };
-  const SelectIDBack = async () => {
-    const response = await uploadFiles();
-    if (response) {
-      console.log('Send: ', response);
-      setIdBack(response);
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Please try again ',
-      });
-      setIdBack(null);
-    }
-  };
-  const SelectPassport = async () => {
-    const response = await uploadFiles();
-    if (response) {
-      console.log('Send: ', response);
-      setPassport(response);
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Please try again ',
-      });
-      setPassport(null);
-    }
-  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <NavigationHeader
-        Title="Booking"
-        midImg={require('../../../assets/supportIcon.png')}
-        midImgPress={() => handleCallSupport()}
-        // lastImg={require('../../../assets/bellIcon.png')}
-      />
-      <Text style={styles.heading}>
-        Please select a document for verification
-      </Text>
-      <BottomSheetStyle>
-        <ScrollView scrollEnabled={true}>
-          <View style={styles.flexContainer}>
-            {bookingDetail.identity_authentication === 'client_choose' && (
-              <>
-                <MainButton
-                  Title="ID Card"
-                  colors={
-                    isFocused === 'ID Card'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  styles={
-                    isFocused === 'ID Card'
-                      ? {
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                      : {
-                          color: Colors.TextColor,
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                  }
-                  onPress={() => handleFocusChange('ID Card')}
-                />
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
 
-                <MainButton
-                  Title="Passport"
-                  colors={
-                    isFocused === 'Passport'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  styles={
-                    isFocused === 'Passport'
-                      ? {
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                      : {
-                          color: Colors.TextColor,
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                  }
-                  onPress={() => handleFocusChange('Passport')}
-                />
-              </>
-            )}
-            {bookingDetail.identity_authentication === 'user_id' && (
-              <>
-                <MainButton
-                  Title="ID Card"
-                  colors={
-                    isFocused === 'ID Card'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  styles={
-                    isFocused === 'ID Card'
-                      ? {
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                      : {
-                          color: Colors.TextColor,
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                  }
-                  onPress={() => handleFocusChange('ID Card')}
-                />
-              </>
-            )}
-            {bookingDetail.identity_authentication === 'user_passport' && (
-              <>
-                <MainButton
-                  Title="Passport"
-                  colors={
-                    isFocused === 'Passport'
-                      ? [Colors.OrangeGradientStart, Colors.OrangeGradientEnd]
-                      : [Colors.DisableColor, Colors.DisableColor]
-                  }
-                  styles={
-                    isFocused === 'Passport'
-                      ? {
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                      : {
-                          color: Colors.TextColor,
-                          paddingHorizontal: widthToDp(2),
-                          paddingVertical: widthToDp(1),
-                          fontSize: widthToDp(5),
-                        }
-                  }
-                  onPress={() => handleFocusChange('Passport')}
-                />
-              </>
-            )}
+      <View style={styles.header}>
+        <TouchableOpacity
+          accessibilityLabel="Go back"
+          onPress={() => goBackOrNavigate(navigation, 'HomeScreen')}
+          style={styles.headerButton}>
+          <Feather name="arrow-left" size={22} color={AppColors.textPrimary} />
+        </TouchableOpacity>
+        <View style={styles.headerCopy}>
+          <Text style={styles.headerTitle}>Identity verification</Text>
+          <Text style={styles.headerSubtitle}>Secure notary session</Text>
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="Contact support"
+          onPress={handleCallSupport}
+          style={styles.headerButton}>
+          <Feather name="help-circle" size={21} color={AppColors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.hero}>
+          <View style={styles.heroIcon}>
+            <Feather name="shield" size={28} color={AppColors.white} />
           </View>
-          {isFocused === 'ID Card' && (
-            <Text style={[styles.detail]}>
-              Please upload front and back side your ID Card
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroEyebrow}>ONE-TIME CHECK</Text>
+            <Text style={styles.heroTitle}>Verify your identity</Text>
+            <Text style={styles.heroDescription}>
+              Required before entering the online notary room.
             </Text>
-          )}
-          {isFocused === 'Passport' && (
-            <Text style={[styles.detail]}>
-              Please upload a picture of your Passport
+          </View>
+        </View>
+
+        {canChooseType && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Choose a document</Text>
+            <Text style={styles.sectionDescription}>
+              Select the document you have available.
             </Text>
-          )}
-          <View
-            style={{
-              flexDirection: 'row',
-              marginHorizontal: widthToDp(8),
-              marginVertical: widthToDp(2),
-              flexWrap: 'wrap',
-              columnGap: widthToDp(2),
-              rowGap: widthToDp(2),
-            }}>
-            {isFocused === 'ID Card' && IDFront && (
-              <Image
-                source={{uri: IDFront}}
-                style={{width: widthToDp(30), height: heightToDp(30)}}
+            <View style={styles.typeList}>
+              <DocumentTypeOption
+                active={documentType === DOCUMENT_TYPE.ID}
+                icon="credit-card"
+                title="Government ID"
+                subtitle="Driver's licence or identity card"
+                onPress={() => setDocumentType(DOCUMENT_TYPE.ID)}
               />
-            )}
-            {isFocused === 'ID Card' && IDBack && (
-              <Image
-                source={{uri: IDBack}}
-                style={{width: widthToDp(30), height: heightToDp(30)}}
+              <DocumentTypeOption
+                active={documentType === DOCUMENT_TYPE.PASSPORT}
+                icon="book-open"
+                title="Passport"
+                subtitle="Photo and personal details page"
+                onPress={() => setDocumentType(DOCUMENT_TYPE.PASSPORT)}
               />
-            )}
-            {isFocused === 'Passport' && Passport && (
-              <Image
-                source={{uri: Passport}}
-                style={{width: widthToDp(30), height: heightToDp(30)}}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeadingRow}>
+            <View style={styles.sectionHeadingCopy}>
+              <Text style={styles.sectionTitle}>
+                {documentType === DOCUMENT_TYPE.ID
+                  ? 'Upload both sides'
+                  : 'Upload your passport'}
+              </Text>
+              <Text style={styles.sectionDescription}>{privacyCopy}</Text>
+            </View>
+            <View
+              style={[styles.countBadge, isReady && styles.countBadgeReady]}>
+              <Text
+                style={[styles.countText, isReady && styles.countTextReady]}>
+                {progressLabel}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.uploadList}>
+            {documentType === DOCUMENT_TYPE.ID ? (
+              <>
+                <UploadSlot
+                  label="Front of ID"
+                  description="Upload the side with your photo"
+                  uri={idFront}
+                  onSelect={() => selectDocument(setIdFront)}
+                  onRemove={() => setIdFront(null)}
+                />
+                <UploadSlot
+                  label="Back of ID"
+                  description="Upload the reverse side of the card"
+                  uri={idBack}
+                  onSelect={() => selectDocument(setIdBack)}
+                  onRemove={() => setIdBack(null)}
+                />
+              </>
+            ) : (
+              <UploadSlot
+                label="Passport photo page"
+                description="Upload the page with your portrait"
+                uri={passport}
+                onSelect={() => selectDocument(setPassport)}
+                onRemove={() => setPassport(null)}
               />
             )}
           </View>
-          {isFocused === 'ID Card' &&
-            (IDFront && IDBack ? null : IDFront === null ? (
-              <MainButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload ID Front"
-                GradiStyles={{
-                  width: widthToDp(50),
-                  paddingVertical: widthToDp(1.5),
-                  marginVertical: widthToDp(1.5),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(0),
-                  paddingVertical: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={() => SelectIDFront()}
-              />
-            ) : IDBack === null ? (
-              <MainButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload ID Back"
-                GradiStyles={{
-                  width: widthToDp(50),
-                  paddingVertical: widthToDp(1.5),
-                  marginVertical: widthToDp(1.5),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(0),
-                  paddingVertical: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={() => SelectIDBack()}
-              />
-            ) : null)}
-          {isFocused === 'Passport' ? (
-            Passport ? null : Passport === null ? (
-              <MainButton
-                colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                Title="Upload Passport"
-                GradiStyles={{
-                  width: widthToDp(50),
-                  paddingVertical: widthToDp(1.5),
-                }}
-                styles={{
-                  paddingHorizontal: widthToDp(0),
-                  paddingVertical: widthToDp(0),
-                  fontSize: widthToDp(4),
-                }}
-                onPress={() => SelectPassport()}
-              />
-            ) : null
-          ) : null}
-          <GradientButton
-            Title="Verify Identity"
-            colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-            GradiStyles={{
-              marginVertical: heightToDp(5),
-            }}
-            styles={{
-              fontSize: widthToDp(5),
-            }}
-            onPress={() => submitAddressDetails()}
-            loading={loading}
+        </View>
+
+        <View style={styles.securityNote}>
+          <View style={styles.securityIcon}>
+            <Feather name="lock" size={17} color={AppColors.success} />
+          </View>
+          <View style={styles.securityCopy}>
+            <Text style={styles.securityTitle}>Your document is protected</Text>
+            <Text style={styles.securityDescription}>
+              It is transmitted securely and used only for this verification.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <View style={styles.footerStatus}>
+          <Feather
+            name={isReady ? 'check-circle' : 'info'}
+            size={16}
+            color={isReady ? AppColors.success : AppColors.textSecondary}
           />
-        </ScrollView>
-      </BottomSheetStyle>
+          <Text
+            style={[
+              styles.footerStatusText,
+              isReady && styles.footerStatusTextReady,
+            ]}>
+            {isReady ? 'Ready to verify' : progressLabel}
+          </Text>
+        </View>
+        <AuthPrimaryButton
+          disabled={!isReady}
+          icon="arrow-right"
+          loading={loading}
+          onPress={verifyIdentity}
+          style={styles.verifyButton}
+          title="Verify identity"
+        />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.PinkBackground,
-  },
-  dateContainer: {
+  container: {flex: 1, backgroundColor: AppColors.background},
+  header: {
+    height: 72,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: widthToDp(5),
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.border,
+    backgroundColor: AppColors.surface,
   },
-  timeText: {
-    color: Colors.TextColor,
+  headerButton: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.backgroundSubtle,
   },
-  dashedContainer: {
-    marginHorizontal: widthToDp(5),
-    borderWidth: 3,
-    borderColor: Colors.DullTextColor,
-    borderStyle: 'dashed',
-    backgroundColor: Colors.PinkBackground,
-    borderRadius: 10,
-    padding: widthToDp(2),
+  headerCopy: {flex: 1, marginHorizontal: 13},
+  headerTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
   },
-  slot: {
-    borderRadius: 10,
-    padding: 10,
-    margin: 5,
-    elevation: 15,
+  headerSubtitle: {
+    marginTop: 2,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
   },
-  imagestyles: {
-    width: widthToDp(15),
-    height: heightToDp(15),
+  scrollContent: {padding: 16, paddingBottom: 28},
+  hero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+    borderRadius: 8,
+    backgroundColor: '#121826',
   },
-  locationStyle: {
+  heroIcon: {
+    width: 58,
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.primary,
+  },
+  heroCopy: {flex: 1, marginLeft: 15},
+  heroEyebrow: {
+    color: '#FFB184',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  heroTitle: {
+    marginTop: 3,
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 20,
+  },
+  heroDescription: {
+    marginTop: 4,
+    color: '#B7BECA',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  section: {
+    marginTop: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.surface,
+  },
+  sectionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
+  },
+  sectionDescription: {
+    marginTop: 4,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  typeList: {marginTop: 14, gap: 10},
+  typeOption: {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.surface,
+  },
+  typeOptionActive: {
+    borderColor: AppColors.primary,
+    backgroundColor: AppColors.primarySoft,
+  },
+  typeIcon: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.backgroundSubtle,
+  },
+  typeIconActive: {backgroundColor: AppColors.primary},
+  typeCopy: {flex: 1, marginHorizontal: 12},
+  typeTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  typeSubtitle: {
+    marginTop: 3,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
+  radio: {
+    width: 21,
+    height: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: AppColors.borderStrong,
+    borderRadius: 11,
+  },
+  radioActive: {borderColor: AppColors.primary},
+  radioDot: {
+    width: 9,
+    height: 9,
     borderRadius: 5,
+    backgroundColor: AppColors.primary,
   },
-  namebar: {
+  sectionHeadingRow: {flexDirection: 'row', alignItems: 'flex-start'},
+  sectionHeadingCopy: {flex: 1, paddingRight: 8},
+  countBadge: {
+    marginTop: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: AppColors.backgroundSubtle,
+  },
+  countBadgeReady: {backgroundColor: AppColors.successSoft},
+  countText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  countTextReady: {color: AppColors.success},
+  uploadList: {marginTop: 15, gap: 10},
+  uploadSlot: {
+    minHeight: 84,
     flexDirection: 'row',
-    alignContent: 'center',
-    margin: widthToDp(5),
+    alignItems: 'center',
+    padding: 13,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#F1A276',
+    borderRadius: 8,
+    backgroundColor: '#FFFAF6',
+  },
+  uploadIcon: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  uploadCopy: {flex: 1, marginHorizontal: 12},
+  uploadLabel: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  uploadDescription: {
+    marginTop: 3,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
+  addButton: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 7,
+    backgroundColor: AppColors.primarySoft,
+  },
+  previewCard: {
+    height: 142,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#A8DDBF',
+    borderRadius: 8,
+    backgroundColor: AppColors.textPrimary,
+  },
+  previewImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  previewOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(18,24,38,0.36)',
+  },
+  previewTopRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: 10,
   },
-  flexContainer: {
-    marginTop: heightToDp(5),
-    flexDirection: 'row',
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-  text: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-SemiBold',
-  },
-  dateHeading: {
-    color: Colors.TextColor,
-    fontSize: widthToDp(8),
-    fontFamily: 'Manrope-Bold',
-    textAlign: 'center',
-  },
-  dateHeadingWhite: {
-    color: Colors.white,
-    fontSize: widthToDp(8),
-    fontFamily: 'Manrope-Bold',
-    textAlign: 'center',
-  },
-  textWhite: {
-    color: Colors.white,
-    fontSize: widthToDp(4),
-    fontFamily: 'Manrope-Bold',
-  },
-  icon: {
-    marginLeft: widthToDp(5),
-    width: widthToDp(7),
-    height: heightToDp(7),
-  },
-  textHeading: {
-    alignSelf: 'center',
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-SemiBold',
-    color: Colors.TextColor,
-    marginLeft: widthToDp(5),
-  },
-  monthHead: {
-    alignSelf: 'center',
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-SemiBold',
-    color: Colors.TextColor,
-  },
-  month: {
-    tintColor: Colors.TextColor,
-    marginHorizontal: widthToDp(7),
-  },
-  heading: {
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    marginLeft: widthToDp(5),
-  },
-  headingContainer: {
-    fontSize: widthToDp(6),
-    fontFamily: 'Manrope-Bold',
-    color: Colors.TextColor,
-    marginLeft: widthToDp(6),
-    // marginVertical: widthToDp(4),
-  },
-  insideText: {
-    marginHorizontal: widthToDp(6),
-    fontSize: widthToDp(5),
-    color: Colors.TextColor,
-    fontFamily: 'Manrope-SemiBold',
-  },
-  greenIcon: {
-    width: widthToDp(5),
-    height: heightToDp(5),
-  },
-  nameContainer: {
-    marginVertical: heightToDp(2),
-    alignSelf: 'center',
-  },
-  name: {
-    alignSelf: 'center',
-    fontSize: widthToDp(7),
-    color: Colors.TextColor,
-    fontWeight: '600',
-  },
-  placestyle: {
-    fontSize: widthToDp(7),
-    fontWeight: '900',
-    alignSelf: 'center',
-  },
-
-  preference: {
-    marginLeft: widthToDp(4),
-    marginVertical: widthToDp(1),
-    fontSize: widthToDp(4),
-    color: Colors.DullTextColor,
-  },
-  detail: {
-    marginTop: widthToDp(3),
-    marginHorizontal: heightToDp(8),
-    fontSize: widthToDp(5),
-    color: Colors.TextColor,
-    alignSelf: 'center',
-    fontFamily: 'Manrope-SemiBold',
-  },
-  star: {
-    alignSelf: 'center',
-    marginVertical: heightToDp(2),
-  },
-  sheetContainer: {},
-  locationImage: {
-    tintColor: Colors.DullTextColor,
-  },
-  addressView: {
+  readyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: widthToDp(4),
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: AppColors.successSoft,
   },
-  buttonFlex: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: heightToDp(5),
+  readyText: {
+    marginLeft: 4,
+    color: AppColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
   },
-  dottedContianer: {
+  removeButton: {
+    width: 34,
+    height: 34,
     alignItems: 'center',
-    alignSelf: 'center',
-    borderStyle: 'dotted',
-    borderWidth: 2,
-    borderColor: Colors.DisableColor,
-    borderRadius: 5,
-    marginTop: heightToDp(5),
-    paddingVertical: heightToDp(2),
-    width: widthToDp(80),
+    justifyContent: 'center',
+    borderRadius: 7,
+    backgroundColor: AppColors.errorSoft,
   },
+  previewBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 'auto',
+    padding: 10,
+  },
+  previewCopy: {flex: 1},
+  previewLabel: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  previewDescription: {
+    marginTop: 2,
+    color: '#E1E5EB',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  replaceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    borderRadius: 6,
+    backgroundColor: AppColors.white,
+  },
+  replaceText: {
+    marginLeft: 5,
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  securityNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: AppColors.successSoft,
+  },
+  securityIcon: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 7,
+    backgroundColor: AppColors.white,
+  },
+  securityCopy: {flex: 1, marginLeft: 11},
+  securityTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  securityDescription: {
+    marginTop: 3,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  footer: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: AppColors.border,
+    backgroundColor: AppColors.surface,
+  },
+  footerStatus: {flexDirection: 'row', alignItems: 'center'},
+  footerStatusText: {
+    marginLeft: 7,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+  },
+  footerStatusTextReady: {color: AppColors.success},
+  verifyButton: {height: 52, marginTop: 9},
 });

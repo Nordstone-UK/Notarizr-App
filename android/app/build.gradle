@@ -136,13 +136,26 @@ android {
       pickFirst 'lib/arm64-v8a/libc++_shared.so'
       pickFirst 'lib/x86_64/libc++_shared.so'
       pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+
+      // Agora ships optional effects in the full SDK. The app only uses the
+      // core RTC/video path, so omit extensions that are never initialized.
+      exclude '**/libagora_spatial_audio_extension.so'
+      exclude '**/libagora_ai_echo_cancellation_extension.so'
+      exclude '**/libagora_udrm3_extension.so'
+      exclude '**/libagora_segmentation_extension.so'
+      exclude '**/libagora_ai_noise_suppression_extension.so'
+      exclude '**/libagora_audio_beauty_extension.so'
+      exclude '**/libagora_content_inspect_extension.so'
+      exclude '**/libagora_clear_vision_extension.so'
+      exclude '**/libagora_face_detection_extension.so'
+      exclude '**/libagora_video_quality_analyzer_extension.so'
+      exclude '**/libagora_drm_loader_extension.so'
     }
 }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation project(':react-native-immediate-phone-call')
-implementation 'com.github.netless-io:whiteboard-android:2.16.84'
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.fresco:stetho:2.6.0")
     implementation project(':react-native-vector-icons')

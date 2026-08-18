@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
 import {
+  AppState,
   Image,
   Modal,
   StyleSheet,
@@ -34,22 +35,25 @@ export default function IncomingCallManager({navigation}) {
   const [incomingCall, setIncomingCall] = useState(null);
 
   useEffect(() => {
-    if (!currentUser?._id) {
-      setIncomingCall(null);
-      return undefined;
-    }
-
     let mounted = true;
-    AsyncStorage.getItem('token')
-      .then(token => {
-        if (mounted && token) {
-          connectSocket(token);
-        }
-      })
-      .catch(error => console.warn('Call signaling could not connect:', error));
+    const ensureConnection = () =>
+      AsyncStorage.getItem('token')
+        .then(token => {
+          if (mounted && token) {
+            connectSocket(token);
+          }
+        })
+        .catch(error =>
+          console.warn('Call signaling could not connect:', error),
+        );
+
+    ensureConnection();
 
     const handleIncoming = call => {
-      if (String(call?.receiverId) === String(currentUser._id)) {
+      if (
+        !currentUser?._id ||
+        String(call?.receiverId) === String(currentUser._id)
+      ) {
         setIncomingCall(call);
       }
     };
@@ -59,6 +63,14 @@ export default function IncomingCallManager({navigation}) {
 
     socket.on('call:incoming', handleIncoming);
     socket.on('call:ended', handleEnded);
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      nextState => {
+        if (nextState === 'active') {
+          ensureConnection();
+        }
+      },
+    );
     const notificationListener = EventRegister.addEventListener(
       'voice-call',
       handleIncoming,
@@ -67,6 +79,7 @@ export default function IncomingCallManager({navigation}) {
       mounted = false;
       socket.off('call:incoming', handleIncoming);
       socket.off('call:ended', handleEnded);
+      appStateSubscription.remove();
       EventRegister.removeEventListener(notificationListener);
     };
   }, [currentUser?._id]);
@@ -121,7 +134,7 @@ export default function IncomingCallManager({navigation}) {
         callerId: call.callerId,
         channelName: call.channelName,
         token: call.token,
-        sender: currentUser,
+        sender: currentUser || {_id: call.receiverId},
         receiver: call.caller,
       });
     } catch (error) {

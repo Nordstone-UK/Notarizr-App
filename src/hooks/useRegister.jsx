@@ -72,9 +72,15 @@ const useRegister = () => {
     });
     return url;
   };
-  const uploadDocumentToStorage = async fileUri => {
+  const uploadDocumentToStorage = async (
+    fileUri,
+    fileName,
+    contentType,
+  ) => {
     const url = await uploadDocumentToSpaces({
       file: fileUri,
+      fileName,
+      contentType,
     });
     return url;
   };

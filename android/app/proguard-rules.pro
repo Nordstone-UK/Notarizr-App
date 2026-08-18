@@ -9,5 +9,3 @@
 
 # Add any project specific keep options here:
 # SDK model
-# Interactive Whiteboard SDK
--keep class com.herewhite.** { *; }

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,14 +13,19 @@ import {
 import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useSelector} from 'react-redux';
+import {useQuery} from '@apollo/client';
 import Feather from 'react-native-vector-icons/Feather';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import BookingActionButton from '../../components/Bookings/BookingActionButton';
 import BookingColors from '../../themes/BookingColors';
+import {GET_AGENT_LIVE_LOCATION} from '../../../request/queries/getAgentLiveLocation.query';
+
+const LIVE_LOCATION_POLL_MS = 8000;
 
 export default function MapArrivalScreen({navigation}) {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
+  const mapRef = useRef(null);
   const clientData = useSelector(state => state.booking.user);
   const coordinates = useSelector(state => state.booking.coordinates);
   const accountType = useSelector(state => state.user.user?.account_type);
@@ -28,6 +33,24 @@ export default function MapArrivalScreen({navigation}) {
   const clientName = [clientData?.first_name, clientData?.last_name]
     .filter(Boolean)
     .join(' ');
+
+  // Only clients need to watch the notary move — the agent already sees
+  // their own position live via the map's native blue dot, and separately
+  // pushes it every 10s from AgentMapArraivalScreen.
+  const isClient = accountType === 'client';
+  const {data: liveLocationData} = useQuery(GET_AGENT_LIVE_LOCATION, {
+    variables: {userId: clientData?._id},
+    skip: !isClient || !clientData?._id,
+    pollInterval: LIVE_LOCATION_POLL_MS,
+    fetchPolicy: 'network-only',
+  });
+  // current_location.coordinates comes back in the same [?, ?] order this
+  // screen already reads `coordinates` in below — kept consistent with the
+  // static fallback rather than re-deriving GeoJSON ordering here.
+  const liveAgentCoordinates = liveLocationData?.getCurrentLocation?.coordinates;
+  const agentCoordinates =
+    liveAgentCoordinates?.length >= 2 ? liveAgentCoordinates : coordinates;
+  const isLiveTracking = isClient && liveAgentCoordinates?.length >= 2;
 
   useEffect(() => {
     Geolocation.getCurrentPosition(
@@ -44,6 +67,22 @@ export default function MapArrivalScreen({navigation}) {
         : {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000},
     );
   }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || !location || agentCoordinates?.length < 2) {
+      return;
+    }
+    mapRef.current.fitToCoordinates(
+      [
+        location,
+        {latitude: agentCoordinates[0], longitude: agentCoordinates[1]},
+      ],
+      {
+        edgePadding: {top: 120, right: 60, bottom: 220, left: 60},
+        animated: true,
+      },
+    );
+  }, [agentCoordinates, location]);
 
   const confirmArrival = () => {
     Alert.alert(
@@ -68,8 +107,9 @@ export default function MapArrivalScreen({navigation}) {
       <View style={styles.mapShell}>
         {location ? (
           <MapView
+            ref={mapRef}
             provider={PROVIDER_GOOGLE}
-            region={{
+            initialRegion={{
               latitude: location.latitude,
               longitude: location.longitude,
               latitudeDelta: 0.0922,
@@ -77,20 +117,28 @@ export default function MapArrivalScreen({navigation}) {
             }}
             showsUserLocation
             style={styles.map}>
-            {coordinates?.length >= 2 && (
+            {agentCoordinates?.length >= 2 && (
               <>
                 <Marker
                   coordinate={{
-                    latitude: coordinates[0],
-                    longitude: coordinates[1],
+                    latitude: agentCoordinates[0],
+                    longitude: agentCoordinates[1],
                   }}
                   description={clientData?.location}
-                  title={clientName || 'Client location'}
+                  title={
+                    isLiveTracking
+                      ? `${clientName || 'Notary'} · Live`
+                      : clientName || 'Client location'
+                  }
+                  pinColor={isLiveTracking ? BookingColors.success : undefined}
                 />
                 <Polyline
                   coordinates={[
                     location,
-                    {latitude: coordinates[0], longitude: coordinates[1]},
+                    {
+                      latitude: agentCoordinates[0],
+                      longitude: agentCoordinates[1],
+                    },
                   ]}
                   strokeColor={BookingColors.info}
                   strokeWidth={4}
@@ -129,7 +177,15 @@ export default function MapArrivalScreen({navigation}) {
             />
           </TouchableOpacity>
           <View style={styles.headerTitleCard}>
-            <Text style={styles.headerEyebrow}>EN ROUTE TO</Text>
+            <View style={styles.headerEyebrowRow}>
+              <Text style={styles.headerEyebrow}>EN ROUTE TO</Text>
+              {isLiveTracking && (
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveBadgeText}>LIVE</Text>
+                </View>
+              )}
+            </View>
             <Text numberOfLines={1} style={styles.headerTitle}>
               {clientName || 'Client appointment'}
             </Text>
@@ -242,10 +298,35 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: BookingColors.surface,
   },
+  headerEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   headerEyebrow: {
     color: BookingColors.textMuted,
     fontFamily: 'Manrope-Bold',
     fontSize: 8,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: BookingColors.successSoft,
+  },
+  liveDot: {
+    width: 5,
+    height: 5,
+    marginRight: 4,
+    borderRadius: 3,
+    backgroundColor: BookingColors.success,
+  },
+  liveBadgeText: {
+    color: BookingColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 7,
   },
   headerTitle: {
     marginTop: 1,

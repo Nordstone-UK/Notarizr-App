@@ -6,16 +6,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
-    <com.herewhite.sdk.WhiteboardView
-        android:id="@+id/whiteboardView"
+    <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible" />
-    <View
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#FFF2DC"> <!-- Replace with your desired color -->
-    </View>
+        android:background="#FFF2DC" />
 
     <ImageView
         android:layout_width="wrap_content"

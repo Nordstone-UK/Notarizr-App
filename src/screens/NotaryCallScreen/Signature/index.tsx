@@ -1,493 +1,903 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Signature from 'react-native-signature-canvas';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { decode as atob, encode as btoa } from 'base-64'; // Importing base-64 for encoding and decoding
+import Feather from 'react-native-vector-icons/Feather';
 import ViewShot from 'react-native-view-shot';
+import {launchImageLibrary} from 'react-native-image-picker';
 
-import RNFS from 'react-native-fs';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import RNPickerSelect from 'react-native-picker-select'; // Import the picker
-import { widthToDp } from '../../../utils/Responsive';
-import { uploadSignatureToSpaces } from '../../../utils/spacesHelper';
-import { launchImageLibrary } from 'react-native-image-picker'; // Import the image picker
-import useUpdate from '../../../hooks/useUpdate';
+import BookingColors from '../../../themes/BookingColors';
 import useFetchUser from '../../../hooks/useFetchUser';
-import { useLiveblocks } from '../../../store/liveblocks';
-import useRegister from '../../../hooks/useRegister';
-import { TextInput } from 'react-native';
-import { FlatList } from 'react-native';
-import Colors from '../../../themes/Colors';
-import MainButton from '../../../components/MainGradientButton/MainButton';
+import useUpdate from '../../../hooks/useUpdate';
+import {useLiveblocks} from '../../../store/liveblocks';
+
+type SignatureOption = 'saved' | 'draw' | 'type' | 'upload';
+
+type SavedSignature = {
+  id?: string;
+  _id?: string;
+  signUrl: string;
+};
 
 interface DrawSignComponentProps {
   isVisible: boolean;
   onClose: () => void;
-  signs?: { notarySeal?: string; notarysigns?: { signUrl: string }[] };
+  signs?: {
+    account_type?: string;
+    notarysigns?: SavedSignature[];
+  };
   onStampChanges: (stampImage: string) => void;
+  page?: number;
 }
-const fontStyles = [
-  { label: 'DancingScript-VariableFont_wght', value: 'DancingScript-VariableFont_wght' },
-  { label: 'JacquesFrancoisShadow', value: 'JacquesFrancoisShadow-Regular' },
-  { label: 'Manrope-Bold', value: 'Manrope-Bold' },
-  { label: 'PlaywriteCU ', value: 'PlaywriteCU-ExtraLight' },
-  { label: 'Poppins-Regular', value: 'Poppins-Regular' },
-  { label: 'ProtestGuerrilla', value: 'ProtestGuerrilla-Regular' },
-  { label: 'Poppins-SemiBold', value: 'Poppins-SemiBold' },
-  { label: 'SofadiOne', value: 'SofadiOne-Regular' },
+
+const options: Array<{
+  key: SignatureOption;
+  label: string;
+  icon: string;
+}> = [
+  {key: 'saved', label: 'Saved', icon: 'bookmark'},
+  {key: 'draw', label: 'Draw', icon: 'edit-3'},
+  {key: 'type', label: 'Type', icon: 'type'},
+  {key: 'upload', label: 'Upload', icon: 'upload'},
 ];
 
-const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({ isVisible, onClose, signs, onStampChanges }) => {
-  // console.log("udsfffffffff", signs)
-  const { fetchUserInfo, handleDeleteSign } = useFetchUser();
-  const insertObject = useLiveblocks(state => state.insertObject);
-  console.log("insertobject", insertObject)
-  const { uploadImageToStorage } = useRegister();
-  const { handleNotarysignUpdate } = useUpdate();
-  const [selectedOption, setSelectedOption] = useState('');
-  const [selectedSignType, setSelectedSignType] = useState(''); // New state for selected sign type
-  const [signatureData, setSignatureData] = useState(null);
-  const [inputText, setInputText] = useState('');
-  const [signaturePadVisible, setSignaturePadVisible] = useState(false);
-  const [uploadedImageUri, setUploadedImageUri] = useState(null);
-  const [signModalVisible, setSignModalVisible] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectedFontStyle, setSelectedFontStyle] = useState(fontStyles[0].value);
-  const viewShotRef = useRef(null);
-  const signaturePadRef = useRef(null);
+const fontStyles = [
+  {label: 'Script', value: 'DancingScript-VariableFont_wght'},
+  {label: 'Classic', value: 'JacquesFrancoisShadow-Regular'},
+  {label: 'Clean', value: 'Manrope-Bold'},
+];
 
-  console.log("signgdf", signaturePadRef)
-  const handleSelectOption = (option) => {
-    setSelectedOption(option);
-    if (option === 'draw') {
-      setSignaturePadVisible(true);
-    } else if (option === 'upload') {
-      setSignaturePadVisible(false);
-      handleImageUpload();
-    } else {
-      setSignaturePadVisible(false);
+const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
+  isVisible,
+  onClose,
+  signs,
+  onStampChanges,
+  page = 1,
+}) => {
+  const {fetchUserInfo, handleDeleteSign} = useFetchUser();
+  const {handleNotarysignUpdate} = useUpdate();
+  const insertObject = useLiveblocks(state => state.insertObject);
+
+  const [selectedOption, setSelectedOption] =
+    useState<SignatureOption>('saved');
+  const [inputText, setInputText] = useState('');
+  const [selectedFontStyle, setSelectedFontStyle] = useState(
+    fontStyles[0].value,
+  );
+  const [uploadedImageUri, setUploadedImageUri] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const viewShotRef = useRef<ViewShot>(null);
+  const signatureCanvasRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (isVisible) {
+      setSelectedOption(signs?.notarysigns?.length ? 'saved' : 'draw');
+      setErrorMessage('');
+      setUploadedImageUri(null);
     }
-  };
-  const handleTextToImage = async (inputText: string) => {
-    console.log("inputtext", inputText)
-    const uri = await viewShotRef.current.capture();
-    console.log("Captured image URI:", uri);
-    setUploadedImageUri(uri);
-    const signaturesigns = await uploadImageToStorage(uri);
-    // let signaturesigns = await uploadSignatureToSpaces(uri);
-    console.log("signupdfdfd", signaturesigns)
-    const signupdated = await handleNotarysignUpdate(signaturesigns);
-    if (signupdated) {
-      await fetchUserInfo();
-    }
-    setSignatureData(uri);
-    insertObject(new Date().toISOString(), {
-      type: 'image',
-      sourceUrl: signaturesigns,
-      position: {
-        x: 100,
-        y: 100,
-      },
-    });
-    // insertObject(new Date().toISOString(), {
-    //   type: 'text',
-    //   text: inputText,
-    //   fontfamily: selectedFontStyle,
-    //   // page: 0,
-    //   position: {
-    //     x: 200,
-    //     y: 200,
-    //   },
-    // });
-  };
-  const handleSignature = async (signature) => {
-    console.log("Signature received:", signature);
-    try {
-      let signaturesigns = await uploadSignatureToSpaces(signature);
-      const signupdated = await handleNotarysignUpdate(signaturesigns);
-      if (signupdated) {
-        await fetchUserInfo();
-      }
-      setSignatureData(signature);
+  }, [isVisible, signs?.notarysigns?.length]);
+
+  const addSignatureToDocument = useCallback(
+    (sourceUrl: string) => {
       insertObject(new Date().toISOString(), {
         type: 'image',
-        sourceUrl: signature,
-        position: {
-          x: 100,
-          y: 100,
-        },
+        sourceUrl,
+        page,
+        position: {x: 100, y: 100},
       });
-      setSignaturePadVisible(false);
-    } catch (error) {
-      console.error("Error handling signature:", error);
-    }
-  };
+    },
+    [insertObject, page],
+  );
 
-  const handleImageUpload = async () => {
+  const saveSignature = useCallback(
+    async (sourceUrl: string) => {
+      addSignatureToDocument(sourceUrl);
+
+      // Saved signatures are useful for both account types and are handled by
+      // the same backend mutation. The document is still updated if saving the
+      // reusable copy is unavailable.
+      try {
+        const updated = await handleNotarysignUpdate(sourceUrl);
+        if (updated) {
+          await fetchUserInfo();
+        }
+      } catch (error) {
+        console.warn('Reusable signature could not be saved', error);
+      }
+
+      onClose();
+    },
+    [addSignatureToDocument, fetchUserInfo, handleNotarysignUpdate, onClose],
+  );
+
+  const runSave = useCallback(
+    async (uploader: () => Promise<string>) => {
+      setSaving(true);
+      setErrorMessage('');
+      try {
+        const sourceUrl = await uploader();
+        if (!sourceUrl) {
+          throw new Error('The signature upload returned no file.');
+        }
+        await saveSignature(sourceUrl);
+      } catch (error: any) {
+        setErrorMessage(
+          error?.message || 'The signature could not be added. Please retry.',
+        );
+      } finally {
+        setSaving(false);
+      }
+    },
+    [saveSignature],
+  );
+
+  const handleDrawnSignature = useCallback(
+    (signature: string) => {
+      // Local-only for now: no storage bucket is wired up yet, so use the
+      // canvas's own base64 data URI directly instead of uploading it.
+      // `signature` is already a full data:image/png;base64,... string that
+      // <Image> can render as-is.
+      runSave(async () => signature);
+    },
+    [runSave],
+  );
+
+  const chooseSignatureImage = useCallback(async () => {
+    setErrorMessage('');
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
-        includeBase64: true,
+        selectionLimit: 1,
       });
-
       if (result.didCancel) {
-        console.log('User canceled image picker');
         return;
       }
-
       if (result.errorCode) {
-        console.log('ImagePicker Error:', result.errorMessage);
+        throw new Error(result.errorMessage || 'Unable to open that image.');
+      }
+      const uri = result.assets?.[0]?.uri;
+      if (!uri) {
+        throw new Error('No image was selected.');
+      }
+      setUploadedImageUri(uri);
+    } catch (error: any) {
+      setErrorMessage(
+        error?.message || 'The image could not be selected. Please retry.',
+      );
+    }
+  }, []);
+
+  const useUploadedSignature = useCallback(() => {
+    if (!uploadedImageUri) {
+      setErrorMessage('Choose a signature image first.');
+      return;
+    }
+    // Local-only for now: use the picked photo's own device URI directly
+    // instead of uploading it to storage.
+    runSave(async () => uploadedImageUri);
+  }, [runSave, uploadedImageUri]);
+
+  const useTypedSignature = useCallback(() => {
+    if (!inputText.trim()) {
+      setErrorMessage('Type your name first.');
+      return;
+    }
+    runSave(async () => {
+      // react-native-view-shot writes the capture to a local temp file and
+      // returns that file's URI — already usable as-is, no upload needed.
+      const uri = await viewShotRef.current?.capture?.();
+      if (!uri) {
+        throw new Error('The typed signature preview could not be captured.');
+      }
+      return uri;
+    });
+  }, [inputText, runSave]);
+
+  const selectSavedSignature = useCallback(
+    (sourceUrl: string) => {
+      onStampChanges(sourceUrl);
+      onClose();
+    },
+    [onClose, onStampChanges],
+  );
+
+  const deleteSavedSignature = useCallback(
+    async (signature: SavedSignature) => {
+      const id = signature.id || signature._id;
+      if (!id) {
         return;
       }
-
-      if (result.assets && result.assets.length > 0) {
-        const { uri } = result.assets[0];
-        const s3Url = await uploadImageToStorage(uri);
-        setUploadedImageUri(s3Url);
-        insertObject(new Date().toISOString(), {
-          type: 'image',
-          sourceUrl: s3Url,
-          position: {
-            x: 100,
-            y: 100,
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error selecting image:', error);
-    }
-  };
-  const handleImageLoadStart = () => {
-    setLoading(true)
-
-  };
-
-  const handleImageLoadEnd = () => {
-    setLoading(false)
-  };
-  const handleSignSelect = (stampImage: string) => {
-    console.log("stamf", stampImage)
-    setSignModalVisible(false);
-    onStampChanges(stampImage);
-  };
-  const handleSignDelete = async (signId: string) => {
-    console.log("signd", signId)
-    try {
-      const signupdated = await handleDeleteSign(signId);
-      // if (response.data.deleteNotarySignR.status === 'success') {
-
-      if (signupdated) {
-        console.log("sgnd", signupdated)
+      setSaving(true);
+      setErrorMessage('');
+      try {
+        await handleDeleteSign(id);
         await fetchUserInfo();
+      } catch (error: any) {
+        setErrorMessage(
+          error?.message || 'The saved signature could not be removed.',
+        );
+      } finally {
+        setSaving(false);
       }
-      // setSignToDelete(null);
-      // setStampModalVisible(false);
-      // setSignModalVisible(false);
-      // Optionally, update the stamps list after deletion
-      // }
-    } catch (error) {
-      console.error('Error deleting sign:', error);
-    }
-  };
+    },
+    [fetchUserInfo, handleDeleteSign],
+  );
 
-  const SignItem = React.memo(({ item, onSelect, onDelete }: { item: { signUrl: string, id: string }, onSelect: (url: string) => void, onDelete: (id: string) => void }) => {
-    return (
-      <View style={styles.signItemContainer}>
-        <TouchableOpacity onPress={() => onSelect(item.signUrl)}>
-          <Image
-            source={{ uri: item.signUrl }}
-            style={{ width: 100, height: 100 }}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(item.id)}>
-          <Icon name="times" size={20} color="red" />
+  const renderSavedSignature = ({item}: {item: SavedSignature}) => (
+    <TouchableOpacity
+      style={styles.savedCard}
+      activeOpacity={0.8}
+      onPress={() => selectSavedSignature(item.signUrl)}>
+      <Image source={{uri: item.signUrl}} style={styles.savedImage} />
+      <View style={styles.savedCardFooter}>
+        <Text style={styles.savedUseText}>Use signature</Text>
+        <TouchableOpacity
+          hitSlop={10}
+          onPress={() => deleteSavedSignature(item)}>
+          <Feather name="trash-2" size={17} color={BookingColors.error} />
         </TouchableOpacity>
       </View>
-    );
-  });
-  const renderSignModal = React.useCallback(
-    ({ item }: { item: { signUrl: string, id: string } }) => {
-      return (
-        <SignItem
-          item={item}
-          onSelect={handleSignSelect}
-          onDelete={handleSignDelete}
-        />
-      );
-    },
-    [handleSignSelect, handleSignDelete]
+    </TouchableOpacity>
   );
+
   return (
     <Modal
       animationType="slide"
-      transparent={true}
+      transparent
       visible={isVisible}
+      statusBarTranslucent
       onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalHeading}>
-            Choose signature type
-          </Text>
-          <View style={styles.optionsContainer}>
-            {['choose', 'draw', 'type', 'upload'].map(option => (
-              <TouchableOpacity key={option} style={styles.optionButton} onPress={() => handleSelectOption(option)}>
-                <Text style={styles.optionText}>{option.charAt(0).toUpperCase() + option.slice(1)}</Text>
-              </TouchableOpacity>
-            ))}
+      <KeyboardAvoidingView
+        style={styles.modalRoot}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Pressable style={styles.backdrop} onPress={onClose} />
+        <View style={styles.sheet}>
+          <View style={styles.handle} />
+          <View style={styles.header}>
+            <View style={styles.headerCopy}>
+              <Text style={styles.heading}>Add your signature</Text>
+              <Text style={styles.subheading}>
+                Choose a method, preview it, then add it to the document.
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Feather name="x" size={21} color={BookingColors.textPrimary} />
+            </TouchableOpacity>
           </View>
-          {selectedOption === 'choose' && (
-            <View style={styles.contentContainer}>
-              <Text style={styles.contentText}>Select a signature</Text>
-              <View style={styles.modalContainer}>
-                <View style={styles.modal}>
-                  {/* {loading ? (
-                    <ActivityIndicator
-                      size="large"
-                      color={Colors.OrangeGradientStart}
-                      style={styles.centeredActivityIndicator}
-                    />
-                  ) : null} */}
-                  {signs?.notarysigns && signs.notarysigns.length > 0 ? (
-                    <View style={{ maxHeight: 300 }}>
-                      <FlatList
-                        data={signs?.notarysigns}
-                        renderItem={renderSignModal}
-                        keyExtractor={(item, index) => index.toString()}
-                        numColumns={2}
-                        contentContainerStyle={{ flexGrow: 1 }}
+
+          <View style={styles.optionsContainer}>
+            {options.map(option => {
+              const selected = selectedOption === option.key;
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[styles.optionButton, selected && styles.optionActive]}
+                  onPress={() => {
+                    setSelectedOption(option.key);
+                    setErrorMessage('');
+                  }}>
+                  <Feather
+                    name={option.icon}
+                    size={17}
+                    color={
+                      selected
+                        ? BookingColors.primary
+                        : BookingColors.textSecondary
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selected && styles.optionTextActive,
+                    ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <ScrollView
+            style={styles.contentScroll}
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            {selectedOption === 'saved' && (
+              <View>
+                <Text style={styles.sectionTitle}>Saved signatures</Text>
+                <Text style={styles.sectionDescription}>
+                  Tap a signature to place it on the current page.
+                </Text>
+                {signs?.notarysigns?.length ? (
+                  <FlatList
+                    data={signs.notarysigns}
+                    renderItem={renderSavedSignature}
+                    keyExtractor={(item, index) =>
+                      item.id || item._id || `${item.signUrl}-${index}`
+                    }
+                    numColumns={2}
+                    scrollEnabled={false}
+                    columnWrapperStyle={styles.savedRow}
+                  />
+                ) : (
+                  <View style={styles.emptyState}>
+                    <View style={styles.emptyIcon}>
+                      <Feather
+                        name="edit-3"
+                        size={24}
+                        color={BookingColors.primary}
                       />
                     </View>
-                  ) : (
-                    <Text style={styles.noDataText}>Please add a signature</Text>
-                  )}
+                    <Text style={styles.emptyTitle}>No saved signatures</Text>
+                    <Text style={styles.emptyDescription}>
+                      Draw, type, or upload one to use it here later.
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {selectedOption === 'draw' && (
+              <View>
+                <Text style={styles.sectionTitle}>Draw signature</Text>
+                <Text style={styles.sectionDescription}>
+                  Sign inside the box, then tap Use signature to add it.
+                </Text>
+                <View style={styles.signatureCanvas}>
+                  <Signature
+                    ref={signatureCanvasRef}
+                    onOK={handleDrawnSignature}
+                    onEmpty={() =>
+                      setErrorMessage('Draw your signature first.')
+                    }
+                    descriptionText=""
+                    clearText="Clear"
+                    confirmText="Save signature"
+                    webStyle={signatureWebStyle}
+                  />
+                </View>
+                <View style={styles.drawActionsRow}>
+                  <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={() => signatureCanvasRef.current?.clearSignature()}>
+                    <Text style={styles.clearButtonText}>Clear</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.primaryButton, styles.drawUseButton]}
+                    onPress={() => signatureCanvasRef.current?.readSignature()}
+                    disabled={saving}>
+                    {saving ? (
+                      <ActivityIndicator color={BookingColors.white} />
+                    ) : (
+                      <>
+                        <Text style={styles.primaryButtonText}>
+                          Use signature
+                        </Text>
+                        <Feather
+                          name="arrow-right"
+                          size={19}
+                          color={BookingColors.white}
+                        />
+                      </>
+                    )}
+                  </TouchableOpacity>
                 </View>
               </View>
-            </View>
-          )}
+            )}
 
-          {selectedOption === 'draw' && signaturePadVisible && (
-            <View style={styles.signatureContainer}>
-              <Text style={styles.contentText}>Draw your signature here.</Text>
-              <Signature
-                ref={signaturePadRef}
-                onOK={handleSignature}
-                onClear={() => console.log("Signature cleared")}
-                onEmpty={() => console.log('Signature is empty')}
-                descriptionText="Sign"
-                clearText="Clear"
-                confirmText="Save"
-                webStyle={styles.signatureWebStyle}
-              />
-            </View>
-          )}
-
-          {selectedOption === 'upload' && (
-            <View style={styles.contentContainer}>
-              <Text style={styles.contentText}>Upload your signature image here.</Text>
-              {uploadedImageUri && (
-                <Image
-                  source={{ uri: uploadedImageUri }}
-                  style={styles.uploadedImage}
+            {selectedOption === 'type' && (
+              <View>
+                <Text style={styles.sectionTitle}>Type signature</Text>
+                <Text style={styles.sectionDescription}>
+                  Enter your name and choose the style you prefer.
+                </Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Type your full name"
+                  placeholderTextColor={BookingColors.textMuted}
+                  onChangeText={setInputText}
+                  value={inputText}
                 />
-              )}
-            </View>
-          )}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.fontRow}>
+                  {fontStyles.map(font => {
+                    const selected = selectedFontStyle === font.value;
+                    return (
+                      <TouchableOpacity
+                        key={font.value}
+                        style={[
+                          styles.fontChip,
+                          selected && styles.fontChipActive,
+                        ]}
+                        onPress={() => setSelectedFontStyle(font.value)}>
+                        <Text
+                          style={[
+                            styles.fontChipText,
+                            selected && styles.fontChipTextActive,
+                          ]}>
+                          {font.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+                <ViewShot
+                  ref={viewShotRef}
+                  options={{format: 'png', quality: 1}}
+                  style={styles.typedPreview}>
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.typedSignature,
+                      {fontFamily: selectedFontStyle},
+                    ]}>
+                    {inputText || 'Your signature'}
+                  </Text>
+                </ViewShot>
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={useTypedSignature}
+                  disabled={saving}>
+                  {saving ? (
+                    <ActivityIndicator color={BookingColors.white} />
+                  ) : (
+                    <>
+                      <Text style={styles.primaryButtonText}>
+                        Use signature
+                      </Text>
+                      <Feather
+                        name="arrow-right"
+                        size={19}
+                        color={BookingColors.white}
+                      />
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
 
-          {selectedOption === 'type' && (
-            <View style={styles.contentContainer}>
-              <Text style={styles.contentText}>Type your signature.</Text>
-              <TextInput
-                style={[styles.textInput, { fontFamily: selectedFontStyle }]}
-                placeholder="Type something..."
-                placeholderTextColor={Colors.DullTextColor}
-                onChangeText={setInputText}
-                value={inputText}
-              />
-              <ViewShot ref={viewShotRef} options={{ fileName: "Your-File-Name", format: "jpg", quality: 0.9 }}>
-                <View style={styles.styledTextContainer}>
-                  <Text style={[styles.styledText, { fontFamily: selectedFontStyle }]}>{inputText}</Text>
-                </View>
-              </ViewShot>
-              <Picker
-                selectedValue={selectedFontStyle}
-                style={styles.picker}
-                onValueChange={(itemValue) => setSelectedFontStyle(itemValue)}>
-                {fontStyles.map((font, index) => (
-                  <Picker.Item key={index} label={font.label} value={font.value} />
-                ))}
-              </Picker>
-              {inputText && (
-                <MainButton
-                  Title="Add Sign"
-                  colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-                  styles={{
-                    paddingHorizontal: widthToDp(4),
-                    paddingVertical: widthToDp(2),
-                  }}
-                  onPress={() => handleTextToImage(inputText)}
+            {selectedOption === 'upload' && (
+              <View>
+                <Text style={styles.sectionTitle}>Upload signature</Text>
+                <Text style={styles.sectionDescription}>
+                  Use a clear PNG or JPG with the signature centered.
+                </Text>
+                <TouchableOpacity
+                  style={styles.uploadArea}
+                  onPress={chooseSignatureImage}>
+                  {uploadedImageUri ? (
+                    <Image
+                      source={{uri: uploadedImageUri}}
+                      style={styles.uploadedImage}
+                    />
+                  ) : (
+                    <>
+                      <View style={styles.uploadIcon}>
+                        <Feather
+                          name="image"
+                          size={24}
+                          color={BookingColors.primary}
+                        />
+                      </View>
+                      <Text style={styles.uploadTitle}>Choose an image</Text>
+                      <Text style={styles.uploadDescription}>
+                        PNG or JPG from your photo library
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                {uploadedImageUri && (
+                  <TouchableOpacity
+                    style={styles.replaceButton}
+                    onPress={chooseSignatureImage}>
+                    <Feather
+                      name="refresh-cw"
+                      size={15}
+                      color={BookingColors.primary}
+                    />
+                    <Text style={styles.replaceButtonText}>Choose another</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[
+                    styles.primaryButton,
+                    !uploadedImageUri && styles.primaryButtonDisabled,
+                  ]}
+                  onPress={useUploadedSignature}
+                  disabled={!uploadedImageUri || saving}>
+                  {saving ? (
+                    <ActivityIndicator color={BookingColors.white} />
+                  ) : (
+                    <>
+                      <Text style={styles.primaryButtonText}>
+                        Use signature
+                      </Text>
+                      <Feather
+                        name="arrow-right"
+                        size={19}
+                        color={BookingColors.white}
+                      />
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {!!errorMessage && (
+              <View style={styles.errorBanner}>
+                <Feather
+                  name="alert-circle"
+                  size={17}
+                  color={BookingColors.error}
                 />
-              )}
-            </View>
-          )}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}>
-            <Text style={styles.closeText}>Close</Text>
-          </TouchableOpacity>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
+          </ScrollView>
+
+          {saving &&
+            selectedOption !== 'type' &&
+            selectedOption !== 'upload' && (
+              <View style={styles.savingOverlay}>
+                <ActivityIndicator color={BookingColors.primary} />
+                <Text style={styles.savingText}>Adding signature…</Text>
+              </View>
+            )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
+
+const signatureWebStyle = `
+  .m-signature-pad {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+  .m-signature-pad--body {
+    border: 0 !important;
+  }
+  /* The in-canvas Clear/Save footer sits inside a fixed-height, clipped
+     container and reliably gets cut off, so it's replaced with the native
+     Clear/Use signature buttons below the canvas instead. */
+  .m-signature-pad--footer {
+    display: none !important;
+  }
+`;
+
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  modalRoot: {flex: 1, justifyContent: 'flex-end'},
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(18, 24, 38, 0.56)',
   },
-  modalContainer: {
-    width: widthToDp(90),
-    padding: 20,
-    backgroundColor: 'white',
+  sheet: {
+    maxHeight: '88%',
+    minHeight: '55%',
+    backgroundColor: BookingColors.surface,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingTop: 10,
+    overflow: 'hidden',
+  },
+  handle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: BookingColors.borderStrong,
+    marginBottom: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  headerCopy: {flex: 1, paddingRight: 12},
+  heading: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 22,
+    color: BookingColors.textPrimary,
+  },
+  subheading: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    color: BookingColors.textSecondary,
+    marginTop: 4,
+  },
+  closeButton: {
+    width: 38,
+    height: 38,
     borderRadius: 10,
     alignItems: 'center',
-  },
-  modalHeading: {
-    fontFamily: "DancingScript-VariableFont_wght",
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    justifyContent: 'center',
+    backgroundColor: BookingColors.background,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
   },
   optionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    flexWrap: 'wrap',
+    marginHorizontal: 20,
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: BookingColors.background,
   },
   optionButton: {
     flex: 1,
-    paddingVertical: 10,
-    backgroundColor: '#FF7F00',
-    borderRadius: 5,
-    alignItems: 'center',
-    marginHorizontal: 5,
-    marginVertical: 5,
-  },
-  optionText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    marginVertical: 10,
-    color: Colors.Black
-    // backgroundColor: 'black',
-  },
-  signatureContainer: {
-    width: '100%',
-    height: 500,
-    marginTop: 20,
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-  },
-  contentContainer: {
-    width: '100%',
-    marginTop: 20,
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-  },
-  contentText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  uploadedImage: {
-    width: '100%',
-    height: 200,
-    marginTop: 10,
-    resizeMode: 'contain',
-    borderRadius: 5,
-  },
-  closeButton: {
-    marginTop: 20,
-  },
-  closeText: {
-    color: 'gray',
-    fontSize: 16,
-  },
-  textInput: {
-    width: '100%',
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 20,
-    color: Colors.Black
-  },
-  styledTextContainer: {
-    width: '100%',
-    alignItems: 'center',
-    backgroundColor: 'white'
-  },
-  styledText: {
-    fontSize: 20,
-    color: Colors.Black,
-    // fontWeight: 'bold',
-  },
-  signModalContainer: {
-    maxHeight: 300, // Limit max height to 300px
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-  },
-  scrollContent: {
-    paddingVertical: 10,
-  },
-  signItemContainer: {
+    minHeight: 54,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 10,
+    gap: 3,
   },
-  deleteButton: {
+  optionActive: {
+    backgroundColor: BookingColors.surface,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+  },
+  optionText: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    color: BookingColors.textSecondary,
+  },
+  optionTextActive: {color: BookingColors.primary},
+  contentScroll: {marginTop: 6},
+  content: {padding: 20, paddingBottom: 30},
+  sectionTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+    color: BookingColors.textPrimary,
+  },
+  sectionDescription: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    color: BookingColors.textSecondary,
+    marginTop: 3,
+    marginBottom: 16,
+  },
+  savedRow: {gap: 10},
+  savedCard: {
+    flex: 1,
+    minHeight: 132,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
+    padding: 10,
+    marginBottom: 10,
+  },
+  savedImage: {
+    width: '100%',
+    height: 76,
+    resizeMode: 'contain',
+    backgroundColor: BookingColors.backgroundSubtle,
+    borderRadius: 8,
+  },
+  savedCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  savedUseText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    color: BookingColors.primary,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 26,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
+  emptyIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: BookingColors.primarySoft,
+  },
+  emptyTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+    marginTop: 12,
+  },
+  emptyDescription: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    color: BookingColors.textSecondary,
+    marginTop: 3,
+  },
+  signatureCanvas: {
+    height: 285,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: BookingColors.borderStrong,
+    overflow: 'hidden',
+    backgroundColor: BookingColors.surface,
+  },
+  textInput: {
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: BookingColors.borderStrong,
+    paddingHorizontal: 14,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+    backgroundColor: BookingColors.surface,
+  },
+  fontRow: {gap: 8, paddingVertical: 12},
+  fontChip: {
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  fontChipActive: {
+    borderColor: BookingColors.primary,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  fontChipText: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+    color: BookingColors.textSecondary,
+  },
+  fontChipTextActive: {color: BookingColors.primary},
+  typedPreview: {
+    height: 110,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    backgroundColor: BookingColors.backgroundSubtle,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+  },
+  typedSignature: {fontSize: 30, color: BookingColors.textPrimary},
+  uploadArea: {
+    minHeight: 160,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: BookingColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  uploadIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: BookingColors.surface,
+  },
+  uploadTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+    marginTop: 10,
+  },
+  uploadDescription: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    color: BookingColors.textSecondary,
+    marginTop: 3,
+  },
+  uploadedImage: {width: '100%', height: 130, resizeMode: 'contain'},
+  replaceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 10,
+  },
+  replaceButtonText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    color: BookingColors.primary,
+  },
+  primaryButton: {
+    height: 52,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: BookingColors.primary,
+    marginTop: 14,
+  },
+  primaryButtonDisabled: {backgroundColor: BookingColors.borderStrong},
+  primaryButtonText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.white,
+  },
+  drawActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 14,
+  },
+  drawUseButton: {flex: 1, marginTop: 0},
+  clearButton: {
+    height: 52,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: BookingColors.borderStrong,
+  },
+  clearButtonText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: BookingColors.textPrimary,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 9,
+    borderRadius: 10,
+    padding: 12,
+    backgroundColor: BookingColors.errorSoft,
+    marginTop: 14,
+  },
+  errorText: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 17,
+    color: BookingColors.error,
+  },
+  savingOverlay: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    left: 20,
+    right: 20,
+    bottom: 20,
+    height: 50,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: BookingColors.primarySoft,
+    borderWidth: 1,
+    borderColor: BookingColors.primary,
   },
-  signatureWebStyle: `
-    .m-signature-pad {
-      border: none !important;
-      box-shadow: none !important;
-      background-color: transparent !important;
-    }
-    .m-signature-pad--footer {
-      display: flex;
-      justify-content: space-between; 
-      align-items: center;
-      border-top: 1px solid #ddd;
-      padding: 10px;
-      margin-top:20px;
-    }
-    .m-signature-pad--footer .button {
-      height: 50px;
-      font-size: 18px;
-       flex: 1; /* Ensures both buttons have equal width */
-      margin: 0 10px;
-    }
-    .m-signature-pad--footer .button.clear {
-      background-color: #FF7F00 !important;
-      color: white !important;
-    }
-    .m-signature-pad--footer .button.save {
-      background-color: #4CAF50 !important;
-      color: white !important;
-    }
-  `,
+  savingText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    color: BookingColors.primary,
+  },
 });
 
-export default DrawSignTypeModal
+export default DrawSignTypeModal;

@@ -51,6 +51,22 @@ const formatDate = value => {
   });
 };
 
+const formatTime = value => {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+
 export default function BookingCard({booking, onPress}) {
   const [avatarFailed, setAvatarFailed] = useState(false);
   const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending;
@@ -71,9 +87,14 @@ export default function BookingCard({booking, onPress}) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-  const date = booking.displayDate || formatDate(booking.date_of_booking);
+  const date =
+    booking.displayDate ||
+    formatDate(booking.date_of_booking || booking.date_time_session);
   const time =
-    booking.displayTime || booking.time_of_booking || 'Time to be confirmed';
+    booking.displayTime ||
+    booking.time_of_booking ||
+    formatTime(booking.date_time_session) ||
+    'Time to be confirmed';
   const location =
     booking.location ||
     agent.location ||

@@ -111,6 +111,7 @@ export const GET_CLIENT_BOOKING = gql`
         totalPrice
         agora_channel_name
         agora_channel_token
+        arrival_otp
         signature_request_id
         signatures {
           signatureId

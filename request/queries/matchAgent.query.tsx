@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
 export const GET_MATCHED_AGENT = gql`
-  query MatchAgent($serviceType: String!) {
-    matchAgent(serviceType: $serviceType) {
+  query MatchAgent($serviceType: String!, $coordinates: [Float!]) {
+    matchAgent(serviceType: $serviceType, coordinates: $coordinates) {
       status
       message
       user {

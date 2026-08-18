@@ -35,22 +35,31 @@ import {
   socketRequest,
   waitForSocketConnection,
 } from '../../utils/Socket';
+import {
+  buildSessionInviteMedia,
+  parseSessionInviteMedia,
+} from '../../utils/sessionInvite';
 
 const getMessageId = message => String(message?._id || message?.id || '');
 
-const formatMessage = message => ({
-  _id: getMessageId(message),
-  text: message?.text || '',
-  image: message?.mediaUrl || message?.image || '',
-  createdAt: new Date(message?.createdAt || Date.now()),
-  user: {
-    _id: String(message?.user?._id || message?.user || ''),
-    name: [message?.user?.first_name, message?.user?.last_name]
-      .filter(Boolean)
-      .join(' '),
-    avatar: message?.user?.profile_picture || '',
-  },
-});
+const formatMessage = message => {
+  const sessionInvite = parseSessionInviteMedia(message?.mediaUrl);
+
+  return {
+    _id: getMessageId(message),
+    text: message?.text || '',
+    sessionInvite,
+    image: sessionInvite ? '' : message?.mediaUrl || message?.image || '',
+    createdAt: new Date(message?.createdAt || Date.now()),
+    user: {
+      _id: String(message?.user?._id || message?.user || ''),
+      name: [message?.user?.first_name, message?.user?.last_name]
+        .filter(Boolean)
+        .join(' '),
+      avatar: message?.user?.profile_picture || '',
+    },
+  };
+};
 
 const mergeMessage = (current, incoming, temporaryId) => {
   const formatted = formatMessage(incoming);
@@ -78,6 +87,7 @@ export default function ChatScreen({route, navigation}: any) {
     voiceToken,
   } = route.params || {};
   const authenticatedUser = useSelector((state: any) => state?.user?.user);
+  const activeBooking = useSelector((state: any) => state?.booking?.booking);
   const sender = authenticatedUser?._id ? authenticatedUser : routeSender;
   const receiver = routeReceiver || conversation?.participant;
   const senderId = String(sender?._id || '');
@@ -236,7 +246,7 @@ export default function ChatScreen({route, navigation}: any) {
   }, [connectionState, loadGraphQLHistory]);
 
   const sendMessage = useCallback(
-    async (outgoing: {text?: string; image?: any}) => {
+    async (outgoing: {text?: string; image?: any; sessionInvite?: any}) => {
       if (connectionState === 'connecting' || !chatIdRef.current) {
         Toast.show({
           type: 'info',
@@ -247,7 +257,9 @@ export default function ChatScreen({route, navigation}: any) {
       }
 
       const tempId = `local-${Date.now()}-${Math.random()}`;
-      let mediaUrl = '';
+      let mediaUrl = outgoing.sessionInvite
+        ? buildSessionInviteMedia(outgoing.sessionInvite)
+        : '';
       try {
         if (outgoing.image?.uri) {
           const compressedImage = await handleCompression(outgoing.image.uri);
@@ -261,7 +273,8 @@ export default function ChatScreen({route, navigation}: any) {
         const optimisticMessage = {
           _id: tempId,
           text: outgoing.text?.trim() || '',
-          image: mediaUrl,
+          image: outgoing.sessionInvite ? '' : mediaUrl,
+          sessionInvite: outgoing.sessionInvite || null,
           createdAt: new Date(),
           user: {_id: senderId},
           pending: true,
@@ -349,6 +362,65 @@ export default function ChatScreen({route, navigation}: any) {
     setSelectedImages([]);
   }, [inputMessage, selectedImages, sendMessage]);
 
+  const openSessionInvite = useCallback(
+    async invite => {
+      const channelName =
+        invite?.channel || activeBooking?.agora_channel_name || channel;
+      const channelToken =
+        invite?.token || activeBooking?.agora_channel_token || voiceToken;
+
+      if (!channelName || !channelToken) {
+        Toast.show({
+          type: 'error',
+          text1: 'Session is unavailable',
+          text2: 'Open the booking and try joining again.',
+        });
+        return;
+      }
+
+      const isAgent = String(authenticatedUser?.account_type || '').includes(
+        'agent',
+      );
+      const callParams = {
+        uid: invite?.bookingId || activeBooking?._id,
+        channel: channelName,
+        token: channelToken,
+        date: invite?.date || activeBooking?.date_of_booking,
+        time: invite?.time || activeBooking?.time_of_booking,
+        routeFrom: isAgent ? 'agent' : 'client',
+      };
+
+      if (String(invite?.joinedBy || '') !== senderId) {
+        const displayName = [
+          authenticatedUser?.first_name,
+          authenticatedUser?.last_name,
+        ]
+          .filter(Boolean)
+          .join(' ');
+        await sendMessage({
+          text: `${
+            displayName || (isAgent ? 'Your notary' : 'Your client')
+          } has joined the secure session.`,
+          sessionInvite: {...invite, ...callParams, joinedBy: senderId},
+        });
+      }
+
+      navigation.navigate(
+        isAgent ? 'NotaryCallScreen' : 'AuthenticationScreen',
+        callParams,
+      );
+    },
+    [
+      activeBooking,
+      authenticatedUser,
+      channel,
+      navigation,
+      sendMessage,
+      senderId,
+      voiceToken,
+    ],
+  );
+
   const receiverName = useMemo(
     () =>
       [receiver?.first_name, receiver?.last_name].filter(Boolean).join(' ') ||
@@ -358,19 +430,44 @@ export default function ChatScreen({route, navigation}: any) {
   );
 
   const renderBubble = useCallback(
-    props => (
-      <Bubble
-        {...props}
-        bottomContainerStyle={{
-          left: styles.bubbleBottom,
-          right: styles.bubbleBottom,
-        }}
-        textStyle={{left: styles.leftText, right: styles.rightText}}
-        timeTextStyle={{left: styles.leftTime, right: styles.rightTime}}
-        wrapperStyle={{left: styles.leftBubble, right: styles.rightBubble}}
-      />
-    ),
-    [],
+    props => {
+      const invite = props.currentMessage?.sessionInvite;
+      const position = props.position === 'right' ? 'right' : 'left';
+
+      return (
+        <View
+          style={[
+            styles.messageGroup,
+            position === 'right' && styles.messageGroupRight,
+          ]}>
+          <Bubble
+            {...props}
+            bottomContainerStyle={{
+              left: styles.bubbleBottom,
+              right: styles.bubbleBottom,
+            }}
+            textStyle={{left: styles.leftText, right: styles.rightText}}
+            timeTextStyle={{left: styles.leftTime, right: styles.rightTime}}
+            wrapperStyle={{left: styles.leftBubble, right: styles.rightBubble}}
+          />
+          {invite ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={0.8}
+              onPress={() => openSessionInvite(invite)}
+              style={[
+                styles.joinSessionButton,
+                position === 'right' && styles.joinSessionButtonRight,
+              ]}>
+              <Feather name="video" size={16} color="#FFFFFF" />
+              <Text style={styles.joinSessionText}>Join session</Text>
+              <Feather name="arrow-right" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      );
+    },
+    [openSessionInvite],
   );
 
   const renderInputToolbar = useCallback(
@@ -640,6 +737,28 @@ const styles = StyleSheet.create({
   leftTime: {color: '#969DA8', fontSize: 9},
   rightTime: {color: '#FFE1D0', fontSize: 9},
   bubbleBottom: {marginTop: 1},
+  messageGroup: {maxWidth: '86%', alignItems: 'flex-start'},
+  messageGroupRight: {alignItems: 'flex-end'},
+  joinSessionButton: {
+    minWidth: 190,
+    height: 46,
+    marginTop: 6,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    borderRadius: 12,
+    backgroundColor: '#171D29',
+  },
+  joinSessionButtonRight: {backgroundColor: '#D95218'},
+  joinSessionText: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    textAlign: 'center',
+  },
   inputToolbar: {
     minHeight: 68,
     marginHorizontal: 12,

@@ -650,12 +650,13 @@ function LiveMedicalBookingScreen({route, navigation}) {
     navigation.navigate('HomeScreen', {screen: 'ChatContactScreen'});
   };
   const handleJoinSession = () => {
-    navigation.navigate('WaitingRoomScreen', {
+    navigation.navigate('AuthenticationScreen', {
       uid: bookingDetail?._id,
       channel: bookingDetail?.agora_channel_name,
       token: bookingDetail?.agora_channel_token,
       time: bookingDetail?.time_of_booking,
       date: bookingDetail?.date_of_booking,
+      routeFrom: 'client',
     });
   };
   const handleCancelBooking = () => {

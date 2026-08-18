@@ -27,8 +27,11 @@ import {
   waitForSocketConnection,
 } from '../../utils/Socket';
 
-const AGORA_APP_ID = 'abd7df71ee024625b2cc979e12aec405';
+const AGORA_APP_ID = 'f64e76f674b646bc965dc3e257b4e108';
 const RING_TIMEOUT_MS = 45000;
+
+const createChannelName = (senderId: string, receiverId: string) =>
+  `notarizr-${[senderId, receiverId].sort().join('-')}-${Date.now()}`;
 
 const displayName = user =>
   [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
@@ -156,7 +159,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
       engine.initialize({appId: AGORA_APP_ID});
       engine.enableAudio();
       engine.setChannelProfile(ChannelProfileType.ChannelProfileCommunication);
-      engine.joinChannel(token, channelName, 0, {
+      engine.joinChannel(token || '', channelName, 0, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
       });
     },
@@ -232,14 +235,21 @@ export default function VoiceCallScreen({route, navigation}: any) {
         await waitForSocketConnection();
 
         let channelName = suppliedChannel;
-        let token = suppliedToken;
-        if (!channelName || !token) {
-          const credentials = await getAgoraCallToken(targetId);
-          channelName = credentials?.channelName;
-          token = credentials?.token;
+        let token = suppliedToken || '';
+        if (!channelName) {
+          try {
+            const credentials = await getAgoraCallToken(targetId);
+            channelName = credentials?.channelName;
+            token = credentials?.token || '';
+          } catch (error) {
+            console.warn(
+              'Agora token service unavailable; using App ID-only mode:',
+              error,
+            );
+          }
         }
-        if (!channelName || !token) {
-          throw new Error('A secure call channel could not be created.');
+        if (!channelName) {
+          channelName = createChannelName(String(sender?._id || ''), targetId);
         }
 
         if (incoming) {
@@ -292,6 +302,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
     getAgoraCallToken,
     incoming,
     initializeAgora,
+    sender?._id,
     suppliedChannel,
     suppliedToken,
     targetId,

@@ -13,7 +13,6 @@ import moment from 'moment';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
-import AvailabilitySchedule from './AvailabilitySchedule';
 
 const STATUS_CONFIG = {
   accepted: {
@@ -103,6 +102,22 @@ const getInitials = name =>
     .map(part => part[0])
     .join('')
     .toUpperCase();
+
+const getUploadedFiles = booking => {
+  const fromDocuments = Array.isArray(booking?.documents)
+    ? booking.documents
+    : booking?.documents && typeof booking.documents === 'object'
+    ? Object.values(booking.documents)
+    : [];
+  const fromClientDocuments =
+    booking?.client_documents && typeof booking.client_documents === 'object'
+      ? Object.values(booking.client_documents)
+      : [];
+
+  return [...fromDocuments, ...fromClientDocuments]
+    .map(item => (typeof item === 'string' ? {url: item} : item))
+    .filter(item => item?.url || item?.uri);
+};
 
 const getDocumentList = (booking, isMobile) => {
   const value = booking?.document_type;
@@ -248,6 +263,8 @@ export default function ClientBookingDetailsView({
     () => getDocumentList(booking, isMobile),
     [booking, isMobile],
   );
+  const uploadedFiles = useMemo(() => getUploadedFiles(booking), [booking]);
+  const hasUploadedFiles = uploadedFiles.length > 0;
   const additionalSignatures = Math.max(
     0,
     Number(booking?.total_signatures_required || 0),
@@ -352,28 +369,29 @@ export default function ClientBookingDetailsView({
 
     return (
       <>
-        {statusKey === 'travelling' ? (
+        <ActionButton
+          disabled={loading}
+          icon={isMobile ? 'message-circle' : 'video'}
+          label={isMobile ? 'Message notary' : 'Join secure session'}
+          onPress={isMobile ? onMessage : onJoin}
+        />
+        {isMobile ? (
           <ActionButton
             disabled={loading}
             icon="navigation"
-            label="Track notary"
+            label="Track"
             onPress={onTrack}
+            secondary
           />
         ) : (
           <ActionButton
             disabled={loading}
-            icon={isMobile ? 'message-circle' : 'video'}
-            label={isMobile ? 'Message notary' : 'Join secure session'}
-            onPress={isMobile ? onMessage : onJoin}
+            icon="upload-cloud"
+            label={hasUploadedFiles ? 'Add more documents' : 'Upload documents'}
+            onPress={onUpload}
+            secondary
           />
         )}
-        <ActionButton
-          disabled={loading}
-          icon="upload-cloud"
-          label="Upload documents"
-          onPress={onUpload}
-          secondary
-        />
       </>
     );
   };
@@ -486,20 +504,28 @@ export default function ClientBookingDetailsView({
           />
         </Section>
 
-        <AvailabilitySchedule
-          schedule={booking?.service?.availability?.schedule}
-        />
-
-        <Section title="Request">
+        <Section title="Notary Request">
           {documents.map((document, index) => (
             <InfoRow
               icon="file-text"
               key={`${document?.name || 'document'}-${index}`}
               label={index === 0 ? 'Document type' : `Document ${index + 1}`}
-              last={index === documents.length - 1 && !booking?.notes}
               value={document?.name || 'Notary document'}
             />
           ))}
+          <InfoRow
+            icon={hasUploadedFiles ? 'check-circle' : 'upload-cloud'}
+            label="Uploaded files"
+            value={
+              hasUploadedFiles
+                ? `${uploadedFiles.length} file${
+                    uploadedFiles.length === 1 ? '' : 's'
+                  } attached`
+                : isMobile
+                ? 'None yet — bring it or upload before your appointment'
+                : 'None yet — upload before your session'
+            }
+          />
           <InfoRow
             icon="edit-3"
             label="Additional signatures"

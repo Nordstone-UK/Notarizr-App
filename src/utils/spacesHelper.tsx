@@ -64,8 +64,14 @@ const requestUpload = async (fileName, contentType, purpose) => {
   const payload = await response.json();
   const upload = payload?.data?.createMediaUpload;
   if (!response.ok || payload?.errors?.length || !upload?.uploadUrl) {
+    const serverMessage = payload?.errors?.[0]?.message;
+    if (serverMessage === 'DIGITALOCEAN_SPACES_NOT_CONFIGURED') {
+      throw new Error(
+        'Document storage is not configured on the server. Please try again after storage is enabled.',
+      );
+    }
     throw new Error(
-      payload?.errors?.[0]?.message || 'Unable to prepare file upload.',
+      serverMessage || 'Unable to prepare file upload.',
     );
   }
   return upload;
@@ -103,13 +109,20 @@ export const uploadFileToSpaces = async ({file}) => {
   });
 };
 
-export const uploadDocumentToSpaces = async ({file}) => {
+export const uploadDocumentToSpaces = async ({
+  file,
+  fileName,
+  contentType: selectedContentType,
+}) => {
   const blob = await uriToBlob(file);
-  const {name, contentType} = blobDetails(blob, `document-${Date.now()}.pdf`);
+  const {name, contentType} = blobDetails(
+    blob,
+    fileName || `document-${Date.now()}.pdf`,
+  );
   return uploadToSpaces({
     body: blob,
-    fileName: name,
-    contentType,
+    fileName: fileName || name,
+    contentType: selectedContentType || contentType,
     purpose: 'document',
   });
 };
