@@ -222,9 +222,9 @@ export default function BookingDetailsPreview({booking, navigation}) {
           />
         </Section>
 
-        <AvailabilitySchedule
+        {/* <AvailabilitySchedule
           schedule={booking?.service?.availability?.schedule}
-        />
+        /> */}
 
         <Section title="Request details">
           <DetailRow

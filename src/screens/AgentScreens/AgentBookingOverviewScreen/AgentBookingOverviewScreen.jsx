@@ -1,7 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {
+  ActivityIndicator,
   LayoutAnimation,
   Linking,
+  PermissionsAndroid,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -38,6 +40,7 @@ import {
 } from '../../../../request/mutations/updateAllocationRequest.mutation';
 import {UPDATE_BOOKING_STATUS} from '../../../../request/mutations/updateBookingStatus.mutation';
 import {UPDATE_SESSION_STATUS} from '../../../../request/mutations/updateSessionStatus.mutation';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
 const STATUS_CONFIG = {
   pending: {
@@ -92,7 +95,7 @@ const formatStatus = value =>
     .replaceAll('_', ' ')
     .replace(/\b\w/g, character => character.toUpperCase());
 
-function DetailRow({icon, label, value, last = false, onPress}) {
+function DetailRow({icon, label, value, last = false, onPress, rightIcon, rightLoading}) {
   const content = (
     <>
       <View style={styles.detailIcon}>
@@ -103,11 +106,15 @@ function DetailRow({icon, label, value, last = false, onPress}) {
         <Text style={styles.detailValue}>{value}</Text>
       </View>
       {onPress ? (
-        <Feather
-          name="chevron-right"
-          size={18}
-          color={BookingColors.textMuted}
-        />
+        rightLoading ? (
+          <ActivityIndicator size="small" color={BookingColors.primary} />
+        ) : (
+          <Feather
+            name={rightIcon || 'chevron-right'}
+            size={18}
+            color={rightIcon ? BookingColors.primary : BookingColors.textMuted}
+          />
+        )
       ) : null}
     </>
   );
@@ -248,6 +255,8 @@ function PricingBreakdown({booking, price}) {
     setExpanded(v => !v);
   };
 
+  console.log(booking, 'booking');
+
   return (
     <View>
       <TouchableOpacity
@@ -311,6 +320,57 @@ function PricingBreakdown({booking, price}) {
   );
 }
 
+function DocumentDownloadRow({url, index, isLast, downloading, onDownload}) {
+  const rawName = String(url).split('/').pop().split('?')[0];
+  const fileName = decodeURIComponent(rawName) || `Document ${index + 1}`;
+  return (
+    <View style={[styles.docRow, isLast && styles.lastDetailRow]}>
+      <View style={styles.detailIcon}>
+        <Feather name="file-text" size={16} color={BookingColors.primary} />
+      </View>
+      <View style={styles.detailCopy}>
+        <Text style={styles.detailLabel}>Document {index + 1}</Text>
+        <Text style={styles.detailValue} numberOfLines={1}>
+          {fileName}
+        </Text>
+      </View>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        disabled={downloading}
+        onPress={() => onDownload(url, fileName)}
+        style={styles.downloadBtn}>
+        {downloading ? (
+          <ActivityIndicator size="small" color={BookingColors.primary} />
+        ) : (
+          <Feather name="download" size={17} color={BookingColors.primary} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const requestStoragePermission = async () => {
+  if (Platform.OS !== 'android') {
+    return true;
+  }
+  try {
+    const permissions =
+      Platform.Version >= 33
+        ? [
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          ]
+        : [PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE];
+
+    const granted = await PermissionsAndroid.requestMultiple(permissions);
+    return permissions.every(
+      p => granted[p] === PermissionsAndroid.RESULTS.GRANTED,
+    );
+  } catch {
+    return false;
+  }
+};
+
 export default function AgentBookingOverviewScreen({navigation, route}) {
   const storedBooking = useSelector(state => state.booking.booking);
   const authenticatedAgent = useSelector(state => state.user.user);
@@ -322,6 +382,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     booking?.agentResquesStatus || booking?.status || 'pending';
   const [status, setStatus] = useState(String(initialStatus).toLowerCase());
   const [activeAction, setActiveAction] = useState(null);
+  const [downloadingDocs, setDownloadingDocs] = useState({});
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS);
   const [updateSessionStatus] = useMutation(UPDATE_SESSION_STATUS);
   const [acceptAllocation] = useMutation(ACCEPT_ALLOCATION_REQUEST);
@@ -342,6 +403,99 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     .filter(Boolean)
     .join(' ');
   const price = Number(booking?.totalPrice ?? booking?.price ?? 0);
+
+  const hasPrintFee = useMemo(() => {
+    const docTypes = Array.isArray(booking?.document_type)
+      ? booking.document_type
+      : booking?.document_type
+      ? [booking.document_type]
+      : [];
+    const isMobile =
+      (booking?.service_type || booking?.service?.service_type) ===
+      'mobile_notary';
+    return isMobile && docTypes.length > 0;
+  }, [booking?.document_type, booking?.service_type, booking?.service?.service_type]);
+
+  const allDocumentUrls = useMemo(() => {
+    const docs = Array.isArray(booking?.documents) ? booking.documents : [];
+    const proofs = Array.isArray(booking?.proof_documents)
+      ? booking.proof_documents
+      : [];
+    return [...docs, ...proofs].filter(
+      item => typeof item === 'string' && item.startsWith('http'),
+    );
+  }, [booking?.documents, booking?.proof_documents]);
+
+  const isDownloadingDocs = allDocumentUrls.some(u => downloadingDocs[u]);
+
+  const downloadDocument = async (url, fileName) => {
+    setDownloadingDocs(prev => ({...prev, [url]: true}));
+    Toast.show({
+      type: 'info',
+      text1: 'Download starting',
+      text2: fileName,
+    });
+    try {
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        Toast.show({
+          type: 'error',
+          text1: 'Permission denied',
+          text2: 'Storage permission is required to save files.',
+        });
+        return;
+      }
+      const dirs = ReactNativeBlobUtil.fs.dirs;
+      const destDir =
+        Platform.OS === 'android' ? dirs.DownloadDir : dirs.DocumentDir;
+      const destPath = `${destDir}/${fileName}`;
+      const result = await ReactNativeBlobUtil.config({
+        fileCache: true,
+        path: destPath,
+        addAndroidDownloads: {
+          useDownloadManager: true,
+          notification: true,
+          title: fileName,
+          description: 'Notarizr document',
+          mime: 'application/pdf',
+          mediaScannable: true,
+        },
+      }).fetch('GET', url);
+      if (result.info().status === 200) {
+        Toast.show({
+          type: 'success',
+          text1: 'Download complete',
+          text2: `${fileName} saved to your device.`,
+        });
+      } else {
+        throw new Error(`Status ${result.info().status}`);
+      }
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Download failed',
+        text2: 'Please check your connection and try again.',
+      });
+    } finally {
+      setDownloadingDocs(prev => ({...prev, [url]: false}));
+    }
+  };
+
+  const downloadAllDocuments = async () => {
+    if (allDocumentUrls.length === 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'No files attached',
+        text2: 'No downloadable documents are attached to this booking yet.',
+      });
+      return;
+    }
+    for (const url of allDocumentUrls) {
+      const rawName = String(url).split('/').pop().split('?')[0];
+      const fileName = decodeURIComponent(rawName) || 'document.pdf';
+      await downloadDocument(url, fileName);
+    }
+  };
 
   const updateStatus = async nextStatus => {
     setActiveAction(nextStatus);
@@ -385,6 +539,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         navigation.goBack();
       }
     } catch (error) {
+      console.log(error, 'error');
       Toast.show({
         type: 'error',
         text1: 'Booking not updated',
@@ -554,24 +709,65 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
                   'Contact through Notarizr'}
               </Text>
             </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() =>
-                navigation.navigate('ChatScreen', {
-                  sender: authenticatedAgent || booking?.agent,
-                  receiver: client,
-                  chat: booking?._id,
-                  channel: booking?.agora_channel_name,
-                  voiceToken: booking?.agora_channel_token,
-                })
-              }
-              style={styles.messageButton}>
-              <Feather
-                name="message-circle"
-                size={19}
-                color={BookingColors.primary}
-              />
-            </TouchableOpacity>
+            <View style={styles.clientActions}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() =>
+                  navigation.navigate('ChatScreen', {
+                    sender: authenticatedAgent || booking?.agent,
+                    receiver: client,
+                    chat: booking?._id,
+                    channel: booking?.agora_channel_name,
+                    voiceToken: booking?.agora_channel_token,
+                  })
+                }
+                style={styles.messageButton}>
+                <Feather
+                  name="message-circle"
+                  size={19}
+                  color={BookingColors.primary}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={async () => {
+                  if (booking?.agora_channel_name) {
+                    navigation.navigate('VoiceCallScreen', {
+                      sender: authenticatedAgent || booking?.agent,
+                      receiver: client,
+                      channelName: booking?.agora_channel_name,
+                      token: booking?.agora_channel_token,
+                    });
+                    return;
+                  }
+                  const phone = client?.phone_number;
+                  if (phone) {
+                    const url = `tel:${phone}`;
+                    try {
+                      const canOpen = await Linking.canOpenURL(url);
+                      if (!canOpen) {
+                        throw new Error('Cannot open phone dialer');
+                      }
+                      await Linking.openURL(url);
+                    } catch {
+                      Toast.show({
+                        type: 'error',
+                        text1: 'Unable to open dialer',
+                        text2: 'Please try again or use a different device.',
+                      });
+                    }
+                    return;
+                  }
+                  Toast.show({
+                    type: 'info',
+                    text1: 'No contact method available',
+                    text2: 'This client has no phone number on file.',
+                  });
+                }}
+                style={styles.callButton}>
+                <Feather name="phone" size={19} color={BookingColors.success} />
+              </TouchableOpacity>
+            </View>
           </View>
         </Section>
 
@@ -601,12 +797,19 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           />
         </Section>
 
-        <AvailabilitySchedule
+        {/* <AvailabilitySchedule
           schedule={booking?.service?.availability?.schedule}
-        />
+        /> */}
 
-        <Section title="Request">
-          <DetailRow icon="file-text" label="Documents" value={documentLabel} />
+        <Section title="Notary Request">
+          <DetailRow
+            icon="file-text"
+            label="Documents"
+            value={documentLabel}
+            onPress={hasPrintFee ? (isDownloadingDocs ? undefined : downloadAllDocuments) : undefined}
+            rightIcon={hasPrintFee ? 'download' : undefined}
+            rightLoading={hasPrintFee && isDownloadingDocs}
+          />
           <DetailRow
             icon="align-left"
             label="Instructions"
@@ -771,6 +974,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
   },
+  clientActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   messageButton: {
     width: 40,
     height: 40,
@@ -780,6 +988,16 @@ const styles = StyleSheet.create({
     borderColor: BookingColors.border,
     borderRadius: 8,
     backgroundColor: BookingColors.primarySoft,
+  },
+  callButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: BookingColors.successSoft,
+    borderRadius: 8,
+    backgroundColor: BookingColors.successSoft,
   },
   detailRow: {
     minHeight: 66,
@@ -792,6 +1010,24 @@ const styles = StyleSheet.create({
     borderBottomColor: BookingColors.border,
   },
   lastDetailRow: {borderBottomWidth: 0},
+  docRow: {
+    minHeight: 66,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 14,
+    paddingVertical: 11,
+    paddingRight: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  downloadBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+  },
   detailIcon: {
     width: 36,
     height: 36,
@@ -912,6 +1148,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
   },
+  breakdownRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  breakdownDownloadIcon: {marginRight: 6},
   breakdownAmount: {
     color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
