@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {throttle} from 'lodash';
-import MapView, {Marker} from 'react-native-maps';
+import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
@@ -22,6 +22,7 @@ import useBookingStatus from '../../hooks/useBookingStatus';
 import {setNavigationStatus} from '../../features/booking/bookingSlice';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import Feather from 'react-native-vector-icons/Feather';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 const GOOGLE_MAPS_APIKEY = 'AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA';
 const DEFAULT_COORDINATES = {latitude: 36.778259, longitude: -119.417931};
 
@@ -39,11 +40,18 @@ export default function AgentMapArrivalScreen({navigation}) {
   const [otpError, setOtpError] = useState('');
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
+  const mapRef = useRef(null);
+  const insets = useSafeAreaInsets();
   const clientData = useSelector(state => state.booking);
   const coordinates = useSelector(state => state.booking?.coordinates);
   const user = useSelector(state => state.user.user?.account_type);
   const arrivalOtp = useSelector(state => state.booking?.booking?.arrival_otp);
-  console.log('distanceee', distance);
+
+  const bookingClient =
+    clientData?.booking?.booked_by || clientData?.booking?.client;
+  const clientName = [bookingClient?.first_name, bookingClient?.last_name]
+    .filter(Boolean)
+    .join(' ');
   // useEffect(() => {
   //   const intervalId = setInterval(() => {
   //     handleGetLocation();
@@ -88,12 +96,33 @@ export default function AgentMapArrivalScreen({navigation}) {
   const handleGetLocationThrottled = throttle(handleGetLocation, 10000);
 
   useEffect(() => {
+    handleGetLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       handleGetLocationThrottled();
     }, 10000);
 
     return () => clearInterval(intervalId);
   }, [handleGetLocationThrottled]);
+
+  useEffect(() => {
+    if (!mapRef.current || !location || !coordinates?.length) {
+      return;
+    }
+    mapRef.current.fitToCoordinates(
+      [
+        {latitude: location.latitude, longitude: location.longitude},
+        {latitude: coordinates[0], longitude: coordinates[1]},
+      ],
+      {
+        edgePadding: {top: 140, right: 60, bottom: 260, left: 60},
+        animated: true,
+      },
+    );
+  }, [location, coordinates]);
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
@@ -165,85 +194,73 @@ export default function AgentMapArrivalScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={BookingColors.surface}
-      />
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={BookingColors.primary}
-          style={styles.loader}
-        />
-      ) : (
-        location && (
-          <>
-            <MapView
-              zoomEnabled={true}
-              initialRegion={{
-                latitude: location?.latitude,
-                longitude: location?.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-              provider="google"
-              showsUserLocation={true}
-              style={styles.map}>
-              {coordinates && (
-                <>
-                  <Marker
-                    key={clientData?.user?._id}
-                    coordinate={{
-                      latitude: coordinates[0],
-                      longitude: coordinates[1],
-                    }}
-                    title={
-                      clientData?.user?.first_name +
-                      ' ' +
-                      clientData?.user?.last_name
-                    }
-                    description={clientData?.user?.location}
-                  />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-                  <MapViewDirections
-                    origin={location}
-                    destination={{
-                      latitude: coordinates[0],
-                      longitude: coordinates[1],
-                    }}
-                    apikey={GOOGLE_MAPS_APIKEY}
-                    strokeWidth={3}
-                    strokeColor={BookingColors.info}
-                    mode="DRIVING"
-                    onReady={result => {
-                      if (
-                        result.distance !== distance ||
-                        result.duration !== duration
-                      ) {
-                        console.log('reisputdistance', result);
-                        setDistance(result.distance);
-                        setDuration(result.duration);
-                      }
-                    }}
-                    onError={errorMessage => {
-                      console.log('GOT AN ERROR', errorMessage);
-                    }}
-                  />
-                  <Marker
-                    coordinate={{
-                      latitude: location?.latitude,
-                      longitude: location?.longitude,
-                    }}
-                    title="Your Location"
-                    pinColor="green"
-                  />
-                </>
-              )}
-            </MapView>
-          </>
-        )
+      {location ? (
+        <MapView
+          ref={mapRef}
+          initialRegion={{
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+          provider={PROVIDER_GOOGLE}
+          showsUserLocation
+          style={styles.map}>
+          {coordinates?.length >= 2 && (
+            <>
+              {/* Client destination marker */}
+              <Marker
+                coordinate={{
+                  latitude: coordinates[0],
+                  longitude: coordinates[1],
+                }}
+                title={clientName || 'Client location'}
+                description={bookingClient?.location || ''}
+                pinColor={BookingColors.primary}
+              />
+
+              {/* Straight-line fallback — visible immediately while directions load */}
+              <Polyline
+                coordinates={[
+                  {latitude: location.latitude, longitude: location.longitude},
+                  {latitude: coordinates[0], longitude: coordinates[1]},
+                ]}
+                strokeColor={BookingColors.border}
+                strokeWidth={2}
+                lineDashPattern={[6, 4]}
+              />
+
+              {/* Actual driving route via Google Directions */}
+              <MapViewDirections
+                origin={location}
+                destination={{
+                  latitude: coordinates[0],
+                  longitude: coordinates[1],
+                }}
+                apikey={GOOGLE_MAPS_APIKEY}
+                strokeWidth={4}
+                strokeColor={BookingColors.info}
+                mode="DRIVING"
+                onReady={result => {
+                  setDistance(result.distance);
+                  setDuration(result.duration);
+                }}
+                onError={errorMessage => {
+                  console.log('Directions error:', errorMessage);
+                }}
+              />
+            </>
+          )}
+        </MapView>
+      ) : (
+        <View style={styles.mapPlaceholder}>
+          <ActivityIndicator size="large" color={BookingColors.primary} />
+          <Text style={styles.mapPlaceholderText}>Locating you…</Text>
+        </View>
       )}
-      <View style={styles.floatingHeader}>
+      <View style={[styles.floatingHeader, {top: insets.top + 10}]}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => navigation.goBack()}
@@ -255,11 +272,9 @@ export default function AgentMapArrivalScreen({navigation}) {
           />
         </TouchableOpacity>
         <View style={styles.headerCopy}>
-          <Text style={styles.headerEyebrow}>LIVE ROUTE</Text>
+          <Text style={styles.headerEyebrow}>EN ROUTE TO</Text>
           <Text numberOfLines={1} style={styles.headerTitle}>
-            {[clientData?.user?.first_name, clientData?.user?.last_name]
-              .filter(Boolean)
-              .join(' ') || 'Client appointment'}
+            {clientName || 'Client appointment'}
           </Text>
         </View>
         <TouchableOpacity
@@ -293,7 +308,7 @@ export default function AgentMapArrivalScreen({navigation}) {
         </TouchableOpacity>
       </View>
       {user !== 'client' && (
-        <View style={styles.tripPanel}>
+        <View style={[styles.tripPanel, {paddingBottom: Math.max(insets.bottom, 16)}]}>
           <View style={styles.tripHandle} />
           <View style={styles.tripSummary}>
             <View style={styles.routeIcon}>
@@ -366,7 +381,7 @@ export default function AgentMapArrivalScreen({navigation}) {
       )}
 
       {user === 'client' && (
-        <View style={styles.tripPanel}>
+        <View style={[styles.tripPanel, {paddingBottom: Math.max(insets.bottom, 16)}]}>
           <View style={styles.tripHandle} />
           <View style={styles.tripSummary}>
             <View style={styles.routeIcon}>
@@ -423,7 +438,6 @@ const styles = StyleSheet.create({
   },
   floatingHeader: {
     position: 'absolute',
-    top: 14,
     left: 14,
     right: 14,
     flexDirection: 'row',
@@ -467,13 +481,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   map: {
-    flex: 1,
     ...StyleSheet.absoluteFillObject,
   },
+  mapPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: BookingColors.background,
+  },
+  mapPlaceholderText: {
+    marginTop: 12,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+  },
   tripPanel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 10,
     borderTopWidth: 1,
     borderTopColor: BookingColors.textPrimary,
     backgroundColor: BookingColors.textPrimary,
