@@ -137,36 +137,6 @@ function DetailRow({icon, label, value, last = false, onPress, rightIcon, rightL
   );
 }
 
-const openLocationInMaps = async address => {
-  const query = String(address || '').trim();
-  if (!query) {
-    Toast.show({
-      type: 'error',
-      text1: 'Location unavailable',
-      text2: 'No address is available for this booking.',
-    });
-    return;
-  }
-
-  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    query,
-  )}`;
-
-  try {
-    const canOpen = await Linking.canOpenURL(url);
-    if (!canOpen) {
-      throw new Error('Cannot open maps');
-    }
-    await Linking.openURL(url);
-  } catch {
-    Toast.show({
-      type: 'error',
-      text1: 'Unable to open Maps',
-      text2: 'Please try again later.',
-    });
-  }
-};
-
 function Section({children, title}) {
   return (
     <View style={styles.section}>
@@ -791,7 +761,10 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             value={normalized.location}
             onPress={
               normalized.service_type === 'mobile_notary'
-                ? () => openLocationInMaps(normalized.location)
+                ? () =>
+                    navigation.navigate('BookingLocationPreviewScreen', {
+                      address: normalized.location,
+                    })
                 : undefined
             }
           />
