@@ -350,12 +350,8 @@ export default function AgentMapArrivalScreen({navigation}) {
               <Text style={styles.tripText}>
                 {distance && duration
                   ? `${distance.toFixed(1)} km • ${duration.toFixed(0)} min`
-                  : 'Calculating live route…'}
+                  : 'Calculating route…'}
               </Text>
-            </View>
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>Live</Text>
             </View>
           </View>
 
