@@ -286,7 +286,11 @@ export default function AgentHomeScreen({navigation}) {
             </View>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('AllBookingScreen')}
+              onPress={() =>
+                navigation.navigate('AllBookingScreen', {
+                  initialStatus: 'pending',
+                })
+              }
               style={styles.viewAllButton}>
               <Text style={styles.viewAllText}>View all</Text>
               <Feather name="arrow-right" size={14} color="#D65322" />

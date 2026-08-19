@@ -31,14 +31,19 @@ const getBookingStatus = booking => {
   return booking.status;
 };
 
-export default function AllBookingScreen({navigation}) {
+export default function AllBookingScreen({navigation, route}) {
   const user = useSelector(state => state.user.user);
   const dispatch = useDispatch();
   const {fetchBookingInfo, handleClientSessions} = useFetchBooking();
   const fetchBookingInfoRef = useRef(fetchBookingInfo);
   const handleClientSessionsRef = useRef(handleClientSessions);
   const hasBookingsRef = useRef(false);
-  const [activeStatus, setActiveStatus] = useState('accepted');
+  // "New requests → View all" on the notary dashboard wants this list to
+  // open straight on the Pending tab; every other entry point keeps the
+  // previous default of Accepted.
+  const [activeStatus, setActiveStatus] = useState(
+    route.params?.initialStatus || 'accepted',
+  );
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -92,6 +97,20 @@ export default function AllBookingScreen({navigation}) {
   );
 
   const openBooking = booking => {
+    // A pending request still needs the notary's Accept/Decline decision —
+    // that's the same review screen the Home dashboard's "Review" button
+    // opens. Anything already decided (accepted, completed, etc.) goes to
+    // the regular read-only booking detail view.
+    if (booking.status === 'pending') {
+      dispatch(setBookingInfoState(booking));
+      dispatch(setUser(booking?.booked_by));
+      dispatch(
+        setCoordinates(booking?.booked_by?.current_location?.coordinates || []),
+      );
+      navigation.navigate('ClientDetailsScreen', {clientDetail: booking});
+      return;
+    }
+
     dispatch(setBookingInfoState(booking));
     dispatch(
       setCoordinates(booking?.booked_by?.current_location?.coordinates || []),

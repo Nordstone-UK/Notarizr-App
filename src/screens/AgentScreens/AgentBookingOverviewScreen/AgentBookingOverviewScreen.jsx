@@ -95,7 +95,15 @@ const formatStatus = value =>
     .replaceAll('_', ' ')
     .replace(/\b\w/g, character => character.toUpperCase());
 
-function DetailRow({icon, label, value, last = false, onPress, rightIcon, rightLoading}) {
+function DetailRow({
+  icon,
+  label,
+  value,
+  last = false,
+  onPress,
+  rightIcon,
+  rightLoading,
+}) {
   const content = (
     <>
       <View style={styles.detailIcon}>
@@ -384,16 +392,42 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       (booking?.service_type || booking?.service?.service_type) ===
       'mobile_notary';
     return isMobile && docTypes.length > 0;
-  }, [booking?.document_type, booking?.service_type, booking?.service?.service_type]);
+  }, [
+    booking?.document_type,
+    booking?.service_type,
+    booking?.service?.service_type,
+  ]);
 
   const allDocumentUrls = useMemo(() => {
-    const docs = Array.isArray(booking?.documents) ? booking.documents : [];
-    const proofs = Array.isArray(booking?.proof_documents)
-      ? booking.proof_documents
-      : [];
-    return [...docs, ...proofs].filter(
-      item => typeof item === 'string' && item.startsWith('http'),
-    );
+    // `documents`/`proof_documents` are untyped JSON on the backend, so
+    // they've shown up in the wild as a plain array of URL strings, an
+    // array of `{id, name, url}` upload objects (what the current booking
+    // flow actually saves), and a `{key: url}` map from older code paths.
+    // Normalize all three rather than assuming one shape.
+    const toEntries = value => {
+      if (Array.isArray(value)) {
+        return value;
+      }
+      if (value && typeof value === 'object') {
+        return Object.values(value);
+      }
+      return [];
+    };
+    const toUrl = item => {
+      if (typeof item === 'string') {
+        return item;
+      }
+      if (item && typeof item === 'object') {
+        return item.url || item.value || item.link || '';
+      }
+      return '';
+    };
+    return [
+      ...toEntries(booking?.documents),
+      ...toEntries(booking?.proof_documents),
+    ]
+      .map(toUrl)
+      .filter(url => typeof url === 'string' && url.startsWith('http'));
   }, [booking?.documents, booking?.proof_documents]);
 
   const isDownloadingDocs = allDocumentUrls.some(u => downloadingDocs[u]);
@@ -779,7 +813,13 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             icon="file-text"
             label="Documents"
             value={documentLabel}
-            onPress={hasPrintFee ? (isDownloadingDocs ? undefined : downloadAllDocuments) : undefined}
+            onPress={
+              hasPrintFee
+                ? isDownloadingDocs
+                  ? undefined
+                  : downloadAllDocuments
+                : undefined
+            }
             rightIcon={hasPrintFee ? 'download' : undefined}
             rightLoading={hasPrintFee && isDownloadingDocs}
           />
