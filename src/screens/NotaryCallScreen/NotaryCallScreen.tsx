@@ -17,8 +17,6 @@ import {
 } from 'react-native';
 import moment from 'moment-timezone';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import DatePicker from 'react-native-date-picker';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
@@ -67,7 +65,6 @@ import SignatureContainer from './SignatureContainer';
 import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import useRegister from '../../hooks/useRegister';
 import PDFViewer from './PDFViewer';
-import AddText from '../../components/LiveBlocksComponents/addText';
 import {UPDATE_OR_CREATE_SESSION_UPDATED_DOCS} from '../../../request/mutations/updateSessionUpdateddocs';
 import SketchCanvasComponent from './PenTool/SketchCanvasComponent';
 import LinearGradient from 'react-native-linear-gradient';
@@ -77,8 +74,6 @@ import DrawSignTypeModal from './Signature';
 import {TouchableWithoutFeedback} from 'react-native';
 
 export default function NotaryCallScreen({route, navigation}: any) {
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['25%', '40%'], []);
   const {pickDocumentDetails, uploadDocumentToStorage} = useRegister();
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
@@ -130,8 +125,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [updatedDocumentsession] = useMutation(
     UPDATE_OR_CREATE_SESSION_UPDATED_DOCS,
   );
-  const [open, setOpen] = useState(false);
-  const [date, setDate] = useState(new Date());
   const [fileDownloaded, setFileDownloaded] = useState(false);
   const [pdfEditMode, setPdfEditMode] = useState(false);
   const [signatureArrayBuffer, setSignatureArrayBuffer] = useState(null);
@@ -145,7 +138,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
   );
   const [isInteractionBlocked, setIsInteractionBlocked] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
-  const [documentText, setDocumentText] = useState(null);
   const [signatureDimensions, setSignatureDimensions] = useState({});
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -325,38 +317,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
       console.error('Error reading file:', error);
     }
   };
-  const handlePresentModalPress = () => {
-    bottomSheetModalRef.current?.present();
-  };
-  const handleCloseModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.close();
-  }, []);
   ////////////// live bolcks ////////////////
   const insertObject = useLiveblocks(state => state.insertObject);
   const setPdfFilePath = useLiveblocks(state => state.setPdfFilePath);
-  const handleTextonLiveblock = () => {
-    handleCloseModalPress();
-    insertObject(new Date().toISOString(), {
-      type: 'text',
-      text: documentText,
-      page: currentPage,
-      position: {
-        x: 200,
-        y: 200,
-      },
-    });
-  };
-  const handleDateonLiveblock = () => {
-    insertObject(new Date().toISOString(), {
-      type: 'date',
-      text: date,
-      page: currentPage,
-      position: {
-        x: 200,
-        y: 200,
-      },
-    });
-  };
   //////////////////////////////////////////
   const handleSingleTap = async (page, x, y) => {
     if (pdfEditMode) {
@@ -594,37 +557,40 @@ export default function NotaryCallScreen({route, navigation}: any) {
       BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
     };
   }, []);
-  const join = useCallback(async (engine = agoraEngineRef.current) => {
-    if (!engine) {
-      setCallStatus('error');
-      setCallError('The call engine is not ready. Please retry.');
-      return;
-    }
-    if (!channelName || !token) {
-      setCallStatus('error');
-      setCallError('The secure video room details are missing.');
-      return;
-    }
-    try {
-      setCallError('');
-      setCallStatus('connecting');
-      engine.startPreview();
-      const result = engine.joinChannel(token, channelName, uid, {
-        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-        publishCameraTrack: true,
-        publishMicrophoneTrack: true,
-        autoSubscribeAudio: true,
-        autoSubscribeVideo: true,
-      });
-      if (typeof result === 'number' && result < 0) {
-        throw new Error(`Unable to join the call (${result}).`);
+  const join = useCallback(
+    async (engine = agoraEngineRef.current) => {
+      if (!engine) {
+        setCallStatus('error');
+        setCallError('The call engine is not ready. Please retry.');
+        return;
       }
-    } catch (error: any) {
-      console.warn('Unable to join video session:', error?.message || error);
-      setCallStatus('error');
-      setCallError(error?.message || 'The video room could not be opened.');
-    }
-  }, [channelName, token]);
+      if (!channelName || !token) {
+        setCallStatus('error');
+        setCallError('The secure video room details are missing.');
+        return;
+      }
+      try {
+        setCallError('');
+        setCallStatus('connecting');
+        engine.startPreview();
+        const result = engine.joinChannel(token, channelName, uid, {
+          clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+          publishCameraTrack: true,
+          publishMicrophoneTrack: true,
+          autoSubscribeAudio: true,
+          autoSubscribeVideo: true,
+        });
+        if (typeof result === 'number' && result < 0) {
+          throw new Error(`Unable to join the call (${result}).`);
+        }
+      } catch (error: any) {
+        console.warn('Unable to join video session:', error?.message || error);
+        setCallStatus('error');
+        setCallError(error?.message || 'The video room could not be opened.');
+      }
+    },
+    [channelName, token],
+  );
 
   const getPermission = useCallback(async () => {
     if (Platform.OS !== 'android') {
@@ -721,7 +687,10 @@ export default function NotaryCallScreen({route, navigation}: any) {
         agoraEngine.setDefaultAudioRouteToSpeakerphone(true);
         await join(agoraEngine);
       } catch (error: any) {
-        console.warn('Unable to initialize video session:', error?.message || error);
+        console.warn(
+          'Unable to initialize video session:',
+          error?.message || error,
+        );
         if (active) {
           setCallStatus('error');
           setCallError(
@@ -952,6 +921,10 @@ export default function NotaryCallScreen({route, navigation}: any) {
         console.log('eeee', err.message);
       });
   };
+  // Opens the same document+signature popup the client side uses,
+  // immediately after picking a file — the agent sees the file right away
+  // while it uploads to Spaces and attaches to the session in the
+  // background, matching `selectClientDocument`'s flow exactly.
   const uploadSessionDocuments = async () => {
     if (!bookingData?._id) {
       Toast.show({
@@ -962,91 +935,52 @@ export default function NotaryCallScreen({route, navigation}: any) {
       return;
     }
 
-    const selectedDocuments = await pickDocumentDetails(true);
-    if (!selectedDocuments?.length) {
+    const [document] = await pickDocumentDetails(false);
+    if (!document) {
       return;
     }
+    setSelectedLocalDocument(document);
+    setClientDocModalVisible(true);
 
     setLoading(true);
     try {
-      const uploadedDocuments = await Promise.all(
-        selectedDocuments.map(async document => ({
-          name: document.name,
-          url: await uploadDocumentToStorage(
-            document.uri,
-            document.name,
-            document.type,
-          ),
-        })),
+      const uploadedUrl = await uploadDocumentToStorage(
+        document.uri,
+        document.name,
+        document.type,
       );
-
-      if (uploadedDocuments.some(document => !document.url)) {
-        throw new Error('One or more documents did not finish uploading.');
+      if (!uploadedUrl) {
+        throw new Error('Document did not finish uploading.');
       }
 
-      let updatedSession;
-      let newPickerItems;
-
-      if (User.account_type === 'client') {
-        const existingCount = Object.keys(clientDocuments).length;
-        const clientDocumentPayload = uploadedDocuments.map(
-          (document, index) => ({
-            key: `document-${existingCount + index + 1}-${Date.now()}`,
-            value: document.url,
-          }),
-        );
-        const response = await updateSessionClientDocs({
-          variables: {
-            sessionId: bookingData._id,
-            clientDocuments: clientDocumentPayload,
-          },
-        });
-        updatedSession = response?.data?.createOrUpdateClientDocs?.session;
-        newPickerItems = uploadedDocuments.map((document, index) => ({
-          label: document.name,
-          value: document.url,
-          documentKey: clientDocumentPayload[index].key,
-        }));
-      } else {
-        const mergedAgentDocuments = [
-          ...agentDocuments,
-          ...uploadedDocuments.map(document => document.url),
-        ];
-        const response = await updateAgentdocs(
-          bookingData._id,
-          mergedAgentDocuments,
-        );
-        updatedSession = response?.session;
-        newPickerItems = uploadedDocuments.map(document => ({
-          label: document.name,
-          value: document.url,
-          documentKey: 'agent_document',
-        }));
-      }
-
+      const mergedAgentDocuments = [...agentDocuments, uploadedUrl];
+      const response = await updateAgentdocs(
+        bookingData._id,
+        mergedAgentDocuments,
+      );
+      const updatedSession = response?.session;
       if (updatedSession) {
         dispatch(setBookingInfoState(updatedSession));
       }
 
-      const firstUploadedDocument = newPickerItems[0];
+      const newItem = {
+        label: document.name,
+        value: uploadedUrl,
+        documentKey: 'agent_document',
+      };
       setPickerItems(currentItems => [
-        ...currentItems.filter(
-          item => !newPickerItems.some(newItem => newItem.value === item.value),
-        ),
-        ...newPickerItems,
+        ...currentItems.filter(item => item.value !== newItem.value),
+        newItem,
       ]);
-      setSourceKey(firstUploadedDocument.documentKey);
-      setSourceUrl(firstUploadedDocument.value);
-      setSelectedItem(firstUploadedDocument.value);
+      setSourceKey(newItem.documentKey);
+      setSourceUrl(newItem.value);
+      setSelectedItem(newItem.value);
       setFileDownloaded(false);
       setNewPdfSaved(false);
 
       Toast.show({
         type: 'success',
-        text1:
-          uploadedDocuments.length === 1
-            ? 'Document uploaded'
-            : `${uploadedDocuments.length} documents uploaded`,
+        text1: 'Document uploaded',
         text2: 'The document is ready in this session.',
       });
       return true;
@@ -1187,10 +1121,10 @@ export default function NotaryCallScreen({route, navigation}: any) {
           ) : (
             <View style={styles.videoPlaceholder}>
               {User?.profile_picture ? (
-              <Image
-                source={{uri: User?.profile_picture}}
-                style={styles.videoAvatar}
-              />
+                <Image
+                  source={{uri: User?.profile_picture}}
+                  style={styles.videoAvatar}
+                />
               ) : (
                 <View style={styles.initialsAvatar}>
                   <RNText style={styles.initialsText}>{userInitials}</RNText>
@@ -1258,9 +1192,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
               <Feather
                 name={isVideoMuted ? 'video-off' : 'video'}
                 size={19}
-                color={
-                  isVideoMuted ? BookingColors.error : BookingColors.white
-                }
+                color={isVideoMuted ? BookingColors.error : BookingColors.white}
               />
             </View>
             <RNText style={styles.controlLabel}>
@@ -1272,7 +1204,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
             onPress={switchCamera}
             disabled={!isJoined || isVideoMuted}>
             <View style={styles.controlIconCircle}>
-              <Feather name="refresh-cw" size={19} color={BookingColors.white} />
+              <Feather
+                name="refresh-cw"
+                size={19}
+                color={BookingColors.white}
+              />
             </View>
             <RNText style={styles.controlLabel}>Flip</RNText>
           </TouchableOpacity>
@@ -1296,7 +1232,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
         {(callStatus === 'error' || callStatus === 'permissions') && (
           <View style={styles.callErrorBanner}>
             <View style={styles.callErrorIcon}>
-              <Feather name="alert-circle" size={18} color={BookingColors.error} />
+              <Feather
+                name="alert-circle"
+                size={18}
+                color={BookingColors.error}
+              />
             </View>
             <View style={styles.callErrorCopy}>
               <RNText style={styles.callErrorTitle}>
@@ -1329,9 +1269,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
             onPress={selectClientDocument}
             style={styles.clientUploadButton}>
             <Feather name="file-plus" size={16} color={BookingColors.primary} />
-            <RNText style={styles.clientUploadButtonText}>
-              Select Doc
-            </RNText>
+            <RNText style={styles.clientUploadButtonText}>Select Doc</RNText>
           </TouchableOpacity>
         </View>
       ) : (
@@ -1367,212 +1305,152 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
       {/* ── PDF VIEWER + TOOLBAR (agent) ── */}
       {!isClient && (
-      <View style={styles.container}>
-        <View style={styles.pdfWrapper}>
-          {fileDownloaded && (
-            <>
-              {filePath ? (
-                <>
-                  <PdfView
-                    ref={pdfRef}
-                    style={[
-                      styles.pdfView,
-                      isInteractionBlocked && {pointerEvents: 'none'},
-                    ]}
-                    source={{uri: filePath}}
-                    trustAllCerts={false}
-                    showsVerticalScrollIndicator={false}
-                    showsHorizontalScrollIndicator={false}
-                    horizontal={true}
-                    enablePaging={false}
-                    minScale={1.0}
-                    maxScale={3.0}
-                    scale={1.0}
-                    spacing={0}
-                    fitPolicy={getFitPolicy()}
-                    onLoadComplete={(
-                      numberOfPages,
-                      filePath,
-                      {width, height},
-                    ) => {
-                      setCurrentPage(1);
-                      setTotalPages(numberOfPages);
-                      setPageWidth(width);
-                      setPageHeight(height);
-                    }}
-                    onPageChanged={(page, numberOfPages) => {
-                      setCurrentPage(page);
-                    }}
-                    onPageSingleTap={(page, x, y) => {
-                      handleSingleTap(page, x, y);
-                    }}
-                    onError={error => console.error(error)}
-                  />
-                  {User.account_type !== 'client' && (
-                    <TouchableOpacity
-                      onPress={toggleDrawingMode}
+        <View style={styles.container}>
+          <View style={styles.pdfWrapper}>
+            {fileDownloaded && (
+              <>
+                {filePath ? (
+                  <>
+                    <PdfView
+                      ref={pdfRef}
                       style={[
-                        styles.penIconContainer,
-                        drawingMode && styles.activePenIconContainer,
-                      ]}>
-                      <Icon
-                        name="pencil"
-                        size={16}
-                        style={[
-                          styles.editIcon,
-                          drawingMode && styles.activeeditIcon,
-                        ]}
-                      />
-                    </TouchableOpacity>
-                  )}
-                  {drawingMode && User.account_type != 'client' && (
-                    <SketchCanvasComponent
-                      onPathsChange={handlePathsChange}
-                      stamps={User}
-                      onStampChanges={handleSavedStamp}
-                      saveToPdf={saveToPdf}
+                        styles.pdfView,
+                        isInteractionBlocked && {pointerEvents: 'none'},
+                      ]}
+                      source={{uri: filePath}}
+                      trustAllCerts={false}
+                      showsVerticalScrollIndicator={false}
+                      showsHorizontalScrollIndicator={false}
+                      horizontal={true}
+                      enablePaging={false}
+                      minScale={1.0}
+                      maxScale={3.0}
+                      scale={1.0}
+                      spacing={0}
+                      fitPolicy={getFitPolicy()}
+                      onLoadComplete={(
+                        numberOfPages,
+                        filePath,
+                        {width, height},
+                      ) => {
+                        setCurrentPage(1);
+                        setTotalPages(numberOfPages);
+                        setPageWidth(width);
+                        setPageHeight(height);
+                      }}
+                      onPageChanged={(page, numberOfPages) => {
+                        setCurrentPage(page);
+                      }}
+                      onPageSingleTap={(page, x, y) => {
+                        handleSingleTap(page, x, y);
+                      }}
+                      onError={error => console.error(error)}
                     />
-                  )}
-                  <View style={styles.pageIndicator}>
-                    <RNText style={styles.pageIndicatorText}>
-                      {currentPage}
-                    </RNText>
+                    {User.account_type !== 'client' && (
+                      <TouchableOpacity
+                        onPress={toggleDrawingMode}
+                        style={[
+                          styles.penIconContainer,
+                          drawingMode && styles.activePenIconContainer,
+                        ]}>
+                        <Icon
+                          name="pencil"
+                          size={16}
+                          style={[
+                            styles.editIcon,
+                            drawingMode && styles.activeeditIcon,
+                          ]}
+                        />
+                      </TouchableOpacity>
+                    )}
+                    {drawingMode && User.account_type != 'client' && (
+                      <SketchCanvasComponent
+                        onPathsChange={handlePathsChange}
+                        stamps={User}
+                        onStampChanges={handleSavedStamp}
+                        saveToPdf={saveToPdf}
+                      />
+                    )}
+                    <View style={styles.pageIndicator}>
+                      <RNText style={styles.pageIndicatorText}>
+                        {currentPage}
+                      </RNText>
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.loadingOverlay}>
+                    <ActivityIndicator
+                      size="large"
+                      color={BookingColors.primary}
+                    />
+                    <RNText style={styles.loadingText}>Saving PDF…</RNText>
                   </View>
-                </>
-              ) : (
-                <View style={styles.loadingOverlay}>
+                )}
+              </>
+            )}
+            <SignatureContainer
+              signatureData={signatureData}
+              onSignatureChange={handleDragabbleSignatureData}
+            />
+          </View>
+
+          {/* ── ACTION TOOLBAR ──
+            Deliberately just Upload Doc + Complete Call here — signing
+            happens inside the popup that opens right after picking a file
+            (see the DOCUMENT + SIGNATURE POPUP below), not as a separate
+            always-visible button. */}
+          <View style={styles.toolbar}>
+            <View style={styles.toolbarGrid}>
+              {/* Upload Document */}
+              <TouchableOpacity
+                style={styles.toolBtn}
+                onPress={uploadSessionDocuments}
+                disabled={loading}>
+                {loading ? (
                   <ActivityIndicator
-                    size="large"
+                    size="small"
                     color={BookingColors.primary}
+                    style={{width: 28}}
                   />
-                  <RNText style={styles.loadingText}>Saving PDF…</RNText>
-                </View>
-              )}
-            </>
-          )}
-          <SignatureContainer
-            signatureData={signatureData}
-            onSignatureChange={handleDragabbleSignatureData}
-          />
-        </View>
+                ) : (
+                  <View style={styles.toolBtnIcon}>
+                    <Feather
+                      name="upload"
+                      size={15}
+                      color={BookingColors.primary}
+                    />
+                  </View>
+                )}
+                <RNText style={styles.toolBtnLabel}>Upload Doc</RNText>
+              </TouchableOpacity>
+            </View>
 
-        {/* ── ACTION TOOLBAR ── */}
-        <View style={styles.toolbar}>
-          <View style={styles.toolbarGrid}>
-            {/* Add Signature — always visible */}
-            <TouchableOpacity
-              style={styles.toolBtn}
-              onPress={() => handleSignPress()}>
-              <View style={styles.toolBtnIcon}>
+            {User.account_type != 'client' && (
+              <TouchableOpacity
+                style={styles.endCallBtn}
+                onPress={() => leave()}>
                 <Feather
-                  name="edit-2"
+                  name="phone-off"
                   size={15}
-                  color={BookingColors.primary}
+                  color={BookingColors.error}
                 />
-              </View>
-              <RNText style={styles.toolBtnLabel}>Add Signature</RNText>
-            </TouchableOpacity>
-
-            {/* Upload Document */}
-            <TouchableOpacity
-              style={styles.toolBtn}
-              onPress={uploadSessionDocuments}
-              disabled={loading}>
-              {loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={BookingColors.primary}
-                  style={{width: 28}}
-                />
-              ) : (
-                <View style={styles.toolBtnIcon}>
-                  <Feather
-                    name="upload"
-                    size={15}
-                    color={BookingColors.primary}
-                  />
-                </View>
-              )}
-              <RNText style={styles.toolBtnLabel}>Upload Doc</RNText>
-            </TouchableOpacity>
-
-            {User.account_type != 'client' && (
-              <TouchableOpacity
-                style={styles.toolBtn}
-                onPress={() => handlePresentModalPress()}>
-                <View style={styles.toolBtnIcon}>
-                  <Feather
-                    name="type"
-                    size={15}
-                    color={BookingColors.primary}
-                  />
-                </View>
-                <RNText style={styles.toolBtnLabel}>Add Text</RNText>
+                <RNText style={styles.endCallBtnText}>Complete Call</RNText>
               </TouchableOpacity>
             )}
-
-            {User.account_type != 'client' && (
-              <TouchableOpacity
-                style={styles.toolBtn}
-                onPress={() => setOpen(true)}>
-                <View style={styles.toolBtnIcon}>
-                  <Feather
-                    name="calendar"
-                    size={15}
-                    color={BookingColors.primary}
-                  />
-                </View>
-                <RNText style={styles.toolBtnLabel}>Add Date</RNText>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {User.account_type != 'client' && (
-            <TouchableOpacity style={styles.endCallBtn} onPress={() => leave()}>
-              <Feather name="phone-off" size={15} color={BookingColors.error} />
-              <RNText style={styles.endCallBtnText}>Complete Call</RNText>
-            </TouchableOpacity>
-          )}
-
-          <BottomSheetModal
-            ref={bottomSheetModalRef}
-            index={1}
-            snapPoints={snapPoints}>
-            <AddText
-              text={documentText}
-              onChangeText={(text: string) => setDocumentText(text)}
-              onPress={() => handleTextonLiveblock()}
-            />
-          </BottomSheetModal>
-
-          <View style={styles.buttonFlex}>
-            <DatePicker
-              modal
-              mode="datetime"
-              minimumDate={new Date()}
-              open={open}
-              date={date}
-              onConfirm={date => {
-                setOpen(false);
-                setDate(date);
-                handleDateonLiveblock();
-              }}
-              onCancel={() => {
-                setOpen(false);
-              }}
-            />
           </View>
         </View>
-      </View>
       )}
 
-      {/* ── DOCUMENT + SIGNATURE POPUP (client) ──
+      {/* ── DOCUMENT + SIGNATURE POPUP ──
+          Shown for both roles right after picking a file to upload — the
+          agent's Upload Doc button and the client's Select Doc button both
+          open this same preview-and-sign flow.
           Plain full-screen overlay, not a native <Modal>: the signature
           picker below is its own real <Modal>, and iOS won't reliably
           stack two native Modals — the second only appears once the first
           is dismissed. Using a View here keeps DrawSignTypeModal as the
           single native modal on screen. */}
-      {isClient && clientDocModalVisible && (
+      {clientDocModalVisible && (
         <View
           style={[
             styles.clientDocOverlay,
@@ -1580,9 +1458,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
           ]}>
           <View style={styles.Maincontainer}>
             <View style={styles.header}>
-              <RNText
-                numberOfLines={1}
-                style={[styles.headerTitle, {flex: 1}]}>
+              <RNText numberOfLines={1} style={[styles.headerTitle, {flex: 1}]}>
                 {selectedLocalDocument?.name || 'Document'}
               </RNText>
               <TouchableOpacity
