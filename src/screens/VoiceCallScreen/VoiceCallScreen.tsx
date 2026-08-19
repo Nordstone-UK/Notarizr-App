@@ -257,7 +257,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
           return;
         }
 
-        await socketRequest('call:start', {
+        const startResponse = await socketRequest('call:start', {
           callId: callIdRef.current,
           receiverId: targetId,
           channelName,
@@ -265,6 +265,18 @@ export default function VoiceCallScreen({route, navigation}: any) {
         });
         if (finishedRef.current) {
           return;
+        }
+        // The server tells us right away whether the recipient's socket is
+        // even connected. A push notification still goes out either way, so
+        // this doesn't cancel the call — but silently saying "Ringing..."
+        // regardless left no way to tell a real no-answer apart from the
+        // other person's app never having received anything at all.
+        if (!startResponse?.receiverOnline) {
+          Toast.show({
+            type: 'info',
+            text1: `${displayName(receiver)} may be offline`,
+            text2: "We'll still try to reach them — this may not connect.",
+          });
         }
         setCallStatus('Ringing...');
 
@@ -302,6 +314,7 @@ export default function VoiceCallScreen({route, navigation}: any) {
     getAgoraCallToken,
     incoming,
     initializeAgora,
+    receiver,
     sender?._id,
     suppliedChannel,
     suppliedToken,
