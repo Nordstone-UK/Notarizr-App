@@ -97,26 +97,16 @@ export default function AllBookingScreen({navigation, route}) {
   );
 
   const openBooking = booking => {
-    // A pending request still needs the notary's Accept/Decline decision —
-    // that's the same review screen the Home dashboard's "Review" button
-    // opens. Anything already decided (accepted, completed, etc.) goes to
-    // the regular read-only booking detail view.
-    if (booking.status === 'pending') {
-      dispatch(setBookingInfoState(booking));
-      dispatch(setUser(booking?.booked_by));
-      dispatch(
-        setCoordinates(booking?.booked_by?.current_location?.coordinates || []),
-      );
-      navigation.navigate('ClientDetailsScreen', {clientDetail: booking});
-      return;
-    }
-
+    // Every card here — regardless of status — opens the same review
+    // screen the Home dashboard's "Review" button uses. That screen already
+    // adapts its own actions per status (Accept/Decline while pending,
+    // read-only once decided), so there's no separate detail screen needed.
     dispatch(setBookingInfoState(booking));
+    dispatch(setUser(booking?.booked_by));
     dispatch(
       setCoordinates(booking?.booked_by?.current_location?.coordinates || []),
     );
-    dispatch(setUser(booking?.agent || []));
-    navigation.navigate('MedicalBookingScreen');
+    navigation.navigate('ClientDetailsScreen', {clientDetail: booking});
   };
 
   const renderContent = () => {
