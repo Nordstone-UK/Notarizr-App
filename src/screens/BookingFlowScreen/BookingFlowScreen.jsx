@@ -1212,8 +1212,12 @@ export default function BookingFlowScreen({navigation, route}) {
         );
       }
 
+      // Always upload to DigitalOcean Spaces (dev builds included) so the
+      // notary and agent can actually retrieve the document later — a
+      // dev-only skip here would leave real bookings pointing at a local
+      // file:// URI that only exists on the submitting device.
       let documents = uploadedDocuments;
-      if (!__DEV__ && uploadedDocuments.length > 0) {
+      if (uploadedDocuments.length > 0) {
         documents = await uploadAllDocuments(
           uploadedDocuments.map(document => document.uri),
         );
