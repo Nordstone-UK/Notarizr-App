@@ -104,6 +104,7 @@ import NotaryDocumentDownloadScreen from '../AgentScreens/NotaryDocumentDownload
 import CurrentLocationScreen from '../NewAddressScreen/CurrentLocation';
 import AgentMapArrivalScreen from '../MapArrivalScreen/AgentMapArraivalScreen';
 import BookingLocationPreviewScreen from '../MapArrivalScreen/BookingLocationPreviewScreen';
+import AgentNewRequestsScreen from '../AgentScreens/AgentNewRequestsScreen/AgentNewRequestsScreen';
 import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
 import BookingFlowScreen from '../BookingFlowScreen/BookingFlowScreen';
 import PreviewChatScreen from '../PreviewChatScreen/PreviewChatScreen';
@@ -266,6 +267,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="BookingLocationPreviewScreen"
           component={BookingLocationPreviewScreen}
+        />
+        <Stack.Screen
+          name="AgentNewRequestsScreen"
+          component={AgentNewRequestsScreen}
         />
         <Stack.Screen name="chooseLocation" component={ChooseLocation} />
         <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
