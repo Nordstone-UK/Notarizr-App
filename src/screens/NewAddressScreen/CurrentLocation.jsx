@@ -115,18 +115,8 @@ export default function CurrentLocationScreen({navigation, route}) {
 
   const locateCurrentPosition = useCallback(async () => {
     setLocating(true);
-    try {
-      if (Platform.OS === 'android') {
-        const permission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        );
-        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
-          throw new Error('Location permission was not granted.');
-        }
-      } else {
-        Geolocation.requestAuthorization?.();
-      }
 
+    const fetchPosition = () => {
       Geolocation.getCurrentPosition(
         async position => {
           const nextCoordinate = {
@@ -155,6 +145,32 @@ export default function CurrentLocationScreen({navigation, route}) {
         },
         {enableHighAccuracy: true, maximumAge: 10000, timeout: 8000},
       );
+    };
+
+    try {
+      if (Platform.OS === 'android') {
+        const permission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
+          throw new Error('Location permission was not granted.');
+        }
+        fetchPosition();
+      } else {
+        // requestAuthorization takes callbacks, not a promise — fetching the
+        // position before the user has actually answered the system prompt
+        // meant this always lost the race on first launch and silently fell
+        // back to the default pin, even after permission was granted.
+        Geolocation.requestAuthorization(fetchPosition, () => {
+          setLocating(false);
+          Toast.show({
+            type: 'error',
+            text1: 'Location unavailable',
+            text2:
+              'Enable location access in Settings, or move the pin manually.',
+          });
+        });
+      }
     } catch (error) {
       setLocating(false);
       Toast.show({
