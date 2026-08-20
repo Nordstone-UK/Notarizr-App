@@ -20,12 +20,20 @@ function CostRow({icon, label, last, subtitle, value}) {
   );
 }
 
+const DEFAULT_PER_DOCUMENT_RATE = 99.99;
+
 export default function PricingBreakdown({
   additionalSignatureCount = 0,
   additionalSignatures = 0,
   documentCharge = 0,
   documentCount = 0,
   documentLabel = 'Notary document',
+  // No documents were uploaded, so there's nothing to price yet — the
+  // client is bringing physical copies and pays once they're actually
+  // signed at the appointment. Rather than a flat, misleading $0.00, show
+  // the per-document rate as what they should expect to pay.
+  documentsUnknown = false,
+  perDocumentRate = DEFAULT_PER_DOCUMENT_RATE,
   initiallyExpanded = false,
   printingCharge = 0,
   printingCopies = 0,
@@ -34,6 +42,9 @@ export default function PricingBreakdown({
   total = 0,
 }) {
   const [expanded, setExpanded] = useState(initiallyExpanded);
+  const showUnknownDocumentPricing =
+    documentsUnknown && Number(documentCharge) <= 0;
+  const displayTotal = showUnknownDocumentPricing ? perDocumentRate : total;
   const serviceCharge = Math.max(
     0,
     Number(total || 0) -
@@ -43,7 +54,14 @@ export default function PricingBreakdown({
   );
   const rows = useMemo(() => {
     const costRows = [];
-    if (Number(documentCharge) > 0) {
+    if (showUnknownDocumentPricing) {
+      costRows.push({
+        icon: 'file-text',
+        label: 'Notarization fee',
+        subtitle: 'Billed per document once you sign at the appointment',
+        value: perDocumentRate,
+      });
+    } else if (Number(documentCharge) > 0) {
       const count = documentCount || Math.round(Number(documentCharge) / 99.99);
       costRows.push({
         icon: 'file-text',
@@ -91,10 +109,12 @@ export default function PricingBreakdown({
     documentCharge,
     documentCount,
     documentLabel,
+    perDocumentRate,
     printingCharge,
     printingCopies,
     serviceCharge,
     serviceLabel,
+    showUnknownDocumentPricing,
   ]);
 
   return (
@@ -110,8 +130,17 @@ export default function PricingBreakdown({
           <Text style={styles.currencyIcon}>$</Text>
         </View>
         <View style={styles.summaryCopy}>
-          <Text style={styles.eyebrow}>Estimated total</Text>
-          <Text style={styles.total}>{formatPrice(total)}</Text>
+          <Text style={styles.eyebrow}>
+            {showUnknownDocumentPricing
+              ? 'Pay after signing'
+              : 'Estimated total'}
+          </Text>
+          <Text style={styles.total}>
+            {formatPrice(displayTotal)}
+            {showUnknownDocumentPricing ? (
+              <Text style={styles.totalSuffix}> /document</Text>
+            ) : null}
+          </Text>
         </View>
         <View style={styles.expandButton}>
           <Text style={styles.expandText}>{expanded ? 'Hide' : 'Details'}</Text>
@@ -134,8 +163,15 @@ export default function PricingBreakdown({
             />
           ))}
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Estimated total</Text>
-            <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+            <Text style={styles.totalLabel}>
+              {showUnknownDocumentPricing
+                ? 'Pay after signing'
+                : 'Estimated total'}
+            </Text>
+            <Text style={styles.totalValue}>
+              {formatPrice(displayTotal)}
+              {showUnknownDocumentPricing ? '/document' : ''}
+            </Text>
           </View>
         </View>
       ) : null}
@@ -245,6 +281,11 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
+  },
+  totalSuffix: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
   },
   totalLabel: {
     color: AppColors.primary,

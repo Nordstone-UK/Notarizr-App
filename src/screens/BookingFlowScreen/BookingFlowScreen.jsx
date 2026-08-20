@@ -943,6 +943,7 @@ function ReviewStep({
           documentCharge={documentCharge}
           documentCount={uploadedDocumentsCount}
           documentLabel={documentType}
+          documentsUnknown={isMobile && uploadedDocumentsCount === 0}
           printingCharge={printingCharge}
           printingCopies={printCopies}
           serviceLabel={serviceName}
