@@ -97,16 +97,17 @@ export default function AllBookingScreen({navigation, route}) {
   );
 
   const openBooking = booking => {
-    // Every card here — regardless of status — opens the same review
-    // screen the Home dashboard's "Review" button uses. That screen already
-    // adapts its own actions per status (Accept/Decline while pending,
-    // read-only once decided), so there's no separate detail screen needed.
+    // This screen is the CLIENT's own "Bookings" tab (the agent's tab uses
+    // a separate AgentAllBookingScreen entirely). A client can never
+    // accept/decline their own request — that's the notary's call — so
+    // every card here opens the client-facing detail view regardless of
+    // status, never the agent's ClientDetailsScreen/Accept-Decline screen.
     dispatch(setBookingInfoState(booking));
-    dispatch(setUser(booking?.booked_by));
     dispatch(
       setCoordinates(booking?.booked_by?.current_location?.coordinates || []),
     );
-    navigation.navigate('ClientDetailsScreen', {clientDetail: booking});
+    dispatch(setUser(booking?.agent || []));
+    navigation.navigate('MedicalBookingScreen');
   };
 
   const renderContent = () => {
