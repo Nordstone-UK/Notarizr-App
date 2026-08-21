@@ -67,6 +67,7 @@ export const useSession = () => {
       variables: {
         sessionId: id,
       },
+      fetchPolicy: 'network-only',
     };
     try {
       const {data} = await getSession(requets);
@@ -79,18 +80,55 @@ export const useSession = () => {
     if (!id) {
       throw new Error('The session ID is missing.');
     }
+
     const request = {
       variables: {
         sessionId: id,
         status: updatedStatus,
       },
     };
-    const response = await updateSessionStatus(request);
-    const result = response?.data?.updateSessionStatus;
-    if (!result?.session || result?.status === 'error') {
+
+    const expectedStatus = String(updatedStatus).toLowerCase();
+    const statusMatches = session =>
+      String(session?.status || '').toLowerCase() === expectedStatus;
+    const verifySavedStatus = async () => {
+      const savedSession = await getSessionByID(id);
+      return statusMatches(savedSession) ? savedSession : null;
+    };
+
+    try {
+      const response = await updateSessionStatus(request);
+      const result = response?.data?.updateSessionStatus;
+      const responseStatus = String(result?.status || '').toLowerCase();
+
+      if (statusMatches(result?.session)) {
+        return result.session;
+      }
+
+      if (responseStatus === '200' || responseStatus === 'success') {
+        return (
+          (await verifySavedStatus()) || {
+            _id: id,
+            status: updatedStatus,
+          }
+        );
+      }
+
+      const savedSession = await verifySavedStatus();
+      if (savedSession) {
+        return savedSession;
+      }
+
       throw new Error(result?.message || 'The session could not be updated.');
+    } catch (error) {
+      // The backend saves the status before sending notifications. A
+      // notification failure can reject GraphQL after the save succeeds.
+      const savedSession = await verifySavedStatus().catch(() => null);
+      if (savedSession) {
+        return savedSession;
+      }
+      throw error;
     }
-    return result.session;
   };
   const handleClientSessionCreation = async (selectedAgent, session, date) => {
     const request = {
