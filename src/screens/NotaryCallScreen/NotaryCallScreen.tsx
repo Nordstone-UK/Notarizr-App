@@ -108,6 +108,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const setSignatureModalOpen = useLiveblocks(
     state => state.setSignatureModalOpen,
   );
+  const isSessionCompleted = useLiveblocks(state => state.isSessionCompleted);
+  const sessionCompletedAt = useLiveblocks(state => state.sessionCompletedAt);
+  const setSessionCompleted = useLiveblocks(state => state.setSessionCompleted);
   const setSharedCurrentPage = useLiveblocks(state => state.setCurrentPage);
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
@@ -174,6 +177,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [loading, setLoading] = useState(false);
   const [clientDocModalVisible, setClientDocModalVisible] = useState(false);
   const [selectedLocalDocument, setSelectedLocalDocument] = useState<any>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
   const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
   const videoStageHeight = isClient
     ? Math.min(Math.max(screenHeight * 0.58, 390), 520)
@@ -841,34 +845,59 @@ export default function NotaryCallScreen({route, navigation}: any) {
       agoraEngineRef.current = undefined;
     };
   }, [getPermission, join]);
-  const leave = async () => {
+  const completeCall = async () => {
+    if (isClient || isCompleting) {
+      return;
+    }
+
+    setIsCompleting(true);
     try {
-      for (let i = 0; i < pickerItems.length; i++) {
-        if (pickerItems[i].value === selectedItem) {
-          const newFilePath = `${
-            RNFS.DocumentDirectoryPath
-          }/react-native_signed_${Date.now()}.pdf`;
-          const l = await uploadSignedDocumentToSpaces(pdfBase64);
-          setFilePath(newFilePath);
-          setNewPdfPath(newFilePath);
-          readFile(l);
-          setFileDownloaded(false);
-          pickerItems[i].value = l;
-          break;
+      const completedDocuments = pickerItems.map(item => ({...item}));
+
+      if (selectedItem && pdfBase64) {
+        const selectedDocument = completedDocuments.find(
+          item => item.value === selectedItem,
+        );
+        if (selectedDocument) {
+          const signedUrl = await uploadSignedDocumentToSpaces(pdfBase64);
+          selectedDocument.value = signedUrl;
         }
       }
-      // let b = await updateSignedDocumentToDb(notarisedDocument)
-      let c = await addSignedDocFunc(pickerItems);
-      let a = agoraEngineRef.current?.leaveChannel();
-      setRemoteUids(['Leave']);
-      setIsJoined(false);
-      showMessage('You left the session');
+
+      if (completedDocuments.length > 0) {
+        await addSignedDocFunc(completedDocuments);
+      }
+
       await updateSession('completed', bookingData?._id);
-      navigation.navigate('AgentCallFinishing');
-    } catch (e) {
-      console.log(e);
+      setSessionCompleted(true, new Date().toISOString());
+    } catch (error: any) {
+      console.warn('Unable to complete notary call:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Could not complete call',
+        text2: error?.message || 'Please check your connection and try again.',
+      });
+    } finally {
+      setIsCompleting(false);
     }
   };
+
+  const closeCompletedSession = useCallback(() => {
+    agoraEngineRef.current?.leaveChannel();
+    setRemoteUids([]);
+    setIsJoined(false);
+    leaveRoom();
+
+    if (isClient) {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeScreen', params: {screen: 'BookScreen'}}],
+      });
+      return;
+    }
+
+    navigation.replace('AgentBookingComplete');
+  }, [isClient, leaveRoom, navigation]);
   function showMessage(msg: string) {
     console.log(msg);
     Toast.show({
@@ -1471,14 +1500,24 @@ export default function NotaryCallScreen({route, navigation}: any) {
           <View style={styles.toolbar}>
             {User.account_type != 'client' && (
               <TouchableOpacity
-                style={styles.endCallBtn}
-                onPress={() => leave()}>
-                <Feather
-                  name="phone-off"
-                  size={15}
-                  color={BookingColors.error}
-                />
-                <RNText style={styles.endCallBtnText}>Complete Call</RNText>
+                disabled={isCompleting}
+                style={[
+                  styles.endCallBtn,
+                  isCompleting && styles.endCallBtnDisabled,
+                ]}
+                onPress={completeCall}>
+                {isCompleting ? (
+                  <ActivityIndicator size="small" color={BookingColors.error} />
+                ) : (
+                  <Feather
+                    name="phone-off"
+                    size={15}
+                    color={BookingColors.error}
+                  />
+                )}
+                <RNText style={styles.endCallBtnText}>
+                  {isCompleting ? 'Finishing…' : 'Complete Call'}
+                </RNText>
               </TouchableOpacity>
             )}
           </View>
@@ -1602,6 +1641,42 @@ export default function NotaryCallScreen({route, navigation}: any) {
         onStampChanges={handleSavedStamp}
         page={currentPage}
       />
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={isSessionCompleted}
+        onRequestClose={closeCompletedSession}>
+        <View style={styles.completionBackdrop}>
+          <View style={styles.completionCard}>
+            <View style={styles.completionIcon}>
+              <Feather name="check" size={30} color={BookingColors.white} />
+            </View>
+            <RNText style={styles.completionEyebrow}>SESSION COMPLETE</RNText>
+            <RNText style={styles.completionTitle}>Signed and finished</RNText>
+            <RNText style={styles.completionMessage}>
+              The notarization is complete. Signed documents and appointment
+              details are now available in Completed.
+            </RNText>
+            {sessionCompletedAt ? (
+              <RNText style={styles.completionTime}>
+                Completed {moment(sessionCompletedAt).format('h:mm A')}
+              </RNText>
+            ) : null}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={closeCompletedSession}
+              style={styles.completionButton}>
+              <RNText style={styles.completionButtonText}>Done</RNText>
+              <Feather
+                name="arrow-right"
+                size={18}
+                color={BookingColors.white}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1647,6 +1722,74 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  completionBackdrop: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+  },
+  completionCard: {
+    width: '100%',
+    maxWidth: 420,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 22,
+    borderRadius: 16,
+    backgroundColor: BookingColors.surface,
+  },
+  completionIcon: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 32,
+    backgroundColor: BookingColors.success,
+  },
+  completionEyebrow: {
+    marginTop: 18,
+    color: BookingColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  completionTitle: {
+    marginTop: 6,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  completionMessage: {
+    marginTop: 8,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  completionTime: {
+    marginTop: 12,
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  completionButton: {
+    width: '100%',
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 22,
+    borderRadius: 10,
+    backgroundColor: BookingColors.primary,
+  },
+  completionButtonText: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
   },
 
   // ── HEADER ──
@@ -2073,6 +2216,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: BookingColors.errorSoft,
     gap: 8,
+  },
+  endCallBtnDisabled: {
+    opacity: 0.62,
   },
   endCallBtnText: {
     fontFamily: 'Manrope-Bold',

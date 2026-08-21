@@ -13,6 +13,8 @@ type State = {
   sharedDocument: {name: string; url: string; type: string} | null;
   isDocumentPreviewOpen: boolean;
   isSignatureModalOpen: boolean;
+  isSessionCompleted: boolean;
+  sessionCompletedAt: string | null;
 };
 
 type Action = {
@@ -29,6 +31,7 @@ type Action = {
   ) => void;
   setDocumentPreviewOpen: (isOpen: boolean) => void;
   setSignatureModalOpen: (isOpen: boolean) => void;
+  setSessionCompleted: (isCompleted: boolean, completedAt?: string) => void;
 };
 
 export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
@@ -42,6 +45,8 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       sharedDocument: null,
       isDocumentPreviewOpen: false,
       isSignatureModalOpen: false,
+      isSessionCompleted: false,
+      sessionCompletedAt: null,
       setCurrentPage: page => {
         set({currentPage: page});
       },
@@ -89,6 +94,14 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       setSignatureModalOpen: isOpen => {
         set({isSignatureModalOpen: isOpen});
       },
+      setSessionCompleted: (isCompleted, completedAt) => {
+        set({
+          isSessionCompleted: isCompleted,
+          sessionCompletedAt: isCompleted
+            ? completedAt || new Date().toISOString()
+            : null,
+        });
+      },
     }),
     {
       client,
@@ -98,6 +111,8 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         sharedDocument: true,
         isDocumentPreviewOpen: true,
         isSignatureModalOpen: true,
+        isSessionCompleted: true,
+        sessionCompletedAt: true,
       },
       presenceMapping: {
         selectedObjectId: true,

@@ -76,6 +76,9 @@ export const useSession = () => {
     }
   };
   const updateSession = async (updatedStatus, id) => {
+    if (!id) {
+      throw new Error('The session ID is missing.');
+    }
     const request = {
       variables: {
         sessionId: id,
@@ -83,7 +86,11 @@ export const useSession = () => {
       },
     };
     const response = await updateSessionStatus(request);
-    console.log(response?.updateSessionStatus?.status);
+    const result = response?.data?.updateSessionStatus;
+    if (!result?.session || result?.status === 'error') {
+      throw new Error(result?.message || 'The session could not be updated.');
+    }
+    return result.session;
   };
   const handleClientSessionCreation = async (selectedAgent, session, date) => {
     const request = {
