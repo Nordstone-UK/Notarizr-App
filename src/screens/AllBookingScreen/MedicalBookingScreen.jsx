@@ -384,32 +384,31 @@ function LiveMedicalBookingScreen({route, navigation}) {
     bookingDetail.total_signatures_required * 10;
 
   const handleMakePayment = () => {
-    if (bookingDetail.payment_type === 'on_notarizr' && status !== 'Accepted') {
-      if (bookingDetail.price === 0) {
-        // Display a message if the price is 0
-        alert('Payment amount is zero. No payment required.');
-      } else {
-        // Check if the agent has requested for payment
-        // if (bookingDetail.agent_requested_payment) {
-        // Check if the price is greater than 0
-        if (bookingDetail.price > 0) {
-          // Navigate to ToBePaidScreen with bookingData
-          navigation.navigate('ToBePaidScreen', {
-            bookingData: bookingDetail,
-          });
-        } else {
-          // Display a message if the price is not greater than 0
-          alert(
-            'Payment amount is zero. Please request payment from the agent.',
-          );
-        }
-        // }
-        // else {
-        //   // Display a message if the agent has not requested payment
-        //   alert('Agent has not requested for payment.');
-        // }
-      }
+    const payableAmount = Number(
+      bookingDetail?.totalPrice ?? bookingDetail?.price ?? 0,
+    );
+    const paymentStatus = String(bookingDetail?.status || status || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, '_');
+
+    if (['accepted', 'paid', 'payment_confirmed'].includes(paymentStatus)) {
+      handleJoinSession();
+      return;
     }
+
+    if (payableAmount <= 0) {
+      Alert.alert(
+        'Payment unavailable',
+        'The booking does not have a payable amount yet. Please contact support.',
+      );
+      return;
+    }
+
+    navigation.navigate('ToBePaidScreen', {
+      bookingData: bookingDetail,
+      autoPay: true,
+    });
   };
   const handleDocumentPress = (documentUri: string) => {
     console.log('documentur', documentUri);
@@ -699,6 +698,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       onHelp={handleCallSupport}
       onJoin={handleJoinSession}
       onMessage={handleOpenMessages}
+      onAddCard={() => navigation.navigate('AddCardScreen')}
       onPay={handleMakePayment}
       onRefresh={getBookingStatus}
       onTrack={() => handleAddressPress(bookedByAddress?.location_coordinates)}

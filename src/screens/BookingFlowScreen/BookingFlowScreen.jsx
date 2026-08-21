@@ -30,7 +30,6 @@ import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import useRegister from '../../hooks/useRegister';
 import {CREATE_BOOKING} from '../../../request/mutations/createBooking.mutation';
 import {UPDATE_BOOKING_STATUS} from '../../../request/mutations/updateBookingStatus.mutation';
-import {GET_DOCUMENT_TYPES} from '../../../request/queries/getPaginatedDocumentTypes.query';
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 
 const ADDITIONAL_SIGNATURE_PRICE = 10;
@@ -125,20 +124,6 @@ const formatDateLabel = date =>
     day: 'numeric',
     year: 'numeric',
   });
-
-const getDocumentIcon = name => {
-  const normalizedName = name.toLowerCase();
-  if (normalizedName.includes('real estate')) {
-    return 'home';
-  }
-  if (normalizedName.includes('affidavit')) {
-    return 'edit-3';
-  }
-  if (normalizedName.includes('other')) {
-    return 'more-horizontal';
-  }
-  return 'file-text';
-};
 
 const formatFileSize = size => {
   if (!size) {
@@ -377,163 +362,6 @@ function AppointmentStep({
   );
 }
 
-function DocumentDetailsStep({
-  documentOptions,
-  documentsError,
-  documentsLoading,
-  documentType,
-  isMobile,
-  notes,
-  onChangeNotes,
-  onChangeSigners,
-  onSelectDocumentType,
-  onRetryDocuments,
-  additionalSignatures,
-}) {
-  return (
-    <>
-      <BookingFlowSection
-        subtitle="Choose the document that best matches your request."
-        title="Document type">
-        {isMobile ? (
-          <TouchableOpacity
-            activeOpacity={0.72}
-            onPress={() => onSelectDocumentType(null)}
-            style={[
-              styles.skipDocumentOption,
-              !documentType && styles.selectedSkipDocumentOption,
-            ]}>
-            <View style={styles.skipDocumentIcon}>
-              <Feather name="clock" size={18} color="#FD6D1F" />
-            </View>
-            <View style={styles.skipDocumentCopy}>
-              <Text style={styles.skipDocumentTitle}>
-                Decide at the appointment
-              </Text>
-              <Text style={styles.skipDocumentSubtitle}>
-                Document selection is optional for mobile notary.
-              </Text>
-            </View>
-            {!documentType ? (
-              <Feather name="check-circle" size={18} color="#168A52" />
-            ) : null}
-          </TouchableOpacity>
-        ) : null}
-        {documentsLoading ? (
-          <View style={styles.catalogLoading}>
-            <ActivityIndicator color="#FD6D1F" size="small" />
-            <Text style={styles.catalogLoadingText}>
-              Loading document types
-            </Text>
-          </View>
-        ) : documentsError ? (
-          <View style={styles.catalogError}>
-            <Text style={styles.catalogErrorTitle}>
-              Document types could not load
-            </Text>
-            <TouchableOpacity onPress={onRetryDocuments}>
-              <Text style={styles.catalogRetry}>Try again</Text>
-            </TouchableOpacity>
-          </View>
-        ) : documentOptions.length ? (
-          <View style={styles.documentGrid}>
-            {documentOptions.map(option => {
-              const selected = documentType?._id === option._id;
-              return (
-                <TouchableOpacity
-                  key={option._id}
-                  activeOpacity={0.72}
-                  onPress={() => onSelectDocumentType(option)}
-                  style={[
-                    styles.documentOption,
-                    selected && styles.selectedDocumentOption,
-                  ]}>
-                  <View
-                    style={[
-                      styles.documentIcon,
-                      selected && styles.selectedDocumentIcon,
-                    ]}>
-                    <Feather
-                      name={getDocumentIcon(option.name)}
-                      size={18}
-                      color={selected ? '#FD6D1F' : '#737B87'}
-                    />
-                  </View>
-                  <Text
-                    numberOfLines={2}
-                    style={[
-                      styles.documentLabel,
-                      selected && styles.selectedDocumentLabel,
-                    ]}>
-                    {option.name}
-                  </Text>
-                  {selected ? (
-                    <Feather name="check-circle" size={16} color="#FD6D1F" />
-                  ) : null}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ) : (
-          <Text style={styles.catalogEmpty}>No document types available.</Text>
-        )}
-      </BookingFlowSection>
-      <BookingFlowSection
-        subtitle={`Each additional signature adds $${ADDITIONAL_SIGNATURE_PRICE.toFixed(
-          2,
-        )} to the estimate.`}
-        title="Signing details">
-        <View style={styles.stepperRow}>
-          <View>
-            <Text style={styles.stepperLabel}>
-              Additional signatures required
-            </Text>
-            <Text style={styles.stepperHint}>Beyond the primary signature</Text>
-          </View>
-          <View style={styles.stepper}>
-            <TouchableOpacity
-              accessibilityLabel="Remove signer"
-              activeOpacity={0.7}
-              disabled={additionalSignatures === 0}
-              onPress={() =>
-                onChangeSigners(Math.max(0, additionalSignatures - 1))
-              }
-              style={styles.stepperButton}>
-              <Feather
-                name="minus"
-                size={17}
-                color={additionalSignatures === 0 ? '#C4C8CE' : '#303642'}
-              />
-            </TouchableOpacity>
-            <Text style={styles.stepperValue}>{additionalSignatures}</Text>
-            <TouchableOpacity
-              accessibilityLabel="Add signer"
-              activeOpacity={0.7}
-              disabled={additionalSignatures === 10}
-              onPress={() =>
-                onChangeSigners(Math.min(10, additionalSignatures + 1))
-              }
-              style={styles.stepperButton}>
-              <Feather name="plus" size={17} color="#303642" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.notesShell}>
-          <TextInput
-            multiline
-            onChangeText={onChangeNotes}
-            placeholder="Optional instructions for your notary"
-            placeholderTextColor="#A2A7B0"
-            style={styles.notesInput}
-            textAlignVertical="top"
-            value={notes}
-          />
-        </View>
-      </BookingFlowSection>
-    </>
-  );
-}
-
 function PrintOption({label, onPress, selected, subtitle}) {
   return (
     <TouchableOpacity
@@ -740,62 +568,58 @@ function UploadAndPrintStep({
         </BookingFlowSection>
       ) : null}
 
-      {isMobile ? (
-        <BookingFlowSection
-          subtitle={`Each additional signature adds $${ADDITIONAL_SIGNATURE_PRICE.toFixed(
-            2,
-          )} to the estimate.`}
-          title="Signing details">
-          <View style={styles.stepperRow}>
-            <View>
-              <Text style={styles.stepperLabel}>
-                Additional signatures required
-              </Text>
-              <Text style={styles.stepperHint}>
-                Beyond the primary signature
-              </Text>
-            </View>
-            <View style={styles.stepper}>
-              <TouchableOpacity
-                accessibilityLabel="Remove signer"
-                activeOpacity={0.7}
-                disabled={additionalSignatures === 0}
-                onPress={() =>
-                  onChangeSigners(Math.max(0, additionalSignatures - 1))
-                }
-                style={styles.stepperButton}>
-                <Feather
-                  name="minus"
-                  size={17}
-                  color={additionalSignatures === 0 ? '#C4C8CE' : '#303642'}
-                />
-              </TouchableOpacity>
-              <Text style={styles.stepperValue}>{additionalSignatures}</Text>
-              <TouchableOpacity
-                accessibilityLabel="Add signer"
-                activeOpacity={0.7}
-                disabled={additionalSignatures === 10}
-                onPress={() =>
-                  onChangeSigners(Math.min(10, additionalSignatures + 1))
-                }
-                style={styles.stepperButton}>
-                <Feather name="plus" size={17} color="#303642" />
-              </TouchableOpacity>
-            </View>
+      <BookingFlowSection
+        subtitle={`Each additional signature adds $${ADDITIONAL_SIGNATURE_PRICE.toFixed(
+          2,
+        )} to the estimate.`}
+        title="Signing details">
+        <View style={styles.stepperRow}>
+          <View>
+            <Text style={styles.stepperLabel}>
+              Additional signatures required
+            </Text>
+            <Text style={styles.stepperHint}>Beyond the primary signature</Text>
           </View>
-          <View style={styles.notesShell}>
-            <TextInput
-              multiline
-              onChangeText={onChangeNotes}
-              placeholder="Optional instructions for your notary"
-              placeholderTextColor="#A2A7B0"
-              style={styles.notesInput}
-              textAlignVertical="top"
-              value={notes}
-            />
+          <View style={styles.stepper}>
+            <TouchableOpacity
+              accessibilityLabel="Remove signer"
+              activeOpacity={0.7}
+              disabled={additionalSignatures === 0}
+              onPress={() =>
+                onChangeSigners(Math.max(0, additionalSignatures - 1))
+              }
+              style={styles.stepperButton}>
+              <Feather
+                name="minus"
+                size={17}
+                color={additionalSignatures === 0 ? '#C4C8CE' : '#303642'}
+              />
+            </TouchableOpacity>
+            <Text style={styles.stepperValue}>{additionalSignatures}</Text>
+            <TouchableOpacity
+              accessibilityLabel="Add signer"
+              activeOpacity={0.7}
+              disabled={additionalSignatures === 10}
+              onPress={() =>
+                onChangeSigners(Math.min(10, additionalSignatures + 1))
+              }
+              style={styles.stepperButton}>
+              <Feather name="plus" size={17} color="#303642" />
+            </TouchableOpacity>
           </View>
-        </BookingFlowSection>
-      ) : null}
+        </View>
+        <View style={styles.notesShell}>
+          <TextInput
+            multiline
+            onChangeText={onChangeNotes}
+            placeholder="Optional instructions for your notary"
+            placeholderTextColor="#A2A7B0"
+            style={styles.notesInput}
+            textAlignVertical="top"
+            value={notes}
+          />
+        </View>
+      </BookingFlowSection>
 
       <Modal
         animationType="slide"
@@ -1013,19 +837,6 @@ export default function BookingFlowScreen({navigation, route}) {
   const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
   const scrollRef = useRef(null);
   const {pickDocumentDetails, uploadAllDocuments} = useRegister();
-  const {
-    data: documentCatalog,
-    error: documentsError,
-    loading: documentsLoading,
-    refetch: refetchDocuments,
-  } = useQuery(GET_DOCUMENT_TYPES, {
-    variables: {
-      page: 1,
-      limit: 50,
-      state: user?.state || 'CA',
-    },
-    skip: !user || previewMode,
-  });
   const [createBooking] = useMutation(CREATE_BOOKING);
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS);
   const [step, setStep] = useState(1);
@@ -1043,7 +854,6 @@ export default function BookingFlowScreen({navigation, route}) {
     user?.addresses?.filter(address => address.location) || [],
   );
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
-  const [documentType, setDocumentType] = useState(null);
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
   const [additionalSignatures, setAdditionalSignatures] = useState(0);
   const [notes, setNotes] = useState('');
@@ -1073,17 +883,6 @@ export default function BookingFlowScreen({navigation, route}) {
     skip: !user || previewMode,
     fetchPolicy: 'no-cache',
   });
-
-  const documentOptions = useMemo(() => {
-    const catalogOptions = (
-      documentCatalog?.getPaginatedDocumentTypes?.documentTypes || []
-    ).map(option => ({
-      ...option,
-      price: Number(option.statePrices?.[0]?.price || 0),
-    }));
-
-    return catalogOptions;
-  }, [documentCatalog]);
 
   const matchedAgent = previewMode
     ? {
@@ -1152,24 +951,15 @@ export default function BookingFlowScreen({navigation, route}) {
   const printingCharge =
     isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
   const price = documentCharge + additionalSignatureCharge + printingCharge;
-  const totalSteps = isMobile ? 3 : 4;
+  const totalSteps = 3;
   const stepOneValid =
     Boolean(selectedDate && selectedTime && (!isMobile || selectedAddress)) &&
     (bookingFor === 'self' || Boolean(otherName.trim() && otherPhone.trim()));
-  const stepTwoValid = isMobile || Boolean(documentType);
-  const stepThreeValid = isMobile
+  const stepTwoValid = isMobile
     ? !wantsPrint || uploadedDocuments.length > 0
     : uploadedDocuments.length > 0;
   const disabled =
-    step === 1
-      ? !stepOneValid
-      : step === 2
-      ? isMobile
-        ? !stepThreeValid
-        : !stepTwoValid
-      : step === 3 && !isMobile
-      ? !stepThreeValid
-      : false;
+    step === 1 ? !stepOneValid : step === 2 ? !stepTwoValid : false;
 
   const handleBack = () => {
     if (step > 1) {
@@ -1245,14 +1035,10 @@ export default function BookingFlowScreen({navigation, route}) {
           agent: bookingAgent._id,
           // One priced entry per document being notarized, at the flat
           // $99.99-per-document rate.
-          documentType: uploadedDocuments.length
-            ? uploadedDocuments.map(document => ({
-                name: documentType?.name || document.name || 'Document',
-                price: DOCUMENT_NOTARIZATION_PRICE,
-              }))
-            : documentType
-            ? [{name: documentType.name, price: documentType.price}]
-            : [],
+          documentType: uploadedDocuments.map(document => ({
+            name: document.name || 'Document',
+            price: DOCUMENT_NOTARIZATION_PRICE,
+          })),
           address: isMobile
             ? selectedAddress?._id || selectedAddress?.location
             : null,
@@ -1402,40 +1188,6 @@ export default function BookingFlowScreen({navigation, route}) {
               selectedTime={selectedTime}
             />
           ) : step === 2 ? (
-            isMobile ? (
-              <UploadAndPrintStep
-                additionalSignatures={additionalSignatures}
-                isMobile={isMobile}
-                notes={notes}
-                onChangeNotes={setNotes}
-                onChangePrintCopies={setPrintCopies}
-                onChangeSigners={setAdditionalSignatures}
-                onChooseDocuments={chooseDocuments}
-                onRemoveDocument={removeDocument}
-                onReplaceDocument={replaceDocument}
-                onTogglePrint={setWantsPrint}
-                printCopies={printCopies}
-                uploadedDocuments={uploadedDocuments}
-                wantsPrint={wantsPrint}
-              />
-            ) : (
-              <DocumentDetailsStep
-                documentOptions={documentOptions}
-                documentsError={documentsError}
-                documentsLoading={
-                  documentsLoading && documentOptions.length === 0
-                }
-                documentType={documentType}
-                isMobile={isMobile}
-                notes={notes}
-                onChangeNotes={setNotes}
-                onChangeSigners={setAdditionalSignatures}
-                onSelectDocumentType={setDocumentType}
-                onRetryDocuments={refetchDocuments}
-                additionalSignatures={additionalSignatures}
-              />
-            )
-          ) : step === 3 && !isMobile ? (
             <UploadAndPrintStep
               additionalSignatures={additionalSignatures}
               isMobile={isMobile}
@@ -1458,7 +1210,7 @@ export default function BookingFlowScreen({navigation, route}) {
               bookingFor={bookingFor}
               dateLabel={dateLabel}
               documentCharge={documentCharge}
-              documentType={documentType?.name || ''}
+              documentType=""
               isMobile={isMobile}
               location={location}
               otherName={otherName}

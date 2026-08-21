@@ -18,6 +18,8 @@ import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useSelector} from 'react-redux';
 import {useStripe} from '@stripe/stripe-react-native';
 import useStripeApi from '../../hooks/useStripeApi';
+import Toast from 'react-native-toast-message';
+import {hasSavedTestCard} from '../../utils/TestPayments';
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
   // console.log('bookingDetail payment', bookingDetail?.documentType?.price);
@@ -60,6 +62,17 @@ export default function PaymentScreen({navigation}) {
   };
   const openPaymentSheet = async () => {
     setLoading(true);
+    if (await hasSavedTestCard()) {
+      Toast.show({
+        type: 'success',
+        text1: 'Test payment approved',
+        text2: 'Visa ending in 4242 was used. No real charge was made.',
+      });
+      navigation.navigate('CompletePayment');
+      setLoading(false);
+      return;
+    }
+
     const {error} = await presentPaymentSheet();
 
     if (error) {
@@ -73,7 +86,13 @@ export default function PaymentScreen({navigation}) {
   };
 
   useEffect(() => {
-    initializePaymentSheet();
+    hasSavedTestCard().then(isTestCard => {
+      if (!isTestCard) {
+        initializePaymentSheet();
+      }
+    });
+    // Re-check when the signed-in test user changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <SafeAreaView style={styles.container}>

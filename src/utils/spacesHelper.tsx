@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Buffer} from 'buffer';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {BaseURL} from './ApiUtils';
 import {uriToBlob} from './ImagePicker';
 
@@ -70,9 +70,7 @@ const requestUpload = async (fileName, contentType, purpose) => {
         'Document storage is not configured on the server. Please try again after storage is enabled.',
       );
     }
-    throw new Error(
-      serverMessage || 'Unable to prepare file upload.',
-    );
+    throw new Error(serverMessage || 'Unable to prepare file upload.');
   }
   return upload;
 };
@@ -91,6 +89,40 @@ const uploadToSpaces = async ({body, fileName, contentType, purpose}) => {
     throw new Error(`DigitalOcean upload failed (${response.status}).`);
   }
   return upload.publicUrl;
+};
+
+const uploadBase64ToSpaces = async ({
+  base64Data,
+  fileName,
+  contentType,
+  purpose,
+}) => {
+  const upload = await requestUpload(fileName, contentType, purpose);
+  const temporaryPath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${fileName}`;
+
+  await ReactNativeBlobUtil.fs.writeFile(temporaryPath, base64Data, 'base64');
+
+  try {
+    const response = await ReactNativeBlobUtil.fetch(
+      'PUT',
+      upload.uploadUrl,
+      {
+        'Content-Type': contentType,
+        'x-amz-acl': 'public-read',
+      },
+      ReactNativeBlobUtil.wrap(temporaryPath),
+    );
+    const status = response.info().status;
+    if (status < 200 || status >= 300) {
+      throw new Error(`DigitalOcean upload failed (${status}).`);
+    }
+    return upload.publicUrl;
+  } finally {
+    const exists = await ReactNativeBlobUtil.fs.exists(temporaryPath);
+    if (exists) {
+      await ReactNativeBlobUtil.fs.unlink(temporaryPath);
+    }
+  }
 };
 
 const blobDetails = (blob, fallbackName) => {
@@ -128,15 +160,8 @@ export const uploadDocumentToSpaces = async ({
 };
 
 export const uploadSignedDocumentToSpaces = async base64Data => {
-  const bytes = Buffer.from(base64Data, 'base64');
-  const body = new Blob(
-    [bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)],
-    {
-      type: 'application/pdf',
-    },
-  );
-  return uploadToSpaces({
-    body,
+  return uploadBase64ToSpaces({
+    base64Data,
     fileName: `signed-document-${Date.now()}.pdf`,
     contentType: 'application/pdf',
     purpose: 'document',
@@ -145,15 +170,8 @@ export const uploadSignedDocumentToSpaces = async base64Data => {
 
 export const uploadSignatureToSpaces = async base64Data => {
   const cleanData = base64Data.replace('data:image/png;base64,', '');
-  const bytes = Buffer.from(cleanData, 'base64');
-  const body = new Blob(
-    [bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)],
-    {
-      type: 'image/png',
-    },
-  );
-  return uploadToSpaces({
-    body,
+  return uploadBase64ToSpaces({
+    base64Data: cleanData,
     fileName: `signature-${Date.now()}.png`,
     contentType: 'image/png',
     purpose: 'signature',

@@ -10,6 +10,9 @@ type State = {
   selectedObjectId: string | null;
   pdfFilePath: string | null;
   isPdfSaved: boolean;
+  sharedDocument: {name: string; url: string; type: string} | null;
+  isDocumentPreviewOpen: boolean;
+  isSignatureModalOpen: boolean;
 };
 
 type Action = {
@@ -21,6 +24,11 @@ type Action = {
   deleteAllObjects: () => void;
   setPdfFilePath: (path: string | null) => void;
   setIsPdfSaved: (isSaved: boolean) => void;
+  setSharedDocument: (
+    document: {name: string; url: string; type: string} | null,
+  ) => void;
+  setDocumentPreviewOpen: (isOpen: boolean) => void;
+  setSignatureModalOpen: (isOpen: boolean) => void;
 };
 
 export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
@@ -31,6 +39,9 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       selectedObjectId: null,
       pdfFilePath: '',
       isPdfSaved: false,
+      sharedDocument: null,
+      isDocumentPreviewOpen: false,
+      isSignatureModalOpen: false,
       setCurrentPage: page => {
         set({currentPage: page});
       },
@@ -69,12 +80,24 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       setIsPdfSaved: isSaved => {
         set({isPdfSaved: isSaved});
       },
+      setSharedDocument: document => {
+        set({sharedDocument: document});
+      },
+      setDocumentPreviewOpen: isOpen => {
+        set({isDocumentPreviewOpen: isOpen});
+      },
+      setSignatureModalOpen: isOpen => {
+        set({isSignatureModalOpen: isOpen});
+      },
     }),
     {
       client,
       storageMapping: {
         objects: true,
         currentPage: true,
+        sharedDocument: true,
+        isDocumentPreviewOpen: true,
+        isSignatureModalOpen: true,
       },
       presenceMapping: {
         selectedObjectId: true,

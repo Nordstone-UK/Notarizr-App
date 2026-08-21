@@ -12,7 +12,6 @@ import {
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import moment from 'moment';
 import {useSelector} from 'react-redux';
 import {useMutation} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,6 +24,7 @@ import {
   waitForSocketConnection,
 } from '../../utils/Socket';
 import {buildSessionInviteMedia} from '../../utils/sessionInvite';
+import {getSessionAvailability} from '../../utils/sessionAvailability';
 
 const getInitials = participant => {
   const name = `${participant?.first_name || ''} ${
@@ -48,23 +48,6 @@ const getParticipantName = participant =>
 
 const participantKey = participant =>
   participant?._id || participant?.phone_number || participant?.email;
-
-const buildSessionDate = (date, time) => {
-  if (!date) {
-    return null;
-  }
-
-  const target = moment(date);
-  if (!target.isValid()) {
-    return null;
-  }
-
-  const parsedTime = moment(time, ['HH:mm', 'h:mm A', moment.ISO_8601], true);
-  if (parsedTime.isValid()) {
-    target.set({hour: parsedTime.hour(), minute: parsedTime.minute()});
-  }
-  return target;
-};
 
 function Avatar({participant, size = 52}) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -136,16 +119,23 @@ export default function WaitingRoomScreen({route, navigation}) {
   const user = useSelector(state => state.user.user);
   const [selectedTab, setSelectedTab] = useState('waiting');
   const [refreshing, setRefreshing] = useState(false);
-  const [sessionStarted, setSessionStarted] = useState(false);
+  const [availabilityVersion, setAvailabilityVersion] = useState(0);
   const [joining, setJoining] = useState(false);
   const [createChat] = useMutation(CREATE_CHAT);
   const [saveMessage] = useMutation(SAVE_MESSAGE);
 
-  const sessionDate = useMemo(() => buildSessionDate(date, time), [date, time]);
+  const scheduledDate = date || bookingDetail?.date_of_booking;
+  const scheduledTime = time || bookingDetail?.time_of_booking;
+  const sessionAvailability = useMemo(
+    () => getSessionAvailability({date: scheduledDate, time: scheduledTime}),
+    [availabilityVersion, scheduledDate, scheduledTime],
+  );
+  const sessionDate = sessionAvailability.sessionDate;
+  const sessionStarted = sessionAvailability.canJoin;
 
   const refreshSessionStatus = useCallback(() => {
-    setSessionStarted(!sessionDate || sessionDate.isSameOrBefore(moment()));
-  }, [sessionDate]);
+    setAvailabilityVersion(value => value + 1);
+  }, []);
 
   useEffect(() => {
     refreshSessionStatus();
@@ -191,7 +181,14 @@ export default function WaitingRoomScreen({route, navigation}) {
   const currentUserId = participantKey(user);
 
   const joinSession = async () => {
-    if (joining) {
+    if (joining || !sessionAvailability.canJoin) {
+      if (!sessionAvailability.canJoin) {
+        Toast.show({
+          type: 'info',
+          text1: 'Session not open yet',
+          text2: sessionAvailability.message,
+        });
+      }
       return;
     }
 
@@ -269,6 +266,8 @@ export default function WaitingRoomScreen({route, navigation}) {
         uid,
         channel,
         token,
+        date: scheduledDate,
+        time: scheduledTime,
         routeFrom: isAgent ? 'agent' : 'client',
       });
     }

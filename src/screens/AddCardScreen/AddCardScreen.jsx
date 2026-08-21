@@ -9,12 +9,52 @@ import {
 } from 'react-native';
 import {CreditCardInput} from 'react-native-credit-card-input';
 import Feather from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
 import AppColors from '../../themes/AppColors';
+import {
+  isTestCardNumber,
+  saveTestCard,
+} from '../../utils/TestPayments';
 
 export default function AddCardScreen({navigation}) {
   const [cardForm, setCardForm] = useState({valid: false});
+  const [saving, setSaving] = useState(false);
+  const values = cardForm?.values || {};
+  const testCardReady =
+    isTestCardNumber(values.number) &&
+    Boolean(
+      values.expiry?.trim() &&
+        values.cvc?.trim() &&
+        values.name?.trim() &&
+        values.postalCode?.trim(),
+    );
+
+  const handleSaveCard = async () => {
+    const cardNumber = cardForm?.values?.number;
+    if (!isTestCardNumber(cardNumber)) {
+      Toast.show({
+        type: 'info',
+        text1: 'Test card only',
+        text2: 'Use 4242 4242 4242 4242 with a future expiry and any CVC.',
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await saveTestCard();
+      Toast.show({
+        type: 'success',
+        text1: 'Test card saved',
+        text2: 'Visa ending in 4242 is ready for simulated payments.',
+      });
+      navigation.goBack();
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -81,9 +121,10 @@ export default function AddCardScreen({navigation}) {
         </View>
 
         <AuthPrimaryButton
-          disabled={!cardForm.valid}
+          disabled={(!cardForm.valid && !testCardReady) || saving}
           icon="arrow-right"
-          onPress={() => navigation.navigate('PaymentUpdateScreen')}
+          loading={saving}
+          onPress={handleSaveCard}
           style={styles.saveButton}
           title="Save card"
         />

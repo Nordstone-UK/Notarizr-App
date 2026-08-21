@@ -1,6 +1,9 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
+  ActivityIndicator,
   Image,
+  Modal,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -12,6 +15,7 @@ import {
 import moment from 'moment';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import {getSavedTestCard} from '../../utils/TestPayments';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
 
 const STATUS_CONFIG = {
@@ -67,7 +71,7 @@ const STATUS_CONFIG = {
     background: BookingColors.warningSoft,
     color: BookingColors.warning,
     icon: 'credit-card',
-    label: 'Payment due',
+    label: 'Awaiting payment',
   },
 };
 
@@ -243,12 +247,16 @@ export default function ClientBookingDetailsView({
   onHelp,
   onJoin,
   onMessage,
+  onAddCard,
   onPay,
   onRefresh,
   onTrack,
   onUpload,
   status: statusValue,
 }) {
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [savedCard, setSavedCard] = useState(null);
+  const [cardLoading, setCardLoading] = useState(false);
   const statusKey = normalizeStatus(statusValue || booking?.status);
   const status = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
   const isMobile = booking?.service_type === 'mobile_notary';
@@ -308,6 +316,23 @@ export default function ClientBookingDetailsView({
     booking?.notarized_docs?.length || booking?.agent_document?.length,
   );
 
+  const openPaymentMethods = async () => {
+    setPaymentModalVisible(true);
+    setCardLoading(true);
+    setSavedCard(await getSavedTestCard());
+    setCardLoading(false);
+  };
+
+  const handleAddCard = () => {
+    setPaymentModalVisible(false);
+    onAddCard?.();
+  };
+
+  const handleContinuePayment = () => {
+    setPaymentModalVisible(false);
+    onPay?.();
+  };
+
   const renderActions = () => {
     if (statusKey === 'completed') {
       return (
@@ -361,8 +386,8 @@ export default function ClientBookingDetailsView({
         <ActionButton
           disabled={loading}
           icon="credit-card"
-          label="Review and pay"
-          onPress={onPay}
+          label="Pay to confirm booking"
+          onPress={openPaymentMethods}
         />
       );
     }
@@ -454,6 +479,8 @@ export default function ClientBookingDetailsView({
               ? 'This booking is no longer active.'
               : statusKey === 'pending'
               ? 'We are confirming your notary and appointment.'
+              : statusKey === 'to_be_paid'
+              ? 'Your notary accepted. Pay securely to confirm this appointment.'
               : 'Your notary and appointment details are confirmed.'}
           </Text>
         </View>
@@ -578,6 +605,106 @@ export default function ClientBookingDetailsView({
       </ScrollView>
 
       <View style={styles.actionBar}>{renderActions()}</View>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setPaymentModalVisible(false)}
+        transparent
+        visible={paymentModalVisible}>
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            accessibilityLabel="Close payment methods"
+            onPress={() => setPaymentModalVisible(false)}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.paymentSheet}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <View style={styles.sheetTitleCopy}>
+                <Text style={styles.sheetTitle}>Choose payment method</Text>
+                <Text style={styles.sheetSubtitle}>
+                  Select a saved card to confirm this booking.
+                </Text>
+              </View>
+              <TouchableOpacity
+                accessibilityLabel="Close"
+                activeOpacity={0.72}
+                onPress={() => setPaymentModalVisible(false)}
+                style={styles.sheetCloseButton}>
+                <Feather
+                  color={BookingColors.textSecondary}
+                  name="x"
+                  size={20}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {cardLoading ? (
+              <View style={styles.cardLoadingState}>
+                <ActivityIndicator color={BookingColors.primary} />
+                <Text style={styles.cardLoadingText}>Loading your cards...</Text>
+              </View>
+            ) : savedCard ? (
+              <TouchableOpacity
+                accessibilityLabel={`${savedCard.brand} ending in ${savedCard.last4}`}
+                activeOpacity={0.78}
+                style={styles.savedCardRow}>
+                <View style={styles.savedCardIcon}>
+                  <Feather
+                    color={BookingColors.primary}
+                    name="credit-card"
+                    size={20}
+                  />
+                </View>
+                <View style={styles.savedCardCopy}>
+                  <Text style={styles.savedCardBrand}>{savedCard.brand}</Text>
+                  <Text style={styles.savedCardNumber}>
+                    •••• •••• •••• {savedCard.last4}
+                  </Text>
+                </View>
+                <Feather
+                  color={BookingColors.primary}
+                  name="check-circle"
+                  size={21}
+                />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.emptyCardState}>
+                <View style={styles.emptyCardIcon}>
+                  <Feather
+                    color={BookingColors.primary}
+                    name="credit-card"
+                    size={22}
+                  />
+                </View>
+                <Text style={styles.emptyCardTitle}>No saved cards</Text>
+                <Text style={styles.emptyCardText}>
+                  Add a payment card to confirm your appointment.
+                </Text>
+              </View>
+            )}
+
+            {!cardLoading ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                activeOpacity={0.78}
+                onPress={savedCard ? handleContinuePayment : handleAddCard}
+                style={styles.sheetPrimaryButton}>
+                <Text style={styles.sheetPrimaryButtonText}>
+                  {savedCard
+                    ? `Continue with •••• ${savedCard.last4}`
+                    : 'Add a payment card'}
+                </Text>
+                <Feather
+                  color={BookingColors.white}
+                  name={savedCard ? 'arrow-right' : 'plus'}
+                  size={18}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -796,4 +923,142 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryActionButtonText: {color: BookingColors.textPrimary},
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 12,
+    backgroundColor: 'rgba(15, 23, 42, 0.48)',
+  },
+  paymentSheet: {
+    paddingHorizontal: 18,
+    paddingTop: 7,
+    paddingBottom: 8,
+    borderRadius: 8,
+    backgroundColor: BookingColors.surface,
+  },
+  sheetHandle: {
+    width: 42,
+    height: 4,
+    alignSelf: 'center',
+    marginBottom: 10,
+    borderRadius: 2,
+    backgroundColor: BookingColors.borderStrong,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  sheetTitleCopy: {flex: 1, minWidth: 0, paddingRight: 12},
+  sheetTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 19,
+  },
+  sheetSubtitle: {
+    marginTop: 4,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 17,
+  },
+  sheetCloseButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
+  cardLoadingState: {
+    minHeight: 94,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 8,
+  },
+  cardLoadingText: {
+    marginLeft: 10,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
+  savedCardRow: {
+    minHeight: 76,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: BookingColors.primary,
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  savedCardIcon: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.surface,
+  },
+  savedCardCopy: {flex: 1, minWidth: 0, marginLeft: 12},
+  savedCardBrand: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  savedCardNumber: {
+    marginTop: 3,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
+  emptyCardState: {
+    alignItems: 'center',
+    marginBottom: 14,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 8,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
+  emptyCardIcon: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  emptyCardTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  emptyCardText: {
+    marginTop: 4,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  sheetPrimaryButton: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.primary,
+  },
+  sheetPrimaryButtonText: {
+    marginRight: 8,
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
 });

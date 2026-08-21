@@ -5,9 +5,10 @@ import {
   Image,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
   BackHandler,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Colors from '../../themes/Colors';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
 import {useDispatch, useSelector} from 'react-redux';
@@ -23,9 +24,11 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import useChatService from '../../hooks/useChatService';
 import {useSession} from '../../hooks/useSession';
+import Toast from 'react-native-toast-message';
+import {hasSavedTestCard} from '../../utils/TestPayments';
 
 export default function ToBePaidScreen({route, navigation}) {
-  const {bookingData} = route.params;
+  const {bookingData, autoPay = false} = route.params;
   const {handleUpdateBookingStatus} = useBookingStatus();
   const {updateSession} = useSession();
   const numberOfDocs = useSelector(state => state.booking.numberOfDocs);
@@ -34,21 +37,31 @@ export default function ToBePaidScreen({route, navigation}) {
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
   const [isDataInitialized, setIsDataInitialized] = useState(false);
+  const autoPaymentStarted = useRef(false);
   const DocumentPrice = bookingData?.document_type?.price;
 
   const init = async () => {
     console.log('iniiiiiiii');
     try {
+      let confirmedBooking = bookingData;
       if (bookingData?.__typename === 'Session') {
         await updateSession('paid', bookingData._id);
       } else {
-        await handleUpdateBookingStatus('accepted', bookingData._id);
+        const updatedBooking = await handleUpdateBookingStatus(
+          'accepted',
+          bookingData._id,
+          {navigate: false, throwOnError: true},
+        );
+        confirmedBooking = updatedBooking || bookingData;
       }
 
       // Add a small delay to ensure state updates are complete
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      navigation.navigate('AgentBookCompletion');
+      navigation.replace('AgentBookCompletion', {
+        bookingData: {...confirmedBooking, status: 'accepted'},
+        paymentSuccessful: true,
+      });
     } catch (error) {
       console.error('Error in init:', error);
       Alert.alert(
@@ -104,6 +117,16 @@ export default function ToBePaidScreen({route, navigation}) {
   const openPaymentSheet = async () => {
     setLoading(true);
     try {
+      if (await hasSavedTestCard()) {
+        await init();
+        Toast.show({
+          type: 'success',
+          text1: 'Test payment approved',
+          text2: 'Visa ending in 4242 was used. No real charge was made.',
+        });
+        return;
+      }
+
       const {error} = await presentPaymentSheet();
 
       if (error) {
@@ -123,10 +146,34 @@ export default function ToBePaidScreen({route, navigation}) {
     }
   };
   useEffect(() => {
-    initializePaymentSheet().then(() => {
-      setIsDataInitialized(true);
+    hasSavedTestCard().then(isTestCard => {
+      if (isTestCard) {
+        setIsDataInitialized(true);
+        if (autoPay && !autoPaymentStarted.current) {
+          autoPaymentStarted.current = true;
+          openPaymentSheet();
+        }
+        return;
+      }
+      initializePaymentSheet().then(() => {
+        setIsDataInitialized(true);
+      });
     });
-  }, [navigation]);
+    // Payment initialization is intentionally tied to the active booking screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPay, navigation]);
+
+  if (autoPay) {
+    return (
+      <SafeAreaView style={styles.processingContainer}>
+        <ActivityIndicator color={Colors.Orange} size="large" />
+        <Text style={styles.processingTitle}>Confirming payment</Text>
+        <Text style={styles.processingText}>
+          Please wait while we confirm your booking.
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -180,6 +227,26 @@ export default function ToBePaidScreen({route, navigation}) {
 }
 
 const styles = StyleSheet.create({
+  processingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: widthToDp(8),
+    backgroundColor: '#FFFFFF',
+  },
+  processingTitle: {
+    marginTop: heightToDp(2.5),
+    color: Colors.TextColor,
+    fontFamily: 'Manrope-Bold',
+    fontSize: widthToDp(6),
+  },
+  processingText: {
+    marginTop: heightToDp(1),
+    color: '#7A818D',
+    fontFamily: 'Manrope-Regular',
+    fontSize: widthToDp(3.7),
+    textAlign: 'center',
+  },
   container: {
     flex: 1,
 

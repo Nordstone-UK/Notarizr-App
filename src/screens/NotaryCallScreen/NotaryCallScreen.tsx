@@ -68,12 +68,20 @@ import PDFViewer from './PDFViewer';
 import {UPDATE_OR_CREATE_SESSION_UPDATED_DOCS} from '../../../request/mutations/updateSessionUpdateddocs';
 import SketchCanvasComponent from './PenTool/SketchCanvasComponent';
 import LinearGradient from 'react-native-linear-gradient';
-import useFetchBooking from '../../hooks/useFetchBooking';
 import {UPDATE_OR_CREATE_SESSION_CLIENT_DOCS} from '../../../request/mutations/updateSessionClientDocs';
 import DrawSignTypeModal from './Signature';
 import {TouchableWithoutFeedback} from 'react-native';
+import {getSessionAvailability} from '../../utils/sessionAvailability';
 
 export default function NotaryCallScreen({route, navigation}: any) {
+  const {
+    channel,
+    token: CutomToken,
+    routeFrom,
+    date: routeDate,
+    time: routeTime,
+    uid: routeUid,
+  } = route?.params || {};
   const {pickDocumentDetails, uploadDocumentToStorage} = useRegister();
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
@@ -86,9 +94,32 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const User = useSelector(state => state?.user?.user);
   const isClient = User?.account_type === 'client';
   const insets = useSafeAreaInsets();
-  const objects = useLiveblocks(state => state.objects);
+  const sharedDocument = useLiveblocks(state => state.sharedDocument);
+  const isDocumentPreviewOpen = useLiveblocks(
+    state => state.isDocumentPreviewOpen,
+  );
+  const setSharedDocument = useLiveblocks(state => state.setSharedDocument);
+  const setDocumentPreviewOpen = useLiveblocks(
+    state => state.setDocumentPreviewOpen,
+  );
+  const isSignatureModalOpen = useLiveblocks(
+    state => state.isSignatureModalOpen,
+  );
+  const setSignatureModalOpen = useLiveblocks(
+    state => state.setSignatureModalOpen,
+  );
+  const setSharedCurrentPage = useLiveblocks(state => state.setCurrentPage);
+  const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
+  const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const bookingData =
     useSelector((state: any) => state?.booking?.booking) || {};
+  const bookingRoomId = routeUid || bookingData?._id;
+  const scheduledDate = routeDate || bookingData?.date_of_booking;
+  const scheduledTime = routeTime || bookingData?.time_of_booking;
+  const sessionAvailability = useMemo(
+    () => getSessionAvailability({date: scheduledDate, time: scheduledTime}),
+    [scheduledDate, scheduledTime],
+  );
   const clientDocuments = useMemo(
     () => bookingData?.client_documents || {},
     [bookingData?.client_documents],
@@ -141,10 +172,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [signatureDimensions, setSignatureDimensions] = useState({});
   const [signatureImageMimeType, setSignatureImageMimeType] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isDrawTypeModalVisible, setDrawTypeModalVisible] = useState(false);
   const [clientDocModalVisible, setClientDocModalVisible] = useState(false);
   const [selectedLocalDocument, setSelectedLocalDocument] = useState<any>(null);
   const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
+  const videoStageHeight = isClient
+    ? Math.min(Math.max(screenHeight * 0.58, 390), 520)
+    : Math.min(Math.max(screenHeight * 0.43, 320), 400);
   const getFitPolicy = () => {
     if (pageWidth && pageHeight) {
       const screenRatio = screenWidth / screenHeight;
@@ -153,7 +186,74 @@ export default function NotaryCallScreen({route, navigation}: any) {
     }
     return 0; // Default fitPolicy
   };
-  const {updateAgentdocs} = useFetchBooking();
+  useEffect(() => {
+    if (!bookingRoomId || !sessionAvailability.canJoin) {
+      return undefined;
+    }
+
+    enterRoom(`notary-session-${bookingRoomId}`);
+    return () => leaveRoom();
+  }, [bookingRoomId, enterRoom, leaveRoom, sessionAvailability.canJoin]);
+
+  useEffect(() => {
+    if (sessionAvailability.canJoin) {
+      return;
+    }
+
+    Toast.show({
+      type: 'info',
+      text1: 'Session unavailable',
+      text2: sessionAvailability.message,
+    });
+    navigation.replace('WaitingRoomScreen', {
+      uid: bookingRoomId,
+      channel,
+      token: CutomToken,
+      time: scheduledTime,
+      date: scheduledDate,
+      routeFrom,
+    });
+  }, [
+    CutomToken,
+    bookingRoomId,
+    channel,
+    navigation,
+    routeFrom,
+    scheduledDate,
+    scheduledTime,
+    sessionAvailability.canJoin,
+    sessionAvailability.message,
+  ]);
+
+  useEffect(() => {
+    if (!sharedDocument?.url) {
+      return;
+    }
+
+    const document = {
+      name: sharedDocument.name || 'Shared document.pdf',
+      uri: sharedDocument.url,
+      type: sharedDocument.type || 'application/pdf',
+    };
+    setSelectedLocalDocument(document);
+    setSourceKey('client_document');
+    setSourceUrl(sharedDocument.url);
+    setSelectedItem(sharedDocument.url);
+    setPickerItems(currentItems => [
+      ...currentItems.filter(item => item.value !== sharedDocument.url),
+      {
+        label: document.name,
+        value: sharedDocument.url,
+        documentKey: 'client_document',
+      },
+    ]);
+  }, [sharedDocument]);
+
+  useEffect(() => {
+    if (sharedDocument?.url) {
+      setClientDocModalVisible(isDocumentPreviewOpen);
+    }
+  }, [isDocumentPreviewOpen, sharedDocument?.url]);
   useEffect(() => {
     const extractFileName = url => {
       return url.split('/').pop();
@@ -516,7 +616,6 @@ export default function NotaryCallScreen({route, navigation}: any) {
   /////////////////////////////////////
   ///////////////////////////////
 
-  const {channel, token: CutomToken, routeFrom} = route?.params || {};
   const uid = 0;
   const channelName = channel;
   const token = CutomToken;
@@ -535,6 +634,24 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [totalPages, setTotalPages] = React.useState<number>(0);
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
+  useEffect(() => {
+    if (!remoteCurrentPage) {
+      return;
+    }
+
+    setCurrentPage(remoteCurrentPage);
+    pdfRef.current?.setPage(remoteCurrentPage);
+  }, [remoteCurrentPage]);
+
+  const handleSharedPageChanged = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      if (page !== remoteCurrentPage) {
+        setSharedCurrentPage(page);
+      }
+    },
+    [remoteCurrentPage, setSharedCurrentPage],
+  );
   const handleBackButton = () => {
     if (routeFrom === 'agent') {
       // If routeFrom is 'agent', navigate back
@@ -559,6 +676,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
   }, []);
   const join = useCallback(
     async (engine = agoraEngineRef.current) => {
+      if (!sessionAvailability.canJoin) {
+        setCallStatus('error');
+        setCallError(sessionAvailability.message);
+        return;
+      }
       if (!engine) {
         setCallStatus('error');
         setCallError('The call engine is not ready. Please retry.');
@@ -589,7 +711,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
         setCallError(error?.message || 'The video room could not be opened.');
       }
     },
-    [channelName, token],
+    [
+      channelName,
+      sessionAvailability.canJoin,
+      sessionAvailability.message,
+      token,
+    ],
   );
 
   const getPermission = useCallback(async () => {
@@ -684,6 +811,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
         });
         agoraEngine.enableAudio();
         agoraEngine.enableVideo();
+        agoraEngine.enableLocalVideo(true);
         agoraEngine.setDefaultAudioRouteToSpeakerphone(true);
         await join(agoraEngine);
       } catch (error: any) {
@@ -921,86 +1049,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
         console.log('eeee', err.message);
       });
   };
-  // Opens the same document+signature popup the client side uses,
-  // immediately after picking a file — the agent sees the file right away
-  // while it uploads to Spaces and attaches to the session in the
-  // background, matching `selectClientDocument`'s flow exactly.
-  const uploadSessionDocuments = async () => {
-    if (!bookingData?._id) {
-      Toast.show({
-        type: 'error',
-        text1: 'Session unavailable',
-        text2: 'Reopen this session and try again.',
-      });
-      return;
-    }
-
-    const [document] = await pickDocumentDetails(false);
-    if (!document) {
-      return;
-    }
-    setSelectedLocalDocument(document);
-    setClientDocModalVisible(true);
-
-    setLoading(true);
-    try {
-      const uploadedUrl = await uploadDocumentToStorage(
-        document.uri,
-        document.name,
-        document.type,
-      );
-      if (!uploadedUrl) {
-        throw new Error('Document did not finish uploading.');
-      }
-
-      const mergedAgentDocuments = [...agentDocuments, uploadedUrl];
-      const response = await updateAgentdocs(
-        bookingData._id,
-        mergedAgentDocuments,
-      );
-      const updatedSession = response?.session;
-      if (updatedSession) {
-        dispatch(setBookingInfoState(updatedSession));
-      }
-
-      const newItem = {
-        label: document.name,
-        value: uploadedUrl,
-        documentKey: 'agent_document',
-      };
-      setPickerItems(currentItems => [
-        ...currentItems.filter(item => item.value !== newItem.value),
-        newItem,
-      ]);
-      setSourceKey(newItem.documentKey);
-      setSourceUrl(newItem.value);
-      setSelectedItem(newItem.value);
-      setFileDownloaded(false);
-      setNewPdfSaved(false);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Document uploaded',
-        text2: 'The document is ready in this session.',
-      });
-      return true;
-    } catch (error: any) {
-      console.warn('Session document upload failed:', error?.message || error);
-      Toast.show({
-        type: 'error',
-        text1: 'Upload failed',
-        text2:
-          error?.message || 'Check your connection and choose the file again.',
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-  // Opens a local preview immediately (fast, no network wait) while the
-  // real file uploads to DigitalOcean Spaces and attaches to the session
-  // in the background, same as `uploadSessionDocuments` does for the
-  // agent side, so the notary can see it too.
+  // The client owns document uploads. Once storage returns a public URL,
+  // publish it to the booking room so both participants open the same file.
   const selectClientDocument = async () => {
     const [document] = await pickDocumentDetails(false);
     if (!document) {
@@ -1038,6 +1088,13 @@ export default function NotaryCallScreen({route, navigation}: any) {
         dispatch(setBookingInfoState(updatedSession));
       }
 
+      setSharedDocument({
+        name: document.name || 'Shared document.pdf',
+        url: uploadedUrl,
+        type: document.type || 'application/pdf',
+      });
+      setDocumentPreviewOpen(true);
+
       Toast.show({
         type: 'success',
         text1: 'Document shared',
@@ -1073,11 +1130,16 @@ export default function NotaryCallScreen({route, navigation}: any) {
     }
   };
   const handleSignPress = () => {
-    setDrawTypeModalVisible(true);
+    setSignatureModalOpen(true);
   };
 
   const handleSignCloseModal = () => {
-    setDrawTypeModalVisible(false);
+    setSignatureModalOpen(false);
+  };
+
+  const closeDocumentPreview = () => {
+    setClientDocModalVisible(false);
+    setDocumentPreviewOpen(false);
   };
 
   const toggleDrawingMode = () => {
@@ -1110,7 +1172,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
       {/* ── VIDEO PANEL ── */}
       <View style={styles.videoPanel}>
-        <View style={styles.videoStage}>
+        <View style={[styles.videoStage, {height: videoStageHeight}]}>
           {remoteUids.length ? (
             <RtcSurfaceView
               canvas={{uid: remoteUids[0]}}
@@ -1267,9 +1329,20 @@ export default function NotaryCallScreen({route, navigation}: any) {
           <TouchableOpacity
             accessibilityLabel="Select document"
             onPress={selectClientDocument}
+            disabled={loading}
             style={styles.clientUploadButton}>
-            <Feather name="file-plus" size={16} color={BookingColors.primary} />
-            <RNText style={styles.clientUploadButtonText}>Select Doc</RNText>
+            {loading ? (
+              <ActivityIndicator size="small" color={BookingColors.primary} />
+            ) : (
+              <Feather
+                name="file-plus"
+                size={16}
+                color={BookingColors.primary}
+              />
+            )}
+            <RNText style={styles.clientUploadButtonText}>
+              {loading ? 'Sharing document…' : 'Select Doc'}
+            </RNText>
           </TouchableOpacity>
         </View>
       ) : (
@@ -1333,14 +1406,14 @@ export default function NotaryCallScreen({route, navigation}: any) {
                         filePath,
                         {width, height},
                       ) => {
-                        setCurrentPage(1);
+                        const initialPage = remoteCurrentPage || 1;
+                        setCurrentPage(initialPage);
+                        pdfRef.current?.setPage(initialPage);
                         setTotalPages(numberOfPages);
                         setPageWidth(width);
                         setPageHeight(height);
                       }}
-                      onPageChanged={(page, numberOfPages) => {
-                        setCurrentPage(page);
-                      }}
+                      onPageChanged={page => handleSharedPageChanged(page)}
                       onPageSingleTap={(page, x, y) => {
                         handleSingleTap(page, x, y);
                       }}
@@ -1394,37 +1467,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
             />
           </View>
 
-          {/* ── ACTION TOOLBAR ──
-            Deliberately just Upload Doc + Complete Call here — signing
-            happens inside the popup that opens right after picking a file
-            (see the DOCUMENT + SIGNATURE POPUP below), not as a separate
-            always-visible button. */}
+          {/* The client owns uploads; the notary works with the shared file. */}
           <View style={styles.toolbar}>
-            <View style={styles.toolbarGrid}>
-              {/* Upload Document */}
-              <TouchableOpacity
-                style={styles.toolBtn}
-                onPress={uploadSessionDocuments}
-                disabled={loading}>
-                {loading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={BookingColors.primary}
-                    style={{width: 28}}
-                  />
-                ) : (
-                  <View style={styles.toolBtnIcon}>
-                    <Feather
-                      name="upload"
-                      size={15}
-                      color={BookingColors.primary}
-                    />
-                  </View>
-                )}
-                <RNText style={styles.toolBtnLabel}>Upload Doc</RNText>
-              </TouchableOpacity>
-            </View>
-
             {User.account_type != 'client' && (
               <TouchableOpacity
                 style={styles.endCallBtn}
@@ -1442,9 +1486,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
       )}
 
       {/* ── DOCUMENT + SIGNATURE POPUP ──
-          Shown for both roles right after picking a file to upload — the
-          agent's Upload Doc button and the client's Select Doc button both
-          open this same preview-and-sign flow.
+          The client uploads and publishes the file into the shared room.
+          Both participants then see this same preview and live annotations.
           Plain full-screen overlay, not a native <Modal>: the signature
           picker below is its own real <Modal>, and iOS won't reliably
           stack two native Modals — the second only appears once the first
@@ -1463,7 +1506,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
               </RNText>
               <TouchableOpacity
                 accessibilityLabel="Close"
-                onPress={() => setClientDocModalVisible(false)}
+                onPress={closeDocumentPreview}
                 style={styles.headerBackBtn}>
                 <Feather name="x" size={18} color={BookingColors.textPrimary} />
               </TouchableOpacity>
@@ -1492,14 +1535,14 @@ export default function NotaryCallScreen({route, navigation}: any) {
                         filePath,
                         {width, height},
                       ) => {
-                        setCurrentPage(1);
+                        const initialPage = remoteCurrentPage || 1;
+                        setCurrentPage(initialPage);
+                        pdfRef.current?.setPage(initialPage);
                         setTotalPages(numberOfPages);
                         setPageWidth(width);
                         setPageHeight(height);
                       }}
-                      onPageChanged={(page, numberOfPages) => {
-                        setCurrentPage(page);
-                      }}
+                      onPageChanged={page => handleSharedPageChanged(page)}
                       onPageSingleTap={(page, x, y) => {
                         handleSingleTap(page, x, y);
                       }}
@@ -1553,7 +1596,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
       )}
 
       <DrawSignTypeModal
-        isVisible={isDrawTypeModalVisible}
+        isVisible={isSignatureModalOpen}
         onClose={handleSignCloseModal}
         signs={User}
         onStampChanges={handleSavedStamp}
@@ -1655,7 +1698,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#222735',
   },
   videoStage: {
-    height: 230,
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#090D14',

@@ -1,7 +1,6 @@
 import {useLazyQuery, useMutation} from '@apollo/client';
 import {UPDATE_BOOKING_STATUS} from '../../request/mutations/updateBookingStatus.mutation';
 import {VERIFY_BOOKING_ARRIVAL_OTP} from '../../request/mutations/verifyBookingArrivalOTP.mutation';
-import {useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {GET_BOOKING_STATUS} from '../../request/queries/getBookingStatus.query';
 import {GET_SESSION_STATUS} from '../../request/queries/getSessionStatus.query';
@@ -11,7 +10,8 @@ const useBookingStatus = () => {
   const [verifyArrivalOtp] = useMutation(VERIFY_BOOKING_ARRIVAL_OTP);
   const [getBookingStatus] = useLazyQuery(GET_BOOKING_STATUS);
   const [getSession] = useLazyQuery(GET_SESSION_STATUS);
-  const handleUpdateBookingStatus = async (status, id) => {
+  const handleUpdateBookingStatus = async (status, id, options = {}) => {
+    const shouldNavigate = options.navigate !== false;
     const request = {
       variables: {
         bookingId: id,
@@ -20,15 +20,19 @@ const useBookingStatus = () => {
     };
     try {
       const response = await updateBookingStatus(request);
-      if (response.data.updateBookingStatusR.booking.status === 'accepted') {
+      const booking = response.data.updateBookingStatusR.booking;
+      if (shouldNavigate && booking.status === 'accepted') {
         navigation.navigate('BookingAcceptedScreen');
-      } else if (
-        response.data.updateBookingStatusR.booking.status === 'rejected'
-      ) {
+      } else if (shouldNavigate && booking.status === 'rejected') {
         navigation.goBack();
       }
+      return booking;
     } catch (error) {
       console.error(error);
+      if (options.throwOnError) {
+        throw error;
+      }
+      return undefined;
     }
   };
   const handlegetBookingStatus = async id => {

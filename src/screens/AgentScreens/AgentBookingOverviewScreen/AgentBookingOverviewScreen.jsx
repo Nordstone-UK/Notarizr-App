@@ -34,6 +34,7 @@ import {
   getBookingClient,
   normalizeAgentBooking,
 } from '../../../utils/agentBookingPresentation';
+import {getSessionAvailability} from '../../../utils/sessionAvailability';
 import {
   ACCEPT_ALLOCATION_REQUEST,
   REJECT_ALLOCATION_REQUEST,
@@ -370,6 +371,18 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const isAllocation = booking?.__typename === 'Allocation';
   const isSession = booking?.__typename === 'Session';
   const pending = status === 'pending';
+  const isRemoteBooking = normalized.service_type === 'remote_online_notary';
+  const canJoinRemoteSession =
+    isRemoteBooking &&
+    ['accepted', 'paid', 'payment_confirmed', 'ongoing'].includes(status);
+  const sessionAvailability = useMemo(
+    () =>
+      getSessionAvailability({
+        date: booking?.date_of_booking,
+        time: booking?.time_of_booking,
+      }),
+    [booking?.date_of_booking, booking?.time_of_booking],
+  );
   const statusStyle = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const documentLabel = Array.isArray(booking?.document_type)
     ? booking.document_type
@@ -560,7 +573,28 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const openWorkspace = () =>
     navigation.navigate('AgentBookingWorkspace', {clientDetail: booking});
 
+  const openRemoteSession = () =>
+    navigation.navigate('WaitingRoomScreen', {
+      uid: booking?._id,
+      channel: booking?.agora_channel_name,
+      token: booking?.agora_channel_token,
+      time: booking?.time_of_booking,
+      date: booking?.date_of_booking,
+    });
+
   const handlePrimary = () => {
+    if (canJoinRemoteSession) {
+      if (!sessionAvailability.canJoin) {
+        Toast.show({
+          type: 'info',
+          text1: 'Session not open yet',
+          text2: sessionAvailability.message,
+        });
+        return;
+      }
+      openRemoteSession();
+      return;
+    }
     if (pending && isSession) {
       openWorkspace();
       return;
@@ -576,6 +610,12 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     ? isSession
       ? 'Review request setup'
       : 'Accept request'
+    : canJoinRemoteSession
+    ? sessionAvailability.canJoin
+      ? 'Join session'
+      : `Join on ${
+          sessionAvailability.sessionDate?.format('MMM D') || 'appointment day'
+        }`
     : status === 'completed'
     ? 'View completed record'
     : 'Manage booking';
