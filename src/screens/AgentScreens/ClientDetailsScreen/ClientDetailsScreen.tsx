@@ -127,7 +127,36 @@ const WORKSPACE_STATUS = {
 export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const downloadPdf = useRef(null);
   const token = useSelector(state => state.chats.chatToken);
-  const clientDetail = useSelector((state: any) => state?.booking?.booking);
+  const storedClientDetail = useSelector(
+    (state: any) => state?.booking?.booking,
+  );
+  const routeClientDetail = route?.params?.clientDetail;
+  const latestClientDetailRef = useRef(
+    storedClientDetail || routeClientDetail || null,
+  );
+  const currentClientDetail = storedClientDetail || routeClientDetail;
+  if (currentClientDetail?._id) {
+    latestClientDetailRef.current = currentClientDetail;
+  }
+  const rawClientDetail = currentClientDetail || latestClientDetailRef.current;
+  const clientDetail = useMemo(() => {
+    const detail = rawClientDetail || {};
+
+    return {
+      ...detail,
+      documents: Array.isArray(detail.documents) ? detail.documents : [],
+      document_type: Array.isArray(detail.document_type)
+        ? detail.document_type
+        : [],
+      observers: Array.isArray(detail.observers) ? detail.observers : [],
+      proof_documents: Array.isArray(detail.proof_documents)
+        ? detail.proof_documents
+        : [],
+      booked_for: detail.booked_for || {},
+      total_signatures_required: detail.total_signatures_required || 0,
+    };
+  }, [rawClientDetail]);
+  const hasClientDetail = Boolean(clientDetail?._id);
   const navigationStatus = useSelector(state => state.booking.navigationStatus);
   const {
     handlegetBookingStatus,
@@ -145,7 +174,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const {handleCallSupport} = useCustomerSuport();
   const {updateSession, handleSessionUpdation, getSessionByID} = useSession();
   const {searchUserByEmail} = useFetchUser();
-  let {documents: documentArray} = clientDetail;
+  const {documents: documentArray} = clientDetail;
   const {booked_for} = clientDetail;
   const {proof_documents} = clientDetail;
   const dispatch = useDispatch();
@@ -171,8 +200,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [showIcon, setShowIcon] = useState(true);
   const [uploadShow, setUploadShow] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
-  const [price, setPrice] = useState(clientDetail.price);
-  const [totalPrice, setTotalPrice] = useState(clientDetail.totalPrice);
+  const [price, setPrice] = useState(clientDetail?.price);
+  const [totalPrice, setTotalPrice] = useState(clientDetail?.totalPrice);
   const [showModal, setShowModal] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [pageWidth, setPageWidth] = useState(0);
@@ -195,6 +224,21 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [showObserverSearchView, setShowObserverSearchView] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [activeFieldIndex, setActiveFieldIndex] = useState(null);
+
+  useEffect(() => {
+    if (!storedClientDetail && routeClientDetail?._id) {
+      dispatch(setBookingInfoState(routeClientDetail));
+    }
+  }, [dispatch, routeClientDetail, storedClientDetail]);
+
+  useEffect(() => {
+    if (!hasClientDetail) {
+      return;
+    }
+
+    setPrice(clientDetail.price);
+    setTotalPrice(clientDetail.totalPrice);
+  }, [clientDetail.price, clientDetail.totalPrice, hasClientDetail]);
 
   const handleWitnessCountChange = text => {
     let number = parseInt(text, 10) || 1;
@@ -389,6 +433,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     await updateSession(updatestatus, clientDetail?._id);
   };
   const getBookingStatus = async () => {
+    if (!clientDetail?._id) {
+      return;
+    }
+
     let statusUpdate;
     try {
       if (clientDetail?.__typename === 'Session') {
@@ -407,7 +455,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       getBookingStatus();
     });
     return unsubscribe;
-  }, [status]);
+  }, [clientDetail?._id, navigation, status]);
   const handleNext = () => {
     if (!signaturePage || !notaryBlock) {
       Toast.show({
@@ -967,6 +1015,49 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const workspaceReference = String(clientDetail?._id || '')
     .slice(-8)
     .toUpperCase();
+
+  if (!hasClientDetail) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={BookingColors.surface}
+        />
+        <View style={styles.workspaceHeader}>
+          <TouchableOpacity
+            accessibilityLabel="Go back"
+            activeOpacity={0.7}
+            onPress={() => navigation.goBack()}
+            style={styles.headerIconButton}>
+            <Feather
+              name="arrow-left"
+              size={21}
+              color={BookingColors.textPrimary}
+            />
+          </TouchableOpacity>
+          <View style={styles.workspaceHeaderCopy}>
+            <Text style={styles.workspaceHeaderTitle}>Booking workspace</Text>
+            <Text style={styles.workspaceHeaderSubtitle}>
+              Loading booking details
+            </Text>
+          </View>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+          }}>
+          <ActivityIndicator size="large" color={BookingColors.primary} />
+          <Text style={styles.workspaceHeaderSubtitle}>
+            Getting the latest booking information...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
