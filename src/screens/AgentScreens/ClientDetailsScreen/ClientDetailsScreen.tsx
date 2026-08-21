@@ -732,9 +732,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           console.error('Error downloading file:', error);
           // Handle the error (e.g., show an error message to the user)
         });
-    } else {
-      console.warn('Source URL is empty. File download skipped.');
-      // Handle the case where sourceUrl is empty (e.g., show a message to the user)
     }
   };
   const readFile = () => {
