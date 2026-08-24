@@ -299,7 +299,9 @@ function PricingBreakdown({booking, price}) {
   );
 }
 
-function DocumentDownloadRow({url, index, isLast, downloading, onDownload}) {
+const DOC_ACCENT = '#FF7A28';
+
+function DocumentActionRow({url, index, isLast, downloading, onView, onDownload}) {
   const rawName = String(url).split('/').pop().split('?')[0];
   const fileName = decodeURIComponent(rawName) || `Document ${index + 1}`;
   return (
@@ -313,17 +315,25 @@ function DocumentDownloadRow({url, index, isLast, downloading, onDownload}) {
           {fileName}
         </Text>
       </View>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        disabled={downloading}
-        onPress={() => onDownload(url, fileName)}
-        style={styles.downloadBtn}>
-        {downloading ? (
-          <ActivityIndicator size="small" color={BookingColors.primary} />
-        ) : (
-          <Feather name="download" size={17} color={BookingColors.primary} />
-        )}
-      </TouchableOpacity>
+      <View style={styles.docActionGroup}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => onView(url)}
+          style={styles.docActionBtn}>
+          <Feather name="eye" size={16} color={DOC_ACCENT} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          disabled={downloading}
+          onPress={() => onDownload(url, fileName)}
+          style={styles.docActionBtn}>
+          {downloading ? (
+            <ActivityIndicator size="small" color={DOC_ACCENT} />
+          ) : (
+            <Feather name="arrow-down" size={16} color={DOC_ACCENT} />
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -512,6 +522,13 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       const fileName = decodeURIComponent(rawName) || 'document.pdf';
       await downloadDocument(url, fileName);
     }
+  };
+
+  const viewDocument = url => {
+    if (!url) {
+      return;
+    }
+    navigation.navigate('NotaryDocumentDownloadScreen', {document: url});
   };
 
   const updateStatus = async nextStatus => {
@@ -849,20 +866,25 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         /> */}
 
         <Section title="Notary Request">
-          <DetailRow
-            icon="file-text"
-            label="Documents"
-            value={documentLabel}
-            onPress={
-              hasPrintFee
-                ? isDownloadingDocs
-                  ? undefined
-                  : downloadAllDocuments
-                : undefined
-            }
-            rightIcon={hasPrintFee ? 'download' : undefined}
-            rightLoading={hasPrintFee && isDownloadingDocs}
-          />
+          {allDocumentUrls.length > 0 ? (
+            allDocumentUrls.map((url, index) => (
+              <DocumentActionRow
+                key={url}
+                url={url}
+                index={index}
+                isLast={index === allDocumentUrls.length - 1}
+                downloading={!!downloadingDocs[url]}
+                onView={viewDocument}
+                onDownload={downloadDocument}
+              />
+            ))
+          ) : (
+            <DetailRow
+              icon="file-text"
+              label="Documents"
+              value={documentLabel}
+            />
+          )}
           <DetailRow
             icon="align-left"
             label="Instructions"
@@ -1080,6 +1102,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 8,
     backgroundColor: BookingColors.primarySoft,
+  },
+  docActionGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  docActionBtn: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FF7A2830',
+    backgroundColor: '#FF7A2810',
   },
   detailIcon: {
     width: 36,

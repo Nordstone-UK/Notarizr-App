@@ -6,6 +6,7 @@ export const SEARCH_USER = gql`
       docs {
         _id
         email
+        phone_number
         last_name
         first_name
         profile_picture

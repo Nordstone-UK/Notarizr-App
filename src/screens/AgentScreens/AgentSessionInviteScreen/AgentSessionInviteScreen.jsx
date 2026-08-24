@@ -1,9 +1,10 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
-  Modal,
-  Pressable,
+  Linking,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -21,7 +22,6 @@ import Toast from 'react-native-toast-message';
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import AppColors from '../../../themes/AppColors';
-import {handleGetLocation} from '../../../utils/Geocode';
 import useFetchUser from '../../../hooks/useFetchUser';
 import useRegister from '../../../hooks/useRegister';
 import {useSession} from '../../../hooks/useSession';
@@ -59,11 +59,11 @@ function SectionHeader({eyebrow, title, description}) {
 function SearchField({value, onChangeText, onClear, placeholder, loading}) {
   return (
     <View style={styles.searchField}>
-      <Feather name="search" size={19} color={AppColors.textSecondary} />
+      <Feather name="phone" size={19} color={AppColors.textSecondary} />
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
-        keyboardType="email-address"
+        keyboardType="phone-pad"
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={AppColors.textMuted}
@@ -119,7 +119,7 @@ function PersonRow({person, onPress, onRemove, caption}) {
           {getName(person)}
         </Text>
         <Text numberOfLines={1} style={styles.personEmail}>
-          {caption || person?.email}
+          {caption || person?.phone_number || person?.email}
         </Text>
       </View>
       {onRemove ? (
@@ -180,18 +180,16 @@ function SelectCard({selected, title, description, onPress, icon}) {
 export default function AgentSessionInviteScreen({navigation}) {
   const {uploadDocArray, uploadMultipleFiles} = useRegister();
   const {handleSessionCreation} = useSession();
-  const {fetchDocumentTypes, searchUserByEmail} = useFetchUser();
-  const fetchDocumentTypesRef = useRef(fetchDocumentTypes);
+  const {searchUserByEmail} = useFetchUser();
   const searchUserByEmailRef = useRef(searchUserByEmail);
+
+  const SESSION_PRICE = 99;
 
   const [selectedIdentity, setSelectedIdentity] = useState('client_choose');
   const [fileResponse, setFileResponse] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedClientData, setSelectedClientData] = useState(null);
   const [observers, setObservers] = useState([]);
-  const [documentArray, setDocumentArray] = useState();
-  const [documentSelect, setDocumentSelected] = useState([]);
-  const [documentPickerOpen, setDocumentPickerOpen] = useState(false);
   const [clientQuery, setClientQuery] = useState('');
   const [observerQuery, setObserverQuery] = useState('');
   const [clientResults, setClientResults] = useState([]);
@@ -203,40 +201,58 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
 
+  const INVITE_MESSAGE =
+    'You are invited to your next session. Download the Notarizer app to proceed.';
+
+  const sendSmsInvite = async phone => {
+    const cleaned = phone.replace(/\s/g, '');
+    const separator = Platform.OS === 'ios' ? '&' : '?';
+    const url = `sms:${cleaned}${separator}body=${encodeURIComponent(INVITE_MESSAGE)}`;
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (!supported) {
+        Alert.alert(
+          'SMS not available',
+          'Your device cannot send SMS messages.',
+        );
+        return;
+      }
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('Error', 'Could not open the SMS app.');
+    }
+  };
+
+  const [clientNoResults, setClientNoResults] = useState(false);
+  const [observerNoResults, setObserverNoResults] = useState(false);
+
   useEffect(() => {
     SplashScreen.hide();
-
-    const loadDocumentTypes = async () => {
-      try {
-        const state = await handleGetLocation();
-        const data = await fetchDocumentTypesRef.current(1, 25, state);
-        setDocumentArray(data?.documentTypes || []);
-      } catch (error) {
-        setDocumentArray([]);
-      }
-    };
-
-    loadDocumentTypes();
   }, []);
 
   useEffect(() => {
     if (clientQuery.trim().length < 2 || selectedClientData) {
       setClientResults([]);
       setClientSearching(false);
+      setClientNoResults(false);
       return undefined;
     }
 
+    setClientNoResults(false);
     let active = true;
     setClientSearching(true);
     const timeout = setTimeout(async () => {
       try {
         const response = await searchUserByEmailRef.current(clientQuery.trim());
         if (active) {
-          setClientResults(Array.isArray(response) ? response : []);
+          const results = Array.isArray(response) ? response : [];
+          setClientResults(results);
+          setClientNoResults(results.length === 0);
         }
       } catch (error) {
         if (active) {
           setClientResults([]);
+          setClientNoResults(false);
         }
       } finally {
         if (active) {
@@ -255,9 +271,11 @@ export default function AgentSessionInviteScreen({navigation}) {
     if (observerQuery.trim().length < 2) {
       setObserverResults([]);
       setObserverSearching(false);
+      setObserverNoResults(false);
       return undefined;
     }
 
+    setObserverNoResults(false);
     let active = true;
     setObserverSearching(true);
     const timeout = setTimeout(async () => {
@@ -267,17 +285,18 @@ export default function AgentSessionInviteScreen({navigation}) {
         );
         if (active) {
           const selectedIds = new Set(observers.map(item => item._id));
-          setObserverResults(
-            (Array.isArray(response) ? response : []).filter(
-              person =>
-                !selectedIds.has(person._id) &&
-                person._id !== selectedClientData?._id,
-            ),
+          const filtered = (Array.isArray(response) ? response : []).filter(
+            person =>
+              !selectedIds.has(person._id) &&
+              person._id !== selectedClientData?._id,
           );
+          setObserverResults(filtered);
+          setObserverNoResults(filtered.length === 0);
         }
       } catch (error) {
         if (active) {
           setObserverResults([]);
+          setObserverNoResults(false);
         }
       } finally {
         if (active) {
@@ -291,40 +310,6 @@ export default function AgentSessionInviteScreen({navigation}) {
       clearTimeout(timeout);
     };
   }, [observerQuery, observers, selectedClientData]);
-
-  const documentOptions = useMemo(
-    () =>
-      (documentArray || []).map(item => {
-        const price = Number(item?.statePrices?.[0]?.price || 0);
-        return {
-          id: item?._id || item?.name,
-          label: item?.name || 'Notary document',
-          price,
-          value: `${item?.name || 'Notary document'} - $${price}`,
-        };
-      }),
-    [documentArray],
-  );
-
-  const totalPrice = useMemo(
-    () =>
-      documentOptions
-        .filter(item => documentSelect.includes(item.value))
-        .reduce((total, item) => total + item.price, 0),
-    [documentOptions, documentSelect],
-  );
-
-  const selectedDocuments = documentOptions.filter(item =>
-    documentSelect.includes(item.value),
-  );
-
-  const toggleDocument = value => {
-    setDocumentSelected(current =>
-      current.includes(value)
-        ? current.filter(item => item !== value)
-        : [...current, value],
-    );
-  };
 
   const handleDocumentSelection = async () => {
     const response = await uploadMultipleFiles();
@@ -353,10 +338,6 @@ export default function AgentSessionInviteScreen({navigation}) {
     setLoading(true);
     try {
       const uploadedUrls = await uploadDocArray(fileResponse);
-      const documentObjects = documentSelect.map(item => {
-        const [name, price] = item.split(' - $');
-        return {name, price: parseFloat(price)};
-      });
       const response = await handleSessionCreation(
         uploadedUrls,
         selectedClient,
@@ -364,8 +345,8 @@ export default function AgentSessionInviteScreen({navigation}) {
         date,
         selectedIdentity,
         observers.map(item => item.email),
-        totalPrice,
-        documentObjects,
+        SESSION_PRICE,
+        [],
         paymentMethod,
       );
 
@@ -420,8 +401,9 @@ export default function AgentSessionInviteScreen({navigation}) {
                 onClear={() => {
                   setClientQuery('');
                   setClientResults([]);
+                  setClientNoResults(false);
                 }}
-                placeholder="Client email address"
+                placeholder="Client phone number"
                 value={clientQuery}
               />
               <SearchResults
@@ -430,9 +412,32 @@ export default function AgentSessionInviteScreen({navigation}) {
                   setSelectedClientData(person);
                   setClientQuery('');
                   setClientResults([]);
+                  setClientNoResults(false);
                 }}
                 results={clientResults}
               />
+              {clientNoResults && !clientSearching && clientQuery.trim().length >= 2 && (
+                <View style={styles.inviteBanner}>
+                  <View style={styles.inviteBannerIcon}>
+                    <Feather name="user-x" size={16} color={AppColors.primary} />
+                  </View>
+                  <View style={styles.inviteBannerCopy}>
+                    <Text style={styles.inviteBannerTitle}>
+                      No account found
+                    </Text>
+                    <Text style={styles.inviteBannerText}>
+                      Send an SMS inviting them to download the Notarizer app.
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={() => sendSmsInvite(clientQuery.trim())}
+                    style={styles.inviteButton}>
+                    <Feather name="send" size={13} color={AppColors.white} />
+                    <Text style={styles.inviteButtonText}>Invite</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </>
           )}
 
@@ -449,8 +454,9 @@ export default function AgentSessionInviteScreen({navigation}) {
             onClear={() => {
               setObserverQuery('');
               setObserverResults([]);
+              setObserverNoResults(false);
             }}
-            placeholder="Observer email address"
+                placeholder="Observer phone number"
             value={observerQuery}
           />
           <SearchResults
@@ -458,9 +464,30 @@ export default function AgentSessionInviteScreen({navigation}) {
               setObservers(current => [...current, person]);
               setObserverQuery('');
               setObserverResults([]);
+              setObserverNoResults(false);
             }}
             results={observerResults}
           />
+          {observerNoResults && !observerSearching && observerQuery.trim().length >= 2 && (
+            <View style={styles.inviteBanner}>
+              <View style={styles.inviteBannerIcon}>
+                <Feather name="user-x" size={16} color={AppColors.primary} />
+              </View>
+              <View style={styles.inviteBannerCopy}>
+                <Text style={styles.inviteBannerTitle}>No account found</Text>
+                <Text style={styles.inviteBannerText}>
+                  Send an SMS inviting them to download the Notarizer app.
+                </Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => sendSmsInvite(observerQuery.trim())}
+                style={styles.inviteButton}>
+                <Feather name="send" size={13} color={AppColors.white} />
+                <Text style={styles.inviteButtonText}>Invite</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           {observers.map(observer => (
             <View key={observer._id || observer.email} style={styles.personGap}>
               <PersonRow
@@ -479,46 +506,12 @@ export default function AgentSessionInviteScreen({navigation}) {
           <SectionHeader
             eyebrow="DOCUMENTS"
             title="Notarization request"
-            description="Choose the document types and attach the files for the session."
+            description="Attach the documents for the session."
           />
-          <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={() => setDocumentPickerOpen(true)}
-            style={styles.documentPickerButton}>
-            <View style={styles.fieldIcon}>
-              <Feather name="file-text" size={20} color={AppColors.primary} />
-            </View>
-            <View style={styles.documentPickerCopy}>
-              <Text style={styles.documentPickerLabel}>Document types</Text>
-              <Text numberOfLines={1} style={styles.documentPickerValue}>
-                {selectedDocuments.length
-                  ? `${selectedDocuments.length} selected - $${totalPrice}`
-                  : 'Select one or more document types'}
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={21}
-              color={AppColors.textSecondary}
-            />
-          </TouchableOpacity>
-
-          {selectedDocuments.length ? (
-            <View style={styles.chips}>
-              {selectedDocuments.map(item => (
-                <TouchableOpacity
-                  key={item.id}
-                  onPress={() => toggleDocument(item.value)}
-                  style={styles.chip}>
-                  <Text numberOfLines={1} style={styles.chipText}>
-                    {item.label} - ${item.price}
-                  </Text>
-                  <Feather name="x" size={14} color={AppColors.primary} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : null}
-
+          <View style={styles.uploadHint}>
+            <Feather name="info" size={13} color={AppColors.textSecondary} />
+            <Text style={styles.uploadHintText}>PDF files only</Text>
+          </View>
           <TouchableOpacity
             activeOpacity={0.75}
             onPress={handleDocumentSelection}
@@ -550,7 +543,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               <Text style={styles.uploadDescription}>
                 {fileResponse.length
                   ? 'Tap to replace the selected files'
-                  : 'PDF, JPG or PNG files'}
+                  : 'Select one or more PDF files'}
               </Text>
             </View>
             <Text style={styles.uploadAction}>
@@ -645,15 +638,9 @@ export default function AgentSessionInviteScreen({navigation}) {
         <View style={styles.summaryRow}>
           <View>
             <Text style={styles.summaryLabel}>Session total</Text>
-            <Text style={styles.summaryHint}>
-              {selectedDocuments.length
-                ? `${selectedDocuments.length} document type${
-                    selectedDocuments.length === 1 ? '' : 's'
-                  }`
-                : 'No document types selected'}
-            </Text>
+            <Text style={styles.summaryHint}>Fixed session fee</Text>
           </View>
-          <Text style={styles.summaryPrice}>${totalPrice}</Text>
+          <Text style={styles.summaryPrice}>${SESSION_PRICE}</Text>
         </View>
 
         <GradientButton
@@ -664,92 +651,6 @@ export default function AgentSessionInviteScreen({navigation}) {
         />
       </ScrollView>
 
-      <Modal
-        animationType="slide"
-        onRequestClose={() => setDocumentPickerOpen(false)}
-        transparent
-        visible={documentPickerOpen}>
-        <View style={styles.modalRoot}>
-          <Pressable
-            onPress={() => setDocumentPickerOpen(false)}
-            style={styles.modalBackdrop}
-          />
-          <SafeAreaView style={styles.modalSheet}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>Document types</Text>
-                <Text style={styles.modalDescription}>
-                  Select everything included in this session.
-                </Text>
-              </View>
-              <TouchableOpacity
-                accessibilityLabel="Close document types"
-                onPress={() => setDocumentPickerOpen(false)}
-                style={styles.modalClose}>
-                <Feather name="x" size={20} color={AppColors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView contentContainerStyle={styles.documentOptions}>
-              {documentArray === undefined ? (
-                <ActivityIndicator
-                  color={AppColors.primary}
-                  style={styles.documentLoading}
-                />
-              ) : documentOptions.length ? (
-                documentOptions.map(item => {
-                  const isSelected = documentSelect.includes(item.value);
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      onPress={() => toggleDocument(item.value)}
-                      style={styles.documentOption}>
-                      <View style={styles.documentOptionCopy}>
-                        <Text style={styles.documentOptionTitle}>
-                          {item.label}
-                        </Text>
-                        <Text style={styles.documentOptionPrice}>
-                          ${item.price}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.checkbox,
-                          isSelected && styles.checkboxActive,
-                        ]}>
-                        {isSelected ? (
-                          <Feather name="check" size={15} color="#FFFFFF" />
-                        ) : null}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })
-              ) : (
-                <View style={styles.emptyDocuments}>
-                  <Feather
-                    name="file-text"
-                    size={24}
-                    color={AppColors.textSecondary}
-                  />
-                  <Text style={styles.emptyDocumentsTitle}>
-                    No document types available
-                  </Text>
-                  <Text style={styles.emptyDocumentsText}>
-                    Try again when your service location is available.
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-            <GradientButton
-              Title={`Done${
-                documentSelect.length ? ` (${documentSelect.length})` : ''
-              }`}
-              onPress={() => setDocumentPickerOpen(false)}
-              viewStyle={styles.modalDoneButton}
-            />
-          </SafeAreaView>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -1193,6 +1094,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 11,
   },
+  uploadHint: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    marginBottom: 10,
+  },
+  uploadHintText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+  },
   uploadArea: {
     alignItems: 'center',
     backgroundColor: '#FFF9F4',
@@ -1230,5 +1142,51 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 13,
+  },
+  inviteBanner: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderColor: '#FFB98D',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+    padding: 12,
+  },
+  inviteBannerIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.surface,
+    borderRadius: 7,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  inviteBannerCopy: {flex: 1, minWidth: 0},
+  inviteBannerTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+  },
+  inviteBannerText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  inviteButton: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primary,
+    borderRadius: 7,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  inviteButtonText: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
 });

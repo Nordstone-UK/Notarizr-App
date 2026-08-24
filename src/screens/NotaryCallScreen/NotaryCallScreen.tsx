@@ -16,15 +16,15 @@ import {
   Text as RNText,
 } from 'react-native';
 import moment from 'moment-timezone';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Colors from '../../themes/Colors';
-import {height, heightToDp, widthToDp} from '../../utils/Responsive';
+import { height, heightToDp, widthToDp } from '../../utils/Responsive';
 import MainButton from '../../components/MainGradientButton/MainButton';
 import {
   ClientRoleType,
@@ -36,7 +36,7 @@ import {
 import DragabbleSignature from './DragabbleSignature';
 
 import Toast from 'react-native-toast-message';
-import {PDFDocument, rgb, StandardFonts} from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
@@ -47,31 +47,31 @@ import {
   PageEdit,
   Text,
 } from 'iconoir-react-native';
-import {useLiveblocks} from '../../store/liveblocks';
+import { useLiveblocks } from '../../store/liveblocks';
 const appId = 'f64e76f674b646bc965dc3e257b4e108';
 
 import Pdf from 'react-native-pdf';
-import {encode as btoa} from 'base-64';
+import { encode as btoa } from 'base-64';
 import RNFS from 'react-native-fs';
-import {uploadSignedDocumentToSpaces} from '../../utils/spacesHelper';
-import {useLazyQuery, useMutation} from '@apollo/client';
-import {SIGN_DOCS} from '../../../request/mutations/signDocument';
+import { uploadSignedDocumentToSpaces } from '../../utils/spacesHelper';
+import { useLazyQuery, useMutation } from '@apollo/client';
+import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
-import {ADD_NOTARIZED_DOCS} from '../../../request/mutations/addNotarizedDocs';
-import {useSession} from '../../hooks/useSession';
-import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
-import {setBookingInfoState} from '../../features/booking/bookingSlice';
+import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
+import { useSession } from '../../hooks/useSession';
+import { GET_SESSION_BY_ID } from '../../../request/queries/getSessionByID.query';
+import { setBookingInfoState } from '../../features/booking/bookingSlice';
 import SignatureContainer from './SignatureContainer';
 import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import useRegister from '../../hooks/useRegister';
 import PDFViewer from './PDFViewer';
-import {UPDATE_OR_CREATE_SESSION_UPDATED_DOCS} from '../../../request/mutations/updateSessionUpdateddocs';
+import { UPDATE_OR_CREATE_SESSION_UPDATED_DOCS } from '../../../request/mutations/updateSessionUpdateddocs';
 import SketchCanvasComponent from './PenTool/SketchCanvasComponent';
 import LinearGradient from 'react-native-linear-gradient';
-import {UPDATE_OR_CREATE_SESSION_CLIENT_DOCS} from '../../../request/mutations/updateSessionClientDocs';
+import { UPDATE_OR_CREATE_SESSION_CLIENT_DOCS } from '../../../request/mutations/updateSessionClientDocs';
 import DrawSignTypeModal from './Signature';
-import {TouchableWithoutFeedback} from 'react-native';
-import {getSessionAvailability} from '../../utils/sessionAvailability';
+import { TouchableWithoutFeedback } from 'react-native';
+import { getSessionAvailability } from '../../utils/sessionAvailability';
 
 const resolveDocumentUri = (document: any): string | null => {
   if (typeof document === 'string') {
@@ -128,7 +128,7 @@ const localFilePath = (uri: string): string => {
   }
 };
 
-export default function NotaryCallScreen({route, navigation}: any) {
+export default function NotaryCallScreen({ route, navigation }: any) {
   const {
     channel,
     token: CutomToken,
@@ -137,13 +137,13 @@ export default function NotaryCallScreen({route, navigation}: any) {
     time: routeTime,
     uid: routeUid,
   } = route?.params || {};
-  const {pickDocumentDetails, uploadDocumentToStorage} = useRegister();
+  const { pickDocumentDetails, uploadDocumentToStorage } = useRegister();
   const [updateSessionClientDocs] = useMutation(
     UPDATE_OR_CREATE_SESSION_CLIENT_DOCS,
   );
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
-  const {updateSession} = useSession();
+  const { updateSession } = useSession();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const User = useSelector(state => state?.user?.user);
@@ -175,7 +175,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const scheduledDate = routeDate || bookingData?.date_of_booking;
   const scheduledTime = routeTime || bookingData?.time_of_booking;
   const sessionAvailability = useMemo(
-    () => getSessionAvailability({date: scheduledDate, time: scheduledTime}),
+    () => getSessionAvailability({ date: scheduledDate, time: scheduledTime }),
     [scheduledDate, scheduledTime],
   );
   const clientDocuments = useMemo(
@@ -196,15 +196,15 @@ export default function NotaryCallScreen({route, navigation}: any) {
     clientDocumentsKeys.length > 0
       ? clientDocumentsKeys[0]
       : agentDocuments.length > 0
-      ? 'agent_document'
-      : null;
+        ? 'agent_document'
+        : null;
 
   const initialSourceUrl = resolveDocumentUri(
     clientDocumentsValues.length > 0
       ? clientDocumentsValues[0]
       : agentDocuments.length > 0
-      ? agentDocuments[0]
-      : null,
+        ? agentDocuments[0]
+        : null,
   );
 
   // Create state for sourceKey and sourceUrl
@@ -235,7 +235,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
   const [selectedLocalDocument, setSelectedLocalDocument] = useState<any>(null);
   const [isCompleting, setIsCompleting] = useState(false);
   const documentLoadIdRef = useRef(0);
-  const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const videoStageHeight = isClient
     ? Math.min(Math.max(screenHeight * 0.58, 390), 520)
     : Math.min(Math.max(screenHeight * 0.43, 320), 400);
@@ -557,7 +557,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
             ? await pdfDoc.embedJpg(signatureArrayBuffer)
             : await pdfDoc.embedPng(signatureArrayBuffer);
 
-        const {width: width, height: height} = signatureDimensions;
+        const { width: width, height: height } = signatureDimensions;
         if (Platform.OS == 'ios') {
           firstPage.drawImage(signatureImage, {
             x: (pageWidth * (x - 12)) / Dimensions.get('window').width,
@@ -578,9 +578,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
         }
         const pdfBytes = await pdfDoc.save();
         const pdfBase64 = _uint8ToBase64(pdfBytes);
-        const path = `${
-          RNFS.DocumentDirectoryPath
-        }/react-native_signed_${Date.now()}.pdf`;
+        const path = `${RNFS.DocumentDirectoryPath
+          }/react-native_signed_${Date.now()}.pdf`;
         RNFS.writeFile(path, pdfBase64, 'base64')
           .then(async success => {
             setNewPdfPath(path);
@@ -593,7 +592,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
             console.log('eeee', err.message);
           });
       } else {
-        const {width: width, height: height, fontFamily} = signatureDimensions;
+        const { width: width, height: height, fontFamily } = signatureDimensions;
         console.log('fontfamilu', fontFamily);
         const customFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
@@ -618,9 +617,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
         }
         const pdfBytes = await pdfDoc.save();
         const pdfBase64 = _uint8ToBase64(pdfBytes);
-        const path = `${
-          RNFS.DocumentDirectoryPath
-        }/react-native_signed_${Date.now()}.pdf`;
+        const path = `${RNFS.DocumentDirectoryPath
+          }/react-native_signed_${Date.now()}.pdf`;
         RNFS.writeFile(path, pdfBase64, 'base64')
           .then(async success => {
             setPdfFilePath(path);
@@ -838,9 +836,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
     ]);
     return (
       permissions[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO] ===
-        PermissionsAndroid.RESULTS.GRANTED &&
+      PermissionsAndroid.RESULTS.GRANTED &&
       permissions[PermissionsAndroid.PERMISSIONS.CAMERA] ===
-        PermissionsAndroid.RESULTS.GRANTED
+      PermissionsAndroid.RESULTS.GRANTED
     );
   }, []);
 
@@ -957,7 +955,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
     setIsCompleting(true);
     try {
-      const completedDocuments = pickerItems.map(item => ({...item}));
+      const completedDocuments = pickerItems.map(item => ({ ...item }));
 
       if (selectedItem && pdfBase64) {
         const selectedDocument = completedDocuments.find(
@@ -996,7 +994,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
     if (isClient) {
       navigation.reset({
         index: 0,
-        routes: [{name: 'HomeScreen', params: {screen: 'BookScreen'}}],
+        routes: [{ name: 'HomeScreen', params: { screen: 'BookScreen' } }],
       });
       return;
     }
@@ -1060,12 +1058,12 @@ export default function NotaryCallScreen({route, navigation}: any) {
     callStatus === 'connected'
       ? 'Participant connected'
       : callStatus === 'waiting'
-      ? 'Waiting for participant'
-      : callStatus === 'connecting'
-      ? 'Connecting securely'
-      : callStatus === 'permissions'
-      ? 'Permissions required'
-      : 'Connection issue';
+        ? 'Waiting for participant'
+        : callStatus === 'connecting'
+          ? 'Connecting securely'
+          : callStatus === 'permissions'
+            ? 'Permissions required'
+            : 'Connection issue';
   const [drawingMode, setDrawingMode] = useState<
     'pen' | 'line' | 'arrow' | 'rectangle'
   >(null);
@@ -1131,7 +1129,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
       ignoreEncryption: true,
     });
     const page = pdfDoc.getPages()[currentPage - 1];
-    const {width, height} = page.getSize();
+    const { width, height } = page.getSize();
     paths.forEach((path, index) => {
       if (
         path[0].type === 'pen' &&
@@ -1167,9 +1165,8 @@ export default function NotaryCallScreen({route, navigation}: any) {
     setPdfEditMode(true);
     const updatedPdfBytes = await drawPathsOnPdf(paths);
     const pdfBase64 = _uint8ToBase641(updatedPdfBytes);
-    const path = `${
-      RNFS.DocumentDirectoryPath
-    }/react-native_signed_${Date.now()}.pdf`;
+    const path = `${RNFS.DocumentDirectoryPath
+      }/react-native_signed_${Date.now()}.pdf`;
     await RNFS.writeFile(path, pdfBase64, 'base64')
       .then(async success => {
         setNewPdfPath(path);
@@ -1306,19 +1303,19 @@ export default function NotaryCallScreen({route, navigation}: any) {
 
       {/* ── VIDEO PANEL ── */}
       <View style={styles.videoPanel}>
-        <View style={[styles.videoStage, {height: videoStageHeight}]}>
+        <View style={[styles.videoStage, { height: videoStageHeight }]}>
           {remoteUids.length ? (
             <RtcSurfaceView
-              canvas={{uid: remoteUids[0]}}
+              canvas={{ uid: remoteUids[0] }}
               style={styles.mainVideoView}
             />
           ) : isJoined && !isVideoMuted ? (
-            <RtcSurfaceView canvas={{uid: 0}} style={styles.mainVideoView} />
+            <RtcSurfaceView canvas={{ uid: 0 }} style={styles.mainVideoView} />
           ) : (
             <View style={styles.videoPlaceholder}>
               {User?.profile_picture ? (
                 <Image
-                  source={{uri: User?.profile_picture}}
+                  source={{ uri: User?.profile_picture }}
                   style={styles.videoAvatar}
                 />
               ) : (
@@ -1340,7 +1337,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                   <RNText style={styles.pipInitials}>{userInitials}</RNText>
                 </View>
               ) : (
-                <RtcSurfaceView canvas={{uid: 0}} style={styles.pipVideoView} />
+                <RtcSurfaceView canvas={{ uid: 0 }} style={styles.pipVideoView} />
               )}
               <View style={styles.pipLabel}>
                 <RNText style={styles.pipLabelText}>You</RNText>
@@ -1354,7 +1351,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                 styles.callStatusDot,
                 callStatus === 'connected' && styles.callStatusDotConnected,
                 (callStatus === 'error' || callStatus === 'permissions') &&
-                  styles.callStatusDotError,
+                styles.callStatusDotError,
               ]}
             />
             <RNText style={styles.callStatusText}>{callStatusLabel}</RNText>
@@ -1522,9 +1519,9 @@ export default function NotaryCallScreen({route, navigation}: any) {
                       ref={pdfRef}
                       style={[
                         styles.pdfView,
-                        isInteractionBlocked && {pointerEvents: 'none'},
+                        isInteractionBlocked && { pointerEvents: 'none' },
                       ]}
-                      source={{uri: filePath}}
+                      source={{ uri: filePath }}
                       trustAllCerts={false}
                       showsVerticalScrollIndicator={false}
                       showsHorizontalScrollIndicator={false}
@@ -1538,7 +1535,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                       onLoadComplete={(
                         numberOfPages,
                         filePath,
-                        {width, height},
+                        { width, height },
                       ) => {
                         const initialPage = remoteCurrentPage || 1;
                         setCurrentPage(initialPage);
@@ -1643,11 +1640,11 @@ export default function NotaryCallScreen({route, navigation}: any) {
         <View
           style={[
             styles.clientDocOverlay,
-            {paddingTop: insets.top, paddingBottom: insets.bottom},
+            { paddingTop: insets.top, paddingBottom: insets.bottom },
           ]}>
           <View style={styles.Maincontainer}>
             <View style={styles.header}>
-              <RNText numberOfLines={1} style={[styles.headerTitle, {flex: 1}]}>
+              <RNText numberOfLines={1} style={[styles.headerTitle, { flex: 1 }]}>
                 {selectedLocalDocument?.name || 'Document'}
               </RNText>
               <TouchableOpacity
@@ -1665,7 +1662,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                     <PdfView
                       ref={pdfRef}
                       style={styles.pdfView}
-                      source={{uri: resolveDocumentUri(selectedLocalDocument)}}
+                      source={{ uri: resolveDocumentUri(selectedLocalDocument) }}
                       trustAllCerts={false}
                       showsVerticalScrollIndicator={false}
                       showsHorizontalScrollIndicator={false}
@@ -1679,7 +1676,7 @@ export default function NotaryCallScreen({route, navigation}: any) {
                       onLoadComplete={(
                         numberOfPages,
                         filePath,
-                        {width, height},
+                        { width, height },
                       ) => {
                         const initialPage = remoteCurrentPage || 1;
                         setCurrentPage(initialPage);
@@ -2009,7 +2006,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.32)',
     backgroundColor: '#252C39',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
@@ -2059,8 +2056,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#F2B94B',
   },
-  callStatusDotConnected: {backgroundColor: BookingColors.success},
-  callStatusDotError: {backgroundColor: BookingColors.error},
+  callStatusDotConnected: { backgroundColor: BookingColors.success },
+  callStatusDotError: { backgroundColor: BookingColors.error },
   callStatusText: {
     fontFamily: 'Manrope-SemiBold',
     fontSize: 10,
@@ -2113,7 +2110,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: BookingColors.errorSoft,
   },
-  callErrorCopy: {flex: 1},
+  callErrorCopy: { flex: 1 },
   callErrorTitle: {
     fontFamily: 'Manrope-Bold',
     fontSize: 12,
@@ -2152,7 +2149,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BookingColors.border,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
@@ -2203,7 +2200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
@@ -2251,7 +2248,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BookingColors.border,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -2337,13 +2334,13 @@ const styles = StyleSheet.create({
 
   // ── LEGACY / MISC (kept for compatibility) ──
   buttonFlex: {},
-  navigation: {flexDirection: 'row', alignItems: 'center', columnGap: 16},
-  flexContainer: {flexDirection: 'row'},
-  scroll: {flex: 1, width: '100%'},
-  scrollContainer: {margin: widthToDp(3), columnGap: widthToDp(4)},
-  SecondContainer: {backgroundColor: Colors.white},
-  hourGlass: {alignSelf: 'center'},
-  penToolcanva: {position: 'absolute', top: 0, left: 0},
+  navigation: { flexDirection: 'row', alignItems: 'center', columnGap: 16 },
+  flexContainer: { flexDirection: 'row' },
+  scroll: { flex: 1, width: '100%' },
+  scrollContainer: { margin: widthToDp(3), columnGap: widthToDp(4) },
+  SecondContainer: { backgroundColor: Colors.white },
+  hourGlass: { alignSelf: 'center' },
+  penToolcanva: { position: 'absolute', top: 0, left: 0 },
 
   // kept so StyleSheet.create doesn't complain about removed references in commented code
   NavbarContainer: {} as any,

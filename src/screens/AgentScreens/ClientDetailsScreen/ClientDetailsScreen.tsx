@@ -23,20 +23,20 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Pdf from 'react-native-pdf';
 import PdfView from 'react-native-pdf';
 
 import RNFS from 'react-native-fs';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import BookingColors from '../../../themes/BookingColors';
-import {formatDateTime, heightToDp, widthToDp} from '../../../utils/Responsive';
+import { formatDateTime, heightToDp, widthToDp } from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
 import ClientServiceCard from '../../../components/ClientServiceCard/ClientServiceCard';
 import useBookingStatus from '../../../hooks/useBookingStatus';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
@@ -53,12 +53,12 @@ import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import Toast from 'react-native-toast-message';
 // import {BottomSheet} from '@rneui/base';
 import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet';
-import {useSession} from '../../../hooks/useSession';
-import {useLiveblocks} from '../../../store/liveblocks';
+import { useSession } from '../../../hooks/useSession';
+import { useLiveblocks } from '../../../store/liveblocks';
 import Loading from '../../../components/LiveBlocksComponents/loading';
 import RequestPayment from '../../../components/RequestPayment/RequestPayment';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { CheckCircle, CheckCircleSolid, Xmark } from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
 import {
   UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS,
@@ -67,10 +67,10 @@ import {
 } from '../../../../request/mutations/updateSessionClientDocs';
 
 import AddressCard from '../../../components/AddressCard/AddressCard';
-import {useLazyQuery, useMutation} from '@apollo/client';
-import {GET_SESSION_BY_ID} from '../../../../request/queries/getSessionByID.query';
-import {UPDATE_SESSION_PRICEDOCS} from '../../../../request/mutations/updateSessionPriceDocs.mutation';
-import {Alert} from 'react-native';
+import { useLazyQuery, useMutation } from '@apollo/client';
+import { GET_SESSION_BY_ID } from '../../../../request/queries/getSessionByID.query';
+import { UPDATE_SESSION_PRICEDOCS } from '../../../../request/mutations/updateSessionPriceDocs.mutation';
+import { Alert } from 'react-native';
 import {
   ACCEPT_ALLOCATION_REQUEST,
   REJECT_ALLOCATION_REQUEST,
@@ -124,7 +124,7 @@ const WORKSPACE_STATUS = {
   },
 };
 
-export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
+export default function AgentMobileNotaryStartScreen({ route, navigation }: any) {
   const downloadPdf = useRef(null);
   const token = useSelector(state => state.chats.chatToken);
   const storedClientDetail = useSelector(
@@ -171,12 +171,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     updateAgentdocs,
   } = useFetchBooking();
 
-  const {handleCallSupport} = useCustomerSuport();
-  const {updateSession, handleSessionUpdation, getSessionByID} = useSession();
-  const {searchUserByEmail} = useFetchUser();
-  const {documents: documentArray} = clientDetail;
-  const {booked_for} = clientDetail;
-  const {proof_documents} = clientDetail;
+  const { handleCallSupport } = useCustomerSuport();
+  const { updateSession, handleSessionUpdation, getSessionByID } = useSession();
+  const { searchUserByEmail } = useFetchUser();
+  let { documents: documentArray } = clientDetail;
+  const { booked_for } = clientDetail;
+  const { proof_documents } = clientDetail;
   const dispatch = useDispatch();
   const [status, setStatus] = useState();
   const [allocationStatus, setAllocationStatus] = useState();
@@ -212,7 +212,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [fileDownloaded, setFileDownloaded] = useState(false);
-  const [lastRNBFTask, setLastRNBFTask] = useState({cancel: () => {}});
+  const [lastRNBFTask, setLastRNBFTask] = useState({ cancel: () => { } });
   // const [navigationStatus, setNavigationStatus] = useState('');
   const [selected, setSelected] = useState('client_choose');
   const [bookedByAddress, setBookedByAddress] = useState(null);
@@ -295,7 +295,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     }, 2000);
   }, []);
 
-  const {uploadMultipleFiles, uploadAllDocuments, uploadDocArray} =
+  const { uploadMultipleFiles, uploadAllDocuments, uploadDocArray } =
     useRegister();
 
   const [updateSessionClientDocs] = useMutation(
@@ -391,7 +391,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
 
   const [
     acceptAllocation,
-    {data: acceptData, loading: acceptLoading, error: acceptError},
+    { data: acceptData, loading: acceptLoading, error: acceptError },
   ] = useMutation(ACCEPT_ALLOCATION_REQUEST, {
     onCompleted: data => {
       console.log('Allocation accepted:', data);
@@ -405,7 +405,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   });
   const [
     rejectAllocation,
-    {data: rejectData, loading: rejectLoading, error: rejectError},
+    { data: rejectData, loading: rejectLoading, error: rejectError },
   ] = useMutation(REJECT_ALLOCATION_REQUEST, {
     onCompleted: data => {
       console.log('Allocation rejected:', data);
@@ -419,12 +419,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   });
   const handleAllocationAccept = async allocationId => {
     acceptAllocation({
-      variables: {allocationId},
+      variables: { allocationId },
     });
   };
   const handleAllocationReject = async allocationId => {
     rejectAllocation({
-      variables: {allocationId},
+      variables: { allocationId },
     });
   };
   const handleUpdateClientStatus = async (updatestatus: string) => {
@@ -516,7 +516,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     setLoading(false);
   };
   const scanDocument = async () => {
-    const {scannedImages} = await DocumentScanner.scanDocument();
+    const { scannedImages } = await DocumentScanner.scanDocument();
     return scannedImages;
   };
   const handleSignaturePage = async () => {
@@ -533,7 +533,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     setIsVisible(false);
   };
   function displayNamesWithCommas(arr: any[]) {
-    const names = arr.map((obj: {name: any}) => obj.name);
+    const names = arr.map((obj: { name: any }) => obj.name);
     const namesString = names.join(', ');
     return namesString;
   }
@@ -645,7 +645,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       const res =
         clientDetail.__typename == 'Session'
           ? // await updateAgentdocs(request)
-            await updateAgentdocs(clientDetail?._id, urlResponse)
+          await updateAgentdocs(clientDetail?._id, urlResponse)
           : await updateBookingClientDocs(requestBooking);
 
       var reponse;
@@ -667,9 +667,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   };
   const highestPriceDocument = clientDetail.document_type?.length
     ? clientDetail.document_type.reduce(
-        (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
-        clientDetail.document_type[0],
-      )
+      (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
+      clientDetail.document_type[0],
+    )
     : {};
 
   const additionalSignatureCharges =
@@ -903,7 +903,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
 
   const handleNotarizrDocumentPress = async (documents, name) => {
     try {
-      setLoadingStates(prev => ({...prev, [name]: true}));
+      setLoadingStates(prev => ({ ...prev, [name]: true }));
       Toast.show({
         type: 'info',
         text1: 'Download Starting',
@@ -917,7 +917,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           text1: 'Permission Denied',
           text2: 'Storage permission is required to download files.',
         });
-        setLoadingStates(prev => ({...prev, [name]: false}));
+        setLoadingStates(prev => ({ ...prev, [name]: false }));
 
         return;
       }
@@ -929,7 +929,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           text1: 'Download Directory Not Found',
           text2: 'The download directory does not exist or is not accessible.',
         });
-        setLoadingStates(prev => ({...prev, [name]: false}));
+        setLoadingStates(prev => ({ ...prev, [name]: false }));
 
         return;
       }
@@ -952,14 +952,14 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               text1: 'Download Successful',
               text2: `File downloaded to ${downloadPath}`,
             });
-            setLoadingStates(prev => ({...prev, [name]: false}));
+            setLoadingStates(prev => ({ ...prev, [name]: false }));
           } else {
             Toast.show({
               type: 'error',
               text1: 'Download Failed',
               text2: `Failed to download the file ${fileName}.`,
             });
-            setLoadingStates(prev => ({...prev, [name]: false}));
+            setLoadingStates(prev => ({ ...prev, [name]: false }));
           }
         } catch (error) {
           console.error(`Failed to download ${fileName}:`, error);
@@ -969,7 +969,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             text2: `An error occurred while downloading the file ${fileName}.`,
           });
         } finally {
-          setLoadingStates(prev => ({...prev, [name]: false}));
+          setLoadingStates(prev => ({ ...prev, [name]: false }));
         }
       };
 
@@ -1116,7 +1116,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
           <View
             style={[
               styles.workspaceStatusBadge,
-              {backgroundColor: workspaceStatusStyle.background},
+              { backgroundColor: workspaceStatusStyle.background },
             ]}>
             <Feather
               name={workspaceStatusStyle.icon}
@@ -1126,7 +1126,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             <Text
               style={[
                 styles.workspaceStatusText,
-                {color: workspaceStatusStyle.color},
+                { color: workspaceStatusStyle.color },
               ]}>
               {workspaceStatusLabel}
             </Text>
@@ -1169,11 +1169,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               {(status === 'Pending' ||
                 (status === 'to_be_paid' &&
                   clientDetail.payment_type === 'on_agent')) && (
-                <Image
-                  source={require('../../../../assets/pending.png')}
-                  style={styles.greenIcon}
-                />
-              )}
+                  <Image
+                    source={require('../../../../assets/pending.png')}
+                    style={styles.greenIcon}
+                  />
+                )}
               {(status === 'Completed' ||
                 status === 'Accepted' ||
                 status === 'Ongoing' ||
@@ -1182,11 +1182,11 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 status === 'Payment_confirmed' ||
                 (status === 'to_be_paid' &&
                   clientDetail.payment_type === 'on_agent')) && (
-                <Image
-                  source={require('../../../../assets/greenIcon.png')}
-                  style={styles.greenIcon}
-                />
-              )}
+                  <Image
+                    source={require('../../../../assets/greenIcon.png')}
+                    style={styles.greenIcon}
+                  />
+                )}
               {status === 'To_be_paid' && (
                 <>
                   <Image
@@ -1280,8 +1280,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         ''}
                     </Text>
                     {clientDetail?.booked_for?.email ||
-                    clientDetail?.booked_by?.email ||
-                    clientDetail?.email ? (
+                      clientDetail?.booked_by?.email ||
+                      clientDetail?.email ? (
                       <Text style={styles.personMeta}>
                         {clientDetail?.booked_for?.email ||
                           clientDetail?.booked_by?.email ||
@@ -1341,7 +1341,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     Make Observers as Witnesses
                   </Text>
                   <View style={styles.infoCard}>
-                    <View style={{padding: 14}}>
+                    <View style={{ padding: 14 }}>
                       <Text style={styles.witnessDescription}>
                         An Observer is anyone with relevant information for all
                         the signing that may need to be on the notarization
@@ -1374,7 +1374,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   </View>
 
                   {witnessFields.map((_, index) => (
-                    <View key={index} style={{marginTop: 8}}>
+                    <View key={index} style={{ marginTop: 8 }}>
                       <LabelTextInput
                         placeholder={`Search observer ${index + 1} by email`}
                         value={searchTexts[index]}
@@ -1387,7 +1387,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           setSearchedUser([]);
                           setShowObserverSearchView(false);
                         }}
-                        InputStyles={{padding: widthToDp(2)}}
+                        InputStyles={{ padding: widthToDp(2) }}
                         AdjustWidth={{
                           width: widthToDp(92),
                           borderColor: BookingColors.primary,
@@ -1395,14 +1395,14 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         rightImageSoucre={require('../../../../assets/close.png')}
                       />
                       {showObserverSearchView &&
-                      searchFor == 'Observer' &&
-                      activeFieldIndex === index &&
-                      searchedUser.length !== 0 ? (
+                        searchFor == 'Observer' &&
+                        activeFieldIndex === index &&
+                        searchedUser.length !== 0 ? (
                         isLoading ? (
                           <ActivityIndicator
                             size="large"
                             color={BookingColors.primary}
-                            style={{height: heightToDp(40)}}
+                            style={{ height: heightToDp(40) }}
                           />
                         ) : (
                           <ScrollView
@@ -1438,7 +1438,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                     observers.map(item => (
                       <View
                         key={item._id}
-                        style={[styles.infoCard, {marginTop: 8}]}>
+                        style={[styles.infoCard, { marginTop: 8 }]}>
                         <View style={styles.personRow}>
                           <View style={styles.avatarRing}>
                             <Image
@@ -1485,7 +1485,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   <Text style={[styles.insideHeading, styles.addressMargin]}>
                     Booked For Location
                   </Text>
-                  <View style={{paddingHorizontal: 16, marginBottom: 4}}>
+                  <View style={{ paddingHorizontal: 16, marginBottom: 4 }}>
                     <AddressCard
                       location={
                         bookedByAddress?.location || clientDetail.address
@@ -1543,20 +1543,20 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 <Text style={styles.infoRowText}>
                   {clientDetail.date_time_session
                     ? `${moment(clientDetail.date_time_session).format(
-                        'MM/DD/YYYY',
-                      )} at ${moment(clientDetail.date_time_session).format(
-                        'h:mm a',
-                      )}`
+                      'MM/DD/YYYY',
+                    )} at ${moment(clientDetail.date_time_session).format(
+                      'h:mm a',
+                    )}`
                     : clientDetail?.date_of_booking ||
                       clientDetail?.time_of_booking
-                    ? `${moment(clientDetail?.date_of_booking).format(
+                      ? `${moment(clientDetail?.date_of_booking).format(
                         'MM/DD/YYYY',
                       )} at ${clientDetail.time_of_booking}`
-                    : clientDetail?.preferredDate
-                    ? `${moment(clientDetail?.preferredDate).format(
-                        'MM/DD/YYYY',
-                      )} at ${clientDetail.preferredTime}`
-                    : '—'}
+                      : clientDetail?.preferredDate
+                        ? `${moment(clientDetail?.preferredDate).format(
+                          'MM/DD/YYYY',
+                        )} at ${clientDetail.preferredTime}`
+                        : '—'}
                 </Text>
               </View>
             </View>
@@ -1614,32 +1614,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               <>
                 <View style={styles.sectionHeaderRow}>
                   <Text style={styles.insideHeading}>
-                    Print Uploaded Documents
+                    Uploaded Documents
                   </Text>
-                  <TouchableOpacity
-                    onPress={() =>
-                      handleNotarizrDocumentPress(
-                        clientDetail.documents,
-                        'printuploaded',
-                      )
-                    }
-                    style={styles.downloadBtn}>
-                    {loadingStates.printuploaded ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={BookingColors.white}
-                      />
-                    ) : (
-                      <>
-                        <Feather
-                          name="download"
-                          size={12}
-                          color={BookingColors.white}
-                        />
-                        <Text style={styles.downloadBtnText}>Download</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+
                 </View>
                 <View style={styles.infoCard}>
                   {clientDetail.documents.map((item, index) => (
@@ -1662,12 +1639,36 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                       <Text style={styles.docListName}>
                         Document {index + 1}
                       </Text>
-                      <View style={styles.docListAction}>
-                        <Feather
-                          name="eye"
-                          size={14}
-                          color={BookingColors.primary}
-                        />
+                      <View style={styles.docListActions}>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() =>
+                            handleNotarizrDocumentPress(
+                              [item],
+                              `printuploaded_${index}`,
+                            )
+                          }
+                          style={styles.docListAction}>
+                          {loadingStates[`printuploaded_${index}`] ? (
+                            <ActivityIndicator
+                              size="small"
+                              color={BookingColors.primary}
+                            />
+                          ) : (
+                            <Feather
+                              name="arrow-down"
+                              size={14}
+                              color={BookingColors.primary}
+                            />
+                          )}
+                        </TouchableOpacity>
+                        <View style={styles.docListAction}>
+                          <Feather
+                            name="eye"
+                            size={14}
+                            color={BookingColors.primary}
+                          />
+                        </View>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -1717,8 +1718,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           ? 'ID Card'
                           : clientDetail.identity_authentication ==
                             'user_passport'
-                          ? 'Passport'
-                          : 'User Choice'}
+                            ? 'Passport'
+                            : 'User Choice'}
                       </Text>
                     </View>
                   </View>
@@ -1734,7 +1735,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   <Text
                     style={[
                       styles.insideHeading,
-                      {marginHorizontal: widthToDp(2)},
+                      { marginHorizontal: widthToDp(2) },
                     ]}>
                     Choose Client Session Authentication
                   </Text>
@@ -1745,9 +1746,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         selected === 'client_choose'
                           ? [BookingColors.primary, BookingColors.primary]
                           : [
-                              BookingColors.borderStrong,
-                              BookingColors.borderStrong,
-                            ]
+                            BookingColors.borderStrong,
+                            BookingColors.borderStrong,
+                          ]
                       }
                       GradiStyles={{
                         paddingVertical: heightToDp(1),
@@ -1765,9 +1766,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         selected === 'user_id'
                           ? [BookingColors.primary, BookingColors.primary]
                           : [
-                              BookingColors.borderStrong,
-                              BookingColors.borderStrong,
-                            ]
+                            BookingColors.borderStrong,
+                            BookingColors.borderStrong,
+                          ]
                       }
                       GradiStyles={{
                         paddingVertical: heightToDp(1),
@@ -1785,9 +1786,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         selected === 'user_passport'
                           ? [BookingColors.primary, BookingColors.primary]
                           : [
-                              BookingColors.borderStrong,
-                              BookingColors.borderStrong,
-                            ]
+                            BookingColors.borderStrong,
+                            BookingColors.borderStrong,
+                          ]
                       }
                       GradiStyles={{
                         paddingVertical: heightToDp(1),
@@ -1876,21 +1877,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           'clientuploaded',
                         )
                       }
-                      style={styles.downloadBtn}>
+                      style={styles.downloadIconBtn}>
                       {loadingStates.clientuploaded ? (
                         <ActivityIndicator
                           size="small"
-                          color={BookingColors.white}
+                          color={BookingColors.primary}
                         />
                       ) : (
-                        <>
-                          <Feather
-                            name="download"
-                            size={12}
-                            color={BookingColors.white}
-                          />
-                          <Text style={styles.downloadBtnText}>Download</Text>
-                        </>
+                        <Feather
+                          name="arrow-down"
+                          size={16}
+                          color={BookingColors.primary}
+                        />
                       )}
                     </TouchableOpacity>
                   </View>
@@ -1903,9 +1901,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           style={[
                             styles.docListItem,
                             index ===
-                              Object.values(clientDetail.client_documents)
-                                .length -
-                                1 && {
+                            Object.values(clientDetail.client_documents)
+                              .length -
+                            1 && {
                               borderBottomWidth: 0,
                             },
                           ]}>
@@ -1919,12 +1917,36 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           <Text style={styles.docListName}>
                             Document {index + 1}
                           </Text>
-                          <View style={styles.docListAction}>
-                            <Feather
-                              name="eye"
-                              size={14}
-                              color={BookingColors.primary}
-                            />
+                          <View style={styles.docListActions}>
+                            <TouchableOpacity
+                              activeOpacity={0.7}
+                              onPress={() =>
+                                handleNotarizrDocumentPress(
+                                  [item],
+                                  `clientuploaded_${index}`,
+                                )
+                              }
+                              style={styles.docListAction}>
+                              {loadingStates[`clientuploaded_${index}`] ? (
+                                <ActivityIndicator
+                                  size="small"
+                                  color={BookingColors.primary}
+                                />
+                              ) : (
+                                <Feather
+                                  name="arrow-down"
+                                  size={14}
+                                  color={BookingColors.primary}
+                                />
+                              )}
+                            </TouchableOpacity>
+                            <View style={styles.docListAction}>
+                              <Feather
+                                name="eye"
+                                size={14}
+                                color={BookingColors.primary}
+                              />
+                            </View>
                           </View>
                         </TouchableOpacity>
                       ),
@@ -1948,21 +1970,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           'agentuploaded',
                         )
                       }
-                      style={styles.downloadBtn}>
+                      style={styles.downloadIconBtn}>
                       {loadingStates.agentuploaded ? (
                         <ActivityIndicator
                           size="small"
-                          color={BookingColors.white}
+                          color={BookingColors.primary}
                         />
                       ) : (
-                        <>
-                          <Feather
-                            name="download"
-                            size={12}
-                            color={BookingColors.white}
-                          />
-                          <Text style={styles.downloadBtnText}>Download</Text>
-                        </>
+                        <Feather
+                          name="arrow-down"
+                          size={16}
+                          color={BookingColors.primary}
+                        />
                       )}
                     </TouchableOpacity>
                   </View>
@@ -1987,12 +2006,36 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         <Text style={styles.docListName}>
                           Document {index + 1}
                         </Text>
-                        <View style={styles.docListAction}>
-                          <Feather
-                            name="eye"
-                            size={14}
-                            color={BookingColors.primary}
-                          />
+                        <View style={styles.docListActions}>
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() =>
+                              handleNotarizrDocumentPress(
+                                [item],
+                                `agentuploaded_${index}`,
+                              )
+                            }
+                            style={styles.docListAction}>
+                            {loadingStates[`agentuploaded_${index}`] ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={BookingColors.primary}
+                              />
+                            ) : (
+                              <Feather
+                                name="arrow-down"
+                                size={14}
+                                color={BookingColors.primary}
+                              />
+                            )}
+                          </TouchableOpacity>
+                          <View style={styles.docListAction}>
+                            <Feather
+                              name="eye"
+                              size={14}
+                              color={BookingColors.primary}
+                            />
+                          </View>
                         </View>
                       </TouchableOpacity>
                     ))}
@@ -2015,21 +2058,18 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                           'notarydocuments',
                         )
                       }
-                      style={styles.downloadBtn}>
+                      style={styles.downloadIconBtn}>
                       {loadingStates.notarydocuments ? (
                         <ActivityIndicator
                           size="small"
-                          color={BookingColors.white}
+                          color={BookingColors.primary}
                         />
                       ) : (
-                        <>
-                          <Feather
-                            name="download"
-                            size={12}
-                            color={BookingColors.white}
-                          />
-                          <Text style={styles.downloadBtnText}>Download</Text>
-                        </>
+                        <Feather
+                          name="arrow-down"
+                          size={16}
+                          color={BookingColors.primary}
+                        />
                       )}
                     </TouchableOpacity>
                   </View>
@@ -2047,7 +2087,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         <View
                           style={[
                             styles.docListIcon,
-                            {backgroundColor: BookingColors.successSoft},
+                            { backgroundColor: BookingColors.successSoft },
                           ]}>
                           <Feather
                             name="file-text"
@@ -2058,16 +2098,43 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         <Text style={styles.docListName}>
                           Notarized Doc {index + 1}
                         </Text>
-                        <View
-                          style={[
-                            styles.docListAction,
-                            {backgroundColor: BookingColors.successSoft},
-                          ]}>
-                          <Feather
-                            name="eye"
-                            size={14}
-                            color={BookingColors.success}
-                          />
+                        <View style={styles.docListActions}>
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() =>
+                              handleNotarizrDocumentPress(
+                                [item],
+                                `notarydocuments_${index}`,
+                              )
+                            }
+                            style={[
+                              styles.docListAction,
+                              { backgroundColor: BookingColors.successSoft },
+                            ]}>
+                            {loadingStates[`notarydocuments_${index}`] ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={BookingColors.success}
+                              />
+                            ) : (
+                              <Feather
+                                name="arrow-down"
+                                size={14}
+                                color={BookingColors.success}
+                              />
+                            )}
+                          </TouchableOpacity>
+                          <View
+                            style={[
+                              styles.docListAction,
+                              { backgroundColor: BookingColors.successSoft },
+                            ]}>
+                            <Feather
+                              name="eye"
+                              size={14}
+                              color={BookingColors.success}
+                            />
+                          </View>
                         </View>
                       </TouchableOpacity>
                     ))}
@@ -2079,7 +2146,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             <Modal visible={showModal} animationType="slide">
               <PdfView
                 style={styles.pdfView}
-                source={{uri: filePath}}
+                source={{ uri: filePath }}
                 trustAllCerts={false}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
@@ -2092,7 +2159,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                 onLoadComplete={(numberOfPages, filePath) => {
                   console.log('completed');
                 }}
-                onPageChanged={(page, numberOfPages) => {}}
+                onPageChanged={(page, numberOfPages) => { }}
                 onError={error => console.error(error)}
               />
               <View style={styles.modalButtons}>
@@ -2114,16 +2181,16 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                   </View>
                   {typeof clientDetail.total_signatures_required ===
                     'number' && (
-                    <View style={styles.paymentRow}>
-                      <Text style={styles.paymentLabel}>
-                        Additional Signatures (
-                        {clientDetail.total_signatures_required} × $10)
-                      </Text>
-                      <Text style={styles.paymentValue}>
-                        ${additionalSignatureCharges}
-                      </Text>
-                    </View>
-                  )}
+                      <View style={styles.paymentRow}>
+                        <Text style={styles.paymentLabel}>
+                          Additional Signatures (
+                          {clientDetail.total_signatures_required} × $10)
+                        </Text>
+                        <Text style={styles.paymentValue}>
+                          ${additionalSignatureCharges}
+                        </Text>
+                      </View>
+                    )}
                   <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Printing Charges</Text>
                     <Text style={styles.paymentValue}>
@@ -2153,7 +2220,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         color={BookingColors.primary}
                       />
                     </View>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.infoRowText}>
                         {booked_for?.first_name} {booked_for?.last_name}
                       </Text>
@@ -2173,12 +2240,12 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </>
             )}
 
-            <View style={{height: 8}} />
+            <View style={{ height: 8 }} />
           </View>
 
           {/* ── NOTES ── */}
           {showNotes && (
-            <View style={{paddingHorizontal: 16, marginBottom: 8}}>
+            <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
               <LabelTextInput
                 LabelTextInput="Notes"
                 placeholder="Write notes here"
@@ -2403,7 +2470,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </View>
             )}
 
-            <View style={{height: 32}} />
+            <View style={{ height: 32 }} />
           </View>
         </ScrollView>
 
@@ -2680,7 +2747,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
@@ -2856,19 +2923,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingRight: 16,
   },
-  downloadBtn: {
-    flexDirection: 'row',
+  downloadIconBtn: {
+    width: 34,
+    height: 34,
     alignItems: 'center',
-    backgroundColor: BookingColors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    justifyContent: 'center',
     borderRadius: 8,
-    gap: 5,
-  },
-  downloadBtnText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
-    color: BookingColors.white,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.primarySoft,
   },
   docListItem: {
     flexDirection: 'row',
@@ -2900,6 +2963,11 @@ const styles = StyleSheet.create({
     backgroundColor: BookingColors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  docListActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   removeObserverBtn: {
     width: 30,
