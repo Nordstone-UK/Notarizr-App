@@ -15,6 +15,17 @@ type State = {
   isSignatureModalOpen: boolean;
   isSessionCompleted: boolean;
   sessionCompletedAt: string | null;
+  sessionParticipant: {
+    name: string;
+    role: string;
+  } | null;
+  signingActivity: {
+    status: 'idle' | 'choosing' | 'signing' | 'placing';
+    label: string;
+    page: number;
+    x?: number;
+    y?: number;
+  };
 };
 
 type Action = {
@@ -29,9 +40,15 @@ type Action = {
   setSharedDocument: (
     document: {name: string; url: string; type: string} | null,
   ) => void;
+  clearSharedDocument: () => void;
   setDocumentPreviewOpen: (isOpen: boolean) => void;
   setSignatureModalOpen: (isOpen: boolean) => void;
   setSessionCompleted: (isCompleted: boolean, completedAt?: string) => void;
+  setSessionParticipant: (participant: {
+    name: string;
+    role: string;
+  }) => void;
+  setSigningActivity: (activity: State['signingActivity']) => void;
 };
 
 export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
@@ -47,6 +64,12 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       isSignatureModalOpen: false,
       isSessionCompleted: false,
       sessionCompletedAt: null,
+      sessionParticipant: null,
+      signingActivity: {
+        status: 'idle',
+        label: '',
+        page: 1,
+      },
       setCurrentPage: page => {
         set({currentPage: page});
       },
@@ -71,13 +94,33 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       },
       deleteObject: id => {
         const {[id]: _, ...remainingObjects} = get().objects;
-        set({objects: remainingObjects, selectedObjectId: null});
+        set({
+          objects: remainingObjects,
+          selectedObjectId: null,
+          ...(Object.keys(remainingObjects).length === 0
+            ? {
+              signingActivity: {
+                status: 'idle' as const,
+                label: '',
+                page: get().currentPage,
+              },
+            }
+            : {}),
+        });
       },
       setSelectedObjectId: id => {
         set({selectedObjectId: id});
       },
       deleteAllObjects: () => {
-        set({objects: {}});
+        set({
+          objects: {},
+          selectedObjectId: null,
+          signingActivity: {
+            status: 'idle',
+            label: '',
+            page: get().currentPage,
+          },
+        });
       },
       setPdfFilePath: path => {
         set({pdfFilePath: path});
@@ -87,6 +130,20 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       },
       setSharedDocument: document => {
         set({sharedDocument: document});
+      },
+      clearSharedDocument: () => {
+        set({
+          sharedDocument: null,
+          isDocumentPreviewOpen: false,
+          objects: {},
+          selectedObjectId: null,
+          currentPage: 1,
+          signingActivity: {
+            status: 'idle',
+            label: '',
+            page: 1,
+          },
+        });
       },
       setDocumentPreviewOpen: isOpen => {
         set({isDocumentPreviewOpen: isOpen});
@@ -102,6 +159,12 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
             : null,
         });
       },
+      setSessionParticipant: participant => {
+        set({sessionParticipant: participant});
+      },
+      setSigningActivity: activity => {
+        set({signingActivity: activity});
+      },
     }),
     {
       client,
@@ -116,6 +179,8 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       },
       presenceMapping: {
         selectedObjectId: true,
+        sessionParticipant: true,
+        signingActivity: true,
       },
     },
   ),

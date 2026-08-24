@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -17,12 +17,12 @@ import {
 import Signature from 'react-native-signature-canvas';
 import Feather from 'react-native-vector-icons/Feather';
 import ViewShot from 'react-native-view-shot';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 import BookingColors from '../../../themes/BookingColors';
 import useFetchUser from '../../../hooks/useFetchUser';
 import useUpdate from '../../../hooks/useUpdate';
-import {useLiveblocks} from '../../../store/liveblocks';
+import { useLiveblocks } from '../../../store/liveblocks';
 import {
   uploadDocumentToSpaces,
   uploadSignatureToSpaces,
@@ -47,21 +47,127 @@ interface DrawSignComponentProps {
   page?: number;
 }
 
+type SigningActivity = {
+  status: 'idle' | 'choosing' | 'signing' | 'placing';
+  label: string;
+  page: number;
+  x?: number;
+  y?: number;
+};
+
+interface ActiveSignerPresenceProps {
+  currentActivity?: SigningActivity;
+  currentParticipant?: { name?: string; role?: string } | null;
+  others?: ReadonlyArray<{
+    connectionId?: number;
+    presence?: {
+      sessionParticipant?: { name?: string; role?: string } | null;
+      signingActivity?: SigningActivity;
+    };
+  }>;
+}
+
+export const ActiveSignerPresence: React.FC<ActiveSignerPresenceProps> = ({
+  currentActivity,
+  currentParticipant,
+  others = [],
+}) => {
+  const activeSigners = [
+    ...(currentActivity && currentActivity.status !== 'idle'
+      ? [{
+        id: 'local',
+        participant: currentParticipant,
+        activity: currentActivity,
+        isLocal: true,
+      }]
+      : []),
+    ...others
+      .filter(
+        other =>
+          Boolean(other.presence?.signingActivity?.status) &&
+          other.presence?.signingActivity?.status !== 'idle',
+      )
+      .map(other => ({
+        id: `remote-${other.connectionId}`,
+        participant: other.presence?.sessionParticipant,
+        activity: other.presence?.signingActivity as SigningActivity,
+        isLocal: false,
+      })),
+  ];
+
+  if (!activeSigners.length) {
+    return null;
+  }
+
+  const pointerSigners = activeSigners.filter(
+    signer =>
+      typeof signer.activity.x === 'number' &&
+      typeof signer.activity.y === 'number',
+  );
+
+  return (
+    <View pointerEvents="none" style={styles.signerPresenceLayer}>
+      <View style={styles.signerPresenceStack}>
+        {activeSigners.map(signer => (
+          <View
+            key={signer.id}
+            style={[
+              styles.signerPresenceBadge,
+              signer.isLocal && styles.signerPresenceBadgeLocal,
+            ]}>
+            <View style={styles.signerPresenceDot} />
+            <View style={styles.signerPresenceCopy}>
+              <Text numberOfLines={1} style={styles.signerPresenceName}>
+                {signer.isLocal
+                  ? 'You'
+                  : signer.participant?.name || 'Participant'}
+              </Text>
+              <Text numberOfLines={1} style={styles.signerPresenceAction}>
+                {signer.activity.label || 'Signing'} · page{' '}
+                {signer.activity.page || 1}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {pointerSigners.map(signer => (
+        <View
+          key={`cursor-${signer.id}`}
+          style={[
+            styles.signerCursor,
+            {
+              left: Math.max(8, signer.activity.x || 8),
+              top: Math.max(8, signer.activity.y || 8),
+            },
+          ]}>
+          <View style={styles.signerCursorPointer} />
+          <Text style={styles.signerCursorLabel}>
+            {signer.isLocal
+              ? 'You'
+              : signer.participant?.name || 'Participant'}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
 const options: Array<{
   key: SignatureOption;
   label: string;
   icon: string;
 }> = [
-  {key: 'saved', label: 'Saved', icon: 'bookmark'},
-  {key: 'draw', label: 'Draw', icon: 'edit-3'},
-  {key: 'type', label: 'Type', icon: 'type'},
-  {key: 'upload', label: 'Upload', icon: 'upload'},
-];
+    { key: 'saved', label: 'Saved', icon: 'bookmark' },
+    { key: 'draw', label: 'Draw', icon: 'edit-3' },
+    { key: 'type', label: 'Type', icon: 'type' },
+    { key: 'upload', label: 'Upload', icon: 'upload' },
+  ];
 
 const fontStyles = [
-  {label: 'Script', value: 'DancingScript-VariableFont_wght'},
-  {label: 'Classic', value: 'JacquesFrancoisShadow-Regular'},
-  {label: 'Clean', value: 'Manrope-Bold'},
+  { label: 'Script', value: 'DancingScript-VariableFont_wght' },
+  { label: 'Classic', value: 'JacquesFrancoisShadow-Regular' },
+  { label: 'Clean', value: 'Manrope-Bold' },
 ];
 
 const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
@@ -71,9 +177,10 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
   onStampChanges,
   page = 1,
 }) => {
-  const {fetchUserInfo, handleDeleteSign} = useFetchUser();
-  const {handleNotarysignUpdate} = useUpdate();
+  const { fetchUserInfo, handleDeleteSign } = useFetchUser();
+  const { handleNotarysignUpdate } = useUpdate();
   const insertObject = useLiveblocks(state => state.insertObject);
+  const setSigningActivity = useLiveblocks(state => state.setSigningActivity);
 
   const [selectedOption, setSelectedOption] =
     useState<SignatureOption>('saved');
@@ -96,8 +203,18 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       setUploadedImageUri(null);
       setUploadedImageMime('image/jpeg');
       setUploadedImageName('signature.jpg');
+      setSigningActivity({
+        status: 'choosing',
+        label: 'Choosing a signature',
+        page,
+      });
     }
-  }, [isVisible, signs?.notarysigns?.length]);
+  }, [isVisible, page, setSigningActivity, signs?.notarysigns?.length]);
+
+  const dismissModal = useCallback(() => {
+    setSigningActivity({status: 'idle', label: '', page});
+    onClose();
+  }, [onClose, page, setSigningActivity]);
 
   const addSignatureToDocument = useCallback(
     (sourceUrl: string) => {
@@ -105,7 +222,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
         type: 'image',
         sourceUrl,
         page,
-        position: {x: 100, y: 100},
+        position: { x: 100, y: 100 },
       });
     },
     [insertObject, page],
@@ -113,6 +230,11 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
 
   const saveSignature = useCallback(
     async (sourceUrl: string) => {
+      setSigningActivity({
+        status: 'signing',
+        label: 'Adding a signature',
+        page,
+      });
       addSignatureToDocument(sourceUrl);
 
       // Saved signatures are useful for both account types and are handled by
@@ -127,9 +249,17 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
         console.warn('Reusable signature could not be saved', error);
       }
 
+      setSigningActivity({status: 'idle', label: '', page});
       onClose();
     },
-    [addSignatureToDocument, fetchUserInfo, handleNotarysignUpdate, onClose],
+    [
+      addSignatureToDocument,
+      fetchUserInfo,
+      handleNotarysignUpdate,
+      onClose,
+      page,
+      setSigningActivity,
+    ],
   );
 
   const runSave = useCallback(
@@ -227,10 +357,15 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
 
   const selectSavedSignature = useCallback(
     (sourceUrl: string) => {
+      setSigningActivity({
+        status: 'placing',
+        label: 'Placing a signature',
+        page,
+      });
       onStampChanges(sourceUrl);
       onClose();
     },
-    [onClose, onStampChanges],
+    [onClose, onStampChanges, page, setSigningActivity],
   );
 
   const deleteSavedSignature = useCallback(
@@ -255,12 +390,12 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
     [fetchUserInfo, handleDeleteSign],
   );
 
-  const renderSavedSignature = ({item}: {item: SavedSignature}) => (
+  const renderSavedSignature = ({ item }: { item: SavedSignature }) => (
     <TouchableOpacity
       style={styles.savedCard}
       activeOpacity={0.8}
       onPress={() => selectSavedSignature(item.signUrl)}>
-      <Image source={{uri: item.signUrl}} style={styles.savedImage} />
+      <Image source={{ uri: item.signUrl }} style={styles.savedImage} />
       <View style={styles.savedCardFooter}>
         <Text style={styles.savedUseText}>Use signature</Text>
         <TouchableOpacity
@@ -278,11 +413,11 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       transparent
       visible={isVisible}
       statusBarTranslucent
-      onRequestClose={onClose}>
+      onRequestClose={dismissModal}>
       <KeyboardAvoidingView
         style={styles.modalRoot}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable style={styles.backdrop} onPress={dismissModal} />
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <View style={styles.header}>
@@ -292,7 +427,9 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                 Choose a method, preview it, then add it to the document.
               </Text>
             </View>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={dismissModal}>
               <Feather name="x" size={21} color={BookingColors.textPrimary} />
             </TouchableOpacity>
           </View>
@@ -457,14 +594,14 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                 </ScrollView>
                 <ViewShot
                   ref={viewShotRef}
-                  options={{format: 'png', quality: 1}}
+                  options={{ format: 'png', quality: 1 }}
                   style={styles.typedPreview}>
                   <Text
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     style={[
                       styles.typedSignature,
-                      {fontFamily: selectedFontStyle},
+                      { fontFamily: selectedFontStyle },
                     ]}>
                     {inputText || 'Your signature'}
                   </Text>
@@ -502,7 +639,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                   onPress={chooseSignatureImage}>
                   {uploadedImageUri ? (
                     <Image
-                      source={{uri: uploadedImageUri}}
+                      source={{ uri: uploadedImageUri }}
                       style={styles.uploadedImage}
                     />
                   ) : (
@@ -602,7 +739,7 @@ const signatureWebStyle = `
 `;
 
 const styles = StyleSheet.create({
-  modalRoot: {flex: 1, justifyContent: 'flex-end'},
+  modalRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(18, 24, 38, 0.56)',
@@ -630,7 +767,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
-  headerCopy: {flex: 1, paddingRight: 12},
+  headerCopy: { flex: 1, paddingRight: 12 },
   heading: {
     fontFamily: 'Manrope-Bold',
     fontSize: 22,
@@ -678,9 +815,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: BookingColors.textSecondary,
   },
-  optionTextActive: {color: BookingColors.primary},
-  contentScroll: {marginTop: 6},
-  content: {padding: 20, paddingBottom: 30},
+  optionTextActive: { color: BookingColors.primary },
+  contentScroll: { marginTop: 6 },
+  content: { padding: 20, paddingBottom: 30 },
   sectionTitle: {
     fontFamily: 'Manrope-Bold',
     fontSize: 18,
@@ -694,7 +831,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     marginBottom: 16,
   },
-  savedRow: {gap: 10},
+  savedRow: { gap: 10 },
   savedCard: {
     flex: 1,
     minHeight: 132,
@@ -770,7 +907,7 @@ const styles = StyleSheet.create({
     color: BookingColors.textPrimary,
     backgroundColor: BookingColors.surface,
   },
-  fontRow: {gap: 8, paddingVertical: 12},
+  fontRow: { gap: 8, paddingVertical: 12 },
   fontChip: {
     borderRadius: 9,
     borderWidth: 1,
@@ -787,7 +924,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: BookingColors.textSecondary,
   },
-  fontChipTextActive: {color: BookingColors.primary},
+  fontChipTextActive: { color: BookingColors.primary },
   typedPreview: {
     height: 110,
     borderRadius: 12,
@@ -798,7 +935,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BookingColors.border,
   },
-  typedSignature: {fontSize: 30, color: BookingColors.textPrimary},
+  typedSignature: { fontSize: 30, color: BookingColors.textPrimary },
   uploadArea: {
     minHeight: 160,
     borderRadius: 14,
@@ -830,7 +967,7 @@ const styles = StyleSheet.create({
     color: BookingColors.textSecondary,
     marginTop: 3,
   },
-  uploadedImage: {width: '100%', height: 130, resizeMode: 'contain'},
+  uploadedImage: { width: '100%', height: 130, resizeMode: 'contain' },
   replaceButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -853,7 +990,7 @@ const styles = StyleSheet.create({
     backgroundColor: BookingColors.primary,
     marginTop: 14,
   },
-  primaryButtonDisabled: {backgroundColor: BookingColors.borderStrong},
+  primaryButtonDisabled: { backgroundColor: BookingColors.borderStrong },
   primaryButtonText: {
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
@@ -865,7 +1002,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  drawUseButton: {flex: 1, marginTop: 0},
+  drawUseButton: { flex: 1, marginTop: 0 },
   clearButton: {
     height: 52,
     paddingHorizontal: 20,
@@ -915,6 +1052,87 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
     color: BookingColors.primary,
+  },
+  signerPresenceLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 24,
+    elevation: 24,
+  },
+  signerPresenceStack: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    gap: 7,
+  },
+  signerPresenceBadge: {
+    maxWidth: 210,
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#7C3AED',
+    backgroundColor: '#F5F3FF',
+    shadowColor: '#111827',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.16,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  signerPresenceBadgeLocal: {
+    borderColor: BookingColors.primary,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  signerPresenceDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+    backgroundColor: '#7C3AED',
+  },
+  signerPresenceCopy: { flexShrink: 1 },
+  signerPresenceName: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  signerPresenceAction: {
+    marginTop: 1,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+  },
+  signerCursor: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  signerCursorPointer: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 14,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderTopColor: 'transparent',
+    borderBottomColor: '#7C3AED',
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    transform: [{ rotate: '-38deg' }],
+  },
+  signerCursorLabel: {
+    marginLeft: -2,
+    marginTop: 11,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 5,
+    overflow: 'hidden',
+    color: BookingColors.white,
+    backgroundColor: '#7C3AED',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
   },
 });
 

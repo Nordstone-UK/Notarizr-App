@@ -56,19 +56,6 @@ function makeDefaultEnd() {
   return moment().startOf('day').add(DEFAULT_END_HOUR, 'hours').toDate();
 }
 
-function generateSessions(startDate, endDate) {
-  const start = moment(startDate);
-  const end = moment(endDate);
-  const sessions = [];
-  let cursor = start.clone();
-  while (cursor.clone().add(60, 'minutes').isSameOrBefore(end)) {
-    const next = cursor.clone().add(60, 'minutes');
-    sessions.push(`${cursor.format('h:mm A')} – ${next.format('h:mm A')}`);
-    cursor = next;
-  }
-  return sessions;
-}
-
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function DayChip({day, selected, onPress}) {
@@ -92,10 +79,7 @@ function TimeBlock({
   onUpdateEnd,
   onRemove,
 }) {
-  const sessions = generateSessions(block.startTime, block.endTime);
-  const isValid = moment(block.endTime).isAfter(
-    moment(block.startTime).add(59, 'minutes'),
-  );
+  const isValid = moment(block.endTime).isAfter(moment(block.startTime));
 
   return (
     <View style={styles.block}>
@@ -134,24 +118,8 @@ function TimeBlock({
         <View style={styles.blockError}>
           <Feather name="alert-circle" size={11} color={BookingColors.error} />
           <Text style={styles.blockErrorText}>
-            End time must be at least 60 min after start time.
+            End time must be after start time.
           </Text>
-        </View>
-      )}
-
-      {isValid && sessions.length > 0 && (
-        <View style={styles.sessionsWrap}>
-          <Text style={styles.sessionsLabel}>
-            {sessions.length} bookable session{sessions.length !== 1 ? 's' : ''}
-          </Text>
-          <View style={styles.sessionPills}>
-            {sessions.map((s, i) => (
-              <View key={i} style={styles.sessionPill}>
-                <View style={styles.sessionDot} />
-                <Text style={styles.sessionPillText}>{s}</Text>
-              </View>
-            ))}
-          </View>
         </View>
       )}
     </View>
@@ -307,15 +275,11 @@ export default function AgentMainAvailabilityScreen({navigation}) {
 
     for (const day of selectedDays) {
       for (const block of schedule[day]) {
-        if (
-          !moment(block.endTime).isAfter(
-            moment(block.startTime).add(59, 'minutes'),
-          )
-        ) {
+        if (!moment(block.endTime).isAfter(moment(block.startTime))) {
           Toast.show({
             type: 'warning',
             text1: `Check your ${DAY_LABELS[day]} hours`,
-            text2: 'Each block must be at least 60 minutes long.',
+            text2: 'End time must be after start time.',
           });
           return;
         }
@@ -336,15 +300,10 @@ export default function AgentMainAvailabilityScreen({navigation}) {
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const selectedDays = WEEKDAYS.filter(d => schedule[d]);
-  const totalSessions = selectedDays.reduce((sum, day) => {
-    return (
-      sum +
-      schedule[day].reduce(
-        (daySum, b) => daySum + generateSessions(b.startTime, b.endTime).length,
-        0,
-      )
-    );
-  }, 0);
+  const totalBlocks = selectedDays.reduce(
+    (sum, day) => sum + schedule[day].length,
+    0,
+  );
 
   // ── Render ────────────────────────────────────────────────────────────────
   if (loading) {
@@ -386,7 +345,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
               {mobile ? 'Mobile notary hours' : 'Remote notary hours'}
             </Text>
             <Text style={styles.introSubtitle}>
-              Clients can request 60-minute appointments during your open slots.
+              Set your available hours for each working day.
             </Text>
           </View>
         </View>
@@ -402,9 +361,9 @@ export default function AgentMainAvailabilityScreen({navigation}) {
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>{totalSessions}</Text>
+              <Text style={styles.summaryValue}>{totalBlocks}</Text>
               <Text style={styles.summaryLabel}>
-                {totalSessions === 1 ? 'session' : 'sessions'} / week
+                {totalBlocks === 1 ? 'block' : 'blocks'} / week
               </Text>
             </View>
           </View>
@@ -447,7 +406,7 @@ export default function AgentMainAvailabilityScreen({navigation}) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Time blocks per day</Text>
             <Text style={styles.sectionText}>
-              Each block is split into 60-minute sessions clients can book.
+              Each block defines a window during which clients can book.
             </Text>
             {selectedDays.map(day => (
               <DayCard
@@ -761,40 +720,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: BookingColors.error,
     fontFamily: 'Manrope-Regular',
-    fontSize: 10,
-  },
-
-  // ── Session pills ──
-  sessionsWrap: {marginTop: 10},
-  sessionsLabel: {
-    color: BookingColors.textMuted,
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 9,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  sessionPills: {flexDirection: 'row', flexWrap: 'wrap', gap: 6},
-  sessionPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    backgroundColor: BookingColors.successSoft,
-    borderWidth: 1,
-    borderColor: BookingColors.success + '33',
-    gap: 5,
-  },
-  sessionDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: BookingColors.success,
-  },
-  sessionPillText: {
-    color: BookingColors.success,
-    fontFamily: 'Manrope-SemiBold',
     fontSize: 10,
   },
 

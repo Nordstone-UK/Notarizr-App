@@ -22,17 +22,19 @@ type PdfObjectProps = {
   id: string;
   object: PdfObject;
   selected: boolean;
+  onSignatureChange: (signatureInfo: any) => void;
 };
 export default function DraggableSignature({ id, object, selected, onSignatureChange }: PdfObjectProps) {
   const updateObject = useLiveblocks(state => state.updateObject);
   const setSelectedObjectId = useLiveblocks(state => state.setSelectedObjectId);
   const deleteObject = useLiveblocks(state => state.deleteObject);
+  const setSigningActivity = useLiveblocks(state => state.setSigningActivity);
   const dispatch = useDispatch();
   const scale = useSharedValue(1);
   const translationX = useSharedValue(0);
   const translationY = useSharedValue(0);
-  const prevTranslationX = useRef(0);
-  const prevTranslationY = useRef(0);
+  const gestureStartX = useRef(object.position.x);
+  const gestureStartY = useRef(object.position.y);
   const start = useSharedValue({ x: 0, y: 0 });
   const offset = useSharedValue({ x: object.position.x, y: object.position.y });
 
@@ -41,8 +43,30 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   };
 
   const onPanGestureEvent = ({ nativeEvent }) => {
-    translationX.value = clamp(prevTranslationX.current + nativeEvent.translationX, 0, screenWidth - FIXED_IMAGE_SIZE);
-    translationY.value = clamp(prevTranslationY.current + nativeEvent.translationY, 0, screenHeight - FIXED_IMAGE_SIZE);
+    const x = clamp(
+      gestureStartX.current + nativeEvent.translationX,
+      0,
+      screenWidth - FIXED_IMAGE_SIZE,
+    );
+    const y = clamp(
+      gestureStartY.current + nativeEvent.translationY,
+      0,
+      screenHeight - FIXED_IMAGE_SIZE,
+    );
+    translationX.value = x;
+    translationY.value = y;
+    setSelectedObjectId(id);
+    updateObject(id, {
+      ...object,
+      position: {x, y},
+    });
+    setSigningActivity({
+      status: 'signing',
+      label: 'Dragging a signature',
+      page: object.page || 1,
+      x,
+      y,
+    });
   };
   useEffect(() => {
     // Update offset value when object position changes
@@ -51,9 +75,20 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   }, [object.position]);
 
   const onPanGestureStateChange = ({ nativeEvent }) => {
+    if (nativeEvent.state === State.BEGAN) {
+      gestureStartX.current = translationX.value;
+      gestureStartY.current = translationY.value;
+      setSelectedObjectId(id);
+      setSigningActivity({
+        status: 'signing',
+        label: 'Dragging a signature',
+        page: object.page || 1,
+        x: translationX.value,
+        y: translationY.value,
+      });
+    }
+
     if (nativeEvent.state === State.END) {
-      prevTranslationX.current = translationX.value;
-      prevTranslationY.current = translationY.value;
       setSelectedObjectId(id);
       translationX.value = withSpring(translationX.value, {
         damping: 10,
@@ -83,6 +118,22 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         signatureData: signatureData,
         fontFamily: fontFamily,
       });
+      setSigningActivity({
+        status: 'idle',
+        label: '',
+        page: object.page || 1,
+      });
+    }
+
+    if (
+      nativeEvent.state === State.CANCELLED ||
+      nativeEvent.state === State.FAILED
+    ) {
+      setSigningActivity({
+        status: 'idle',
+        label: '',
+        page: object.page || 1,
+      });
     }
   };
 
@@ -96,6 +147,11 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
 
   const handleDelete = () => {
     deleteObject(id); // Use the deleteObject action
+    setSigningActivity({
+      status: 'idle',
+      label: '',
+      page: object.page || 1,
+    });
     onSignatureChange({ delete: true });
   };
 
@@ -107,11 +163,12 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   // console.log("object.typere", object)
   const renderContent = useCallback(() => {
     if (object.type === 'date') {
+      const dateValue = (object.text as any)?.date || object.text;
       return (
         <View style={styles.dateContainer}>
           <Text
             style={styles.date}>
-            {moment(object.text.date).format('DD-MM-YYYY ')}
+            {moment(dateValue).format('DD-MM-YYYY ')}
           </Text>
         </View>
       )

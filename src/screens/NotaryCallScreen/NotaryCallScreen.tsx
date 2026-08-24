@@ -5,7 +5,6 @@ import {
   Share,
   StyleSheet,
   View,
-  ScrollView,
   SafeAreaView,
   PermissionsAndroid,
   Platform,
@@ -24,8 +23,7 @@ import BookingColors from '../../themes/BookingColors';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Colors from '../../themes/Colors';
-import { height, heightToDp, widthToDp } from '../../utils/Responsive';
-import MainButton from '../../components/MainGradientButton/MainButton';
+import { widthToDp } from '../../utils/Responsive';
 import {
   ClientRoleType,
   createAgoraRtcEngine,
@@ -33,20 +31,12 @@ import {
   RtcSurfaceView,
   ChannelProfileType,
 } from 'react-native-agora';
-import DragabbleSignature from './DragabbleSignature';
 
 import Toast from 'react-native-toast-message';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
-import {
-  Edit,
-  NavArrowLeft,
-  NavArrowRight,
-  PageEdit,
-  Text,
-} from 'iconoir-react-native';
 import { useLiveblocks } from '../../store/liveblocks';
 const appId = 'f64e76f674b646bc965dc3e257b4e108';
 
@@ -56,21 +46,16 @@ import RNFS from 'react-native-fs';
 import { uploadSignedDocumentToSpaces } from '../../utils/spacesHelper';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { SIGN_DOCS } from '../../../request/mutations/signDocument';
-import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
 import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
 import { useSession } from '../../hooks/useSession';
 import { GET_SESSION_BY_ID } from '../../../request/queries/getSessionByID.query';
 import { setBookingInfoState } from '../../features/booking/bookingSlice';
 import SignatureContainer from './SignatureContainer';
-import HeaderRight from '../../components/LiveBlocksComponents/header-right';
 import useRegister from '../../hooks/useRegister';
-import PDFViewer from './PDFViewer';
 import { UPDATE_OR_CREATE_SESSION_UPDATED_DOCS } from '../../../request/mutations/updateSessionUpdateddocs';
 import SketchCanvasComponent from './PenTool/SketchCanvasComponent';
-import LinearGradient from 'react-native-linear-gradient';
 import { UPDATE_OR_CREATE_SESSION_CLIENT_DOCS } from '../../../request/mutations/updateSessionClientDocs';
-import DrawSignTypeModal from './Signature';
-import { TouchableWithoutFeedback } from 'react-native';
+import DrawSignTypeModal, { ActiveSignerPresence } from './Signature';
 import { getSessionAvailability } from '../../utils/sessionAvailability';
 
 const resolveDocumentUri = (document: any): string | null => {
@@ -153,7 +138,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const isDocumentPreviewOpen = useLiveblocks(
     state => state.isDocumentPreviewOpen,
   );
+  const isDocumentCollaborationActive = Boolean(
+    resolveDocumentUri(sharedDocument) && isDocumentPreviewOpen,
+  );
   const setSharedDocument = useLiveblocks(state => state.setSharedDocument);
+  const clearSharedDocument = useLiveblocks(
+    state => state.clearSharedDocument,
+  );
   const setDocumentPreviewOpen = useLiveblocks(
     state => state.setDocumentPreviewOpen,
   );
@@ -167,6 +158,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const sessionCompletedAt = useLiveblocks(state => state.sessionCompletedAt);
   const setSessionCompleted = useLiveblocks(state => state.setSessionCompleted);
   const setSharedCurrentPage = useLiveblocks(state => state.setCurrentPage);
+  const sessionParticipant = useLiveblocks(state => state.sessionParticipant);
+  const signingActivity = useLiveblocks(state => state.signingActivity);
+  const setSessionParticipant = useLiveblocks(
+    state => state.setSessionParticipant,
+  );
+  const setSigningActivity = useLiveblocks(state => state.setSigningActivity);
+  const roomOthers = useLiveblocks(state => state.liveblocks.others);
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const bookingData =
@@ -235,10 +233,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [selectedLocalDocument, setSelectedLocalDocument] = useState<any>(null);
   const [isCompleting, setIsCompleting] = useState(false);
   const documentLoadIdRef = useRef(0);
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-  const videoStageHeight = isClient
-    ? Math.min(Math.max(screenHeight * 0.58, 390), 520)
-    : Math.min(Math.max(screenHeight * 0.43, 320), 400);
+  const documentSelectionInFlightRef = useRef(false);
+  const lastUploadedDocumentRef = useRef<string | null>(null);
+  const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
   const getFitPolicy = () => {
     if (pageWidth && pageHeight) {
       const screenRatio = screenWidth / screenHeight;
@@ -289,6 +286,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   useEffect(() => {
     const sharedDocumentUri = resolveDocumentUri(sharedDocument);
     if (!sharedDocumentUri) {
+      setClientDocModalVisible(false);
+      setSelectedLocalDocument(null);
+      setSelectedItem(null);
+      setSourceKey(null);
+      setSourceUrl(null);
+      setFileDownloaded(false);
+      setPdfBase64(null);
+      setNewPdfSaved(false);
+      setNewPdfPath(null);
       return;
     }
 
@@ -314,9 +320,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   }, [sharedDocument]);
 
   useEffect(() => {
-    if (resolveDocumentUri(sharedDocument)) {
-      setClientDocModalVisible(isDocumentPreviewOpen);
-    }
+    setClientDocModalVisible(
+      Boolean(resolveDocumentUri(sharedDocument) && isDocumentPreviewOpen),
+    );
   }, [isDocumentPreviewOpen, sharedDocument]);
   useEffect(() => {
     const items = [
@@ -538,6 +544,17 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   //////////////////////////////////////////
   const handleSingleTap = async (page, x, y) => {
     if (pdfEditMode) {
+      setSigningActivity({
+        status: 'placing',
+        label: 'Placing a signature',
+        page,
+        x,
+        y,
+      });
+      setTimeout(
+        () => setSigningActivity({ status: 'idle', label: '', page }),
+        2500,
+      );
       setNewPdfSaved(false);
       setFilePath(null);
       const pdfDoc = await PDFDocument.load(pdfBase64, {
@@ -648,16 +665,47 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       return;
     }
 
+    // RNPickerSelect can emit another change event when the already-selected
+    // row is tapped. Clearing the loaded PDF in that case makes the viewer
+    // disappear because sourceUrl itself does not change and its loading
+    // effect therefore has nothing to restart.
     const selectedDocument = pickerItems.find(
       item => item.value === documentUri,
     );
+    const sharedSelection = {
+      name: selectedDocument?.label || 'Shared document.pdf',
+      uri: documentUri,
+      url: documentUri,
+      type: 'application/pdf',
+    };
+
+    if (!newPdfSaved && documentUri === resolveDocumentUri(sourceUrl)) {
+      setSelectedItem(documentUri);
+      setSelectedLocalDocument(sharedSelection);
+      setSharedDocument({
+        name: sharedSelection.name,
+        url: documentUri,
+        type: sharedSelection.type,
+      });
+      setDocumentPreviewOpen(true);
+      return;
+    }
+
     setSourceKey(selectedDocument?.documentKey || sourceKey);
     setSourceUrl(documentUri);
     setSelectedItem(documentUri);
+    setSelectedLocalDocument(sharedSelection);
     setFileDownloaded(false);
     setNewPdfSaved(false);
     setNewPdfPath(null);
     setPdfBase64(null);
+    setSharedCurrentPage(1);
+    setSharedDocument({
+      name: sharedSelection.name,
+      url: documentUri,
+      type: sharedSelection.type,
+    });
+    setDocumentPreviewOpen(true);
   };
   const updatedDocument = async url => {
     const urlResponse = {
@@ -738,6 +786,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [callError, setCallError] = useState('');
   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
   const pdfRef = React.useRef<Pdf>(null);
+  const displayedPageRef = React.useRef(1);
+  const pendingProgrammaticPageRef = React.useRef<number | null>(null);
+  const lastPublishedPageRef = React.useRef<number | null>(null);
   const [totalPages, setTotalPages] = React.useState<number>(0);
   const [currentPage, setCurrentPage] =
     React.useState<number>(remoteCurrentPage);
@@ -746,14 +797,37 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       return;
     }
 
+    if (lastPublishedPageRef.current === remoteCurrentPage) {
+      lastPublishedPageRef.current = null;
+      return;
+    }
+
+    if (displayedPageRef.current === remoteCurrentPage) {
+      return;
+    }
+
+    pendingProgrammaticPageRef.current = remoteCurrentPage;
     setCurrentPage(remoteCurrentPage);
     pdfRef.current?.setPage(remoteCurrentPage);
   }, [remoteCurrentPage]);
 
   const handleSharedPageChanged = useCallback(
     (page: number) => {
+      displayedPageRef.current = page;
       setCurrentPage(page);
+
+      // A page change caused by following the other participant must not be
+      // published back into the room. Otherwise two viewers can continuously
+      // bounce a multi-page document between their previous pages.
+      if (pendingProgrammaticPageRef.current !== null) {
+        if (page === pendingProgrammaticPageRef.current) {
+          pendingProgrammaticPageRef.current = null;
+        }
+        return;
+      }
+
       if (page !== remoteCurrentPage) {
+        lastPublishedPageRef.current = page;
         setSharedCurrentPage(page);
       }
     },
@@ -1054,6 +1128,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+  useEffect(() => {
+    setSessionParticipant({
+      name: userDisplayName,
+      role: isClient ? 'Client' : 'Notary',
+    });
+  }, [isClient, setSessionParticipant, userDisplayName]);
   const callStatusLabel =
     callStatus === 'connected'
       ? 'Participant connected'
@@ -1064,6 +1144,188 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           : callStatus === 'permissions'
             ? 'Permissions required'
             : 'Connection issue';
+
+  const participantNameForIndex = (index: number) => {
+    const participant = roomOthers[index]?.presence?.sessionParticipant as
+      | { name?: string }
+      | undefined;
+    return participant?.name || (isClient ? 'Notary' : 'Client');
+  };
+
+  const renderFullVideoPanel = () => (
+    <View style={styles.videoPanel}>
+      <View style={styles.videoStage}>
+        {remoteUids.length ? (
+          <RtcSurfaceView
+            canvas={{ uid: remoteUids[0] }}
+            style={styles.mainVideoView}
+          />
+        ) : isJoined && !isVideoMuted ? (
+          <RtcSurfaceView canvas={{ uid: 0 }} style={styles.mainVideoView} />
+        ) : (
+          <View style={styles.videoPlaceholder}>
+            {User?.profile_picture ? (
+              <Image
+                source={{ uri: User.profile_picture }}
+                style={styles.videoAvatar}
+              />
+            ) : (
+              <View style={styles.initialsAvatar}>
+                <RNText style={styles.initialsText}>{userInitials}</RNText>
+              </View>
+            )}
+            <RNText style={styles.placeholderName}>{userDisplayName}</RNText>
+            <RNText style={styles.placeholderCaption}>
+              {isVideoMuted ? 'Camera is off' : callStatusLabel}
+            </RNText>
+          </View>
+        )}
+
+        {remoteUids.length > 0 && (
+          <View style={styles.localVideoPip}>
+            {isVideoMuted ? (
+              <View style={styles.pipPlaceholder}>
+                <RNText style={styles.pipInitials}>{userInitials}</RNText>
+              </View>
+            ) : (
+              <RtcSurfaceView canvas={{ uid: 0 }} style={styles.pipVideoView} />
+            )}
+            <View style={styles.pipLabel}>
+              <RNText style={styles.pipLabelText}>You</RNText>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.callStatusPill}>
+          <View
+            style={[
+              styles.callStatusDot,
+              callStatus === 'connected' && styles.callStatusDotConnected,
+              (callStatus === 'error' || callStatus === 'permissions') &&
+              styles.callStatusDotError,
+            ]}
+          />
+          <RNText style={styles.callStatusText}>{callStatusLabel}</RNText>
+        </View>
+      </View>
+
+      <View style={styles.videoControlsRow}>
+        <TouchableOpacity
+          style={[styles.controlAction, isMuted && styles.controlActionMuted]}
+          onPress={mute}
+          disabled={!isJoined}>
+          <View style={styles.controlIconCircle}>
+            <Feather
+              name={isMuted ? 'mic-off' : 'mic'}
+              size={19}
+              color={isMuted ? BookingColors.error : BookingColors.white}
+            />
+          </View>
+          <RNText style={styles.controlLabel}>
+            {isMuted ? 'Unmute' : 'Mute'}
+          </RNText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.controlAction,
+            isVideoMuted && styles.controlActionMuted,
+          ]}
+          onPress={toggleVideoMute}
+          disabled={!isJoined}>
+          <View style={styles.controlIconCircle}>
+            <Feather
+              name={isVideoMuted ? 'video-off' : 'video'}
+              size={19}
+              color={isVideoMuted ? BookingColors.error : BookingColors.white}
+            />
+          </View>
+          <RNText style={styles.controlLabel}>
+            {isVideoMuted ? 'Start video' : 'Stop video'}
+          </RNText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.controlAction}
+          onPress={switchCamera}
+          disabled={!isJoined || isVideoMuted}>
+          <View style={styles.controlIconCircle}>
+            <Feather name="refresh-cw" size={19} color={BookingColors.white} />
+          </View>
+          <RNText style={styles.controlLabel}>Flip</RNText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.controlAction}
+          onPress={toggleSpeaker}
+          disabled={!isJoined}>
+          <View style={styles.controlIconCircle}>
+            <Feather
+              name={isSpeakerOn ? 'volume-2' : 'volume-1'}
+              size={19}
+              color={BookingColors.white}
+            />
+          </View>
+          <RNText style={styles.controlLabel}>
+            {isSpeakerOn ? 'Speaker' : 'Earpiece'}
+          </RNText>
+        </TouchableOpacity>
+        {!isClient && (
+          <TouchableOpacity
+            accessibilityLabel="Complete call"
+            style={styles.controlAction}
+            onPress={completeCall}
+            disabled={isCompleting}>
+            <View
+              style={[
+                styles.controlIconCircle,
+                styles.completeCallIconCircle,
+                isCompleting && styles.endCallBtnDisabled,
+              ]}>
+              {isCompleting ? (
+                <ActivityIndicator size="small" color={BookingColors.white} />
+              ) : (
+                <Feather name="phone-off" size={19} color={BookingColors.white} />
+              )}
+            </View>
+            <RNText style={[styles.controlLabel, styles.completeCallLabel]}>
+              {isCompleting ? 'Finishing…' : 'Complete'}
+            </RNText>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderParticipantPips = () => (
+    <View pointerEvents="box-none" style={styles.participantPipStack}>
+      {remoteUids.slice(0, 2).map((remoteUid, index) => (
+        <View key={remoteUid} pointerEvents="none" style={styles.participantPip}>
+          <RtcSurfaceView
+            canvas={{ uid: remoteUid }}
+            style={styles.pipVideoView}
+          />
+          <View style={styles.pipLabel}>
+            <View style={styles.pipOnlineDot} />
+            <RNText numberOfLines={1} style={styles.pipLabelText}>
+              {participantNameForIndex(index)}
+            </RNText>
+          </View>
+        </View>
+      ))}
+
+      <View pointerEvents="none" style={styles.participantPip}>
+        {isVideoMuted ? (
+          <View style={styles.pipPlaceholder}>
+            <RNText style={styles.pipInitials}>{userInitials}</RNText>
+          </View>
+        ) : (
+          <RtcSurfaceView canvas={{ uid: 0 }} style={styles.pipVideoView} />
+        )}
+        <View style={styles.pipLabel}>
+          <View style={styles.pipOnlineDot} />
+          <RNText numberOfLines={1} style={styles.pipLabelText}>You</RNText>
+        </View>
+      </View>
+    </View>
+  );
   const [drawingMode, setDrawingMode] = useState<
     'pen' | 'line' | 'arrow' | 'rectangle'
   >(null);
@@ -1073,9 +1335,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     return rgb(colorArray[0] / 255, colorArray[1] / 255, colorArray[2] / 255);
   }
 
-  console.log('current page', currentPage);
   const handlePathsChange = newPaths => {
     console.log('pahedfdfd', newPaths);
+    setSigningActivity({
+      status: 'signing',
+      label: 'Annotating the document',
+      page: currentPage,
+    });
     setPaths([...paths, newPaths]); // Assuming newPaths is a single path object
   };
   const handleSavedStamp = stampPath => {
@@ -1096,6 +1362,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setSignatureImageMimeType(fileType);
     setSignatureData(stampPath);
     setPdfEditMode(true);
+    setSigningActivity({
+      status: 'placing',
+      label: 'Positioning a signature',
+      page: currentPage,
+      x: 100,
+      y: 100,
+    });
     insertObject(new Date().toISOString(), {
       type: 'image',
       sourceUrl: stampPath,
@@ -1105,6 +1378,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         y: 100,
       },
     });
+    setSigningActivity({status: 'idle', label: '', page: currentPage});
   };
   const _uint8ToBase641 = uint8Array => {
     let binary = '';
@@ -1175,6 +1449,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         const l = await uploadSignedDocumentToSpaces(pdfBase64);
         await updatedDocument(l);
         await handleClearPaths();
+        setSigningActivity({ status: 'idle', label: '', page: currentPage });
       })
       .catch(err => {
         console.log('eeee', err.message);
@@ -1183,15 +1458,43 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   // The client owns document uploads. Once storage returns a public URL,
   // publish it to the booking room so both participants open the same file.
   const selectClientDocument = async () => {
-    const [document] = await pickDocumentDetails(false);
-    if (!document) {
+    if (documentSelectionInFlightRef.current) {
       return;
     }
-    setSelectedLocalDocument(document);
-    setClientDocModalVisible(true);
 
+    documentSelectionInFlightRef.current = true;
     setLoading(true);
     try {
+      const [document] = await pickDocumentDetails(false);
+      if (!document) {
+        return;
+      }
+
+      const documentFingerprint = [
+        document.name || '',
+        document.size || 0,
+        document.type || '',
+      ].join(':');
+      const currentSharedUri = resolveDocumentUri(sharedDocument);
+
+      // Re-selecting the same local file should simply reopen the existing
+      // shared copy. Uploading it again briefly swaps local/remote PDF sources
+      // and produces a visible flash while duplicating the session document.
+      if (
+        currentSharedUri &&
+        lastUploadedDocumentRef.current === documentFingerprint
+      ) {
+        setSelectedLocalDocument({
+          ...document,
+          uri: currentSharedUri,
+          url: currentSharedUri,
+        });
+        setSourceUrl(currentSharedUri);
+        setSelectedItem(currentSharedUri);
+        setDocumentPreviewOpen(true);
+        return;
+      }
+
       const uploadedUrl = await uploadDocumentToStorage(
         document.uri,
         document.name,
@@ -1224,6 +1527,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         url: uploadedUrl,
         type: document.type || 'application/pdf',
       });
+      lastUploadedDocumentRef.current = documentFingerprint;
       setDocumentPreviewOpen(true);
 
       Toast.show({
@@ -1241,6 +1545,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       });
     } finally {
       setLoading(false);
+      documentSelectionInFlightRef.current = false;
     }
   };
   const handleDownloadDocument = async () => {
@@ -1261,6 +1566,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
   const handleSignPress = () => {
+    setSigningActivity({
+      status: 'choosing',
+      label: 'Choosing a signature',
+      page: currentPage,
+    });
     setSignatureModalOpen(true);
   };
 
@@ -1270,12 +1580,27 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
   const closeDocumentPreview = () => {
     setClientDocModalVisible(false);
+    if (isClient) {
+      clearSharedDocument();
+      return;
+    }
+
     setDocumentPreviewOpen(false);
   };
 
   const toggleDrawingMode = () => {
-    setDrawingMode(!drawingMode);
-    setIsInteractionBlocked(!isInteractionBlocked);
+    const willEnableDrawing = !drawingMode;
+    setDrawingMode(willEnableDrawing ? 'pen' : null);
+    setIsInteractionBlocked(willEnableDrawing);
+    setSigningActivity(
+      willEnableDrawing
+        ? {
+          status: 'signing',
+          label: 'Annotating the document',
+          page: currentPage,
+        }
+        : { status: 'idle', label: '', page: currentPage },
+    );
   };
   return (
     <SafeAreaView style={styles.Maincontainer}>
@@ -1299,53 +1624,57 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             </RNText>
           </View>
         </View>
+        {isClient ? (
+          <TouchableOpacity
+            accessibilityLabel="Select document"
+            onPress={selectClientDocument}
+            disabled={loading}
+            style={[
+              styles.headerDocumentButton,
+              loading && styles.headerDocumentButtonDisabled,
+            ]}>
+            {loading ? (
+              <ActivityIndicator size="small" color={BookingColors.primary} />
+            ) : (
+              <Feather name="file-plus" size={15} color={BookingColors.primary} />
+            )}
+            <RNText numberOfLines={1} style={styles.headerDocumentButtonText}>
+              {loading ? 'Sharing…' : 'Select Doc'}
+            </RNText>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.headerDocumentPicker}>
+            <Feather name="file-text" size={14} color={BookingColors.primary} />
+            <View style={styles.headerDocumentPickerInput}>
+              <RNPickerSelect
+                style={headerPickerStyles}
+                onValueChange={(itemValue, itemLabel) =>
+                  handleLinkChange(itemValue, itemLabel)
+                }
+                items={pickerItems}
+                value={selectedItem}
+                placeholder={{
+                  label: 'Select Doc',
+                  color: BookingColors.primary,
+                }}
+                useNativeAndroidPickerStyle={false}
+                Icon={() => (
+                  <Feather
+                    name="chevron-down"
+                    size={14}
+                    color={BookingColors.primary}
+                  />
+                )}
+              />
+            </View>
+          </View>
+        )}
       </View>
 
-      {/* ── VIDEO PANEL ── */}
-      <View style={styles.videoPanel}>
-        <View style={[styles.videoStage, { height: videoStageHeight }]}>
-          {remoteUids.length ? (
-            <RtcSurfaceView
-              canvas={{ uid: remoteUids[0] }}
-              style={styles.mainVideoView}
-            />
-          ) : isJoined && !isVideoMuted ? (
-            <RtcSurfaceView canvas={{ uid: 0 }} style={styles.mainVideoView} />
-          ) : (
-            <View style={styles.videoPlaceholder}>
-              {User?.profile_picture ? (
-                <Image
-                  source={{ uri: User?.profile_picture }}
-                  style={styles.videoAvatar}
-                />
-              ) : (
-                <View style={styles.initialsAvatar}>
-                  <RNText style={styles.initialsText}>{userInitials}</RNText>
-                </View>
-              )}
-              <RNText style={styles.placeholderName}>{userDisplayName}</RNText>
-              <RNText style={styles.placeholderCaption}>
-                {isVideoMuted ? 'Camera is off' : callStatusLabel}
-              </RNText>
-            </View>
-          )}
-
-          {remoteUids.length > 0 && (
-            <View style={styles.localVideoPip}>
-              {isVideoMuted ? (
-                <View style={styles.pipPlaceholder}>
-                  <RNText style={styles.pipInitials}>{userInitials}</RNText>
-                </View>
-              ) : (
-                <RtcSurfaceView canvas={{ uid: 0 }} style={styles.pipVideoView} />
-              )}
-              <View style={styles.pipLabel}>
-                <RNText style={styles.pipLabelText}>You</RNText>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.callStatusPill}>
+      {isDocumentCollaborationActive ? (
+        /* Compact call chrome keeps the shared document as the primary canvas. */
+        <View style={styles.sessionControlBar}>
+          <View style={styles.compactCallStatus}>
             <View
               style={[
                 styles.callStatusDot,
@@ -1354,161 +1683,92 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 styles.callStatusDotError,
               ]}
             />
-            <RNText style={styles.callStatusText}>{callStatusLabel}</RNText>
+            <RNText numberOfLines={1} style={styles.compactCallStatusText}>
+              {callStatusLabel}
+            </RNText>
           </View>
-        </View>
-
-        <View style={styles.videoControlsRow}>
-          <TouchableOpacity
-            style={[styles.controlAction, isMuted && styles.controlActionMuted]}
-            onPress={mute}
-            disabled={!isJoined}>
-            <View style={styles.controlIconCircle}>
+          <View style={styles.compactControlsRow}>
+            <TouchableOpacity
+              accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
+              style={styles.compactControl}
+              onPress={mute}
+              disabled={!isJoined}>
               <Feather
                 name={isMuted ? 'mic-off' : 'mic'}
-                size={19}
-                color={isMuted ? BookingColors.error : BookingColors.white}
+                size={17}
+                color={isMuted ? BookingColors.error : BookingColors.textPrimary}
               />
-            </View>
-            <RNText style={styles.controlLabel}>
-              {isMuted ? 'Unmute' : 'Mute'}
-            </RNText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.controlAction,
-              isVideoMuted && styles.controlActionMuted,
-            ]}
-            onPress={toggleVideoMute}
-            disabled={!isJoined}>
-            <View style={styles.controlIconCircle}>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel={isVideoMuted ? 'Start video' : 'Stop video'}
+              style={styles.compactControl}
+              onPress={toggleVideoMute}
+              disabled={!isJoined}>
               <Feather
                 name={isVideoMuted ? 'video-off' : 'video'}
-                size={19}
-                color={isVideoMuted ? BookingColors.error : BookingColors.white}
+                size={17}
+                color={
+                  isVideoMuted ? BookingColors.error : BookingColors.textPrimary
+                }
               />
-            </View>
-            <RNText style={styles.controlLabel}>
-              {isVideoMuted ? 'Start video' : 'Stop video'}
-            </RNText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.controlAction}
-            onPress={switchCamera}
-            disabled={!isJoined || isVideoMuted}>
-            <View style={styles.controlIconCircle}>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="Switch camera"
+              style={styles.compactControl}
+              onPress={switchCamera}
+              disabled={!isJoined || isVideoMuted}>
               <Feather
                 name="refresh-cw"
-                size={19}
-                color={BookingColors.white}
+                size={17}
+                color={BookingColors.textPrimary}
               />
-            </View>
-            <RNText style={styles.controlLabel}>Flip</RNText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.controlAction}
-            onPress={toggleSpeaker}
-            disabled={!isJoined}>
-            <View style={styles.controlIconCircle}>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel={isSpeakerOn ? 'Use earpiece' : 'Use speaker'}
+              style={styles.compactControl}
+              onPress={toggleSpeaker}
+              disabled={!isJoined}>
               <Feather
                 name={isSpeakerOn ? 'volume-2' : 'volume-1'}
-                size={19}
-                color={BookingColors.white}
+                size={17}
+                color={BookingColors.textPrimary}
               />
-            </View>
-            <RNText style={styles.controlLabel}>
-              {isSpeakerOn ? 'Speaker' : 'Earpiece'}
-            </RNText>
-          </TouchableOpacity>
-        </View>
-
-        {(callStatus === 'error' || callStatus === 'permissions') && (
-          <View style={styles.callErrorBanner}>
-            <View style={styles.callErrorIcon}>
-              <Feather
-                name="alert-circle"
-                size={18}
-                color={BookingColors.error}
-              />
-            </View>
-            <View style={styles.callErrorCopy}>
-              <RNText style={styles.callErrorTitle}>
-                {callStatus === 'permissions'
-                  ? 'Allow camera and microphone'
-                  : 'Unable to connect'}
-              </RNText>
-              <RNText style={styles.callErrorMessage}>{callError}</RNText>
-            </View>
-            <TouchableOpacity
-              style={styles.callErrorAction}
-              onPress={
-                callStatus === 'permissions'
-                  ? () => Linking.openSettings()
-                  : retryCall
-              }>
-              <RNText style={styles.callErrorActionText}>
-                {callStatus === 'permissions' ? 'Settings' : 'Retry'}
-              </RNText>
             </TouchableOpacity>
           </View>
-        )}
-      </View>
-
-      {isClient ? (
-        /* ── SELECT DOCUMENT (client) ── */
-        <View style={styles.pickerCard}>
-          <TouchableOpacity
-            accessibilityLabel="Select document"
-            onPress={selectClientDocument}
-            disabled={loading}
-            style={styles.clientUploadButton}>
-            {loading ? (
-              <ActivityIndicator size="small" color={BookingColors.primary} />
-            ) : (
-              <Feather
-                name="file-plus"
-                size={16}
-                color={BookingColors.primary}
-              />
-            )}
-            <RNText style={styles.clientUploadButtonText}>
-              {loading ? 'Sharing document…' : 'Select Doc'}
-            </RNText>
-          </TouchableOpacity>
         </View>
       ) : (
-        /* ── DOCUMENT PICKER (agent) ── */
-        <View style={styles.pickerCard}>
-          <View style={styles.pickerIconWrap}>
-            <Feather name="file-text" size={14} color={BookingColors.primary} />
+        renderFullVideoPanel()
+      )}
+
+      {(callStatus === 'error' || callStatus === 'permissions') && (
+        <View style={styles.callErrorBanner}>
+          <View style={styles.callErrorIcon}>
+            <Feather name="alert-circle" size={18} color={BookingColors.error} />
           </View>
-          <View style={styles.pickerInner}>
-            <RNPickerSelect
-              style={modernPickerStyles}
-              onValueChange={(itemValue, itemLabel) =>
-                handleLinkChange(itemValue, itemLabel)
-              }
-              items={pickerItems}
-              value={selectedItem}
-              placeholder={{
-                label: 'Select a document',
-                color: BookingColors.textMuted,
-              }}
-              useNativeAndroidPickerStyle={false}
-              Icon={() => (
-                <Feather
-                  name="chevron-down"
-                  size={17}
-                  color={BookingColors.textSecondary}
-                />
-              )}
-            />
+          <View style={styles.callErrorCopy}>
+            <RNText style={styles.callErrorTitle}>
+              {callStatus === 'permissions'
+                ? 'Allow camera and microphone'
+                : 'Unable to connect'}
+            </RNText>
+            <RNText style={styles.callErrorMessage}>{callError}</RNText>
           </View>
+          <TouchableOpacity
+            style={styles.callErrorAction}
+            onPress={
+              callStatus === 'permissions'
+                ? () => Linking.openSettings()
+                : retryCall
+            }>
+            <RNText style={styles.callErrorActionText}>
+              {callStatus === 'permissions' ? 'Settings' : 'Retry'}
+            </RNText>
+          </TouchableOpacity>
         </View>
       )}
 
       {/* ── PDF VIEWER + TOOLBAR (agent) ── */}
-      {!isClient && (
+      {false && (
         <View style={styles.container}>
           <View style={styles.pdfWrapper}>
             {fileDownloaded && (
@@ -1537,9 +1797,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         filePath,
                         { width, height },
                       ) => {
-                        const initialPage = remoteCurrentPage || 1;
+                        const initialPage = Math.min(
+                          Math.max(remoteCurrentPage || 1, 1),
+                          numberOfPages,
+                        );
+                        displayedPageRef.current = 1;
                         setCurrentPage(initialPage);
-                        pdfRef.current?.setPage(initialPage);
+                        if (initialPage > 1) {
+                          pendingProgrammaticPageRef.current = initialPage;
+                          pdfRef.current?.setPage(initialPage);
+                        } else {
+                          pendingProgrammaticPageRef.current = null;
+                        }
                         setTotalPages(numberOfPages);
                         setPageWidth(width);
                         setPageHeight(height);
@@ -1552,7 +1821,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         console.warn('Unable to display document:', error)
                       }
                     />
-                    {User.account_type !== 'client' && (
+                    {/* {User.account_type !== 'client' && (
                       <TouchableOpacity
                         onPress={toggleDrawingMode}
                         style={[
@@ -1568,15 +1837,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                           ]}
                         />
                       </TouchableOpacity>
-                    )}
-                    {drawingMode && User.account_type != 'client' && (
+                    )} */}
+                    {/* {drawingMode && User.account_type != 'client' && (
                       <SketchCanvasComponent
                         onPathsChange={handlePathsChange}
                         stamps={User}
                         onStampChanges={handleSavedStamp}
                         saveToPdf={saveToPdf}
                       />
-                    )}
+                    )} */}
                     <View style={styles.pageIndicator}>
                       <RNText style={styles.pageIndicatorText}>
                         {currentPage}
@@ -1643,6 +1912,71 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             { paddingTop: insets.top, paddingBottom: insets.bottom },
           ]}>
           <View style={styles.Maincontainer}>
+            <View style={styles.documentCallBar}>
+              {renderParticipantPips()}
+              <View style={styles.documentCallControls}>
+                <TouchableOpacity
+                  accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
+                  style={styles.documentCallControl}
+                  onPress={mute}
+                  disabled={!isJoined}>
+                  <Feather
+                    name={isMuted ? 'mic-off' : 'mic'}
+                    size={16}
+                    color={isMuted ? '#FF8A82' : BookingColors.white}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel={isVideoMuted ? 'Start video' : 'Stop video'}
+                  style={styles.documentCallControl}
+                  onPress={toggleVideoMute}
+                  disabled={!isJoined}>
+                  <Feather
+                    name={isVideoMuted ? 'video-off' : 'video'}
+                    size={16}
+                    color={isVideoMuted ? '#FF8A82' : BookingColors.white}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel="Switch camera"
+                  style={styles.documentCallControl}
+                  onPress={switchCamera}
+                  disabled={!isJoined || isVideoMuted}>
+                  <Feather name="refresh-cw" size={16} color={BookingColors.white} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel={isSpeakerOn ? 'Use earpiece' : 'Use speaker'}
+                  style={styles.documentCallControl}
+                  onPress={toggleSpeaker}
+                  disabled={!isJoined}>
+                  <Feather
+                    name={isSpeakerOn ? 'volume-2' : 'volume-1'}
+                    size={16}
+                    color={BookingColors.white}
+                  />
+                </TouchableOpacity>
+                {!isClient && (
+                  <TouchableOpacity
+                    accessibilityLabel="Complete call"
+                    style={[
+                      styles.documentCallControl,
+                      styles.documentCompleteCallControl,
+                    ]}
+                    onPress={completeCall}
+                    disabled={isCompleting}>
+                    {isCompleting ? (
+                      <ActivityIndicator size="small" color={BookingColors.white} />
+                    ) : (
+                      <Feather
+                        name="phone-off"
+                        size={16}
+                        color={BookingColors.white}
+                      />
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
             <View style={styles.header}>
               <RNText numberOfLines={1} style={[styles.headerTitle, { flex: 1 }]}>
                 {selectedLocalDocument?.name || 'Document'}
@@ -1660,6 +1994,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 {selectedLocalDocument?.uri && (
                   <>
                     <PdfView
+                      key={resolveDocumentUri(selectedLocalDocument)}
                       ref={pdfRef}
                       style={styles.pdfView}
                       source={{ uri: resolveDocumentUri(selectedLocalDocument) }}
@@ -1678,9 +2013,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         filePath,
                         { width, height },
                       ) => {
-                        const initialPage = remoteCurrentPage || 1;
+                        const initialPage = Math.min(
+                          Math.max(remoteCurrentPage || 1, 1),
+                          numberOfPages,
+                        );
+                        displayedPageRef.current = 1;
                         setCurrentPage(initialPage);
-                        pdfRef.current?.setPage(initialPage);
+                        if (initialPage > 1) {
+                          pendingProgrammaticPageRef.current = initialPage;
+                          pdfRef.current?.setPage(initialPage);
+                        } else {
+                          pendingProgrammaticPageRef.current = null;
+                        }
                         setTotalPages(numberOfPages);
                         setPageWidth(width);
                         setPageHeight(height);
@@ -1703,6 +2047,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 <SignatureContainer
                   signatureData={signatureData}
                   onSignatureChange={handleDragabbleSignatureData}
+                />
+                <ActiveSignerPresence
+                  currentActivity={signingActivity}
+                  currentParticipant={sessionParticipant}
+                  others={roomOthers}
                 />
               </View>
 
@@ -1786,31 +2135,31 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     </SafeAreaView>
   );
 }
-const modernPickerStyles = StyleSheet.create({
+const headerPickerStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 10,
-    color: BookingColors.textPrimary,
-    paddingRight: 32,
-    fontFamily: 'Manrope-Regular',
+    height: 38,
+    paddingLeft: 5,
+    paddingRight: 20,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
   },
   inputAndroid: {
-    fontSize: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    color: BookingColors.textPrimary,
-    paddingRight: 32,
-    fontFamily: 'Manrope-Regular',
+    height: 38,
+    paddingLeft: 5,
+    paddingRight: 20,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
   },
   iconContainer: {
-    top: 14,
-    right: 12,
+    top: 12,
+    right: 0,
   },
   placeholder: {
-    color: BookingColors.textMuted,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 14,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
   },
 });
 
@@ -1921,6 +2270,7 @@ const styles = StyleSheet.create({
   },
   headerCenter: {
     flex: 1,
+    minWidth: 0,
   },
   headerTitle: {
     fontFamily: 'Manrope-Bold',
@@ -1939,14 +2289,94 @@ const styles = StyleSheet.create({
     color: BookingColors.primary,
     letterSpacing: 0.5,
   },
+  headerDocumentButton: {
+    minWidth: 106,
+    height: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BookingColors.primary,
+    backgroundColor: BookingColors.primarySoft,
+    gap: 6,
+  },
+  headerDocumentButtonDisabled: {
+    opacity: 0.65,
+  },
+  headerDocumentButtonText: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  headerDocumentPicker: {
+    width: 116,
+    height: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 9,
+    paddingRight: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BookingColors.primary,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  headerDocumentPickerInput: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  sessionControlBar: {
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: BookingColors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  compactCallStatus: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+    gap: 7,
+  },
+  compactCallStatusText: {
+    flexShrink: 1,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  compactControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  compactControl: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
 
   // ── VIDEO PANEL ──
   videoPanel: {
+    flex: 1,
     backgroundColor: '#0F1117',
     borderBottomWidth: 1,
     borderBottomColor: '#222735',
   },
   videoStage: {
+    flex: 1,
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#090D14',
@@ -2027,16 +2457,72 @@ const styles = StyleSheet.create({
   pipLabel: {
     position: 'absolute',
     left: 6,
+    right: 6,
     bottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
     backgroundColor: 'rgba(0,0,0,0.58)',
   },
   pipLabelText: {
+    flexShrink: 1,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 9,
     color: BookingColors.white,
+  },
+  pipOnlineDot: {
+    width: 6,
+    height: 6,
+    marginRight: 5,
+    borderRadius: 3,
+    backgroundColor: BookingColors.success,
+  },
+  documentCallBar: {
+    minHeight: 78,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: '#111722',
+    borderBottomWidth: 1,
+    borderBottomColor: '#283142',
+    gap: 8,
+  },
+  documentCallControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 5,
+  },
+  documentCallControl: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: '#2A3240',
+  },
+  documentCompleteCallControl: {
+    backgroundColor: BookingColors.error,
+  },
+  participantPipStack: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  participantPip: {
+    width: 54,
+    height: 58,
+    overflow: 'hidden',
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.36)',
+    backgroundColor: '#252C39',
   },
   callStatusPill: {
     position: 'absolute',
@@ -2068,13 +2554,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 18,
+    gap: 8,
     paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingHorizontal: 8,
     backgroundColor: '#121722',
   },
   controlAction: {
-    minWidth: 62,
+    minWidth: 58,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 1,
@@ -2093,6 +2579,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     fontSize: 9,
     color: '#CBD1DC',
+  },
+  completeCallIconCircle: {
+    backgroundColor: BookingColors.error,
+  },
+  completeCallLabel: {
+    color: '#FFB4AF',
   },
   callErrorBanner: {
     flexDirection: 'row',
@@ -2180,6 +2672,44 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
   },
+  clientDocumentStage: {
+    flex: 1,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 14,
+    marginTop: 12,
+    marginBottom: 14,
+    paddingHorizontal: 38,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.surface,
+    overflow: 'hidden',
+  },
+  documentEmptyIcon: {
+    width: 54,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  documentEmptyTitle: {
+    marginTop: 14,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
+  },
+  documentEmptyMessage: {
+    maxWidth: 250,
+    marginTop: 6,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
 
   // ── PDF VIEWER ──
   pdfWrapper: {
@@ -2236,8 +2766,8 @@ const styles = StyleSheet.create({
   // ── PEN TOOL ──
   penIconContainer: {
     position: 'absolute',
-    top: 12,
-    right: 10,
+    bottom: 12,
+    left: 12,
     zIndex: 10,
     width: 38,
     height: 38,

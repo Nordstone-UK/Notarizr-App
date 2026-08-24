@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import ImageResizer from 'react-native-image-resizer';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
@@ -27,6 +28,8 @@ const DOCUMENT_TYPE = {
 };
 
 const TEST_ID_FILE_MARKER = 'notarizr-test-id-';
+const IDENTITY_IMAGE_MAX_DIMENSION = 1400;
+const IDENTITY_IMAGE_QUALITY = 72;
 
 const isTestIdentityFile = value => {
   try {
@@ -36,6 +39,22 @@ const isTestIdentityFile = value => {
   } catch (_) {
     return false;
   }
+};
+
+const prepareIdentityImage = async uri => {
+  const resizedImage = await ImageResizer.createResizedImage(
+    uri,
+    IDENTITY_IMAGE_MAX_DIMENSION,
+    IDENTITY_IMAGE_MAX_DIMENSION,
+    'JPEG',
+    IDENTITY_IMAGE_QUALITY,
+    0,
+    undefined,
+    false,
+    {mode: 'contain', onlyScaleDown: true},
+  );
+
+  return convertURIToBase64(resizedImage.uri);
 };
 
 function DocumentTypeOption({active, icon, title, subtitle, onPress}) {
@@ -230,8 +249,8 @@ export default function AuthenticationScreen({route, navigation}) {
 
       if (documentType === DOCUMENT_TYPE.ID) {
         const [front, back] = await Promise.all([
-          convertURIToBase64(idFront),
-          convertURIToBase64(idBack),
+          prepareIdentityImage(idFront),
+          prepareIdentityImage(idBack),
         ]);
         const uploadStatus = await uploadUserID(
           userData?.userAccessCode,
@@ -243,7 +262,7 @@ export default function AuthenticationScreen({route, navigation}) {
           throw new Error('The identity provider could not scan this ID.');
         }
       } else {
-        const passportBase64 = await convertURIToBase64(passport);
+        const passportBase64 = await prepareIdentityImage(passport);
         const uploadStatus = await uploadUserPassport(
           userData?.userAccessCode,
           passportBase64,
