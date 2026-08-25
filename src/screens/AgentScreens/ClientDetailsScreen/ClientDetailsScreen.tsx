@@ -1877,27 +1877,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     <Text style={styles.insideHeading}>
                       Client Uploaded Documents
                     </Text>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleNotarizrDocumentPress(
-                          clientDetail.client_documents,
-                          'clientuploaded',
-                        )
-                      }
-                      style={styles.downloadIconBtn}>
-                      {loadingStates.clientuploaded ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={BookingColors.primary}
-                        />
-                      ) : (
-                        <Feather
-                          name="arrow-down"
-                          size={16}
-                          color={BookingColors.primary}
-                        />
-                      )}
-                    </TouchableOpacity>
+
                   </View>
                   <View style={styles.infoCard}>
                     {Object.values(clientDetail.client_documents)?.map(
@@ -1970,27 +1950,6 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     <Text style={styles.insideHeading}>
                       Agent Uploaded Documents
                     </Text>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleNotarizrDocumentPress(
-                          clientDetail.agent_document,
-                          'agentuploaded',
-                        )
-                      }
-                      style={styles.downloadIconBtn}>
-                      {loadingStates.agentuploaded ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={BookingColors.primary}
-                        />
-                      ) : (
-                        <Feather
-                          name="arrow-down"
-                          size={16}
-                          color={BookingColors.primary}
-                        />
-                      )}
-                    </TouchableOpacity>
                   </View>
                   <View style={styles.infoCard}>
                     {clientDetail.agent_document?.map((item, index) => (
@@ -2058,27 +2017,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     <Text style={styles.insideHeading}>
                       Notarized Documents
                     </Text>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleNotarizrDocumentPress(
-                          clientDetail.notarized_docs,
-                          'notarydocuments',
-                        )
-                      }
-                      style={styles.downloadIconBtn}>
-                      {loadingStates.notarydocuments ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={BookingColors.primary}
-                        />
-                      ) : (
-                        <Feather
-                          name="arrow-down"
-                          size={16}
-                          color={BookingColors.primary}
-                        />
-                      )}
-                    </TouchableOpacity>
+
                   </View>
                   <View style={styles.infoCard}>
                     {clientDetail.notarized_docs?.map((item, index) => (
@@ -2350,8 +2289,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                           uid: clientDetail?._id,
                           channel: clientDetail?.agora_channel_name,
                           token: clientDetail?.agora_channel_token,
-                          date: clientDetail?.date_of_booking,
-                          time: clientDetail?.time_of_booking,
+                          date:
+                            clientDetail?.date_of_booking ||
+                            clientDetail?.date_time_session,
+                          time:
+                            clientDetail?.time_of_booking ||
+                            clientDetail?.date_time_session,
                         })
                       }>
                       <Text style={styles.primaryBtnText}>Join Session</Text>
@@ -2386,8 +2329,12 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                           uid: clientDetail?._id,
                           channel: clientDetail?.agora_channel_name,
                           token: clientDetail?.agora_channel_token,
-                          date: clientDetail?.date_of_booking,
-                          time: clientDetail?.time_of_booking,
+                          date:
+                            clientDetail?.date_of_booking ||
+                            clientDetail?.date_time_session,
+                          time:
+                            clientDetail?.time_of_booking ||
+                            clientDetail?.date_time_session,
                         });
                       }
                     }}>

@@ -1,17 +1,17 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, {useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 import DraggableSignature from './DragabbleSignature';
-import { useLiveblocks } from '../../store/liveblocks';
+import {useLiveblocks} from '../../store/liveblocks';
 
-
-export default function SignatureContainer({ onSignatureChange }) {
+export default function SignatureContainer({onSignatureChange}) {
   const objects = useLiveblocks(state => state.objects);
+  const deleteObject = useLiveblocks(state => state.deleteObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
   const currentPage = useLiveblocks(state => state.currentPage);
   const setSigningActivity = useLiveblocks(state => state.setSigningActivity);
   // console.log("pdflivepathfile", pdfFilePath)
   // console.log('Signatures:', signatures.length);
-  const handleSignatureChange = (signatureInfo) => {
+  const handleSignatureChange = signatureInfo => {
     onSignatureChange(signatureInfo);
   };
 
@@ -24,13 +24,35 @@ export default function SignatureContainer({ onSignatureChange }) {
       });
     }
   }, [currentPage, objects, setSigningActivity]);
+
+  // Remove the legacy placeholder that was persisted in existing Liveblocks
+  // rooms by an earlier test build. Exclude it from rendering immediately so
+  // users never see it while the shared storage update is being applied.
+  const visibleObjects = Object.entries(objects).filter(([, object]) => {
+    const isLegacyTestBadge =
+      object.type === 'text' &&
+      typeof object.text === 'string' &&
+      object.text.trim().toLowerCase() === 'test';
+
+    return !isLegacyTestBadge;
+  });
+
+  useEffect(() => {
+    Object.entries(objects).forEach(([objectId, object]) => {
+      if (
+        object.type === 'text' &&
+        typeof object.text === 'string' &&
+        object.text.trim().toLowerCase() === 'test'
+      ) {
+        deleteObject(objectId);
+      }
+    });
+  }, [deleteObject, objects]);
+
   return (
-
     <View style={styles.container}>
-      {Object.entries(objects).map(([objectId, object]) => {
-
+      {visibleObjects.map(([objectId, object]) => {
         return (
-
           <DraggableSignature
             id={objectId}
             key={objectId}
@@ -38,7 +60,7 @@ export default function SignatureContainer({ onSignatureChange }) {
             selected={selectedObjectId === objectId}
             onSignatureChange={handleSignatureChange}
 
-          // onDelete={handleDeleteSignature}
+            // onDelete={handleDeleteSignature}
           />
         );
       })}
@@ -53,4 +75,4 @@ const styles = StyleSheet.create({
     zIndex: 999,
     backgroundColor: '#fff',
   },
-})
+});

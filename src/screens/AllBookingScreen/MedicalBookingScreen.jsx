@@ -1563,8 +1563,12 @@ function LiveMedicalBookingScreen({route, navigation}) {
                       uid: bookingDetail?._id,
                       channel: bookingDetail?.agora_channel_name,
                       token: bookingDetail?.agora_channel_token,
-                      time: bookingDetail?.time_of_booking,
-                      date: bookingDetail?.date_of_booking,
+                      time:
+                        bookingDetail?.time_of_booking ||
+                        bookingDetail?.date_time_session,
+                      date:
+                        bookingDetail?.date_of_booking ||
+                        bookingDetail?.date_time_session,
                     });
                   }}
                   fontSize={widthToDp(4)}

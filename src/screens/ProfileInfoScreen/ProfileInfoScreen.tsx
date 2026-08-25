@@ -116,6 +116,13 @@ export default function ProfileInfoScreen({navigation}: any) {
         {!isClient && (
           <ProfileSection title="Notary profile">
             <ProfileMenuItem
+              icon="edit-3"
+              title="Stamp and Signature"
+              description="Saved signatures and PNG stamps"
+              tone="green"
+              onPress={() => navigation.navigate('StampAndSignatureScreen')}
+            />
+            <ProfileMenuItem
               icon="shield"
               title="Credentials and stamp"
               description="Certificate and notary stamp"

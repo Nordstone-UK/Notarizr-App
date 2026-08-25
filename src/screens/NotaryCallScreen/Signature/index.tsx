@@ -27,8 +27,13 @@ import {
   uploadDocumentToSpaces,
   uploadSignatureToSpaces,
 } from '../../../utils/spacesHelper';
+import {
+  getSavedStamps,
+  SavedStamp,
+  saveSavedStamps,
+} from '../../../utils/savedSigningAssets';
 
-type SignatureOption = 'saved' | 'draw' | 'type' | 'upload';
+type SignatureOption = 'saved' | 'draw' | 'type' | 'upload' | 'date' | 'stamp';
 
 type SavedSignature = {
   id?: string;
@@ -40,6 +45,7 @@ interface DrawSignComponentProps {
   isVisible: boolean;
   onClose: () => void;
   signs?: {
+    _id?: string;
     account_type?: string;
     notarysigns?: SavedSignature[];
   };
@@ -162,6 +168,8 @@ const options: Array<{
     { key: 'draw', label: 'Draw', icon: 'edit-3' },
     { key: 'type', label: 'Type', icon: 'type' },
     { key: 'upload', label: 'Upload', icon: 'upload' },
+    { key: 'date', label: 'Date', icon: 'calendar' },
+    { key: 'stamp', label: 'Stamp', icon: 'award' },
   ];
 
 const fontStyles = [
@@ -193,6 +201,10 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
   const [uploadedImageName, setUploadedImageName] = useState('signature.jpg');
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [dateValue, setDateValue] = useState('');
+  const [savedStamps, setSavedStamps] = useState<SavedStamp[]>([]);
+  const [stampImageUri, setStampImageUri] = useState<string | null>(null);
+  const [stampImageName, setStampImageName] = useState('notary-stamp.png');
   const viewShotRef = useRef<ViewShot>(null);
   const signatureCanvasRef = useRef<any>(null);
 
@@ -203,16 +215,27 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       setUploadedImageUri(null);
       setUploadedImageMime('image/jpeg');
       setUploadedImageName('signature.jpg');
+      const now = new Date();
+      setDateValue(
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+          now.getDate(),
+        ).padStart(2, '0')}`,
+      );
+      setStampImageUri(null);
+      getSavedStamps(signs?._id).then(setSavedStamps);
       setSigningActivity({
         status: 'choosing',
         label: 'Choosing a signature',
         page,
       });
     }
-  }, [isVisible, page, setSigningActivity, signs?.notarysigns?.length]);
+  }, [isVisible, page, setSigningActivity, signs?._id, signs?.notarysigns?.length]);
+
+  const isAgent = signs?.account_type !== 'client';
+  const visibleOptions = options.filter(option => option.key !== 'stamp' || isAgent);
 
   const dismissModal = useCallback(() => {
-    setSigningActivity({status: 'idle', label: '', page});
+    setSigningActivity({ status: 'idle', label: '', page });
     onClose();
   }, [onClose, page, setSigningActivity]);
 
@@ -240,16 +263,18 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       // Saved signatures are useful for both account types and are handled by
       // the same backend mutation. The document is still updated if saving the
       // reusable copy is unavailable.
-      try {
-        const updated = await handleNotarysignUpdate(sourceUrl);
-        if (updated) {
-          await fetchUserInfo();
+      if ((signs?.notarysigns?.length || 0) < 2) {
+        try {
+          const updated = await handleNotarysignUpdate(sourceUrl);
+          if (updated) {
+            await fetchUserInfo();
+          }
+        } catch (error) {
+          console.warn('Reusable signature could not be saved', error);
         }
-      } catch (error) {
-        console.warn('Reusable signature could not be saved', error);
       }
 
-      setSigningActivity({status: 'idle', label: '', page});
+      setSigningActivity({ status: 'idle', label: '', page });
       onClose();
     },
     [
@@ -259,6 +284,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       onClose,
       page,
       setSigningActivity,
+      signs?.notarysigns?.length,
     ],
   );
 
@@ -355,6 +381,115 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
     });
   }, [inputText, runSave]);
 
+  const addDateToDocument = useCallback(() => {
+    const trimmedDate = dateValue.trim();
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    const parsedDate = new Date(`${trimmedDate}T00:00:00`);
+    if (!datePattern.test(trimmedDate) || Number.isNaN(parsedDate.getTime())) {
+      setErrorMessage('Enter a valid date in YYYY-MM-DD format.');
+      return;
+    }
+    insertObject(new Date().toISOString(), {
+      type: 'date',
+      text: trimmedDate,
+      page,
+      position: { x: 100, y: 100 },
+    });
+    setSigningActivity({
+      status: 'placing',
+      label: 'Placing a date',
+      page,
+      x: 100,
+      y: 100,
+    });
+    onClose();
+  }, [dateValue, insertObject, onClose, page, setSigningActivity]);
+
+  const chooseStampImage = useCallback(async () => {
+    setErrorMessage('');
+    try {
+      const result = await launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 });
+      if (result.didCancel) {
+        return;
+      }
+      if (result.errorCode) {
+        throw new Error(result.errorMessage || 'Unable to open that image.');
+      }
+      const asset = result.assets?.[0];
+      if (!asset?.uri) {
+        throw new Error('No stamp image was selected.');
+      }
+      const fileName = asset.fileName || `notary-stamp-${Date.now()}.png`;
+      if (
+        asset.type !== 'image/png' &&
+        !fileName.toLowerCase().endsWith('.png')
+      ) {
+        throw new Error('Notary stamps must be PNG images.');
+      }
+      setStampImageUri(asset.uri);
+      setStampImageName(fileName);
+    } catch (error: any) {
+      setErrorMessage(error?.message || 'The stamp image could not be selected.');
+    }
+  }, []);
+
+  const uploadAndSaveStamp = useCallback(async () => {
+    if (!stampImageUri) {
+      setErrorMessage('Choose a PNG stamp first.');
+      return;
+    }
+    if (savedStamps.length >= 2) {
+      setErrorMessage('You can save up to two stamp images.');
+      return;
+    }
+    setSaving(true);
+    setErrorMessage('');
+    try {
+      const url = await uploadDocumentToSpaces({
+        file: stampImageUri,
+        fileName: stampImageName,
+        contentType: 'image/png',
+      });
+      if (!url) {
+        throw new Error('The stamp upload returned no file.');
+      }
+      const nextStamps = await saveSavedStamps(signs?._id, [
+        ...savedStamps,
+        { id: `${Date.now()}`, name: stampImageName, url },
+      ]);
+      setSavedStamps(nextStamps);
+      setStampImageUri(null);
+    } catch (error: any) {
+      setErrorMessage(error?.message || 'The stamp could not be saved.');
+    } finally {
+      setSaving(false);
+    }
+  }, [savedStamps, signs?._id, stampImageName, stampImageUri]);
+
+  const selectSavedStamp = useCallback(
+    (sourceUrl: string) => {
+      setSigningActivity({
+        status: 'placing',
+        label: 'Placing a stamp',
+        page,
+      });
+      onStampChanges(sourceUrl);
+      onClose();
+    },
+    [onClose, onStampChanges, page, setSigningActivity],
+  );
+
+  const deleteSavedStamp = useCallback(
+    async (stampId: string) => {
+      const nextStamps = await saveSavedStamps(
+        signs?._id,
+        savedStamps.filter(stamp => stamp.id !== stampId),
+      );
+      setSavedStamps(nextStamps);
+    },
+    [savedStamps, signs?._id],
+  );
+
   const selectSavedSignature = useCallback(
     (sourceUrl: string) => {
       setSigningActivity({
@@ -435,7 +570,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
           </View>
 
           <View style={styles.optionsContainer}>
-            {options.map(option => {
+            {visibleOptions.map(option => {
               const selected = selectedOption === option.key;
               return (
                 <TouchableOpacity
@@ -695,6 +830,90 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
               </View>
             )}
 
+            {selectedOption === 'date' && (
+              <View>
+                <Text style={styles.sectionTitle}>Document date</Text>
+                <Text style={styles.sectionDescription}>
+                  Defaults to today. Override it when the legal document requires a different date.
+                </Text>
+                <Text style={styles.inputLabel}>Date (YYYY-MM-DD)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={dateValue}
+                  onChangeText={setDateValue}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={BookingColors.textMuted}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={10}
+                />
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={addDateToDocument}>
+                  <Text style={styles.primaryButtonText}>Place date</Text>
+                  <Feather name="calendar" size={18} color={BookingColors.white} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {selectedOption === 'stamp' && isAgent && (
+              <View>
+                <Text style={styles.sectionTitle}>Notary stamp</Text>
+                <Text style={styles.sectionDescription}>
+                  Choose a saved stamp or upload a PNG. Up to two stamps can be saved.
+                </Text>
+                {savedStamps.length > 0 && (
+                  <View style={styles.stampGrid}>
+                    {savedStamps.map((stamp, index) => (
+                      <TouchableOpacity
+                        key={stamp.id}
+                        style={styles.savedCard}
+                        onPress={() => selectSavedStamp(stamp.url)}>
+                        <Image source={{ uri: stamp.url }} style={styles.savedImage} />
+                        <View style={styles.savedCardFooter}>
+                          <Text style={styles.savedUseText}>Use stamp {index + 1}</Text>
+                          <TouchableOpacity
+                            hitSlop={10}
+                            onPress={() => deleteSavedStamp(stamp.id)}>
+                            <Feather name="trash-2" size={17} color={BookingColors.error} />
+                          </TouchableOpacity>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {savedStamps.length < 2 && (
+                  <>
+                    <TouchableOpacity style={styles.uploadArea} onPress={chooseStampImage}>
+                      {stampImageUri ? (
+                        <Image source={{ uri: stampImageUri }} style={styles.uploadedImage} />
+                      ) : (
+                        <>
+                          <View style={styles.uploadIcon}>
+                            <Feather name="award" size={24} color={BookingColors.primary} />
+                          </View>
+                          <Text style={styles.uploadTitle}>Choose stamp PNG</Text>
+                          <Text style={styles.uploadDescription}>Transparent PNG recommended</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.primaryButton,
+                        !stampImageUri && styles.primaryButtonDisabled,
+                      ]}
+                      onPress={uploadAndSaveStamp}
+                      disabled={!stampImageUri || saving}>
+                      {saving ? (
+                        <ActivityIndicator color={BookingColors.white} />
+                      ) : (
+                        <Text style={styles.primaryButtonText}>Save stamp</Text>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            )}
+
             {!!errorMessage && (
               <View style={styles.errorBanner}>
                 <Feather
@@ -792,18 +1011,21 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     flexDirection: 'row',
-    marginHorizontal: 20,
-    padding: 4,
-    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
+    padding: 3,
+    borderRadius: 10,
     backgroundColor: BookingColors.background,
   },
   optionButton: {
     flex: 1,
-    minHeight: 54,
-    borderRadius: 9,
+    minWidth: 0,
+    minHeight: 46,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    gap: 2,
   },
   optionActive: {
     backgroundColor: BookingColors.surface,
@@ -812,10 +1034,22 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontFamily: 'Manrope-SemiBold',
-    fontSize: 11,
+    fontSize: 9,
     color: BookingColors.textSecondary,
+    textAlign: 'center',
   },
   optionTextActive: { color: BookingColors.primary },
+  inputLabel: {
+    marginBottom: 7,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+  },
+  stampGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
   contentScroll: { marginTop: 6 },
   content: { padding: 20, paddingBottom: 30 },
   sectionTitle: {

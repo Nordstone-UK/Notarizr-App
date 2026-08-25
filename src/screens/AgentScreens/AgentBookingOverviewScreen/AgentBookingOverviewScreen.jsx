@@ -609,8 +609,8 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       uid: booking?._id,
       channel: booking?.agora_channel_name,
       token: booking?.agora_channel_token,
-      time: booking?.time_of_booking,
-      date: booking?.date_of_booking,
+      time: booking?.time_of_booking || booking?.date_time_session,
+      date: booking?.date_of_booking || booking?.date_time_session,
     });
 
   const handlePrimary = () => {

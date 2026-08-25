@@ -14,6 +14,8 @@ import type { PdfObject } from '../../types/liveblocks';
 import Colors from '../../themes/Colors';
 import { widthToDp } from '../../utils/Responsive';
 import moment from 'moment';
+import Feather from 'react-native-vector-icons/Feather';
+import BookingColors from '../../themes/BookingColors';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -50,7 +52,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
     );
     const y = clamp(
       gestureStartY.current + nativeEvent.translationY,
-      0,
+      44,
       screenHeight - FIXED_IMAGE_SIZE,
     );
     translationX.value = x;
@@ -106,18 +108,6 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         ...object,
         position: newOffset,
       });
-      const signatureData = object.type === 'image' ? object.sourceUrl : object.text;
-      const fontFamily = object.type === 'text' ? object.fontfamily : undefined;
-
-      onSignatureChange({
-        width: FIXED_IMAGE_SIZE * scale.value,
-        height: FIXED_IMAGE_SIZE * scale.value,
-        x: translationX.value,
-        y: translationY.value,
-        type: object.type,
-        signatureData: signatureData,
-        fontFamily: fontFamily,
-      });
       setSigningActivity({
         status: 'idle',
         label: '',
@@ -146,13 +136,39 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   }));
 
   const handleDelete = () => {
-    deleteObject(id); // Use the deleteObject action
+    deleteObject(id);
     setSigningActivity({
       status: 'idle',
       label: '',
       page: object.page || 1,
     });
     onSignatureChange({ delete: true });
+  };
+
+  const signaturePlacement = () => ({
+    width: FIXED_IMAGE_SIZE * scale.value,
+    height: FIXED_IMAGE_SIZE * scale.value,
+    x: translationX.value,
+    y: translationY.value,
+    type: object.type,
+    signatureData:
+      object.type === 'image' ? object.sourceUrl : object.text,
+    fontFamily: object.type === 'text' ? object.fontfamily : undefined,
+  });
+
+  const handleConfirm = () => {
+    onSignatureChange({...signaturePlacement(), confirmed: true});
+    setSelectedObjectId(null);
+    setSigningActivity({
+      status: 'idle',
+      label: '',
+      page: object.page || 1,
+    });
+  };
+
+  const handleRedo = () => {
+    deleteObject(id);
+    onSignatureChange({delete: true, redo: true});
   };
 
   // const animatedStyle = useAnimatedStyle(() => {
@@ -176,7 +192,7 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
     if (object.type === 'text') {
 
       return (
-        <View style={styles.dateContainer}>
+        <View style={styles.textContainer}>
           <Text style={[styles.text, { fontFamily: object.fontfamily }]} >{object.text}</Text>
         </View>
       )
@@ -199,14 +215,28 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
         >
           <Animated.View style={[styles.box, animatedStyle, selected && styles.containerSelected,]}>
             {renderContent()}
-            {/* <Text style={styles.text}>{object.text}</Text> */}
-            {/* <Image
-              source={{ uri: object.sourceUrl }} // Assuming signatureData is a URI
-              style={styles.image}
-            /> */}
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-              <View style={styles.deleteIcon} />
-            </TouchableOpacity>
+            {selected && (
+              <View style={styles.placementActions}>
+                <TouchableOpacity
+                  accessibilityLabel="Confirm signature placement"
+                  style={[styles.placementAction, styles.confirmAction]}
+                  onPress={handleConfirm}>
+                  <Feather name="check" size={16} color={BookingColors.white} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel="Redo signature"
+                  style={[styles.placementAction, styles.redoAction]}
+                  onPress={handleRedo}>
+                  <Feather name="rotate-ccw" size={15} color={BookingColors.white} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel="Delete signature"
+                  style={[styles.placementAction, styles.deleteAction]}
+                  onPress={handleDelete}>
+                  <Feather name="trash-2" size={15} color={BookingColors.white} />
+                </TouchableOpacity>
+              </View>
+            )}
           </Animated.View>
         </PinchGestureHandler>
       </PanGestureHandler>
@@ -248,33 +278,51 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.Orange,
   },
   date: {
-    color: Colors.Orange,
+    color: 'black',
     fontFamily: 'Manrope-Bold',
-    fontSize: widthToDp(4),
+    fontSize: widthToDp(3),
 
     paddingHorizontal: widthToDp(2),
     borderRadius: widthToDp(2),
 
   },
-  deleteButton: {
+  placementActions: {
     position: 'absolute',
-    top: -10,
-    right: -10,
-    width: 30,
-    height: 30,
-    backgroundColor: 'red',
-    borderRadius: 15,
+    top: -42,
+    right: -2,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 4,
+    gap: 5,
+    borderRadius: 18,
+    backgroundColor: 'rgba(15, 23, 42, 0.92)',
   },
-  deleteIcon: {
-    width: 15,
-    height: 15,
-    backgroundColor: 'white',
-    transform: [{ rotate: '45deg' }],
+  placementAction: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+  },
+  confirmAction: {
+    backgroundColor: BookingColors.success,
+  },
+  redoAction: {
+    backgroundColor: BookingColors.primary,
+  },
+  deleteAction: {
+    backgroundColor: BookingColors.error,
   },
 });

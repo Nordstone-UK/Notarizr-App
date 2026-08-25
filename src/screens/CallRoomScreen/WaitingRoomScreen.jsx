@@ -133,8 +133,10 @@ export default function WaitingRoomScreen({route, navigation}) {
   const [saveMessage] = useMutation(SAVE_MESSAGE);
   const [inviteObservers] = useMutation(ADD_OBSERVERS);
 
-  const scheduledDate = date || bookingDetail?.date_of_booking;
-  const scheduledTime = time || bookingDetail?.time_of_booking;
+  const scheduledDate =
+    date || bookingDetail?.date_of_booking || bookingDetail?.date_time_session;
+  const scheduledTime =
+    time || bookingDetail?.time_of_booking || bookingDetail?.date_time_session;
   const sessionAvailability = useMemo(
     () =>
       getSessionAvailability({

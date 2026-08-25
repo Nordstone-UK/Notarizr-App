@@ -73,6 +73,7 @@ import NotaryCallScreen from '../NotaryCallScreen/NotaryCallScreen';
 import {useSelector} from 'react-redux';
 import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/AgentChatContactScreen';
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
+import StampAndSignatureScreen from '../StampAndSignatureScreen/StampAndSignatureScreen';
 import AgentBookingWorkspace from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
 import AgentBookingOverviewScreen from '../AgentScreens/AgentBookingOverviewScreen/AgentBookingOverviewScreen';
 import AgentManageBookingScreen from '../AgentScreens/AgentManageBookingScreen/AgentManageBookingScreen';
@@ -431,6 +432,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentProfileEditScreen"
           component={AgentProfileEditScreen}
+        />
+        <Stack.Screen
+          name="StampAndSignatureScreen"
+          component={StampAndSignatureScreen}
         />
         <Stack.Screen
           name="ClientDetailsScreen"

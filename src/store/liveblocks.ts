@@ -15,6 +15,10 @@ type State = {
   isSignatureModalOpen: boolean;
   isSessionCompleted: boolean;
   sessionCompletedAt: string | null;
+  completionRequest: {
+    status: 'idle' | 'pending' | 'approved' | 'rejected';
+    requestedAt: string | null;
+  };
   sessionParticipant: {
     name: string;
     role: string;
@@ -44,6 +48,10 @@ type Action = {
   setDocumentPreviewOpen: (isOpen: boolean) => void;
   setSignatureModalOpen: (isOpen: boolean) => void;
   setSessionCompleted: (isCompleted: boolean, completedAt?: string) => void;
+  setCompletionRequest: (
+    status: State['completionRequest']['status'],
+    requestedAt?: string,
+  ) => void;
   setSessionParticipant: (participant: {
     name: string;
     role: string;
@@ -64,6 +72,10 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       isSignatureModalOpen: false,
       isSessionCompleted: false,
       sessionCompletedAt: null,
+      completionRequest: {
+        status: 'idle',
+        requestedAt: null,
+      },
       sessionParticipant: null,
       signingActivity: {
         status: 'idle',
@@ -143,6 +155,10 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
             label: '',
             page: 1,
           },
+          completionRequest: {
+            status: 'idle',
+            requestedAt: null,
+          },
         });
       },
       setDocumentPreviewOpen: isOpen => {
@@ -157,6 +173,17 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
           sessionCompletedAt: isCompleted
             ? completedAt || new Date().toISOString()
             : null,
+        });
+      },
+      setCompletionRequest: (status, requestedAt) => {
+        set({
+          completionRequest: {
+            status,
+            requestedAt:
+              status === 'pending'
+                ? requestedAt || new Date().toISOString()
+                : get().completionRequest.requestedAt,
+          },
         });
       },
       setSessionParticipant: participant => {
@@ -176,6 +203,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         isSignatureModalOpen: true,
         isSessionCompleted: true,
         sessionCompletedAt: true,
+        completionRequest: true,
       },
       presenceMapping: {
         selectedObjectId: true,
