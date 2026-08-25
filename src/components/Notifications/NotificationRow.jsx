@@ -6,6 +6,8 @@ const TONES = {
   booking: {background: '#FFF0E8', color: '#FD6D1F', icon: 'calendar'},
   document: {background: '#EDF4FC', color: '#2879B8', icon: 'file-text'},
   message: {background: '#EEF8F2', color: '#15925A', icon: 'message-circle'},
+  observer: {background: '#EEF8F2', color: '#15925A', icon: 'users'},
+  session: {background: '#FFF0E8', color: '#FD6D1F', icon: 'video'},
   payment: {background: '#FFF7E6', color: '#C48012', icon: 'credit-card'},
   system: {background: '#F1F2F5', color: '#68717F', icon: 'shield'},
 };

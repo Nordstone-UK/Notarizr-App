@@ -123,7 +123,9 @@ export default function WaitingRoomScreen({route, navigation}) {
   const user = useSelector(state => state.user.user);
   const [selectedTab, setSelectedTab] = useState('waiting');
   const [refreshing, setRefreshing] = useState(false);
-  const [availabilityVersion, setAvailabilityVersion] = useState(0);
+  const [availabilityCheckedAt, setAvailabilityCheckedAt] = useState(
+    Date.now(),
+  );
   const [joining, setJoining] = useState(false);
   const [invitingObserver, setInvitingObserver] = useState(false);
   const [localObservers, setLocalObservers] = useState([]);
@@ -134,14 +136,19 @@ export default function WaitingRoomScreen({route, navigation}) {
   const scheduledDate = date || bookingDetail?.date_of_booking;
   const scheduledTime = time || bookingDetail?.time_of_booking;
   const sessionAvailability = useMemo(
-    () => getSessionAvailability({date: scheduledDate, time: scheduledTime}),
-    [availabilityVersion, scheduledDate, scheduledTime],
+    () =>
+      getSessionAvailability({
+        date: scheduledDate,
+        time: scheduledTime,
+        now: availabilityCheckedAt,
+      }),
+    [availabilityCheckedAt, scheduledDate, scheduledTime],
   );
   const sessionDate = sessionAvailability.sessionDate;
   const sessionStarted = sessionAvailability.canJoin;
 
   const refreshSessionStatus = useCallback(() => {
-    setAvailabilityVersion(value => value + 1);
+    setAvailabilityCheckedAt(Date.now());
   }, []);
 
   useEffect(() => {
@@ -211,6 +218,42 @@ export default function WaitingRoomScreen({route, navigation}) {
     [bookingDetail?.observers, localObservers],
   );
 
+  const sessionLabel = sessionDate?.isValid()
+    ? sessionDate.format('ddd, MMM D [at] h:mm A')
+    : 'Secure notary appointment';
+
+  const sendObserverInvitation = async observerUser => {
+    const recipientId = String(observerUser?._id || '');
+    if (!recipientId) {
+      return false;
+    }
+
+    const result = await createChat({variables: {userId: recipientId}});
+    const chatId = String(result?.data?.createChat?.chatID || '');
+    if (!chatId) {
+      return false;
+    }
+
+    const sessionMedia = buildSessionInviteMedia({
+      bookingId: bookingDetail?._id || uid,
+      channel: channel || bookingDetail?.agora_channel_name || '',
+      token: token || bookingDetail?.agora_channel_token || '',
+      date: scheduledDate,
+      time: scheduledTime,
+      joinedBy: String(user?._id || ''),
+    });
+
+    await saveMessage({
+      variables: {
+        chatId,
+        receiverId: recipientId,
+        text: `You were invited as an observer to a secure notary session on ${sessionLabel}. Open this invitation to view the meeting and join when it opens.`,
+        mediaUrl: sessionMedia,
+      },
+    });
+    return true;
+  };
+
   const addObserver = async observerUser => {
     const phone = getObserverPhone(observerUser);
     if (!phone) {
@@ -245,10 +288,20 @@ export default function WaitingRoomScreen({route, navigation}) {
         ...current,
         {...observerUser, phone_number: phone},
       ]);
+
+      let messageSent = false;
+      try {
+        messageSent = await sendObserverInvitation(observerUser);
+      } catch (_) {
+        messageSent = false;
+      }
+
       Toast.show({
         type: 'success',
         text1: 'Observer invited',
-        text2: phone,
+        text2: messageSent
+          ? 'The invitation is available in their messages.'
+          : `${phone} was added to the session.`,
       });
     } catch (error) {
       Toast.show({
@@ -260,10 +313,6 @@ export default function WaitingRoomScreen({route, navigation}) {
       setInvitingObserver(false);
     }
   };
-
-  const sessionLabel = sessionDate?.isValid()
-    ? sessionDate.format('ddd, MMM D [at] h:mm A')
-    : 'Secure notary appointment';
   const currentUserId = participantKey(user);
 
   const joinSession = async () => {
