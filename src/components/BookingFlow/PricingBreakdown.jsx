@@ -34,10 +34,12 @@ export default function PricingBreakdown({
   // the per-document rate as what they should expect to pay.
   documentsUnknown = false,
   perDocumentRate = DEFAULT_PER_DOCUMENT_RATE,
+  paid = false,
   initiallyExpanded = false,
   printingCharge = 0,
   printingCopies = 0,
   serviceLabel = 'Notary service',
+  showServiceCharge = true,
   style,
   total = 0,
 }) {
@@ -74,7 +76,7 @@ export default function PricingBreakdown({
       });
     }
 
-    if (serviceCharge > 0) {
+    if (showServiceCharge && serviceCharge > 0) {
       costRows.push({
         icon: 'briefcase',
         label: serviceLabel,
@@ -114,6 +116,7 @@ export default function PricingBreakdown({
     printingCopies,
     serviceCharge,
     serviceLabel,
+    showServiceCharge,
     showUnknownDocumentPricing,
   ]);
 
@@ -142,6 +145,12 @@ export default function PricingBreakdown({
             ) : null}
           </Text>
         </View>
+        {paid ? (
+          <View style={styles.paidBadge}>
+            <Feather name="check-circle" size={13} color={AppColors.success} />
+            <Text style={styles.paidText}>Paid</Text>
+          </View>
+        ) : null}
         <View style={styles.expandButton}>
           <Text style={styles.expandText}>{expanded ? 'Hide' : 'Details'}</Text>
           <Feather
@@ -260,6 +269,21 @@ const styles = StyleSheet.create({
     color: AppColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
+  },
+  paidBadge: {
+    minHeight: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+    paddingHorizontal: 9,
+    borderRadius: 7,
+    backgroundColor: AppColors.successSoft,
+  },
+  paidText: {
+    marginLeft: 4,
+    color: AppColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
   },
   summary: {
     minHeight: 78,

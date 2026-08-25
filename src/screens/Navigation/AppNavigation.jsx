@@ -75,6 +75,7 @@ import AgentChatContactScreen from '../AgentScreens/AgentChatContactScreen/Agent
 import AgentProfileEditScreen from '../AgentScreens/AgentProfileEditScreen/AgentProfileEditScreen';
 import AgentBookingWorkspace from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
 import AgentBookingOverviewScreen from '../AgentScreens/AgentBookingOverviewScreen/AgentBookingOverviewScreen';
+import AgentManageBookingScreen from '../AgentScreens/AgentManageBookingScreen/AgentManageBookingScreen';
 import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationScreen';
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
@@ -438,6 +439,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentBookingWorkspace"
           component={AgentBookingWorkspace}
+        />
+        <Stack.Screen
+          name="AgentManageBookingScreen"
+          component={AgentManageBookingScreen}
         />
       </Stack.Navigator>
       <CustomToast />

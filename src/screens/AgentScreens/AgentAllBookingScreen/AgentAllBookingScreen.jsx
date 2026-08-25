@@ -30,6 +30,7 @@ import {
   getBookingServiceType,
   normalizeAgentBooking,
 } from '../../../utils/agentBookingPresentation';
+import {getBookingDisplayId} from '../../../utils/bookingPresentation';
 
 const AGENT_TABS = [
   {icon: 'check-circle', label: 'Accepted', value: 'accepted'},
@@ -125,11 +126,7 @@ function AgentBookingCard({booking, onPress}) {
     .slice(0, 2)
     .toUpperCase();
   const avatar = booking.avatar;
-  const reference =
-    booking.reference ||
-    String(booking._id || '')
-      .slice(-6)
-      .toUpperCase();
+  const reference = getBookingDisplayId(booking);
 
   return (
     <TouchableOpacity
@@ -167,7 +164,9 @@ function AgentBookingCard({booking, onPress}) {
               <Text style={styles.serviceLabel}>
                 {isMobile ? 'Mobile notary' : 'Remote online notary'}
               </Text>
-              <Text style={styles.reference}>#{reference}</Text>
+              <Text numberOfLines={1} style={styles.reference}>
+                #{reference}
+              </Text>
             </View>
           </View>
           <View
@@ -208,7 +207,6 @@ function AgentBookingCard({booking, onPress}) {
             <Text numberOfLines={1} style={styles.clientName}>
               {booking.agentName || 'Notarizr client'}
             </Text>
-            <Text style={styles.clientLabel}>Client appointment</Text>
           </View>
           <View style={styles.openButton}>
             <Feather

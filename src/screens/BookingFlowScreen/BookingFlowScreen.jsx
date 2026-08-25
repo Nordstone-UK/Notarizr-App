@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
-  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -31,6 +30,7 @@ import useRegister from '../../hooks/useRegister';
 import {CREATE_BOOKING} from '../../../request/mutations/createBooking.mutation';
 import {UPDATE_BOOKING_STATUS} from '../../../request/mutations/updateBookingStatus.mutation';
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
+import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
 const ADDITIONAL_SIGNATURE_PRICE = 10;
 const PRINT_COPY_PRICE = 5;
@@ -51,19 +51,33 @@ const formatDateId = date =>
 
 const parseDateId = date => new Date(`${date}T12:00:00`);
 
-const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat'];
+const formatDateLabel = date =>
+  parseDateId(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
-const PREVIEW_NOTARY_SCHEDULE = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat'].map(
-  day => ({
-    day,
-    slots: [{startTime: '9:00 AM', endTime: '5:00 PM'}],
-  }),
-);
+const formatTimeLabel = date =>
+  date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 
-const parseTimeToMinutes = value => {
+const getDefaultBookingTime = () => {
+  const date = new Date();
+  date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5, 0, 0);
+  date.setHours(date.getHours() + 1);
+  return formatTimeLabel(date);
+};
+
+const parseTimeValue = value => {
+  const date = new Date();
   const match = String(value || '').match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
   if (!match) {
-    return null;
+    return date;
   }
 
   let hours = Number(match[1]);
@@ -75,55 +89,9 @@ const parseTimeToMinutes = value => {
   if (period === 'AM' && hours === 12) {
     hours = 0;
   }
-  return hours * 60 + minutes;
+  date.setHours(hours, minutes, 0, 0);
+  return date;
 };
-
-const formatMinutes = value => {
-  const hours = Math.floor(value / 60);
-  const minutes = value % 60;
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHour = hours % 12 || 12;
-  return `${displayHour}:${String(minutes).padStart(2, '0')} ${period}`;
-};
-
-const getAvailableTimeSlots = (schedule, selectedDate) => {
-  const day = DAY_KEYS[parseDateId(selectedDate).getDay()];
-  const daySchedule = (schedule || []).find(entry => entry?.day === day);
-  const slots = [];
-
-  (daySchedule?.slots || []).forEach(slot => {
-    const start = parseTimeToMinutes(slot.startTime);
-    const end = parseTimeToMinutes(slot.endTime);
-    if (start === null || end === null) {
-      return;
-    }
-    for (let cursor = start; cursor + 60 <= end; cursor += 60) {
-      slots.push({
-        startTime: formatMinutes(cursor),
-        endTime: formatMinutes(cursor + 60),
-      });
-    }
-  });
-
-  const uniqueSlots = new Map();
-  slots.forEach(slot => {
-    uniqueSlots.set(`${slot.startTime}-${slot.endTime}`, slot);
-  });
-
-  return [...uniqueSlots.values()].sort(
-    (first, second) =>
-      parseTimeToMinutes(first.startTime) -
-      parseTimeToMinutes(second.startTime),
-  );
-};
-
-const formatDateLabel = date =>
-  parseDateId(date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
 
 const formatFileSize = size => {
   if (!size) {
@@ -145,7 +113,7 @@ const isPdfDocument = document =>
 const buildAppointmentDate = (date, time) => {
   const [, clock, meridiem] = time.match(/^(\d{1,2}:\d{2})\s(AM|PM)$/) || [];
   if (!clock) {
-    return new Date(`${date}T12:00:00.000Z`).toISOString();
+    return parseDateId(date).toISOString();
   }
   const [hourText, minute] = clock.split(':');
   let hour = Number(hourText);
@@ -155,9 +123,9 @@ const buildAppointmentDate = (date, time) => {
   if (meridiem === 'AM' && hour === 12) {
     hour = 0;
   }
-  return new Date(
-    `${date}T${String(hour).padStart(2, '0')}:${minute}:00.000Z`,
-  ).toISOString();
+  const appointmentDate = parseDateId(date);
+  appointmentDate.setHours(hour, Number(minute), 0, 0);
+  return appointmentDate.toISOString();
 };
 
 function SegmentedControl({onChange, value}) {
@@ -190,8 +158,6 @@ function SegmentedControl({onChange, value}) {
 
 function AppointmentStep({
   addresses,
-  availableTimeSlots,
-  availabilityLoading,
   bookingFor,
   datePickerOpen,
   isMobile,
@@ -203,11 +169,13 @@ function AppointmentStep({
   onSelectDate,
   onSelectTime,
   onToggleDatePicker,
+  onToggleTimePicker,
   otherName,
   otherPhone,
   selectedAddress,
   selectedDate,
   selectedTime,
+  timePickerOpen,
 }) {
   return (
     <>
@@ -245,46 +213,41 @@ function AppointmentStep({
           open={datePickerOpen}
           title="Choose appointment date"
         />
-        <Text style={styles.timeSectionLabel}>Available times</Text>
-        {availabilityLoading ? (
-          <View style={styles.availabilityState}>
-            <ActivityIndicator color="#FD6D1F" size="small" />
-            <Text style={styles.availabilityStateText}>
-              Loading notary availability…
-            </Text>
+        <TouchableOpacity
+          activeOpacity={0.72}
+          onPress={() => onToggleTimePicker(true)}
+          style={[styles.datePickerField, styles.timePickerField]}>
+          <View style={styles.datePickerIcon}>
+            <Feather name="clock" size={20} color="#FD6D1F" />
           </View>
-        ) : availableTimeSlots.length ? (
-          <View style={styles.timeList}>
-            {availableTimeSlots.map(slot => {
-              const selected = selectedTime === slot.startTime;
-              return (
-                <TouchableOpacity
-                  key={`${slot.startTime}-${slot.endTime}`}
-                  activeOpacity={0.7}
-                  onPress={() => onSelectTime(slot.startTime)}
-                  style={[
-                    styles.timeChip,
-                    selected && styles.selectedTimeChip,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.timeText,
-                      selected && styles.selectedTimeText,
-                    ]}>
-                    {slot.startTime} - {slot.endTime}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={styles.datePickerCopy}>
+            <Text style={styles.datePickerLabel}>Preferred time</Text>
+            <Text style={styles.datePickerValue}>{selectedTime}</Text>
           </View>
-        ) : (
-          <View style={styles.availabilityState}>
-            <Feather name="calendar" size={17} color="#969CA6" />
-            <Text style={styles.availabilityStateText}>
-              This notary is not available on the selected day.
-            </Text>
+          <View style={styles.datePickerAction}>
+            <Text style={styles.datePickerActionText}>Change</Text>
+            <Feather name="chevron-right" size={18} color="#FD6D1F" />
           </View>
-        )}
+        </TouchableOpacity>
+        <DatePicker
+          date={parseTimeValue(selectedTime)}
+          modal
+          mode="time"
+          onCancel={() => onToggleTimePicker(false)}
+          onConfirm={date => {
+            onToggleTimePicker(false);
+            onSelectTime(formatTimeLabel(date));
+          }}
+          open={timePickerOpen}
+          title="Choose appointment time"
+        />
+        <View style={styles.timeHint}>
+          <Feather name="info" size={16} color="#2378C3" />
+          <Text style={styles.timeHintText}>
+            Choose any time that works for you. Your notary will confirm the
+            request.
+          </Text>
+        </View>
       </BookingFlowSection>
 
       <BookingFlowSection
@@ -502,7 +465,7 @@ function UploadAndPrintStep({
             <View style={styles.uploadCopy}>
               <Text style={styles.uploadTitle}>Choose documents</Text>
               <Text style={styles.uploadSubtitle}>
-                PDF, JPG, PNG, or document files up to 10 MB
+                Please upload PDF only · Up to 10 MB
               </Text>
             </View>
             <Text style={styles.uploadAction}>Browse</Text>
@@ -803,7 +766,7 @@ function Confirmation({booking, navigation, serviceName}) {
         <View style={styles.referenceRow}>
           <Text style={styles.referenceLabel}>Request reference</Text>
           <Text style={styles.referenceValue}>
-            #NTR-{booking?._id?.slice(-8).toUpperCase()}
+            #{getBookingDisplayId(booking)}
           </Text>
         </View>
       </View>
@@ -846,7 +809,8 @@ export default function BookingFlowScreen({navigation, route}) {
     formatDateId(getMinimumBookingDate()),
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
+  const [selectedTime, setSelectedTime] = useState(getDefaultBookingTime);
   const [bookingFor, setBookingFor] = useState('self');
   const [otherName, setOtherName] = useState('');
   const [otherPhone, setOtherPhone] = useState('');
@@ -871,11 +835,7 @@ export default function BookingFlowScreen({navigation, route}) {
       ? [parsedLongitude, parsedLatitude]
       : undefined;
   }, [selectedAddress?.location_coordinates]);
-  const {
-    data: matchedAgentData,
-    loading: availabilityLoading,
-    refetch: refetchMatchedAgent,
-  } = useQuery(GET_MATCHED_AGENT, {
+  const {refetch: refetchMatchedAgent} = useQuery(GET_MATCHED_AGENT, {
     variables: {
       serviceType: backendServiceType,
       coordinates: matchingCoordinates,
@@ -883,32 +843,6 @@ export default function BookingFlowScreen({navigation, route}) {
     skip: !user || previewMode,
     fetchPolicy: 'no-cache',
   });
-
-  const matchedAgent = previewMode
-    ? {
-        service: {
-          availability: {schedule: PREVIEW_NOTARY_SCHEDULE},
-        },
-      }
-    : matchedAgentData?.matchAgent?.user;
-  const availableTimeSlots = useMemo(
-    () =>
-      getAvailableTimeSlots(
-        matchedAgent?.service?.availability?.schedule,
-        selectedDate,
-      ),
-    [matchedAgent?.service?.availability?.schedule, selectedDate],
-  );
-  const availableTimes = useMemo(
-    () => availableTimeSlots.map(slot => slot.startTime),
-    [availableTimeSlots],
-  );
-
-  useEffect(() => {
-    setSelectedTime(current =>
-      availableTimes.includes(current) ? current : availableTimes[0] || null,
-    );
-  }, [availableTimes]);
 
   useEffect(() => {
     if (!isMobile) {
@@ -991,16 +925,6 @@ export default function BookingFlowScreen({navigation, route}) {
       const bookingAgent = matchedAgentResponse?.data?.matchAgent?.user;
       if (!bookingAgent?.service?._id) {
         throw new Error('No verified notary is available for this service.');
-      }
-
-      const validTimes = getAvailableTimeSlots(
-        bookingAgent.service.availability?.schedule,
-        selectedDate,
-      ).map(slot => slot.startTime);
-      if (!validTimes.includes(selectedTime)) {
-        throw new Error(
-          'This time is no longer available. Choose another appointment slot.',
-        );
       }
 
       // Always upload to DigitalOcean Spaces (dev builds included) so the
@@ -1104,10 +1028,23 @@ export default function BookingFlowScreen({navigation, route}) {
     if (!selectedDocuments.length) {
       return;
     }
+    const pdfDocuments = selectedDocuments.filter(document =>
+      /\.pdf$/i.test(String(document?.name || document?.uri || '')),
+    );
+    if (pdfDocuments.length !== selectedDocuments.length) {
+      Toast.show({
+        type: 'error',
+        text1: 'PDF files only',
+        text2: 'Please upload PDF only.',
+      });
+    }
+    if (!pdfDocuments.length) {
+      return;
+    }
     const selectionTime = Date.now();
     setUploadedDocuments(current => [
       ...current,
-      ...selectedDocuments
+      ...pdfDocuments
         .filter(document =>
           current.every(existing => existing.uri !== document.uri),
         )
@@ -1121,6 +1058,14 @@ export default function BookingFlowScreen({navigation, route}) {
   const replaceDocument = async documentId => {
     const [replacement] = await pickDocumentDetails(false);
     if (!replacement) {
+      return;
+    }
+    if (!/\.pdf$/i.test(String(replacement?.name || replacement?.uri || ''))) {
+      Toast.show({
+        type: 'error',
+        text1: 'PDF files only',
+        text2: 'Please upload PDF only.',
+      });
       return;
     }
     setUploadedDocuments(current =>
@@ -1168,8 +1113,6 @@ export default function BookingFlowScreen({navigation, route}) {
           {step === 1 ? (
             <AppointmentStep
               addresses={addresses}
-              availableTimeSlots={availableTimeSlots}
-              availabilityLoading={availabilityLoading}
               bookingFor={bookingFor}
               datePickerOpen={datePickerOpen}
               isMobile={isMobile}
@@ -1181,11 +1124,13 @@ export default function BookingFlowScreen({navigation, route}) {
               onSelectDate={setSelectedDate}
               onSelectTime={setSelectedTime}
               onToggleDatePicker={setDatePickerOpen}
+              onToggleTimePicker={setTimePickerOpen}
               otherName={otherName}
               otherPhone={otherPhone}
               selectedAddress={selectedAddress}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
+              timePickerOpen={timePickerOpen}
             />
           ) : step === 2 ? (
             <UploadAndPrintStep
@@ -1257,6 +1202,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F8F9FA',
   },
+  timePickerField: {
+    marginTop: 12,
+  },
   datePickerIcon: {
     width: 42,
     height: 42,
@@ -1291,63 +1239,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 9,
   },
-  timeSectionLabel: {
-    marginTop: 16,
-    marginHorizontal: 20,
-    color: '#303642',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-  },
-  timeList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 2,
-    paddingHorizontal: 20,
-  },
-  availabilityState: {
-    minHeight: 48,
+  timeHint: {
+    minHeight: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 10,
     marginHorizontal: 20,
     paddingHorizontal: 13,
     borderWidth: 1,
-    borderColor: '#E0E3E7',
+    borderColor: '#CEE0F2',
     borderRadius: 8,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F2F7FC',
   },
-  availabilityStateText: {
+  timeHintText: {
     flex: 1,
     marginLeft: 8,
-    color: '#7A818D',
+    color: '#4E6680',
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 15,
-  },
-  timeChip: {
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-    marginTop: 8,
-    paddingHorizontal: 13,
-    borderWidth: 1,
-    borderColor: '#E0E3E7',
-    borderRadius: 7,
-    backgroundColor: '#FFFFFF',
-  },
-  selectedTimeChip: {
-    borderColor: '#FD6D1F',
-    backgroundColor: '#FFF0E7',
-  },
-  timeText: {
-    color: '#5F6672',
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 10,
-  },
-  selectedTimeText: {
-    color: '#D65322',
-    fontFamily: 'Manrope-Bold',
   },
   segmentedControl: {
     height: 44,

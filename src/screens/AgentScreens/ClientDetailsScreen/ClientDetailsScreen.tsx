@@ -30,7 +30,12 @@ import PdfView from 'react-native-pdf';
 import RNFS from 'react-native-fs';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import BookingColors from '../../../themes/BookingColors';
-import { formatDateTime, heightToDp, widthToDp } from '../../../utils/Responsive';
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingDisplayId,
+} from '../../../utils/bookingPresentation';
+import {formatDateTime, heightToDp, widthToDp} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
@@ -1009,9 +1014,10 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const workspaceServiceType =
     clientDetail?.service?.service_type || clientDetail?.service_type;
   const workspaceIsMobile = workspaceServiceType === 'mobile_notary';
-  const workspaceReference = String(clientDetail?._id || '')
-    .slice(-8)
-    .toUpperCase();
+  const workspaceReference = getBookingDisplayId(clientDetail);
+  const workspacePlatformFee = Number(
+    clientDetail?.notarizer_platform_fee ?? clientDetail?.platform_fee ?? 10,
+  );
 
   if (!hasClientDetail) {
     return (
@@ -1149,7 +1155,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           <View style={styles.platformFeeNotice}>
             <Feather name="info" size={14} color={BookingColors.info} />
             <Text style={styles.platformFeeText}>
-              Notarizr platform fee for this session: $2.99
+              Notarizer Platform Fee: ${workspacePlatformFee.toFixed(2)}
             </Text>
           </View>
         )}
@@ -1549,14 +1555,14 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                     )}`
                     : clientDetail?.date_of_booking ||
                       clientDetail?.time_of_booking
-                      ? `${moment(clientDetail?.date_of_booking).format(
+                    ? `${formatBookingDate(
+                        clientDetail,
+                      )} at ${formatBookingTime(clientDetail)}`
+                    : clientDetail?.preferredDate
+                    ? `${moment(clientDetail?.preferredDate).format(
                         'MM/DD/YYYY',
-                      )} at ${clientDetail.time_of_booking}`
-                      : clientDetail?.preferredDate
-                        ? `${moment(clientDetail?.preferredDate).format(
-                          'MM/DD/YYYY',
-                        )} at ${clientDetail.preferredTime}`
-                        : '—'}
+                      )} at ${clientDetail.preferredTime}`
+                    : '—'}
                 </Text>
               </View>
             </View>

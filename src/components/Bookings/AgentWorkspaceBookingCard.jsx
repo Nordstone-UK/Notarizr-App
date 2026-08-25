@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
 const STATUS_META = {
   accepted: {
@@ -55,11 +56,7 @@ export default function AgentWorkspaceBookingCard({booking, onPress}) {
   const avatar = booking.avatar;
   const avatarIdentity =
     typeof avatar === 'object' && avatar !== null ? avatar.uri : avatar;
-  const reference =
-    booking.reference ||
-    String(booking._id || '')
-      .slice(-6)
-      .toUpperCase();
+  const reference = getBookingDisplayId(booking);
 
   useEffect(() => setAvatarFailed(false), [avatarIdentity]);
 
@@ -100,7 +97,9 @@ export default function AgentWorkspaceBookingCard({booking, onPress}) {
               <Text style={styles.serviceLabel}>
                 {isMobile ? 'Mobile notary' : 'Remote online notary'}
               </Text>
-              <Text style={styles.reference}>#{reference}</Text>
+              <Text numberOfLines={1} style={styles.reference}>
+                #{reference}
+              </Text>
             </View>
           </View>
           <View
@@ -141,7 +140,6 @@ export default function AgentWorkspaceBookingCard({booking, onPress}) {
             <Text numberOfLines={1} style={styles.clientName}>
               {booking.agentName || 'Notarizr client'}
             </Text>
-            <Text style={styles.clientLabel}>Client appointment</Text>
           </View>
           <View style={styles.openButton}>
             <Feather

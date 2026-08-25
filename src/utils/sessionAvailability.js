@@ -36,24 +36,25 @@ export const getSessionAvailability = ({date, time, now = moment()}) => {
     };
   }
 
-  const dayDifference = sessionDate
-    .clone()
-    .startOf('day')
-    .diff(currentDate.clone().startOf('day'), 'days');
+  const opensAt = sessionDate.clone().subtract(30, 'minutes');
 
-  if (dayDifference > 0) {
+  if (currentDate.isBefore(opensAt)) {
     return {
       canJoin: false,
       reason: 'upcoming',
+      opensAt,
       sessionDate,
-      message: `This session opens on ${sessionDate.format('ddd, MMM D')}.`,
+      message: `This session opens ${opensAt.format(
+        'ddd, MMM D [at] h:mm A',
+      )}.`,
     };
   }
 
-  if (dayDifference < 0) {
+  if (currentDate.isAfter(sessionDate.clone().endOf('day'))) {
     return {
       canJoin: false,
       reason: 'past',
+      opensAt,
       sessionDate,
       message: 'This appointment date has passed.',
     };
@@ -61,8 +62,9 @@ export const getSessionAvailability = ({date, time, now = moment()}) => {
 
   return {
     canJoin: true,
-    reason: 'today',
+    reason: 'open',
+    opensAt,
     sessionDate,
-    message: 'The secure session is available today.',
+    message: 'The secure session is open.',
   };
 };

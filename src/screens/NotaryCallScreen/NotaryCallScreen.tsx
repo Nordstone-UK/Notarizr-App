@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -43,13 +44,14 @@ const appId = 'f64e76f674b646bc965dc3e257b4e108';
 import Pdf from 'react-native-pdf';
 import { encode as btoa } from 'base-64';
 import RNFS from 'react-native-fs';
-import { uploadSignedDocumentToSpaces } from '../../utils/spacesHelper';
-import { useLazyQuery, useMutation } from '@apollo/client';
-import { SIGN_DOCS } from '../../../request/mutations/signDocument';
-import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
-import { useSession } from '../../hooks/useSession';
-import { GET_SESSION_BY_ID } from '../../../request/queries/getSessionByID.query';
-import { setBookingInfoState } from '../../features/booking/bookingSlice';
+import {uploadSignedDocumentToSpaces} from '../../utils/spacesHelper';
+import {useLazyQuery, useMutation} from '@apollo/client';
+import {SIGN_DOCS} from '../../../request/mutations/signDocument';
+import {ADD_NOTARIZED_DOCS} from '../../../request/mutations/addNotarizedDocs';
+import {useSession} from '../../hooks/useSession';
+import useBookingStatus from '../../hooks/useBookingStatus';
+import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
+import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import SignatureContainer from './SignatureContainer';
 import useRegister from '../../hooks/useRegister';
 import { UPDATE_OR_CREATE_SESSION_UPDATED_DOCS } from '../../../request/mutations/updateSessionUpdateddocs';
@@ -128,7 +130,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   );
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
-  const { updateSession } = useSession();
+  const {updateSession} = useSession();
+  const {
+    handleUpdateBookingStatus,
+    handlegetBookingStatus,
+    handleSessionStatus,
+  } = useBookingStatus();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const User = useSelector(state => state?.user?.user);
@@ -232,6 +239,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [clientDocModalVisible, setClientDocModalVisible] = useState(false);
   const [selectedLocalDocument, setSelectedLocalDocument] = useState<any>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [localSessionCompleted, setLocalSessionCompleted] = useState(false);
+  const [localSessionCompletedAt, setLocalSessionCompletedAt] = useState<
+    string | null
+  >(null);
+  const statusReadersRef = useRef({
+    handlegetBookingStatus,
+    handleSessionStatus,
+  });
+  const completionExitRef = useRef(false);
   const documentLoadIdRef = useRef(0);
   const documentSelectionInFlightRef = useRef(false);
   const lastUploadedDocumentRef = useRef<string | null>(null);
@@ -244,6 +260,50 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     return 0; // Default fitPolicy
   };
+  useEffect(() => {
+    statusReadersRef.current = {
+      handlegetBookingStatus,
+      handleSessionStatus,
+    };
+  }, [handlegetBookingStatus, handleSessionStatus]);
+
+  useEffect(() => {
+    if (!bookingRoomId || localSessionCompleted || isSessionCompleted) {
+      return undefined;
+    }
+
+    let active = true;
+    const isSessionRecord = bookingData?.__typename === 'Session';
+    const checkCompletion = async () => {
+      try {
+        const status = isSessionRecord
+          ? await statusReadersRef.current.handleSessionStatus(bookingRoomId)
+          : await statusReadersRef.current.handlegetBookingStatus(
+              bookingRoomId,
+            );
+
+        if (active && String(status).toLowerCase() === 'completed') {
+          setLocalSessionCompleted(true);
+          setLocalSessionCompletedAt(new Date().toISOString());
+        }
+      } catch (error) {
+        // The next polling pass will retry without interrupting the call.
+      }
+    };
+
+    checkCompletion();
+    const completionPoll = setInterval(checkCompletion, 3000);
+    return () => {
+      active = false;
+      clearInterval(completionPoll);
+    };
+  }, [
+    bookingData?.__typename,
+    bookingRoomId,
+    isSessionCompleted,
+    localSessionCompleted,
+  ]);
+
   useEffect(() => {
     if (!bookingRoomId || !sessionAvailability.canJoin) {
       return undefined;
@@ -1029,24 +1089,67 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
     setIsCompleting(true);
     try {
-      const completedDocuments = pickerItems.map(item => ({ ...item }));
+      // Saving the signed document is useful, but it must not leave a
+      // completed appointment stuck if storage is temporarily unavailable.
+      try {
+        const completedDocuments = pickerItems.map(item => ({...item}));
 
-      if (selectedItem && pdfBase64) {
-        const selectedDocument = completedDocuments.find(
-          item => item.value === selectedItem,
-        );
-        if (selectedDocument) {
-          const signedUrl = await uploadSignedDocumentToSpaces(pdfBase64);
-          selectedDocument.value = signedUrl;
+        if (selectedItem && pdfBase64) {
+          const selectedDocument = completedDocuments.find(
+            item => item.value === selectedItem,
+          );
+          if (selectedDocument) {
+            const signedUrl = await uploadSignedDocumentToSpaces(pdfBase64);
+            selectedDocument.value = signedUrl;
+          }
         }
+
+        if (completedDocuments.length > 0) {
+          await addSignedDocFunc(completedDocuments);
+        }
+      } catch (documentError) {
+        console.warn(
+          'Signed document persistence did not complete:',
+          documentError,
+        );
       }
 
-      if (completedDocuments.length > 0) {
-        await addSignedDocFunc(completedDocuments);
+      const recordId = bookingData?._id || routeUid;
+      if (!recordId) {
+        throw new Error('The booking could not be identified.');
       }
 
-      await updateSession('completed', bookingData?._id);
-      setSessionCompleted(true, new Date().toISOString());
+      const isSessionRecord = bookingData?.__typename === 'Session';
+      const completedRecord = isSessionRecord
+        ? await updateSession('completed', recordId)
+        : await handleUpdateBookingStatus('completed', recordId, {
+            navigate: false,
+            throwOnError: true,
+            verifyPersistedStatus: true,
+          });
+
+      if (String(completedRecord?.status).toLowerCase() !== 'completed') {
+        throw new Error('The server did not confirm the completed status.');
+      }
+
+      dispatch(
+        setBookingInfoState({
+          ...bookingData,
+          ...completedRecord,
+          status: 'completed',
+        }),
+      );
+      const completedAt = new Date().toISOString();
+      setLocalSessionCompleted(true);
+      setLocalSessionCompletedAt(completedAt);
+      try {
+        setSessionCompleted(true, completedAt);
+      } catch (syncError) {
+        console.warn(
+          'Completion sync will retry from booking status:',
+          syncError,
+        );
+      }
     } catch (error: any) {
       console.warn('Unable to complete notary call:', error);
       Toast.show({
@@ -1060,20 +1163,39 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
 
   const closeCompletedSession = useCallback(() => {
-    agoraEngineRef.current?.leaveChannel();
-    setRemoteUids([]);
-    setIsJoined(false);
-    leaveRoom();
-
-    if (isClient) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'HomeScreen', params: { screen: 'BookScreen' } }],
-      });
+    if (completionExitRef.current) {
       return;
     }
 
-    navigation.replace('AgentBookingComplete');
+    completionExitRef.current = true;
+    try {
+      agoraEngineRef.current?.leaveChannel();
+      setRemoteUids([]);
+      setIsJoined(false);
+      leaveRoom();
+
+      const completedTab = isClient ? 'AllBookingScreen' : 'BookScreen';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'HomeScreen',
+            params: {
+              screen: completedTab,
+              params: isClient ? {initialStatus: 'completed'} : undefined,
+            },
+          },
+        ],
+      });
+    } catch (error) {
+      completionExitRef.current = false;
+      console.warn('Unable to leave completed session:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Could not close session',
+        text2: 'Your completion was saved. Please try again.',
+      });
+    }
   }, [isClient, leaveRoom, navigation]);
   function showMessage(msg: string) {
     console.log(msg);
@@ -1620,7 +1742,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           <View style={styles.sessionBadge}>
             <Feather name="hash" size={9} color={BookingColors.primary} />
             <RNText style={styles.sessionBadgeText} numberOfLines={1}>
-              {bookingData._id?.slice(-10).toUpperCase()}
+              {getBookingDisplayId(bookingData)}
             </RNText>
           </View>
         </View>
@@ -2100,7 +2222,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       <Modal
         animationType="fade"
         transparent
-        visible={isSessionCompleted}
+        visible={localSessionCompleted || isSessionCompleted}
         onRequestClose={closeCompletedSession}>
         <View style={styles.completionBackdrop}>
           <View style={styles.completionCard}>
@@ -2113,9 +2235,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               The notarization is complete. Signed documents and appointment
               details are now available in Completed.
             </RNText>
-            {sessionCompletedAt ? (
+            {localSessionCompletedAt || sessionCompletedAt ? (
               <RNText style={styles.completionTime}>
-                Completed {moment(sessionCompletedAt).format('h:mm A')}
+                Completed{' '}
+                {moment(localSessionCompletedAt || sessionCompletedAt).format(
+                  'h:mm A',
+                )}
               </RNText>
             ) : null}
             <TouchableOpacity

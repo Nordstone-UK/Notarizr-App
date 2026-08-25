@@ -1,4 +1,9 @@
-import moment from 'moment';
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingLocation,
+  getBookingServiceType,
+} from './bookingPresentation';
 
 export const getBookingClient = item =>
   item?.booked_by ||
@@ -8,42 +13,7 @@ export const getBookingClient = item =>
     last_name: item?.last_name,
   };
 
-export const getBookingServiceType = item =>
-  item?.service_type || item?.service?.service_type || 'ron';
-
-const getBookingLocation = (item, client, serviceType) => {
-  if (serviceType !== 'mobile_notary') {
-    return 'Secure video appointment';
-  }
-
-  if (item?.__typename === 'Allocation' && item?.address) {
-    return item.address;
-  }
-
-  const selectedAddress = client?.addresses?.find(
-    address => address._id === item?.address,
-  );
-  return (
-    selectedAddress?.location ||
-    client?.addresses?.[0]?.location ||
-    item?.booked_for?.location ||
-    client?.location ||
-    (typeof item?.address === 'string' ? item.address : null) ||
-    'Address to be confirmed'
-  );
-};
-
-const formatDate = value => {
-  const date = moment(value);
-  return date.isValid() ? date.format('MMM D, YYYY') : 'Date to be confirmed';
-};
-
-const formatTime = value => {
-  const date = moment(value);
-  return date.isValid()
-    ? date.format('h:mm A')
-    : value || 'Time to be confirmed';
-};
+export {getBookingServiceType};
 
 export const normalizeAgentBooking = item => {
   const client = getBookingClient(item);
@@ -60,9 +30,13 @@ export const normalizeAgentBooking = item => {
     ...item,
     agentName: clientName || 'Notarizr client',
     avatar: client?.profile_picture ? {uri: client.profile_picture} : null,
-    displayDate: formatDate(dateValue),
-    displayTime: formatTime(timeValue),
-    location: getBookingLocation(item, client, serviceType),
+    displayDate: formatBookingDate(dateValue),
+    displayTime: formatBookingTime({
+      time_of_booking: timeValue,
+      date_time_session: item?.date_time_session,
+      date_of_booking: item?.date_of_booking,
+    }),
+    location: getBookingLocation(item),
     raw: item,
     service_type: serviceType,
   };

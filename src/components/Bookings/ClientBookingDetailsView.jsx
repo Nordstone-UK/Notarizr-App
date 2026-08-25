@@ -12,10 +12,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import moment from 'moment';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
 import {getSavedTestCard} from '../../utils/TestPayments';
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingDisplayId,
+  getBookingLocation,
+} from '../../utils/bookingPresentation';
+import {getSessionAvailability} from '../../utils/sessionAvailability';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
 
 const STATUS_CONFIG = {
@@ -142,32 +148,6 @@ const getDocumentList = (booking, isMobile) => {
   ];
 };
 
-const formatDate = booking => {
-  const value = booking?.date_time_session || booking?.date_of_booking;
-  if (!value) {
-    return 'Date to be confirmed';
-  }
-  const parsed = moment(value);
-  return parsed.isValid() ? parsed.format('ddd, MMM D, YYYY') : String(value);
-};
-
-const formatTime = booking => {
-  if (booking?.time_of_booking) {
-    const timestamp = moment(booking.time_of_booking);
-    if (timestamp.isValid() && String(booking.time_of_booking).includes('T')) {
-      return timestamp.format('h:mm A');
-    }
-    const parsed = moment(
-      booking.time_of_booking,
-      ['h:mm A', 'h:mm a', 'HH:mm'],
-      true,
-    );
-    return parsed.isValid() ? parsed.format('h:mm A') : booking.time_of_booking;
-  }
-  const parsed = moment(booking?.date_time_session);
-  return parsed.isValid() ? parsed.format('h:mm A') : 'Time to be confirmed';
-};
-
 function IconButton({accessibilityLabel, icon, onPress, primary}) {
   return (
     <TouchableOpacity
@@ -251,7 +231,6 @@ export default function ClientBookingDetailsView({
   onPay,
   onRefresh,
   onTrack,
-  onUpload,
   status: statusValue,
 }) {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
@@ -298,20 +277,28 @@ export default function ClientBookingDetailsView({
       (listedDocumentCharge ||
         Math.max(0, totalPrice - additionalSignatureCharge - printingCharge)),
   );
-  const location =
-    booking?.booked_for?.location ||
-    booking?.location ||
-    booking?.address?.formatted_address ||
-    (isMobile ? 'Address will be confirmed' : 'Secure video appointment');
+  const location = getBookingLocation(booking);
+  const sessionAvailability = useMemo(
+    () =>
+      getSessionAvailability({
+        date: booking?.date_of_booking,
+        time: booking?.time_of_booking,
+      }),
+    [booking?.date_of_booking, booking?.time_of_booking],
+  );
+  const paymentConfirmed =
+    ['paid', 'payment_confirmed', 'ongoing', 'completed'].includes(statusKey) ||
+    ['paid', 'succeeded'].includes(
+      String(booking?.payment_status || '').toLowerCase(),
+    ) ||
+    booking?.is_paid === true;
   const identity =
     booking?.identity_authentication === 'user_id'
       ? 'Government-issued ID card'
       : booking?.identity_authentication === 'user_passport'
       ? 'Passport'
       : 'You can choose during verification';
-  const reference = String(booking?._id || booking?.reference || 'Booking')
-    .slice(-8)
-    .toUpperCase();
+  const reference = getBookingDisplayId(booking);
   const hasDownload = Boolean(
     booking?.notarized_docs?.length || booking?.agent_document?.length,
   );
@@ -392,31 +379,36 @@ export default function ClientBookingDetailsView({
       );
     }
 
+    if (!isMobile) {
+      return (
+        <ActionButton
+          disabled={loading || !sessionAvailability.canJoin}
+          icon="video"
+          label={
+            sessionAvailability.canJoin
+              ? 'Join secure session'
+              : 'Session not open yet'
+          }
+          onPress={onJoin}
+        />
+      );
+    }
+
     return (
       <>
         <ActionButton
           disabled={loading}
-          icon={isMobile ? 'message-circle' : 'video'}
-          label={isMobile ? 'Message notary' : 'Join secure session'}
-          onPress={isMobile ? onMessage : onJoin}
+          icon="message-circle"
+          label="Message notary"
+          onPress={onMessage}
         />
-        {isMobile ? (
-          <ActionButton
-            disabled={loading}
-            icon="navigation"
-            label="Track"
-            onPress={onTrack}
-            secondary
-          />
-        ) : (
-          <ActionButton
-            disabled={loading}
-            icon="upload-cloud"
-            label={hasUploadedFiles ? 'Add more documents' : 'Upload documents'}
-            onPress={onUpload}
-            secondary
-          />
-        )}
+        <ActionButton
+          disabled={loading}
+          icon="navigation"
+          label="Track"
+          onPress={onTrack}
+          secondary
+        />
       </>
     );
   };
@@ -521,8 +513,16 @@ export default function ClientBookingDetailsView({
         </Section>
 
         <Section title="Appointment">
-          <InfoRow icon="calendar" label="Date" value={formatDate(booking)} />
-          <InfoRow icon="clock" label="Time" value={formatTime(booking)} />
+          <InfoRow
+            icon="calendar"
+            label="Date"
+            value={formatBookingDate(booking)}
+          />
+          <InfoRow
+            icon="clock"
+            label="Time"
+            value={formatBookingTime(booking)}
+          />
           <InfoRow
             icon={isMobile ? 'map-pin' : 'video'}
             label={isMobile ? 'Meeting address' : 'Appointment type'}
@@ -595,10 +595,14 @@ export default function ClientBookingDetailsView({
           additionalSignatures={additionalSignatureCharge}
           documentCharge={documentCharge}
           documentCount={documents.length}
-          documentLabel={documents.length > 1 ? 'Notarized documents' : documents[0]?.name}
+          documentLabel={
+            documents.length > 1 ? 'Notarized documents' : documents[0]?.name
+          }
           printingCharge={printingCharge}
           printingCopies={printCopies}
+          paid={paymentConfirmed}
           serviceLabel={serviceName}
+          showServiceCharge={false}
           style={styles.pricingSection}
           total={totalPrice}
         />
@@ -642,7 +646,9 @@ export default function ClientBookingDetailsView({
             {cardLoading ? (
               <View style={styles.cardLoadingState}>
                 <ActivityIndicator color={BookingColors.primary} />
-                <Text style={styles.cardLoadingText}>Loading your cards...</Text>
+                <Text style={styles.cardLoadingText}>
+                  Loading your cards...
+                </Text>
               </View>
             ) : savedCard ? (
               <TouchableOpacity
@@ -744,7 +750,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
     color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
-    fontSize: 10,
+    fontSize: 9,
   },
   headerActionGap: {width: 8},
   scrollContent: {

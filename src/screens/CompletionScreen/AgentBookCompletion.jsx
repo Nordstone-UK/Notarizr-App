@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
 const formatAmount = value => {
   const amount = Number(value || 0);
@@ -20,9 +21,7 @@ export default function AgentBookCompletion({navigation, route}) {
   const paymentSuccessful = Boolean(route?.params?.paymentSuccessful);
   const [actionsReady, setActionsReady] = useState(!paymentSuccessful);
   const isMobile = booking?.service_type === 'mobile_notary';
-  const reference = String(booking?._id || 'Booking')
-    .slice(-8)
-    .toUpperCase();
+  const reference = getBookingDisplayId(booking);
   const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
 
   const viewBooking = () => {
@@ -72,11 +71,7 @@ export default function AgentBookCompletion({navigation, route}) {
       <View style={styles.content}>
         <View style={styles.successIconOuter}>
           <View style={styles.successIconInner}>
-            <Feather
-              color={BookingColors.white}
-              name="check"
-              size={38}
-            />
+            <Feather color={BookingColors.white} name="check" size={38} />
           </View>
         </View>
 
@@ -128,11 +123,7 @@ export default function AgentBookCompletion({navigation, route}) {
         </View>
 
         <View style={styles.referenceRow}>
-          <Feather
-            color={BookingColors.textMuted}
-            name="shield"
-            size={15}
-          />
+          <Feather color={BookingColors.textMuted} name="shield" size={15} />
           <Text style={styles.referenceText}>Booking #{reference}</Text>
         </View>
       </View>
@@ -162,9 +153,7 @@ export default function AgentBookCompletion({navigation, route}) {
             activeOpacity={0.72}
             onPress={viewBooking}
             style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>
-              View booking details
-            </Text>
+            <Text style={styles.secondaryButtonText}>View booking details</Text>
           </TouchableOpacity>
         ) : null}
       </View>

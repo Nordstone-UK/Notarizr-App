@@ -1,7 +1,6 @@
 export const PREVIEW_BOOKINGS = [
   {
     _id: 'booking-A10482',
-    reference: 'A10482',
     isPreview: true,
     __typename: 'Booking',
     status: 'accepted',
@@ -28,7 +27,6 @@ export const PREVIEW_BOOKINGS = [
   },
   {
     _id: 'booking-A10465',
-    reference: 'A10465',
     isPreview: true,
     __typename: 'Session',
     status: 'accepted',
@@ -51,7 +49,6 @@ export const PREVIEW_BOOKINGS = [
   },
   {
     _id: 'booking-P10491',
-    reference: 'P10491',
     isPreview: true,
     __typename: 'Booking',
     status: 'pending',
@@ -73,7 +70,6 @@ export const PREVIEW_BOOKINGS = [
   },
   {
     _id: 'booking-C10374',
-    reference: 'C10374',
     isPreview: true,
     __typename: 'Session',
     status: 'completed',
@@ -96,7 +92,6 @@ export const PREVIEW_BOOKINGS = [
   },
   {
     _id: 'booking-R10218',
-    reference: 'R10218',
     isPreview: true,
     __typename: 'Booking',
     status: 'rejected',
@@ -144,7 +139,6 @@ const createAgentBooking = ({
   document,
 }) => ({
   _id: id,
-  reference: id.slice(-6).toUpperCase(),
   isPreview: true,
   __typename: serviceType === 'ron' ? 'Session' : 'Booking',
   status,

@@ -18,6 +18,10 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import {Linking} from 'react-native';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import {ScrollView} from 'react-native-virtualized-view';
+import {
+  formatBookingDate,
+  formatBookingTime,
+} from '../../utils/bookingPresentation';
 export default function ActiveServicesScreen({route, navigation}) {
   const {bookingDetail} = route.params;
   return (
@@ -43,8 +47,8 @@ export default function ActiveServicesScreen({route, navigation}) {
                 <>
                   <AgentCard
                     source={{uri: item.agent.profile_picture}}
-                     calendarImage={require('../../../assets/calenderIcon.png')}
-                        servicetype={item.service_type}
+                    calendarImage={require('../../../assets/calenderIcon.png')}
+                    servicetype={item.service_type}
                     bottomRightText="$400"
                     bottomLeftText="Total"
                     image={require('../../../assets/agentLocation.png')}
@@ -54,8 +58,8 @@ export default function ActiveServicesScreen({route, navigation}) {
                     agentAddress={item.agent.location}
                     task={item.status}
                     OrangeText={'At Office'}
-                    dateofBooking={item.date_of_booking}
-                    timeofBooking={item.time_of_booking}
+                    dateofBooking={formatBookingDate(item)}
+                    timeofBooking={formatBookingTime(item)}
                     createdAt={item.createdAt}
                   />
                 </>

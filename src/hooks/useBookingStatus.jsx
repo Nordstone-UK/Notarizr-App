@@ -29,6 +29,28 @@ const useBookingStatus = () => {
       return booking;
     } catch (error) {
       console.error(error);
+      if (options.verifyPersistedStatus) {
+        try {
+          const verification = await getBookingStatus({
+            variables: {bookingId: id},
+            fetchPolicy: 'network-only',
+          });
+          const persistedStatus =
+            verification?.data?.getBookingStatus?.booking_status;
+
+          if (
+            String(persistedStatus).toLowerCase() ===
+            String(status).toLowerCase()
+          ) {
+            return {_id: id, status: persistedStatus};
+          }
+        } catch (verificationError) {
+          console.warn(
+            'Could not verify the persisted booking status:',
+            verificationError,
+          );
+        }
+      }
       if (options.throwOnError) {
         throw error;
       }

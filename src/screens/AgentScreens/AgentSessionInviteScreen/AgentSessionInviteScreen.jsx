@@ -313,8 +313,30 @@ export default function AgentSessionInviteScreen({navigation}) {
 
   const handleDocumentSelection = async () => {
     const response = await uploadMultipleFiles();
-    if (response) {
-      setFileResponse(response);
+    const selectedFiles = Array.isArray(response)
+      ? response
+      : response
+      ? [response]
+      : [];
+    const pdfFiles = selectedFiles.filter(file => {
+      const name = String(
+        file?.name || file?.fileName || file?.uri || '',
+      ).toLowerCase();
+      const type = String(file?.type || file?.mimeType || '').toLowerCase();
+
+      return type === 'application/pdf' || name.endsWith('.pdf');
+    });
+
+    if (selectedFiles.length !== pdfFiles.length) {
+      Toast.show({
+        type: 'error',
+        text1: 'PDF files only',
+        text2: 'Please upload PDF only.',
+      });
+    }
+
+    if (pdfFiles.length) {
+      setFileResponse(pdfFiles);
     }
   };
 
@@ -543,7 +565,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               <Text style={styles.uploadDescription}>
                 {fileResponse.length
                   ? 'Tap to replace the selected files'
-                  : 'Select one or more PDF files'}
+                  : 'Please upload PDF only'}
               </Text>
             </View>
             <Text style={styles.uploadAction}>

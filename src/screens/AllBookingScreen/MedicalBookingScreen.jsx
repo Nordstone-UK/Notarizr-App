@@ -38,6 +38,7 @@ import {paymentCheck} from '../../features/review/reviewSlice';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import moment from 'moment';
+import {getSessionAvailability} from '../../utils/sessionAvailability';
 import useFetchBooking from '../../hooks/useFetchBooking';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
 import ModalCheck from '../../components/ModalComponent/ModalCheck';
@@ -62,6 +63,10 @@ import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import Toast from 'react-native-toast-message';
 import BookingDetailsPreview from '../../components/Bookings/BookingDetailsPreview';
 import ClientBookingDetailsView from '../../components/Bookings/ClientBookingDetailsView';
+import {
+  formatBookingDate,
+  formatBookingTime,
+} from '../../utils/bookingPresentation';
 
 export default function MedicalBookingScreen(props) {
   const bookingDetail = useSelector(state => state.booking.booking);
@@ -649,6 +654,18 @@ function LiveMedicalBookingScreen({route, navigation}) {
     navigation.navigate('HomeScreen', {screen: 'ChatContactScreen'});
   };
   const handleJoinSession = () => {
+    const availability = getSessionAvailability({
+      date: bookingDetail?.date_of_booking,
+      time: bookingDetail?.time_of_booking,
+    });
+    if (!availability.canJoin) {
+      Toast.show({
+        type: 'info',
+        text1: 'Session not open yet',
+        text2: availability.message,
+      });
+      return;
+    }
     navigation.navigate('AuthenticationScreen', {
       uid: bookingDetail?._id,
       channel: bookingDetail?.agora_channel_name,
@@ -1058,8 +1075,8 @@ function LiveMedicalBookingScreen({route, navigation}) {
 
               {bookingDetail?.date_of_booking && (
                 <Text style={{fontFamily: 'Poppins-Regular', color: 'black'}}>
-                  {moment(bookingDetail?.date_of_booking).format('MM/DD/YYYY')}{' '}
-                  at {bookingDetail.time_of_booking}
+                  {formatBookingDate(bookingDetail)} at{' '}
+                  {formatBookingTime(bookingDetail)}
                 </Text>
               )}
             </View>

@@ -1,27 +1,15 @@
 import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import moment from 'moment';
-
-const getAddress = booking => {
-  const address = booking?.booked_by?.addresses?.find(
-    item => item._id === booking.address,
-  );
-  return (
-    address?.location ||
-    booking?.booked_by?.addresses?.[0]?.location ||
-    booking?.booked_for?.location ||
-    booking?.booked_by?.location ||
-    'Remote appointment'
-  );
-};
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingDisplayId,
+  getBookingLocation,
+} from '../../utils/bookingPresentation';
 
 export default function AgentRequestCard({booking, onPress}) {
   const client = booking?.booked_by || {};
-  const date = moment(booking?.date_of_booking);
-  const documentName = Array.isArray(booking?.document_type)
-    ? booking.document_type[0]?.name
-    : booking?.document_type?.name;
   const avatarSource = client.profile_picture
     ? {uri: client.profile_picture}
     : require('../../../assets/userPic.png');
@@ -44,9 +32,7 @@ export default function AgentRequestCard({booking, onPress}) {
               : 'Mobile notary'}
           </Text>
         </View>
-        <Text style={styles.requestId}>
-          #{booking?._id?.slice(-6).toUpperCase()}
-        </Text>
+        <Text style={styles.requestId}>#{getBookingDisplayId(booking)}</Text>
       </View>
 
       <View style={styles.clientRow}>
@@ -55,9 +41,6 @@ export default function AgentRequestCard({booking, onPress}) {
           <Text numberOfLines={1} style={styles.clientName}>
             {[client.first_name, client.last_name].filter(Boolean).join(' ') ||
               'Notarizr client'}
-          </Text>
-          <Text numberOfLines={1} style={styles.document}>
-            {documentName || 'Notary service request'}
           </Text>
         </View>
         <View style={styles.priceBlock}>
@@ -72,15 +55,13 @@ export default function AgentRequestCard({booking, onPress}) {
         <View style={styles.detailRow}>
           <Feather name="calendar" size={14} color="#717986" />
           <Text numberOfLines={1} style={styles.detailText}>
-            {date.isValid()
-              ? date.format('ddd, MMM D [at] h:mm A')
-              : 'Date pending'}
+            {formatBookingDate(booking)} at {formatBookingTime(booking)}
           </Text>
         </View>
         <View style={styles.detailRow}>
           <Feather name="map-pin" size={14} color="#717986" />
           <Text numberOfLines={1} style={styles.detailText}>
-            {getAddress(booking)}
+            {getBookingLocation(booking)}
           </Text>
         </View>
       </View>

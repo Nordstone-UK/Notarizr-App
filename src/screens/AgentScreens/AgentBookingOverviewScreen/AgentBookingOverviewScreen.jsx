@@ -27,7 +27,6 @@ import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
 import BookingActionButton from '../../../components/Bookings/BookingActionButton';
-import AvailabilitySchedule from '../../../components/Bookings/AvailabilitySchedule';
 import useCustomerSuport from '../../../hooks/useCustomerSupport';
 import BookingColors from '../../../themes/BookingColors';
 import {
@@ -35,6 +34,7 @@ import {
   normalizeAgentBooking,
 } from '../../../utils/agentBookingPresentation';
 import {getSessionAvailability} from '../../../utils/sessionAvailability';
+import {getBookingDisplayId} from '../../../utils/bookingPresentation';
 import {
   ACCEPT_ALLOCATION_REQUEST,
   REJECT_ALLOCATION_REQUEST,
@@ -158,7 +158,7 @@ function Section({children, title}) {
 const SIGNATURE_RATE = 2;
 const PRINT_RATE = 1;
 
-function PricingBreakdown({booking, price}) {
+function PricingBreakdown({booking, paid, price}) {
   const [expanded, setExpanded] = useState(false);
 
   const docTypes = Array.isArray(booking?.document_type)
@@ -194,6 +194,9 @@ function PricingBreakdown({booking, price}) {
   const printingFee = isMobile ? docTypes.length * PRINT_RATE : 0;
   const computedSum = documentFee + signatureFee + printingFee;
   const serviceFee = Math.max(0, price - computedSum);
+  const confirmedPlatformFee =
+    booking?.notarizer_platform_fee ?? booking?.platform_fee ?? serviceFee;
+  const platformFee = paid ? Number(confirmedPlatformFee || 0) : 10;
 
   const lineItems = [
     ...docTypes
@@ -221,11 +224,13 @@ function PricingBreakdown({booking, price}) {
         }  × $${PRINT_RATE.toFixed(2)}`,
         amount: printingFee,
       },
-    serviceFee > 0 && {
+    platformFee > 0 && {
       icon: 'briefcase',
-      label: 'Notary service fee',
-      sublabel: isMobile ? 'Includes travel' : 'Remote session',
-      amount: serviceFee,
+      label: 'Notarizer Platform Fee',
+      sublabel: paid
+        ? 'Confirmed platform charge'
+        : 'Pending client confirmation',
+      amount: platformFee,
     },
   ].filter(Boolean);
 
@@ -233,8 +238,6 @@ function PricingBreakdown({booking, price}) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(v => !v);
   };
-
-  console.log(booking, 'booking');
 
   return (
     <View>
@@ -249,15 +252,23 @@ function PricingBreakdown({booking, price}) {
           <Text style={styles.detailLabel}>Estimated total</Text>
           <Text style={styles.detailValue}>${price.toFixed(2)}</Text>
         </View>
-        <View style={styles.breakdownToggle}>
-          <Text style={styles.breakdownToggleLabel}>
-            {expanded ? 'Hide' : 'Details'}
-          </Text>
-          <Feather
-            name={expanded ? 'chevron-up' : 'chevron-down'}
-            size={13}
-            color={BookingColors.primary}
-          />
+        <View style={styles.breakdownActions}>
+          {paid ? (
+            <View style={styles.paidBadge}>
+              <Feather name="check" size={11} color={BookingColors.success} />
+              <Text style={styles.paidBadgeText}>Paid</Text>
+            </View>
+          ) : null}
+          <View style={styles.breakdownToggle}>
+            <Text style={styles.breakdownToggleLabel}>
+              {expanded ? 'Hide' : 'Details'}
+            </Text>
+            <Feather
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={13}
+              color={BookingColors.primary}
+            />
+          </View>
         </View>
       </TouchableOpacity>
 
@@ -337,7 +348,6 @@ function DocumentActionRow({url, index, isLast, downloading, onView, onDownload}
     </View>
   );
 }
-
 const requestStoragePermission = async () => {
   if (Platform.OS !== 'android') {
     return true;
@@ -388,10 +398,14 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const sessionAvailability = useMemo(
     () =>
       getSessionAvailability({
-        date: booking?.date_of_booking,
-        time: booking?.time_of_booking,
+        date: booking?.date_of_booking || booking?.date_time_session,
+        time: booking?.time_of_booking || booking?.date_time_session,
       }),
-    [booking?.date_of_booking, booking?.time_of_booking],
+    [
+      booking?.date_of_booking,
+      booking?.date_time_session,
+      booking?.time_of_booking,
+    ],
   );
   const statusStyle = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const documentLabel = Array.isArray(booking?.document_type)
@@ -584,11 +598,11 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     }
   };
 
-  console.log(booking, 'booking');
-  console.log(client, 'client');
-
   const openWorkspace = () =>
     navigation.navigate('AgentBookingWorkspace', {clientDetail: booking});
+
+  const openManageBooking = () =>
+    navigation.navigate('AgentManageBookingScreen', {clientDetail: booking});
 
   const openRemoteSession = () =>
     navigation.navigate('WaitingRoomScreen', {
@@ -620,7 +634,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       updateStatus('to_be_paid');
       return;
     }
-    openWorkspace();
+    openManageBooking();
   };
 
   const primaryLabel = pending
@@ -694,7 +708,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
               </Text>
             </View>
             <Text style={styles.reference}>
-              #{String(booking._id).slice(-8).toUpperCase()}
+              #{getBookingDisplayId(booking)}
             </Text>
           </View>
           <Text style={styles.serviceTitle}>
@@ -890,7 +904,19 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             label="Instructions"
             value={booking?.notes || 'No additional instructions provided.'}
           />
-          <PricingBreakdown booking={booking} price={price} />
+          <PricingBreakdown
+            booking={booking}
+            paid={
+              ['paid', 'payment_confirmed', 'ongoing', 'completed'].includes(
+                status,
+              ) ||
+              ['paid', 'succeeded'].includes(
+                String(booking?.payment_status || '').toLowerCase(),
+              ) ||
+              booking?.is_paid === true
+            }
+            price={price}
+          />
         </Section>
       </ScrollView>
 
@@ -906,7 +932,10 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           />
         )}
         <BookingActionButton
-          disabled={Boolean(activeAction)}
+          disabled={
+            Boolean(activeAction) ||
+            (canJoinRemoteSession && !sessionAvailability.canJoin)
+          }
           icon="arrow-right"
           label={primaryLabel}
           loading={Boolean(activeAction && activeAction !== 'rejected')}
@@ -1183,6 +1212,25 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 6,
     backgroundColor: BookingColors.primarySoft,
+  },
+  breakdownActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  paidBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: BookingColors.successSoft,
+  },
+  paidBadgeText: {
+    color: BookingColors.success,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
   },
   breakdownToggleLabel: {
     color: BookingColors.primary,

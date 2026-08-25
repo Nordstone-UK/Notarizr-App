@@ -11,9 +11,15 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingDisplayId,
+  getBookingLocation,
+  getBookingServiceType,
+} from '../../utils/bookingPresentation';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
 import BookingActionButton from './BookingActionButton';
-import AvailabilitySchedule from './AvailabilitySchedule';
 
 const STATUS_CONFIG = {
   accepted: {
@@ -73,10 +79,9 @@ export default function BookingDetailsPreview({booking, navigation}) {
     [agent.first_name, agent.last_name].filter(Boolean).join(' ') ||
     'Notary being matched';
   const avatar = booking.avatar || require('../../../assets/agentPic.png');
+  const serviceType = getBookingServiceType(booking);
   const service =
-    booking.service_type === 'mobile_notary'
-      ? 'Mobile notary'
-      : 'Remote online notary';
+    serviceType === 'mobile_notary' ? 'Mobile notary' : 'Remote online notary';
   const totalPrice = Number(booking.price || booking.totalPrice || 0);
   const additionalSignatures = Number(
     booking.total_signatures_required || booking.totalSignaturesRequired || 0,
@@ -155,7 +160,9 @@ export default function BookingDetailsPreview({booking, navigation}) {
         </TouchableOpacity>
         <View style={styles.headerCopy}>
           <Text style={styles.headerTitle}>Booking details</Text>
-          <Text style={styles.headerSubtitle}>#{booking.reference}</Text>
+          <Text numberOfLines={1} style={styles.headerSubtitle}>
+            #{getBookingDisplayId(booking)}
+          </Text>
         </View>
         <View
           style={[styles.statusBadge, {backgroundColor: status.background}]}>
@@ -203,22 +210,18 @@ export default function BookingDetailsPreview({booking, navigation}) {
           <DetailRow
             icon="calendar"
             label="Date"
-            value={booking.displayDate || booking.date_of_booking}
+            value={formatBookingDate(booking)}
           />
           <DetailRow
             icon="clock"
             label="Time"
-            value={booking.displayTime || booking.time_of_booking}
+            value={formatBookingTime(booking)}
           />
           <DetailRow
-            icon={
-              booking.service_type === 'mobile_notary' ? 'map-pin' : 'video'
-            }
-            label={
-              booking.service_type === 'mobile_notary' ? 'Location' : 'Meeting'
-            }
+            icon={serviceType === 'mobile_notary' ? 'map-pin' : 'video'}
+            label={serviceType === 'mobile_notary' ? 'Location' : 'Meeting'}
             last
-            value={booking.location}
+            value={getBookingLocation(booking)}
           />
         </Section>
 

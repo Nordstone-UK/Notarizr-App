@@ -2,6 +2,13 @@ import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingDisplayId,
+  getBookingLocation,
+  getBookingServiceType,
+} from '../../utils/bookingPresentation';
 
 const STATUS_STYLES = {
   accepted: {
@@ -34,39 +41,6 @@ const STATUS_STYLES = {
 const formatService = value =>
   value === 'mobile_notary' ? 'Mobile notary' : 'Remote online notary';
 
-const formatDate = value => {
-  if (!value) {
-    return 'Date to be confirmed';
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
-const formatTime = value => {
-  if (!value) {
-    return null;
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-};
-
 export default function BookingCard({booking, onPress}) {
   const [avatarFailed, setAvatarFailed] = useState(false);
   const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending;
@@ -87,20 +61,10 @@ export default function BookingCard({booking, onPress}) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-  const date =
-    booking.displayDate ||
-    formatDate(booking.date_of_booking || booking.date_time_session);
-  const time =
-    booking.displayTime ||
-    booking.time_of_booking ||
-    formatTime(booking.date_time_session) ||
-    'Time to be confirmed';
-  const location =
-    booking.location ||
-    agent.location ||
-    (booking.service_type === 'mobile_notary'
-      ? 'Address to be confirmed'
-      : 'Secure video appointment');
+  const serviceType = getBookingServiceType(booking);
+  const date = formatBookingDate(booking);
+  const time = formatBookingTime(booking);
+  const location = getBookingLocation(booking);
 
   useEffect(() => {
     setAvatarFailed(false);
@@ -120,12 +84,8 @@ export default function BookingCard({booking, onPress}) {
             {status.label}
           </Text>
         </View>
-        <Text style={styles.reference}>
-          #
-          {booking.reference ||
-            String(booking._id || '')
-              .slice(-6)
-              .toUpperCase()}
+        <Text numberOfLines={1} style={styles.reference}>
+          #{getBookingDisplayId(booking)}
         </Text>
       </View>
 
@@ -150,9 +110,7 @@ export default function BookingCard({booking, onPress}) {
           <Text numberOfLines={1} style={styles.name}>
             {name}
           </Text>
-          <Text style={styles.service}>
-            {formatService(booking.service_type)}
-          </Text>
+          <Text style={styles.service}>{formatService(serviceType)}</Text>
         </View>
         <Feather
           name="chevron-right"
@@ -186,7 +144,7 @@ export default function BookingCard({booking, onPress}) {
 
       <View style={styles.locationRow}>
         <Feather
-          name={booking.service_type === 'mobile_notary' ? 'map-pin' : 'video'}
+          name={serviceType === 'mobile_notary' ? 'map-pin' : 'video'}
           size={16}
           color={BookingColors.textMuted}
         />
