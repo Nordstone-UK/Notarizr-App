@@ -287,7 +287,9 @@ export default function ClientBookingDetailsView({
       }),
     [booking?.date_of_booking, booking?.time_of_booking],
   );
-  const canJoinSession = sessionAvailability.canJoin || allowEarlySessionAccess;
+  const canJoinSession =
+    sessionAvailability.canJoin ||
+    (allowEarlySessionAccess && sessionAvailability.reason === 'upcoming');
   const paymentConfirmed =
     ['paid', 'payment_confirmed', 'ongoing', 'completed'].includes(statusKey) ||
     ['paid', 'succeeded'].includes(
@@ -387,7 +389,9 @@ export default function ClientBookingDetailsView({
           disabled={loading || !canJoinSession}
           icon="video"
           label={
-            canJoinSession ? 'Join secure session' : 'Session not open yet'
+            canJoinSession
+              ? 'Join secure session'
+              : sessionAvailability.actionLabel
           }
           onPress={onJoin}
         />

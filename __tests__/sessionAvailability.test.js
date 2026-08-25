@@ -5,37 +5,41 @@ import {
 } from '../src/utils/sessionAvailability';
 
 describe('session availability', () => {
-  const now = moment('2026-08-21T09:00:00');
+  it('allows both participants to join within 30 minutes of the appointment', () => {
+    const result = getSessionAvailability({
+      date: '2026-08-21T00:00:00.000Z',
+      time: '6:00 PM',
+      now: moment('2026-08-21T17:30:00'),
+    });
 
-  it('allows both participants to join on the appointment day', () => {
-    expect(
-      getSessionAvailability({
-        date: '2026-08-21T00:00:00.000Z',
-        time: '6:00 PM',
-        now,
-      }).canJoin,
-    ).toBe(true);
+    expect(result.canJoin).toBe(true);
+    expect(result.reason).toBe('open');
+    expect(result.actionLabel).toBe('Join secure session');
   });
 
-  it('blocks an appointment scheduled for the next day', () => {
+  it('blocks an appointment before its join window opens', () => {
     const result = getSessionAvailability({
-      date: '2026-08-22T00:00:00.000Z',
-      time: '2:30 PM',
-      now,
+      date: '2026-08-21T00:00:00.000Z',
+      time: '6:00 PM',
+      now: moment('2026-08-21T17:29:59'),
     });
 
     expect(result.canJoin).toBe(false);
     expect(result.reason).toBe('upcoming');
+    expect(result.actionLabel).toBe('Session not open yet');
   });
 
-  it('blocks an appointment whose date has passed', () => {
-    expect(
-      getSessionAvailability({
-        date: '2026-08-20T00:00:00.000Z',
-        time: '2:30 PM',
-        now,
-      }).reason,
-    ).toBe('past');
+  it('marks an appointment as expired after its one-hour session window', () => {
+    const result = getSessionAvailability({
+      date: '2026-08-24T00:00:00.000Z',
+      time: '5:30 PM',
+      now: moment('2026-08-25T16:28:00'),
+    });
+
+    expect(result.canJoin).toBe(false);
+    expect(result.reason).toBe('past');
+    expect(result.title).toBe('Session expired');
+    expect(result.actionLabel).toBe('Session expired');
   });
 
   it('combines the booking date and time for display', () => {

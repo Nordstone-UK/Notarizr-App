@@ -398,7 +398,7 @@ export default function ChatScreen({route, navigation}: any) {
       if (!sessionAvailability.canJoin) {
         Toast.show({
           type: 'info',
-          text1: 'Session not open yet',
+          text1: sessionAvailability.title,
           text2: sessionAvailability.message,
         });
         return;

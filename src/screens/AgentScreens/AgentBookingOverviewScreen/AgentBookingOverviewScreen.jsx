@@ -618,7 +618,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       if (!sessionAvailability.canJoin) {
         Toast.show({
           type: 'info',
-          text1: 'Session not open yet',
+          text1: sessionAvailability.title,
           text2: sessionAvailability.message,
         });
         return;
@@ -644,9 +644,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     : canJoinRemoteSession
     ? sessionAvailability.canJoin
       ? 'Join session'
-      : `Join on ${
-          sessionAvailability.sessionDate?.format('MMM D') || 'appointment day'
-        }`
+      : sessionAvailability.actionLabel
     : status === 'completed'
     ? 'View completed record'
     : 'Manage booking';

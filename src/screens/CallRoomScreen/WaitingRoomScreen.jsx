@@ -271,7 +271,7 @@ export default function WaitingRoomScreen({route, navigation}) {
       if (!sessionAvailability.canJoin) {
         Toast.show({
           type: 'info',
-          text1: 'Session not open yet',
+          text1: sessionAvailability.title,
           text2: sessionAvailability.message,
         });
       }
@@ -611,7 +611,7 @@ export default function WaitingRoomScreen({route, navigation}) {
                 <Text style={styles.joinButtonText}>
                   {sessionStarted
                     ? 'Join secure session'
-                    : 'Session not open yet'}
+                    : sessionAvailability.actionLabel}
                 </Text>
                 <Feather name="arrow-right" size={19} color="#FFFFFF" />
               </>

@@ -666,10 +666,14 @@ function LiveMedicalBookingScreen({route, navigation}) {
       date: bookingDetail?.date_of_booking,
       time: bookingDetail?.time_of_booking,
     });
-    if (!availability.canJoin && !allowEarlySessionAccess) {
+    const canJoin =
+      availability.canJoin ||
+      (allowEarlySessionAccess && availability.reason === 'upcoming');
+
+    if (!canJoin) {
       Toast.show({
         type: 'info',
-        text1: 'Session not open yet',
+        text1: availability.title,
         text2: availability.message,
       });
       return;

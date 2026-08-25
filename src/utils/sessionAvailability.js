@@ -32,31 +32,40 @@ export const getSessionAvailability = ({date, time, now = moment()}) => {
       canJoin: false,
       reason: 'missing',
       sessionDate,
+      title: 'Session unavailable',
+      actionLabel: 'Session unavailable',
       message: 'The appointment date is unavailable. Refresh the booking.',
     };
   }
 
   const opensAt = sessionDate.clone().subtract(30, 'minutes');
+  const expiresAt = sessionDate.clone().add(60, 'minutes');
 
   if (currentDate.isBefore(opensAt)) {
     return {
       canJoin: false,
       reason: 'upcoming',
       opensAt,
+      expiresAt,
       sessionDate,
+      title: 'Session not open yet',
+      actionLabel: 'Session not open yet',
       message: `This session opens ${opensAt.format(
         'ddd, MMM D [at] h:mm A',
       )}.`,
     };
   }
 
-  if (currentDate.isAfter(sessionDate.clone().endOf('day'))) {
+  if (currentDate.isAfter(expiresAt)) {
     return {
       canJoin: false,
       reason: 'past',
       opensAt,
+      expiresAt,
       sessionDate,
-      message: 'This appointment date has passed.',
+      title: 'Session expired',
+      actionLabel: 'Session expired',
+      message: 'This appointment session has ended.',
     };
   }
 
@@ -64,7 +73,10 @@ export const getSessionAvailability = ({date, time, now = moment()}) => {
     canJoin: true,
     reason: 'open',
     opensAt,
+    expiresAt,
     sessionDate,
+    title: 'Session open',
+    actionLabel: 'Join secure session',
     message: 'The secure session is open.',
   };
 };
