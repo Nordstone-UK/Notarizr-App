@@ -38,8 +38,7 @@ const DOCUMENT_NOTARIZATION_PRICE = 99.99;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const getMinimumBookingDate = () => {
   const date = new Date();
-  date.setHours(12, 0, 0, 0);
-  date.setDate(date.getDate() + 1);
+  date.setHours(0, 0, 0, 0);
   return date;
 };
 

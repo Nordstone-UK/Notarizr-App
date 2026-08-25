@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import {CREATE_CHAT} from '../../../request/mutations/createChat.mutation';
 import {SAVE_MESSAGE} from '../../../request/mutations/chat.mutation';
+import {ADD_OBSERVERS} from '../../../request/mutations/inviteObservers.mutation';
 import {
   connectSocket,
   socketRequest,
@@ -25,6 +26,8 @@ import {
 } from '../../utils/Socket';
 import {buildSessionInviteMedia} from '../../utils/sessionInvite';
 import {getSessionAvailability} from '../../utils/sessionAvailability';
+import {getObserverPhone} from '../../utils/observerPhone';
+import RegisteredObserverPicker from '../../components/Observers/RegisteredObserverPicker';
 
 const getInitials = participant => {
   const name = `${participant?.first_name || ''} ${
@@ -43,6 +46,7 @@ const getInitials = participant => {
 
 const getParticipantName = participant =>
   `${participant?.first_name || ''} ${participant?.last_name || ''}`.trim() ||
+  participant?.phone_number ||
   participant?.email ||
   'Session participant';
 
@@ -121,8 +125,11 @@ export default function WaitingRoomScreen({route, navigation}) {
   const [refreshing, setRefreshing] = useState(false);
   const [availabilityVersion, setAvailabilityVersion] = useState(0);
   const [joining, setJoining] = useState(false);
+  const [invitingObserver, setInvitingObserver] = useState(false);
+  const [localObservers, setLocalObservers] = useState([]);
   const [createChat] = useMutation(CREATE_CHAT);
   const [saveMessage] = useMutation(SAVE_MESSAGE);
+  const [inviteObservers] = useMutation(ADD_OBSERVERS);
 
   const scheduledDate = date || bookingDetail?.date_of_booking;
   const scheduledTime = time || bookingDetail?.time_of_booking;
@@ -148,6 +155,12 @@ export default function WaitingRoomScreen({route, navigation}) {
   }, [refreshSessionStatus]);
 
   const isAgent = String(user?.account_type || '').includes('agent');
+  const serviceType = String(
+    bookingDetail?.service_type || bookingDetail?.service?.service_type || '',
+  ).toLowerCase();
+  const isRemoteSession =
+    bookingDetail?.__typename === 'Session' ||
+    ['ron', 'remote_online_notary'].includes(serviceType);
   const agent = bookingDetail?.agent || (isAgent ? user : null);
   const client =
     bookingDetail?.booked_by ||
@@ -155,10 +168,20 @@ export default function WaitingRoomScreen({route, navigation}) {
     (!isAgent ? user : null);
 
   const participants = useMemo(() => {
+    const observers = [
+      ...(Array.isArray(bookingDetail?.observers)
+        ? bookingDetail.observers
+        : []),
+      ...localObservers,
+    ].map(observer =>
+      typeof observer === 'string'
+        ? {phone_number: observer, first_name: observer}
+        : observer,
+    );
     const values = [
       agent ? {...agent, role: 'Notary professional'} : null,
       client ? {...client, role: 'Primary signer'} : null,
-      ...(bookingDetail?.observers || []).map(observer => ({
+      ...observers.map(observer => ({
         ...observer,
         role: 'Observer',
       })),
@@ -173,7 +196,70 @@ export default function WaitingRoomScreen({route, navigation}) {
       seen.add(key);
       return true;
     });
-  }, [agent, bookingDetail?.observers, client]);
+  }, [agent, bookingDetail?.observers, client, localObservers]);
+
+  const existingObserverPhones = useMemo(
+    () =>
+      [
+        ...(Array.isArray(bookingDetail?.observers)
+          ? bookingDetail.observers
+          : []),
+        ...localObservers,
+      ]
+        .map(getObserverPhone)
+        .filter(Boolean),
+    [bookingDetail?.observers, localObservers],
+  );
+
+  const addObserver = async observerUser => {
+    const phone = getObserverPhone(observerUser);
+    if (!phone) {
+      return;
+    }
+    if (existingObserverPhones.includes(phone)) {
+      Toast.show({type: 'info', text1: 'Observer already invited'});
+      return;
+    }
+    if (existingObserverPhones.length >= 5) {
+      Toast.show({type: 'info', text1: 'Only 5 observers are allowed'});
+      return;
+    }
+
+    const bookingId = String(bookingDetail?._id || uid || '');
+    if (!bookingId) {
+      Toast.show({type: 'error', text1: 'Booking is unavailable'});
+      return;
+    }
+
+    setInvitingObserver(true);
+    try {
+      const response = await inviteObservers({
+        variables: {bookingId, observers: [phone]},
+      });
+      const result = response?.data?.inviteObservers;
+      const status = String(result?.status || '').toLowerCase();
+      if (status && !['200', '201', 'success'].includes(status)) {
+        throw new Error(result?.message || 'The invitation could not be sent.');
+      }
+      setLocalObservers(current => [
+        ...current,
+        {...observerUser, phone_number: phone},
+      ]);
+      Toast.show({
+        type: 'success',
+        text1: 'Observer invited',
+        text2: phone,
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Observer not invited',
+        text2: error?.message || 'Please try again.',
+      });
+    } finally {
+      setInvitingObserver(false);
+    }
+  };
 
   const sessionLabel = sessionDate?.isValid()
     ? sessionDate.format('ddd, MMM D [at] h:mm A')
@@ -465,6 +551,38 @@ export default function WaitingRoomScreen({route, navigation}) {
                 </View>
               )}
             </View>
+            {!isAgent && isRemoteSession ? (
+              <View style={styles.observerCard}>
+                <View style={styles.observerHeading}>
+                  <View style={styles.observerIcon}>
+                    <Feather name="user-plus" size={18} color="#FD6D1F" />
+                  </View>
+                  <View style={styles.observerCopy}>
+                    <Text style={styles.observerTitle}>Add an observer</Text>
+                    <Text style={styles.observerDescription}>
+                      Invite someone to attend this remote notary session.
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.observerSearchWrap}>
+                  <RegisteredObserverPicker
+                    disabled={
+                      invitingObserver || existingObserverPhones.length >= 5
+                    }
+                    excludedPhones={existingObserverPhones}
+                    excludedUserIds={[
+                      user?._id,
+                      typeof agent === 'string' ? agent : agent?._id,
+                      typeof client === 'string' ? client : client?._id,
+                    ]}
+                    onSelect={addObserver}
+                  />
+                </View>
+                <Text style={styles.observerLimit}>
+                  {existingObserverPhones.length} of 5 observers invited
+                </Text>
+              </View>
+            ) : null}
             <View style={styles.securityNote}>
               <Feather name="lock" size={16} color="#168A52" />
               <Text style={styles.securityNoteText}>
@@ -713,6 +831,44 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     width: 12,
+  },
+  observerCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E1E4E8',
+    borderRadius: 10,
+    borderWidth: 1,
+    marginHorizontal: 20,
+    marginTop: 14,
+    padding: 16,
+  },
+  observerCopy: {flex: 1, marginLeft: 12},
+  observerDescription: {
+    color: '#8A919C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 3,
+  },
+  observerHeading: {alignItems: 'center', flexDirection: 'row'},
+  observerIcon: {
+    alignItems: 'center',
+    backgroundColor: '#FFF0E7',
+    borderRadius: 8,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  observerSearchWrap: {marginTop: 15},
+  observerLimit: {
+    color: '#8A919C',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    marginTop: 9,
+  },
+  observerTitle: {
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
   },
   participantCopy: {flex: 1, marginHorizontal: 12, minWidth: 0},
   participantDivider: {

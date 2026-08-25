@@ -109,10 +109,10 @@ const useFetchUser = () => {
     }
   };
 
-  const searchUserByEmail = async email => {
+  const searchUsers = async search => {
     const request = {
       variables: {
-        search: email,
+        search,
         limit: 5,
         page: 1,
       },
@@ -124,11 +124,14 @@ const useFetchUser = () => {
       console.log(err);
     }
   };
+  const searchUserByEmail = searchUsers;
+  const searchUserByPhone = searchUsers;
   return {
     fetchUserInfo,
     fetchDocumentTypes,
     hadleUpdateAddress,
     searchUserByEmail,
+    searchUserByPhone,
     handleEditAddress,
     handleDeleteAddress,
     handleDeleteSign,

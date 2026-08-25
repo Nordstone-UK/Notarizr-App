@@ -1,21 +1,16 @@
 import {
   Image,
   Modal,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
-import GradientButton from '../MainGradientButton/GradientButton';
+import React from 'react';
 import Colors from '../../themes/Colors';
-import MainButton from '../MainGradientButton/MainButton';
-import {heightToDp, width, widthToDp} from '../../utils/Responsive';
-import {useDispatch, useSelector} from 'react-redux';
-import {serviceCheck} from '../../features/service/serviceSlice';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import LabelTextInput from '../LabelTextInput/LabelTextInput';
+import {heightToDp, widthToDp} from '../../utils/Responsive';
+import {getObserverPhone} from '../../utils/observerPhone';
+import RegisteredObserverPicker from '../Observers/RegisteredObserverPicker';
 
 export default function ObserversModal(props) {
   //   const dispatch = useDispatch();
@@ -24,10 +19,9 @@ export default function ObserversModal(props) {
   const closeModal = () => {
     props.setModalVisible(false);
   };
-  const [email, setEmail] = useState('');
-  const sendEmail = () => {
-    setEmail('');
-    props.onAdd(email);
+  const addObserver = user => {
+    props.onAdd(getObserverPhone(user));
+    closeModal();
   };
   return (
     <Modal
@@ -52,19 +46,9 @@ export default function ObserversModal(props) {
             </TouchableOpacity>
           </View>
           <View style={styles.input}>
-            <LabelTextInput
-              LabelTextInput="Email Address"
-              placeholder="Enter Email Address here"
-              Label={true}
-              defaultValue={email}
-              onChangeText={text => setEmail(text)}
-              leftImageSoucre={require('../../../assets/emailIcon.png')}
-              AdjustWidth={{
-                width: widthToDp(80),
-              }}
-              InputStyles={{
-                padding: widthToDp(3),
-              }}
+            <RegisteredObserverPicker
+              excludedPhones={props.email || props.observers || []}
+              onSelect={addObserver}
             />
           </View>
           {/* <View
@@ -88,28 +72,7 @@ export default function ObserversModal(props) {
               </TouchableOpacity>
             ))}
           </View> */}
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-              marginRight: widthToDp(5),
-            }}>
-            <MainButton
-              onPress={() => sendEmail()}
-              Title="Add"
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              GradiStyles={{
-                marginVertical: heightToDp(2),
-                paddingVertical: heightToDp(3),
-                borderRadius: 5,
-                width: widthToDp(30),
-              }}
-              styles={{
-                padding: heightToDp(0),
-                fontSize: widthToDp(3.5),
-              }}
-            />
-          </View>
+          <View style={styles.bottomSpace} />
         </View>
       </View>
     </Modal>
@@ -131,8 +94,9 @@ const styles = StyleSheet.create({
     marginVertical: heightToDp(2),
   },
   input: {
-    alignItems: 'flex-start',
+    marginHorizontal: widthToDp(5),
   },
+  bottomSpace: {height: heightToDp(3)},
   image: {
     width: widthToDp(4),
     height: widthToDp(4),

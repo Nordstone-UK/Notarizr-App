@@ -17,42 +17,70 @@ import AgentCard from '../../components/AgentCard/AgentCard';
 import LegalDocumentCard from '../../components/LegalDocumentCard/LegalDocumentCard';
 import NavigationHeader from '../../components/Navigation Header/NavigationHeader';
 import ReviewPopup from '../../components/ReviewPopup/ReviewPopup';
-import LabelTextInput from '../../components/LabelTextInput/LabelTextInput';
 import GradientButton from '../../components/MainGradientButton/GradientButton';
 import {useSession} from '../../hooks/useSession';
 import Toast from 'react-native-toast-message';
+import {getObserverPhone} from '../../utils/observerPhone';
+import RegisteredObserverPicker from '../../components/Observers/RegisteredObserverPicker';
 
 export default function AddObserverScreen({route, navigation}) {
   const {bookingId} = route.params;
   const {handleAddObservers} = useSession();
-  const [email, setEmail] = useState();
-  const [observerEmail, setObserverEmail] = useState([]);
+  const [observerPhones, setObserverPhones] = useState([]);
   const [loading, setLoading] = useState(false);
-  const addTextToArray = text => {
-    setObserverEmail(prevs => [...prevs, text]);
-    setEmail();
-  };
-  const sendAddObservers = async () => {
-    setLoading(true);
-    const response = await handleAddObservers(bookingId, observerEmail);
-    setLoading(false);
-    if (response?.status === '200') {
-      Toast.show({
-        type: 'success',
-        text1: 'Observer added successfully',
-      });
-      navigation.goBack();
-    } else {
+  const addObserverUser = user => {
+    const normalizedPhone = getObserverPhone(user);
+    if (observerPhones.includes(normalizedPhone)) {
       Toast.show({
         type: 'error',
-        text1: 'Observer not added',
+        text1: 'Observer already added',
       });
+      return;
+    }
+
+    if (observerPhones.length >= 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Observer limit reached',
+        text2: 'You can invite up to five observers.',
+      });
+      return;
+    }
+
+    setObserverPhones(current => [...current, normalizedPhone]);
+  };
+  const sendAddObservers = async () => {
+    if (!observerPhones.length) {
+      Toast.show({
+        type: 'error',
+        text1: 'Add at least one observer',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await handleAddObservers(bookingId, observerPhones);
+      if (response?.status === '200') {
+        Toast.show({
+          type: 'success',
+          text1: 'Observers invited',
+        });
+        navigation.goBack();
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Observers could not be invited',
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
   const removeItem = index => {
-    const updatedList = [...observerEmail];
+    const updatedList = [...observerPhones];
     updatedList.splice(index, 1);
-    setObserverEmail(updatedList);
+    setObserverPhones(updatedList);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -64,21 +92,16 @@ export default function AddObserverScreen({route, navigation}) {
           contentContainerStyle={styles.contentContainer}>
           <View style={styles.headingContainer}>
             <Text style={styles.lightHeading}>
-              Add observers in your RON session
+              Add observers to your RON session
             </Text>
             <Text style={styles.smallHead}>
-              You can add more than one observers
+              Invite up to five observers by phone number.
             </Text>
-            <View
-              style={{marginTop: heightToDp(4), marginBottom: heightToDp(2)}}>
-              <LabelTextInput
-                leftImageSoucre={require('../../../assets/emailIcon.png')}
-                placeholder={'Enter your observers email'}
-                LabelTextInput={'Email Address'}
-                defaultValue={email}
-                onChangeText={text => setEmail(text)}
-                keyboardType={'email-address'}
-                Label={true}
+            <View style={styles.searchWrap}>
+              <RegisteredObserverPicker
+                disabled={observerPhones.length >= 5}
+                excludedPhones={observerPhones}
+                onSelect={addObserverUser}
               />
             </View>
             <View
@@ -90,7 +113,7 @@ export default function AddObserverScreen({route, navigation}) {
                 rowGap: heightToDp(2),
                 marginHorizontal: widthToDp(3),
               }}>
-              {observerEmail.map((entry, index) => (
+              {observerPhones.map((entry, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => removeItem(index)}
@@ -105,12 +128,7 @@ export default function AddObserverScreen({route, navigation}) {
                 </TouchableOpacity>
               ))}
             </View>
-            <GradientButton
-              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              Title="Add Observers"
-              onPress={() => addTextToArray(email)}
-            />
-            <Text style={styles.smallHead}>Invited Observers:</Text>
+            <Text style={styles.smallHead}>Observers to invite</Text>
             <View
               style={{
                 height: heightToDp(50),
@@ -154,5 +172,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     marginHorizontal: widthToDp(2),
     marginTop: widthToDp(4),
+  },
+  searchWrap: {
+    marginHorizontal: widthToDp(2),
+    marginBottom: heightToDp(2),
+    marginTop: heightToDp(4),
   },
 });

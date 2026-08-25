@@ -35,6 +35,7 @@ import {
   formatBookingTime,
   getBookingDisplayId,
 } from '../../../utils/bookingPresentation';
+import {getObserverPhone} from '../../../utils/observerPhone';
 import {formatDateTime, heightToDp, widthToDp} from '../../../utils/Responsive';
 import DocumentComponent from '../../../components/DocumentComponent/DocumentComponent';
 import MainButton from '../../../components/MainGradientButton/MainButton';
@@ -178,7 +179,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
 
   const { handleCallSupport } = useCustomerSuport();
   const { updateSession, handleSessionUpdation, getSessionByID } = useSession();
-  const { searchUserByEmail } = useFetchUser();
+  const { searchUserByPhone } = useFetchUser();
   let { documents: documentArray } = clientDetail;
   const { booked_for } = clientDetail;
   const { proof_documents } = clientDetail;
@@ -342,13 +343,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       );
       navigation.navigate('MapArrivalScreen');
     } else if (clientDetail?.__typename === 'Session' && status === 'Pending') {
-      // const observersString = `${observers._id}:${observers.email}`;
-      // return;
-
       const params = {
         sessionId: clientDetail?._id,
         // identityAuthentication: selected,
-        // observers: observers.map(item => item.email),
         paymentType: paymentMethod,
       };
       const response = await handleSessionUpdation(params);
@@ -368,9 +365,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
       const params = {
         sessionId: clientDetail?._id,
         identityAuthentication: selected,
-        observers: observers.map(
-          item => `${item.first_name} ${item.last_name}`,
-        ),
+        observers: observers.map(getObserverPhone).filter(Boolean),
         paymentType: paymentMethod,
       };
       const response = await handleSessionUpdation(params);
@@ -616,7 +611,7 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const SearchUser = async query => {
     console.log('alsddfdf', query);
     setisLoading(true);
-    const response = await searchUserByEmail(query);
+    const response = await searchUserByPhone(query);
     setSearchedUser(response);
     setisLoading(false);
   };
@@ -1330,7 +1325,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                         />
                       </View>
                       <View style={styles.personInfo}>
-                        <Text style={styles.personName}>{item}</Text>
+                        <Text style={styles.personName}>
+                          {getObserverPhone(item) || 'Observer'}
+                        </Text>
                       </View>
                     </View>
                   </View>
@@ -1382,10 +1379,11 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                   {witnessFields.map((_, index) => (
                     <View key={index} style={{ marginTop: 8 }}>
                       <LabelTextInput
-                        placeholder={`Search observer ${index + 1} by email`}
+                        placeholder={`Search observer ${index + 1} by phone`}
                         value={searchTexts[index]}
                         defaultValue={''}
                         onChangeText={text => handleSearchChange(text, index)}
+                        keyboardType="phone-pad"
                         rightImagePress={() => {
                           const updatedSearchTexts = [...searchTexts];
                           updatedSearchTexts[index] = '';
@@ -1423,14 +1421,15 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                                 key={item._id}
                                 onPress={() => {
                                   const updatedSearchTexts = [...searchTexts];
-                                  updatedSearchTexts[index] = item.email;
+                                  updatedSearchTexts[index] =
+                                    item.phone_number || '';
                                   setSearchTexts(updatedSearchTexts);
                                   setObservers(prev => [...prev, item]);
                                   setShowObserverSearchView(false);
                                 }}
                                 style={styles.observerSearchResult}>
                                 <Text style={styles.observerSearchResultText}>
-                                  {item.email}
+                                  {item.phone_number}
                                 </Text>
                               </TouchableOpacity>
                             ))}
@@ -1461,7 +1460,9 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
                             <Text style={styles.personName}>
                               {item.first_name} {item.last_name}
                             </Text>
-                            <Text style={styles.personMeta}>{item?.email}</Text>
+                            <Text style={styles.personMeta}>
+                              {item?.phone_number}
+                            </Text>
                           </View>
                           <TouchableOpacity
                             onPress={() =>

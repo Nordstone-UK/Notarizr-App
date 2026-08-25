@@ -24,7 +24,7 @@ export const useSession = () => {
     session,
     date,
     selected,
-    observerEmail,
+    observerPhones,
     totalPrice,
     documentObjects,
     payment_type,
@@ -36,7 +36,7 @@ export const useSession = () => {
         sessionSchedule: session,
         dateTimeSession: date,
         identityAuthentication: selected,
-        observers: observerEmail,
+        observers: observerPhones,
         price: totalPrice,
         documentType: documentObjects,
         paymentType: payment_type,
@@ -48,10 +48,10 @@ export const useSession = () => {
     return response.data.createSessionR.status;
   };
 
-  const handleAddObservers = async (id, email) => {
+  const handleAddObservers = async (id, phones) => {
     const request = {
       variables: {
-        observers: email,
+        observers: phones,
         bookingId: id,
       },
     };

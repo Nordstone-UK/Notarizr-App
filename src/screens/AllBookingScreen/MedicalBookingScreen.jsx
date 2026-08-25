@@ -66,7 +66,12 @@ import ClientBookingDetailsView from '../../components/Bookings/ClientBookingDet
 import {
   formatBookingDate,
   formatBookingTime,
+  getBookingDisplayId,
 } from '../../utils/bookingPresentation';
+import {goBackOrNavigate} from '../../utils/navigationHelpers';
+import {getObserverPhone} from '../../utils/observerPhone';
+
+const EARLY_ACCESS_TEST_BOOKINGS = new Set(['FC4780A6']);
 
 export default function MedicalBookingScreen(props) {
   const bookingDetail = useSelector(state => state.booking.booking);
@@ -98,6 +103,9 @@ function LiveMedicalBookingScreen({route, navigation}) {
   const dispatch = useDispatch();
   const {handleCallSupport} = useCustomerSuport();
   const bookingDetail = useSelector(state => state.booking.booking);
+  const allowEarlySessionAccess = EARLY_ACCESS_TEST_BOOKINGS.has(
+    getBookingDisplayId(bookingDetail),
+  );
   console.log('boookingsdfdsddfd', bookingDetail);
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
 
@@ -658,7 +666,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       date: bookingDetail?.date_of_booking,
       time: bookingDetail?.time_of_booking,
     });
-    if (!availability.canJoin) {
+    if (!availability.canJoin && !allowEarlySessionAccess) {
       Toast.show({
         type: 'info',
         text1: 'Session not open yet',
@@ -706,9 +714,14 @@ function LiveMedicalBookingScreen({route, navigation}) {
   console.log('bookingdetails', bookingDetail);
   return (
     <ClientBookingDetailsView
+      allowEarlySessionAccess={allowEarlySessionAccess}
       booking={bookingDetail}
       loading={loading || refreshing}
-      onBack={() => navigation.goBack()}
+      onBack={() =>
+        goBackOrNavigate(navigation, 'HomeScreen', {
+          screen: 'AllBookingScreen',
+        })
+      }
       onBookAgain={handleBookAgain}
       onCancel={handleCancelBooking}
       onDownload={handleDownloadDocuments}
@@ -919,9 +932,10 @@ function LiveMedicalBookingScreen({route, navigation}) {
             <View>
               <Text style={[styles.insideHeading]}>Observers </Text>
               <View>
-                {bookingDetail.observers.map(item => {
+                {bookingDetail.observers.map((item, index) => {
                   return (
                     <View
+                      key={getObserverPhone(item) || String(index)}
                       style={{
                         width: widthToDp(90),
                         marginTop: 10,
@@ -961,7 +975,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
                             color: 'black',
                             fontFamily: 'Poppins-Bold',
                           }}>
-                          {item}
+                          {getObserverPhone(item) || 'Observer'}
                         </Text>
                       </View>
                     </View>

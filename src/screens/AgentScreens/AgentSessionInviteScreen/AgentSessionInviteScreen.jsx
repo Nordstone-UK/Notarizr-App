@@ -25,6 +25,7 @@ import AppColors from '../../../themes/AppColors';
 import useFetchUser from '../../../hooks/useFetchUser';
 import useRegister from '../../../hooks/useRegister';
 import {useSession} from '../../../hooks/useSession';
+import {getObserverPhone} from '../../../utils/observerPhone';
 
 const IDENTITY_OPTIONS = [
   {label: 'Let client choose', value: 'client_choose'},
@@ -56,14 +57,22 @@ function SectionHeader({eyebrow, title, description}) {
   );
 }
 
-function SearchField({value, onChangeText, onClear, placeholder, loading}) {
+function SearchField({
+  value,
+  onChangeText,
+  onClear,
+  placeholder,
+  loading,
+  icon = 'mail',
+  keyboardType = 'email-address',
+}) {
   return (
     <View style={styles.searchField}>
-      <Feather name="phone" size={19} color={AppColors.textSecondary} />
+      <Feather name={icon} size={19} color={AppColors.textSecondary} />
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
-        keyboardType="phone-pad"
+        keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={AppColors.textMuted}
@@ -144,7 +153,7 @@ function SearchResults({results, onSelect}) {
   return (
     <View style={styles.resultsPanel}>
       {results.map((person, index) => (
-        <View key={person?._id || person?.email}>
+        <View key={person?._id || person?.phone_number || person?.email}>
           <PersonRow person={person} onPress={() => onSelect(person)} />
           {index < results.length - 1 ? <View style={styles.divider} /> : null}
         </View>
@@ -180,8 +189,9 @@ function SelectCard({selected, title, description, onPress, icon}) {
 export default function AgentSessionInviteScreen({navigation}) {
   const {uploadDocArray, uploadMultipleFiles} = useRegister();
   const {handleSessionCreation} = useSession();
-  const {searchUserByEmail} = useFetchUser();
+  const {searchUserByEmail, searchUserByPhone} = useFetchUser();
   const searchUserByEmailRef = useRef(searchUserByEmail);
+  const searchUserByPhoneRef = useRef(searchUserByPhone);
 
   const SESSION_PRICE = 99;
 
@@ -207,7 +217,9 @@ export default function AgentSessionInviteScreen({navigation}) {
   const sendSmsInvite = async phone => {
     const cleaned = phone.replace(/\s/g, '');
     const separator = Platform.OS === 'ios' ? '&' : '?';
-    const url = `sms:${cleaned}${separator}body=${encodeURIComponent(INVITE_MESSAGE)}`;
+    const url = `sms:${cleaned}${separator}body=${encodeURIComponent(
+      INVITE_MESSAGE,
+    )}`;
     try {
       const supported = await Linking.canOpenURL(url);
       if (!supported) {
@@ -280,7 +292,7 @@ export default function AgentSessionInviteScreen({navigation}) {
     setObserverSearching(true);
     const timeout = setTimeout(async () => {
       try {
-        const response = await searchUserByEmailRef.current(
+        const response = await searchUserByPhoneRef.current(
           observerQuery.trim(),
         );
         if (active) {
@@ -357,6 +369,16 @@ export default function AgentSessionInviteScreen({navigation}) {
       return;
     }
 
+    const observerPhones = observers.map(getObserverPhone).filter(Boolean);
+    if (observerPhones.length !== observers.length) {
+      Toast.show({
+        type: 'error',
+        text1: 'Observer phone number missing',
+        text2: 'Each observer must have a valid phone number.',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const uploadedUrls = await uploadDocArray(fileResponse);
@@ -366,7 +388,7 @@ export default function AgentSessionInviteScreen({navigation}) {
         'schedule_later',
         date,
         selectedIdentity,
-        observers.map(item => item.email),
+        observerPhones,
         SESSION_PRICE,
         [],
         paymentMethod,
@@ -425,7 +447,7 @@ export default function AgentSessionInviteScreen({navigation}) {
                   setClientResults([]);
                   setClientNoResults(false);
                 }}
-                placeholder="Client phone number"
+                placeholder="Client email address"
                 value={clientQuery}
               />
               <SearchResults
@@ -438,28 +460,34 @@ export default function AgentSessionInviteScreen({navigation}) {
                 }}
                 results={clientResults}
               />
-              {clientNoResults && !clientSearching && clientQuery.trim().length >= 2 && (
-                <View style={styles.inviteBanner}>
-                  <View style={styles.inviteBannerIcon}>
-                    <Feather name="user-x" size={16} color={AppColors.primary} />
+              {clientNoResults &&
+                !clientSearching &&
+                clientQuery.trim().length >= 2 && (
+                  <View style={styles.inviteBanner}>
+                    <View style={styles.inviteBannerIcon}>
+                      <Feather
+                        name="user-x"
+                        size={16}
+                        color={AppColors.primary}
+                      />
+                    </View>
+                    <View style={styles.inviteBannerCopy}>
+                      <Text style={styles.inviteBannerTitle}>
+                        No account found
+                      </Text>
+                      <Text style={styles.inviteBannerText}>
+                        Send an SMS inviting them to download the Notarizer app.
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      activeOpacity={0.75}
+                      onPress={() => sendSmsInvite(clientQuery.trim())}
+                      style={styles.inviteButton}>
+                      <Feather name="send" size={13} color={AppColors.white} />
+                      <Text style={styles.inviteButtonText}>Invite</Text>
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.inviteBannerCopy}>
-                    <Text style={styles.inviteBannerTitle}>
-                      No account found
-                    </Text>
-                    <Text style={styles.inviteBannerText}>
-                      Send an SMS inviting them to download the Notarizer app.
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    activeOpacity={0.75}
-                    onPress={() => sendSmsInvite(clientQuery.trim())}
-                    style={styles.inviteButton}>
-                    <Feather name="send" size={13} color={AppColors.white} />
-                    <Text style={styles.inviteButtonText}>Invite</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+                )}
             </>
           )}
 
@@ -471,6 +499,8 @@ export default function AgentSessionInviteScreen({navigation}) {
             session.
           </Text>
           <SearchField
+            icon="phone"
+            keyboardType="phone-pad"
             loading={observerSearching}
             onChangeText={setObserverQuery}
             onClear={() => {
@@ -478,7 +508,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               setObserverResults([]);
               setObserverNoResults(false);
             }}
-                placeholder="Observer phone number"
+            placeholder="Observer phone number"
             value={observerQuery}
           />
           <SearchResults
@@ -490,28 +520,25 @@ export default function AgentSessionInviteScreen({navigation}) {
             }}
             results={observerResults}
           />
-          {observerNoResults && !observerSearching && observerQuery.trim().length >= 2 && (
-            <View style={styles.inviteBanner}>
-              <View style={styles.inviteBannerIcon}>
-                <Feather name="user-x" size={16} color={AppColors.primary} />
+          {observerNoResults &&
+            !observerSearching &&
+            observerQuery.trim().length >= 2 && (
+              <View style={styles.inviteBanner}>
+                <View style={styles.inviteBannerIcon}>
+                  <Feather name="user-x" size={16} color={AppColors.primary} />
+                </View>
+                <View style={styles.inviteBannerCopy}>
+                  <Text style={styles.inviteBannerTitle}>No account found</Text>
+                  <Text style={styles.inviteBannerText}>
+                    Only registered Notarizr users can be added as observers.
+                  </Text>
+                </View>
               </View>
-              <View style={styles.inviteBannerCopy}>
-                <Text style={styles.inviteBannerTitle}>No account found</Text>
-                <Text style={styles.inviteBannerText}>
-                  Send an SMS inviting them to download the Notarizer app.
-                </Text>
-              </View>
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={() => sendSmsInvite(observerQuery.trim())}
-                style={styles.inviteButton}>
-                <Feather name="send" size={13} color={AppColors.white} />
-                <Text style={styles.inviteButtonText}>Invite</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            )}
           {observers.map(observer => (
-            <View key={observer._id || observer.email} style={styles.personGap}>
+            <View
+              key={observer._id || getObserverPhone(observer)}
+              style={styles.personGap}>
               <PersonRow
                 person={observer}
                 onRemove={() =>
@@ -672,7 +699,6 @@ export default function AgentSessionInviteScreen({navigation}) {
           viewStyle={styles.submitButton}
         />
       </ScrollView>
-
     </SafeAreaView>
   );
 }

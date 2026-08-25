@@ -6,15 +6,17 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
+import {useSelector} from 'react-redux';
 import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
+import RegisteredObserverPicker from '../../../components/Observers/RegisteredObserverPicker';
 import {useSession} from '../../../hooks/useSession';
 import BookingColors from '../../../themes/BookingColors';
+import {getObserverPhone} from '../../../utils/observerPhone';
 
 const ID_OPTIONS = [
   {
@@ -37,47 +39,30 @@ const ID_OPTIONS = [
   },
 ];
 
-const observerEmail = observer => {
-  if (typeof observer === 'string') {
-    return observer;
-  }
-  return observer?.email || observer?.value || '';
-};
-
-const isEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
 export default function AgentManageBookingScreen({navigation, route}) {
   const booking = route?.params?.clientDetail;
+  const currentUser = useSelector(state => state.user.user);
   const {handleAddObservers, handleSessionUpdation} = useSession();
   const initialObservers = useMemo(
     () =>
       (Array.isArray(booking?.observers) ? booking.observers : [])
-        .map(observerEmail)
+        .map(getObserverPhone)
         .filter(Boolean),
     [booking?.observers],
   );
   const [observers, setObservers] = useState(initialObservers);
-  const [email, setEmail] = useState('');
   const [identity, setIdentity] = useState(
     booking?.identity_authentication || 'client_choose',
   );
   const [saving, setSaving] = useState(false);
 
-  const addObserver = () => {
-    const normalized = email.trim().toLowerCase();
-    if (!isEmail(normalized)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Enter a valid email address',
-      });
-      return;
-    }
+  const addObserver = user => {
+    const normalized = getObserverPhone(user);
     if (observers.includes(normalized)) {
       Toast.show({type: 'info', text1: 'Observer already added'});
       return;
     }
     setObservers(current => [...current, normalized]);
-    setEmail('');
   };
 
   const save = async () => {
@@ -163,27 +148,17 @@ export default function AgentManageBookingScreen({navigation, route}) {
               </Text>
             </View>
           </View>
-          <View style={styles.emailRow}>
-            <TextInput
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              onChangeText={setEmail}
-              onSubmitEditing={addObserver}
-              placeholder="observer@example.com"
-              placeholderTextColor={BookingColors.textMuted}
-              returnKeyType="done"
-              style={styles.input}
-              value={email}
-            />
-            <TouchableOpacity
-              accessibilityLabel="Add observer"
-              activeOpacity={0.75}
-              onPress={addObserver}
-              style={styles.addButton}>
-              <Feather name="plus" size={20} color={BookingColors.white} />
-            </TouchableOpacity>
-          </View>
+          <RegisteredObserverPicker
+            disabled={observers.length >= 5}
+            excludedPhones={observers}
+            excludedUserIds={[
+              currentUser?._id,
+              booking?.agent?._id || booking?.agent,
+              booking?.booked_by?._id || booking?.booked_by,
+              booking?.booked_for?._id || booking?.booked_for,
+            ]}
+            onSelect={addObserver}
+          />
           {observers.length ? (
             <View style={styles.chips}>
               {observers.map(observer => (

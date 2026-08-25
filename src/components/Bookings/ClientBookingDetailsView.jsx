@@ -218,6 +218,7 @@ function ActionButton({disabled, icon, label, onPress, secondary}) {
 }
 
 export default function ClientBookingDetailsView({
+  allowEarlySessionAccess = false,
   booking,
   loading,
   onBack,
@@ -286,6 +287,7 @@ export default function ClientBookingDetailsView({
       }),
     [booking?.date_of_booking, booking?.time_of_booking],
   );
+  const canJoinSession = sessionAvailability.canJoin || allowEarlySessionAccess;
   const paymentConfirmed =
     ['paid', 'payment_confirmed', 'ongoing', 'completed'].includes(statusKey) ||
     ['paid', 'succeeded'].includes(
@@ -382,12 +384,10 @@ export default function ClientBookingDetailsView({
     if (!isMobile) {
       return (
         <ActionButton
-          disabled={loading || !sessionAvailability.canJoin}
+          disabled={loading || !canJoinSession}
           icon="video"
           label={
-            sessionAvailability.canJoin
-              ? 'Join secure session'
-              : 'Session not open yet'
+            canJoinSession ? 'Join secure session' : 'Session not open yet'
           }
           onPress={onJoin}
         />
