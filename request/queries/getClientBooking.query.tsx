@@ -99,6 +99,8 @@ export const GET_CLIENT_BOOKING = gql`
           location
         }
         client_documents
+        agent_document
+        notarized_docs
         document_type {
           name
           price
