@@ -25,6 +25,11 @@ type State = {
     string,
     {completedAt: string; signedUrl: string | null}
   >;
+  documentCompletionNotice: {
+    id: string;
+    message: string;
+    completedAt: string;
+  } | null;
   sessionParticipant: {
     name: string;
     role: string;
@@ -89,6 +94,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         requestedAt: null,
       },
       completedDocuments: {},
+      documentCompletionNotice: null,
       sessionParticipant: null,
       signingActivity: {
         status: 'idle',
@@ -224,7 +230,15 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
               signedUrl ?? nextCompleted[uri]?.signedUrl ?? null,
           };
         });
-        set({completedDocuments: nextCompleted});
+        set({
+          completedDocuments: nextCompleted,
+          documentCompletionNotice: {
+            id: `${completedAt}-${uris[0]}`,
+            message:
+              'Document has been marked as completed and can no longer be edited.',
+            completedAt,
+          },
+        });
       },
     }),
     {
@@ -239,6 +253,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         sessionCompletedAt: true,
         completionRequest: true,
         completedDocuments: true,
+        documentCompletionNotice: true,
       },
       presenceMapping: {
         selectedObjectId: true,

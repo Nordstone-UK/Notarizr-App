@@ -184,6 +184,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const completedDocuments = useLiveblocks(
     state => state.completedDocuments || {},
   );
+  const documentCompletionNotice = useLiveblocks(
+    state => state.documentCompletionNotice,
+  );
   const markDocumentComplete = useLiveblocks(
     state => state.markDocumentComplete,
   );
@@ -308,6 +311,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const completionNavigationRef = useRef(false);
   const completionFinalizationRef = useRef(false);
   const rejectionNoticeRef = useRef<string | null>(null);
+  const seenDocumentCompletionNoticeRef = useRef<string | null | undefined>(
+    undefined,
+  );
   const isWaitingForClientApproval =
     completionRequest.status === 'pending' ||
     completionRequest.status === 'approved';
@@ -326,6 +332,28 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       handleSessionStatus,
     };
   }, [handlegetBookingStatus, handleSessionStatus]);
+
+  useEffect(() => {
+    seenDocumentCompletionNoticeRef.current = undefined;
+  }, [bookingRoomId]);
+
+  useEffect(() => {
+    const noticeId = documentCompletionNotice?.id || null;
+    if (seenDocumentCompletionNoticeRef.current === undefined) {
+      seenDocumentCompletionNoticeRef.current = noticeId;
+      return;
+    }
+    if (!noticeId || seenDocumentCompletionNoticeRef.current === noticeId) {
+      return;
+    }
+    seenDocumentCompletionNoticeRef.current = noticeId;
+    Toast.show({
+      type: 'success',
+      text1:
+        documentCompletionNotice?.message ||
+        'Document has been marked as completed and can no longer be edited.',
+    });
+  }, [documentCompletionNotice]);
 
   useEffect(() => {
     if (!bookingRoomId || localSessionCompleted || isSessionCompleted) {
@@ -2212,11 +2240,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         page: currentPage,
       });
       setMarkCompleteConfirmVisible(false);
-      Toast.show({
-        type: 'success',
-        text1: 'Document completed',
-        text2: 'This document is finalized and can no longer be edited.',
-      });
     } catch (error: any) {
       console.warn('Unable to mark document complete:', error);
       Toast.show({
@@ -2653,49 +2676,48 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 {selectedLocalDocument?.name || 'Document'}
               </RNText>
               <View style={styles.documentHeaderActions}>
-                {!isClient &&
-                  (isCurrentDocumentComplete ? (
-                    <View style={styles.markCompleteDoneBadge}>
-                      <Feather
-                        name="check"
-                        size={13}
-                        color={BookingColors.success}
+                {isCurrentDocumentComplete ? (
+                  <View style={styles.markCompleteDoneBadge}>
+                    <Feather
+                      name="check"
+                      size={13}
+                      color={BookingColors.success}
+                    />
+                    <RNText style={styles.markCompleteDoneText}>
+                      Completed
+                    </RNText>
+                  </View>
+                ) : !isClient ? (
+                  <TouchableOpacity
+                    accessibilityLabel="Mark as Complete"
+                    onPress={() => setMarkCompleteConfirmVisible(true)}
+                    disabled={isMarkingDocumentComplete}
+                    style={[
+                      styles.markCompleteButton,
+                      isMarkingDocumentComplete &&
+                        styles.headerDocumentButtonDisabled,
+                    ]}>
+                    {isMarkingDocumentComplete ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={BookingColors.white}
                       />
-                      <RNText style={styles.markCompleteDoneText}>
-                        Completed
-                      </RNText>
-                    </View>
-                  ) : (
-                    <TouchableOpacity
-                      accessibilityLabel="Mark as Complete"
-                      onPress={() => setMarkCompleteConfirmVisible(true)}
-                      disabled={isMarkingDocumentComplete}
-                      style={[
-                        styles.markCompleteButton,
-                        isMarkingDocumentComplete &&
-                          styles.headerDocumentButtonDisabled,
-                      ]}>
-                      {isMarkingDocumentComplete ? (
-                        <ActivityIndicator
-                          size="small"
+                    ) : (
+                      <>
+                        <Feather
+                          name="check-circle"
+                          size={13}
                           color={BookingColors.white}
                         />
-                      ) : (
-                        <>
-                          <Feather
-                            name="check-circle"
-                            size={13}
-                            color={BookingColors.white}
-                          />
-                          <RNText
-                            numberOfLines={1}
-                            style={styles.markCompleteButtonText}>
-                            Mark as Complete
-                          </RNText>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  ))}
+                        <RNText
+                          numberOfLines={1}
+                          style={styles.markCompleteButtonText}>
+                          Mark as Complete
+                        </RNText>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                ) : null}
                 <TouchableOpacity
                   accessibilityLabel="Close"
                   onPress={closeDocumentPreview}
