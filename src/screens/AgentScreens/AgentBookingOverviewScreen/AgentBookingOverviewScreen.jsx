@@ -331,9 +331,82 @@ function PricingBreakdown({booking, paid, price}) {
 
 const DOC_ACCENT = '#FF7A28';
 
+function parseDocumentValue(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  const trimmed = value.trim();
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return value;
+    }
+  }
+  return value;
+}
+
+function toDocumentEntries(value) {
+  const parsed = parseDocumentValue(value);
+  if (Array.isArray(parsed)) {
+    return parsed;
+  }
+  if (parsed && typeof parsed === 'object') {
+    if (parsed.url || parsed.value || parsed.link) {
+      return [parsed];
+    }
+    return Object.entries(parsed).map(([key, item]) => {
+      const keyLooksLikeFileName = /\.[a-z0-9]{2,5}$/i.test(key);
+      if (typeof item === 'string') {
+        return {url: item, name: keyLooksLikeFileName ? key : ''};
+      }
+      if (item && typeof item === 'object') {
+        return {
+          ...item,
+          name: item.name || (keyLooksLikeFileName ? key : ''),
+        };
+      }
+      return item;
+    });
+  }
+  if (typeof parsed === 'string' && parsed.startsWith('http')) {
+    return [parsed];
+  }
+  return [];
+}
+
+function toDocument(item) {
+  const parsed = parseDocumentValue(item);
+  if (typeof parsed === 'string') {
+    return {url: parsed, name: ''};
+  }
+  if (parsed && typeof parsed === 'object') {
+    return {
+      url: parsed.url || parsed.value || parsed.link || '',
+      name:
+        parsed.name ||
+        parsed.fileName ||
+        parsed.filename ||
+        parsed.originalName ||
+        '',
+    };
+  }
+  return {url: '', name: ''};
+}
+
+function normalizeDocuments(value) {
+  return toDocumentEntries(value)
+    .map(toDocument)
+    .filter(
+      document =>
+        typeof document.url === 'string' && document.url.startsWith('http'),
+    );
+}
+
 function DocumentActionRow({
   url,
   name,
+  label,
   index,
   isLast,
   downloading,
@@ -351,6 +424,8 @@ function DocumentActionRow({
     (typeof name === 'string' && name.trim()) ||
     urlFileName ||
     `Document ${index + 1}`;
+  const rowLabel = label || fileName;
+  const rowValue = label ? fileName : rawName;
   return (
     <View style={[styles.docRow, isLast && styles.lastDetailRow]}>
       <View style={styles.detailIcon}>
@@ -358,9 +433,9 @@ function DocumentActionRow({
       </View>
       <View style={styles.detailCopy}>
         <Text style={styles.detailLabel} numberOfLines={1}>
-          {fileName}
+          {rowLabel}
         </Text>
-        <Text style={styles.detailValue}>{rawName}</Text>
+        <Text style={styles.detailValue}>{rowValue}</Text>
       </View>
       <View style={styles.docActionGroup}>
         <TouchableOpacity
@@ -526,7 +601,8 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
 
       applyBookingUpdate({
         ...nextBooking,
-        __typename: nextBooking.__typename || (isSession ? 'Session' : 'Booking'),
+        __typename:
+          nextBooking.__typename || (isSession ? 'Session' : 'Booking'),
       });
     } catch (error) {
       console.warn('Unable to refresh booking details:', error);
@@ -601,68 +677,33 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     booking?.service?.service_type,
   ]);
 
-  const allDocuments = useMemo(() => {
-    // `documents`/`proof_documents` are untyped JSON on the backend, so
-    // they've shown up in the wild as a plain array of URL strings, an
-    // array of `{id, name, url}` upload objects (what the current booking
-    // flow actually saves), and a `{key: url}` map from older code paths.
-    // Normalize all three rather than assuming one shape.
-    const toEntries = value => {
-      if (Array.isArray(value)) {
-        return value;
-      }
-      if (value && typeof value === 'object') {
-        if (value.url || value.value || value.link) {
-          return [value];
-        }
-        return Object.entries(value).map(([key, item]) => {
-          const keyLooksLikeFileName = /\.[a-z0-9]{2,5}$/i.test(key);
-          if (typeof item === 'string') {
-            return {url: item, name: keyLooksLikeFileName ? key : ''};
-          }
-          if (item && typeof item === 'object') {
-            return {
-              ...item,
-              name: item.name || (keyLooksLikeFileName ? key : ''),
-            };
-          }
-          return item;
-        });
-      }
-      return [];
-    };
-    const toDocument = item => {
-      if (typeof item === 'string') {
-        return {url: item, name: ''};
-      }
-      if (item && typeof item === 'object') {
-        return {
-          url: item.url || item.value || item.link || '',
-          name:
-            item.name ||
-            item.fileName ||
-            item.filename ||
-            item.originalName ||
-            '',
-        };
-      }
-      return {url: '', name: ''};
-    };
-    return [
-      ...toEntries(booking?.documents),
-      ...toEntries(booking?.proof_documents),
-      ...toEntries(booking?.client_documents),
-    ]
-      .map(toDocument)
-      .filter(
-        document =>
-          typeof document.url === 'string' && document.url.startsWith('http'),
-      );
-  }, [booking?.client_documents, booking?.documents, booking?.proof_documents]);
+  const allDocuments = useMemo(
+    () => [
+      ...normalizeDocuments(booking?.documents),
+      ...normalizeDocuments(booking?.proof_documents),
+      ...normalizeDocuments(booking?.client_documents),
+    ],
+    [booking?.client_documents, booking?.documents, booking?.proof_documents],
+  );
+
+  const notarizedDocuments = useMemo(() => {
+    const fromNotarized = normalizeDocuments(booking?.notarized_docs);
+    if (fromNotarized.length > 0) {
+      return fromNotarized;
+    }
+    if (['completed', 'ongoing'].includes(status)) {
+      return normalizeDocuments(booking?.agent_document);
+    }
+    return [];
+  }, [booking?.agent_document, booking?.notarized_docs, status]);
+
+  const displayedDocuments =
+    notarizedDocuments.length > 0 ? notarizedDocuments : allDocuments;
+  const showingNotarizedDocuments = notarizedDocuments.length > 0;
 
   const allDocumentUrls = useMemo(
-    () => allDocuments.map(document => document.url),
-    [allDocuments],
+    () => displayedDocuments.map(document => document.url),
+    [displayedDocuments],
   );
 
   const isDownloadingDocs = allDocumentUrls.some(u => downloadingDocs[u]);
@@ -729,7 +770,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       });
       return;
     }
-    for (const document of allDocuments) {
+    for (const document of displayedDocuments) {
       const rawName = String(document.url).split('/').pop().split('?')[0];
       let urlFileName = rawName;
       try {
@@ -1088,12 +1129,19 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         /> */}
 
         <Section title="Notary Request">
-          {allDocuments.length > 0 ? (
-            allDocuments.map((document, index) => (
+          {displayedDocuments.length > 0 ? (
+            displayedDocuments.map((document, index) => (
               <DocumentActionRow
                 key={`${document.url}-${index}`}
                 url={document.url}
                 name={document.name}
+                label={
+                  showingNotarizedDocuments
+                    ? displayedDocuments.length > 1
+                      ? `Notarized document ${index + 1}`
+                      : 'Notarized document'
+                    : undefined
+                }
                 index={index}
                 isLast={false}
                 downloading={!!downloadingDocs[document.url]}
@@ -1104,7 +1152,11 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           ) : (
             <DetailRow
               icon="file-text"
-              label="Documents"
+              label={
+                showingNotarizedDocuments
+                  ? 'Notarized document'
+                  : 'Documents'
+              }
               value={documentLabel}
             />
           )}

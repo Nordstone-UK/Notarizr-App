@@ -116,6 +116,8 @@ export const GET_BOOKING_BY_ID = gql`
           signature_url
         }
         client_documents
+        agent_document
+        notarized_docs
       }
     }
   }

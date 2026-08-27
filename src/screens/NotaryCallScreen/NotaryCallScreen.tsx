@@ -50,6 +50,7 @@ import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs'
 import { useSession } from '../../hooks/useSession';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import { GET_SESSION_BY_ID } from '../../../request/queries/getSessionByID.query';
+import { GET_BOOKING_BY_ID } from '../../../request/queries/getBookingByID.query';
 import { setBookingInfoState } from '../../features/booking/bookingSlice';
 import SignatureContainer from './SignatureContainer';
 import useRegister from '../../hooks/useRegister';
@@ -127,6 +128,22 @@ const getPersonName = (person: any, fallback = ''): string =>
   [person?.first_name, person?.last_name].filter(Boolean).join(' ') ||
   fallback;
 
+const getParticipantIdentityKey = (participant: {
+  userId?: string | null;
+  name?: string;
+  role?: string;
+} | null | undefined): string => {
+  if (participant?.userId) {
+    return `id:${participant.userId}`;
+  }
+  const name = String(participant?.name || '').trim().toLowerCase();
+  const role = String(participant?.role || '').trim().toLowerCase();
+  if (name || role) {
+    return `profile:${role}:${name}`;
+  }
+  return '';
+};
+
 export default function NotaryCallScreen({ route, navigation }: any) {
   const {
     channel,
@@ -150,6 +167,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   } = useBookingStatus();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
+  const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID, {
+    fetchPolicy: 'network-only',
+  });
   const User = useSelector(state => state?.user?.user);
   const isAgent = String(User?.account_type || '').includes('agent');
   const isClient = !isAgent && User?.account_type === 'client';
@@ -311,6 +331,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const completionNavigationRef = useRef(false);
   const completionFinalizationRef = useRef(false);
   const rejectionNoticeRef = useRef<string | null>(null);
+  const uidIdentityRef = useRef<Map<number, string>>(new Map());
   const seenDocumentCompletionNoticeRef = useRef<string | null | undefined>(
     undefined,
   );
@@ -951,28 +972,46 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     try {
       const urls = docs.map(resolveDocumentUri).filter(Boolean);
       if (!bookingData?._id || urls.length === 0) {
-        return;
+        return urls;
       }
+      const isSessionRecord = bookingData?.__typename === 'Session';
       const request = {
         variables: {
           bookingId: bookingData?._id,
           notarizedDocs: urls,
-          bookingType:
-            bookingData?.__typename == 'Booking' ? 'booking' : 'session',
+          bookingType: isSessionRecord ? 'session' : 'booking',
         },
       };
       const response = await AddSignedDocs(request);
       if (response?.data?.bookingAddNotarizedDocs?.status === '200') {
-        const request = {
-          variables: {
-            sessionId: bookingData?._id,
-          },
-        };
-        let sessiondata = await getSession(request);
-        dispatch(setBookingInfoState(sessiondata.data.getSession.session));
+        let nextRecord = null;
+        if (isSessionRecord) {
+          const sessionResponse = await getSession({
+            variables: { sessionId: bookingData._id },
+            fetchPolicy: 'network-only',
+          });
+          nextRecord = sessionResponse?.data?.getSession?.session;
+        } else {
+          const bookingResponse = await getBookingByID({
+            variables: { bookingId: bookingData._id },
+            fetchPolicy: 'network-only',
+          });
+          nextRecord = bookingResponse?.data?.getBookingById?.booking;
+        }
+        dispatch(
+          setBookingInfoState({
+            ...(nextRecord || bookingData),
+            notarized_docs:
+              nextRecord?.notarized_docs?.length > 0
+                ? nextRecord.notarized_docs
+                : urls,
+          }),
+        );
       }
+      return urls;
     } catch (error) {
       console.warn('Unable to attach signed documents:', error);
+      return [];
     }
   };
 
@@ -984,6 +1023,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const token = CutomToken;
   const [isMuted, setIsMuted] = useState(false);
   const [remoteUids, setRemoteUids] = useState<any[]>([]);
+  const remoteUidsRef = useRef<any[]>([]);
+  remoteUidsRef.current = remoteUids;
   const agoraEngineRef = useRef<IRtcEngine>();
   const [isJoined, setIsJoined] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
@@ -1162,6 +1203,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           },
           onUserJoined: (_connection, remoteUid) => {
             if (!active) {
+              return;
+            }
+            if (Number(remoteUid) === Number(localAgoraUid)) {
               return;
             }
             setRemoteUids(prevUids =>
@@ -1397,6 +1441,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
     setIsCompleting(true);
     try {
+      let savedNotarizedUrls = [];
       // Saving the signed document is useful, but it must not leave a
       // completed appointment stuck if storage is temporarily unavailable.
       try {
@@ -1415,7 +1460,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         }
 
         if (completedDocuments.length > 0) {
-          await addSignedDocFunc(completedDocuments);
+          savedNotarizedUrls = await addSignedDocFunc(completedDocuments);
         }
       } catch (documentError) {
         console.warn(
@@ -1447,6 +1492,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           ...bookingData,
           ...completedRecord,
           status: 'completed',
+          notarized_docs:
+            savedNotarizedUrls.length > 0
+              ? savedNotarizedUrls
+              : completedRecord?.notarized_docs || bookingData?.notarized_docs,
         }),
       );
       const completedAt = new Date().toISOString();
@@ -1592,6 +1641,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setIsJoined(false);
     setRemoteUids([]);
     setRemoteVideoMutedByUid({});
+    uidIdentityRef.current.clear();
     await join(engine);
   };
   const userDisplayName =
@@ -1602,9 +1652,119 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       name: userDisplayName,
       role: participantRole,
       agoraUid: localAgoraUid,
+      userId: User?._id ? String(User._id) : null,
     });
-  }, [localAgoraUid, participantRole, setSessionParticipant, userDisplayName]);
-  const connectedCount = remoteUids.length + (isJoined ? 1 : 0);
+  }, [
+    User?._id,
+    localAgoraUid,
+    participantRole,
+    setSessionParticipant,
+    userDisplayName,
+  ]);
+
+  useEffect(() => {
+    const latestUidByIdentity = new Map<string, number>();
+    roomOthers.forEach(other => {
+      const participant = other?.presence?.sessionParticipant as
+        | {userId?: string; name?: string; role?: string; agoraUid?: number}
+        | undefined;
+      const identity = getParticipantIdentityKey(participant);
+      const uid = Number(participant?.agoraUid);
+      if (!identity || !Number.isFinite(uid) || uid <= 0) {
+        return;
+      }
+      uidIdentityRef.current.set(uid, identity);
+      const existingUid = latestUidByIdentity.get(identity);
+      if (existingUid == null) {
+        latestUidByIdentity.set(identity, uid);
+        return;
+      }
+      const currentUids = remoteUidsRef.current;
+      if (currentUids.indexOf(uid) >= currentUids.indexOf(existingUid)) {
+        latestUidByIdentity.set(identity, uid);
+      }
+    });
+
+    if (latestUidByIdentity.size === 0) {
+      return;
+    }
+
+    setRemoteUids(prevUids => {
+      const nextUids = prevUids.filter(uid => {
+        const identity = uidIdentityRef.current.get(uid);
+        const latestUid = identity
+          ? latestUidByIdentity.get(identity)
+          : undefined;
+        return !latestUid || latestUid === uid;
+      });
+      return nextUids.length === prevUids.length ? prevUids : nextUids;
+    });
+    setRemoteVideoMutedByUid(current => {
+      let changed = false;
+      const next = {...current};
+      Object.keys(next).forEach(uidKey => {
+        const uid = Number(uidKey);
+        const identity = uidIdentityRef.current.get(uid);
+        const latestUid = identity
+          ? latestUidByIdentity.get(identity)
+          : undefined;
+        if (latestUid && latestUid !== uid) {
+          delete next[uidKey];
+          changed = true;
+        }
+      });
+      return changed ? next : current;
+    });
+  }, [roomOthers]);
+
+  const visibleRemoteUids = useMemo(() => {
+    const latestUidByIdentity = new Map<string, number>();
+    roomOthers.forEach(other => {
+      const participant = other?.presence?.sessionParticipant as
+        | {userId?: string; name?: string; role?: string; agoraUid?: number}
+        | undefined;
+      const identity = getParticipantIdentityKey(participant);
+      const uid = Number(participant?.agoraUid);
+      if (!identity || !Number.isFinite(uid) || uid <= 0) {
+        return;
+      }
+      const existingUid = latestUidByIdentity.get(identity);
+      if (
+        existingUid == null ||
+        remoteUids.indexOf(uid) >= remoteUids.indexOf(existingUid)
+      ) {
+        latestUidByIdentity.set(identity, uid);
+      }
+    });
+
+    const seenIdentities = new Set<string>();
+    const deduped: number[] = [];
+
+    remoteUids.forEach(uid => {
+      if (uid === localAgoraUid) {
+        return;
+      }
+      const identity =
+        uidIdentityRef.current.get(uid) ||
+        [...latestUidByIdentity.entries()].find(
+          ([, latestUid]) => latestUid === uid,
+        )?.[0];
+      if (identity) {
+        if (seenIdentities.has(identity)) {
+          return;
+        }
+        const latestUid = latestUidByIdentity.get(identity);
+        if (latestUid && latestUid !== uid) {
+          return;
+        }
+        seenIdentities.add(identity);
+      }
+      deduped.push(uid);
+    });
+
+    return deduped;
+  }, [localAgoraUid, remoteUids, roomOthers]);
+  const connectedCount = visibleRemoteUids.length + (isJoined ? 1 : 0);
   const callStatusLabel =
     callStatus === 'connected'
       ? connectedCount > 2
@@ -1686,7 +1846,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
 
     const claimedNames = new Set(
-      remoteUids.slice(0, index).map((uid, claimedIndex) => {
+      visibleRemoteUids.slice(0, index).map((uid, claimedIndex) => {
         const presenceName = roomOthers.find(
           other =>
             Number(other?.presence?.sessionParticipant?.agoraUid) ===
@@ -1719,10 +1879,13 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const isRemoteVideoMuted = (remoteUid: number) =>
     Boolean(remoteVideoMutedByUid[String(remoteUid)]);
 
-  const renderRemotePip = (remoteUid: number, index: number) => {
+  const renderRemotePip = (remoteUid: number, index: number, extraStyle?: object) => {
     const info = participantInfoForUid(remoteUid, index);
     return (
-      <View key={remoteUid} pointerEvents="none" style={styles.participantPip}>
+      <View
+        key={remoteUid}
+        pointerEvents="none"
+        style={[styles.participantPip, extraStyle]}>
         {isRemoteVideoMuted(remoteUid) ? (
           <View style={styles.pipPlaceholder}>
             <RNText style={styles.pipInitials}>{info.initials}</RNText>
@@ -1743,8 +1906,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     );
   };
 
-  const primaryRemoteUid = remoteUids[0];
-  const extraRemoteUids = remoteUids.slice(1);
+  const primaryRemoteUid = visibleRemoteUids[0];
+  const extraRemoteUids = visibleRemoteUids.slice(1);
   const primaryRemoteInfo = primaryRemoteUid
     ? participantInfoForUid(primaryRemoteUid, 0)
     : null;
@@ -1804,7 +1967,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
         <View pointerEvents="none" style={styles.callPipOverlay}>
           {extraRemoteUids.map((remoteUid, index) =>
-            renderRemotePip(remoteUid, index + 1),
+            renderRemotePip(remoteUid, index + 1, styles.callPipBox),
           )}
           <View style={[styles.participantPip, styles.callPipBox]}>
             {isVideoMuted ? (
@@ -1921,7 +2084,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.participantPipStack}
       style={styles.participantPipScroller}>
-      {remoteUids.map((remoteUid, index) => renderRemotePip(remoteUid, index))}
+      {visibleRemoteUids.map((remoteUid, index) => renderRemotePip(remoteUid, index))}
 
       <View pointerEvents="none" style={styles.participantPip}>
         {isVideoMuted ? (
@@ -3422,12 +3585,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 18,
     right: 14,
-    maxWidth: '78%',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 6,
-    padding: 4,
+    gap: 8,
+    padding: 6,
     borderRadius: 12,
     backgroundColor: 'rgba(9,13,20,0.52)',
   },

@@ -34,6 +34,7 @@ type State = {
     name: string;
     role: string;
     agoraUid?: number | null;
+    userId?: string | null;
   } | null;
   signingActivity: {
     status: 'idle' | 'choosing' | 'signing' | 'placing';
@@ -72,6 +73,7 @@ type Action = {
     name: string;
     role: string;
     agoraUid?: number | null;
+    userId?: string | null;
   }) => void;
   setSigningActivity: (activity: State['signingActivity']) => void;
 };
