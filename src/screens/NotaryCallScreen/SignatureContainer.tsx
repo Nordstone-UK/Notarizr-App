@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import DraggableSignature from './DragabbleSignature';
 import {useLiveblocks} from '../../store/liveblocks';
 
-export default function SignatureContainer({onSignatureChange}) {
+export default function SignatureContainer({onSignatureChange, locked = false}) {
   const objects = useLiveblocks(state => state.objects);
   const deleteObject = useLiveblocks(state => state.deleteObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
@@ -57,7 +57,8 @@ export default function SignatureContainer({onSignatureChange}) {
             id={objectId}
             key={objectId}
             object={object}
-            selected={selectedObjectId === objectId}
+            selected={!locked && selectedObjectId === objectId}
+            locked={locked}
             onSignatureChange={handleSignatureChange}
 
             // onDelete={handleDeleteSignature}

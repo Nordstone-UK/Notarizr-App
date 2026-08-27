@@ -1,10 +1,11 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   LayoutAnimation,
   Linking,
   PermissionsAndroid,
   Platform,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -21,8 +22,9 @@ if (
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-import {useMutation} from '@apollo/client';
-import {useSelector} from 'react-redux';
+import {useLazyQuery, useMutation} from '@apollo/client';
+import {useFocusEffect} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import ProfileScreenHeader from '../../../components/Profile/ProfileScreenHeader';
@@ -41,6 +43,9 @@ import {
 } from '../../../../request/mutations/updateAllocationRequest.mutation';
 import {UPDATE_BOOKING_STATUS} from '../../../../request/mutations/updateBookingStatus.mutation';
 import {UPDATE_SESSION_STATUS} from '../../../../request/mutations/updateSessionStatus.mutation';
+import {GET_BOOKING_BY_ID} from '../../../../request/queries/getBookingByID.query';
+import {useSession} from '../../../hooks/useSession';
+import {setBookingInfoState} from '../../../features/booking/bookingSlice';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 const STATUS_CONFIG = {
@@ -328,6 +333,7 @@ const DOC_ACCENT = '#FF7A28';
 
 function DocumentActionRow({
   url,
+  name,
   index,
   isLast,
   downloading,
@@ -335,17 +341,26 @@ function DocumentActionRow({
   onDownload,
 }) {
   const rawName = String(url).split('/').pop().split('?')[0];
-  const fileName = decodeURIComponent(rawName) || `Document ${index + 1}`;
+  let urlFileName = rawName;
+  try {
+    urlFileName = decodeURIComponent(rawName);
+  } catch {
+    // Keep the original path segment when a legacy URL is not URI encoded.
+  }
+  const fileName =
+    (typeof name === 'string' && name.trim()) ||
+    urlFileName ||
+    `Document ${index + 1}`;
   return (
     <View style={[styles.docRow, isLast && styles.lastDetailRow]}>
       <View style={styles.detailIcon}>
         <Feather name="file-text" size={16} color={BookingColors.primary} />
       </View>
       <View style={styles.detailCopy}>
-        <Text style={styles.detailLabel}>Document {index + 1}</Text>
-        <Text style={styles.detailValue} numberOfLines={1}>
+        <Text style={styles.detailLabel} numberOfLines={1}>
           {fileName}
         </Text>
+        <Text style={styles.detailValue}>{rawName}</Text>
       </View>
       <View style={styles.docActionGroup}>
         <TouchableOpacity
@@ -391,10 +406,24 @@ const requestStoragePermission = async () => {
   }
 };
 
+const JOINABLE_REMOTE_STATUSES = [
+  'accepted',
+  'to_be_paid',
+  'paid',
+  'payment_confirmed',
+  'ongoing',
+];
+
+const resolveBookingStatus = item =>
+  String(item?.status || item?.agentResquesStatus || 'pending').toLowerCase();
+
 export default function AgentBookingOverviewScreen({navigation, route}) {
+  const dispatch = useDispatch();
   const storedBooking = useSelector(state => state.booking.booking);
   const authenticatedAgent = useSelector(state => state.user.user);
-  const booking = route.params?.clientDetail || storedBooking;
+  const incomingBooking = route.params?.clientDetail || storedBooking;
+  const [liveBooking, setLiveBooking] = useState(incomingBooking);
+  const booking = liveBooking || incomingBooking;
 
   const normalized = useMemo(() => normalizeAgentBooking(booking), [booking]);
   const client = getBookingClient(booking);
@@ -406,15 +435,19 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     booking?.booked_for?.notes ||
     booking?.booked_for?.instructions ||
     'No additional instructions provided.';
-  const initialStatus =
-    booking?.agentResquesStatus || booking?.status || 'pending';
-  const [status, setStatus] = useState(String(initialStatus).toLowerCase());
+  const initialStatus = resolveBookingStatus(booking);
+  const [status, setStatus] = useState(initialStatus);
   const [activeAction, setActiveAction] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [downloadingDocs, setDownloadingDocs] = useState({});
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS);
   const [updateSessionStatus] = useMutation(UPDATE_SESSION_STATUS);
   const [acceptAllocation] = useMutation(ACCEPT_ALLOCATION_REQUEST);
   const [rejectAllocation] = useMutation(REJECT_ALLOCATION_REQUEST);
+  const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID, {
+    fetchPolicy: 'network-only',
+  });
+  const {getSessionByID} = useSession();
   const {handleCallSupport} = useCustomerSuport();
 
   const isAllocation = booking?.__typename === 'Allocation';
@@ -423,9 +456,16 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   // Backend records have used `ron`, `remote_online_notary`, and legacy
   // remote labels. Mobile is the only distinct in-person booking type.
   const isRemoteBooking = normalized.service_type !== 'mobile_notary';
+  const paymentConfirmed =
+    JOINABLE_REMOTE_STATUSES.includes(status) ||
+    ['paid', 'succeeded'].includes(
+      String(booking?.payment_status || '').toLowerCase(),
+    ) ||
+    booking?.is_paid === true;
   const canJoinRemoteSession =
     isRemoteBooking &&
-    ['accepted', 'paid', 'payment_confirmed', 'ongoing'].includes(status);
+    paymentConfirmed &&
+    !['pending', 'rejected', 'cancelled', 'completed'].includes(status);
   const sessionAvailability = useMemo(
     () =>
       getSessionAvailability({
@@ -438,6 +478,93 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       booking?.time_of_booking,
     ],
   );
+
+  const applyBookingUpdate = useCallback(
+    nextBooking => {
+      if (!nextBooking?._id) {
+        return;
+      }
+      setLiveBooking(nextBooking);
+      setStatus(resolveBookingStatus(nextBooking));
+      dispatch(setBookingInfoState(nextBooking));
+    },
+    [dispatch],
+  );
+
+  const refreshBooking = useCallback(async () => {
+    const bookingId = booking?._id;
+    if (!bookingId || isAllocation) {
+      return;
+    }
+
+    setRefreshing(true);
+    try {
+      let nextBooking = null;
+      if (isSession) {
+        nextBooking = await getSessionByID(bookingId);
+        if (!nextBooking) {
+          const {data} = await getBookingByID({
+            variables: {bookingId},
+            fetchPolicy: 'network-only',
+          });
+          nextBooking = data?.getBookingById?.booking;
+        }
+      } else {
+        const {data} = await getBookingByID({
+          variables: {bookingId},
+          fetchPolicy: 'network-only',
+        });
+        nextBooking = data?.getBookingById?.booking;
+        if (!nextBooking) {
+          nextBooking = await getSessionByID(bookingId);
+        }
+      }
+
+      if (!nextBooking) {
+        throw new Error('Booking refresh returned no record');
+      }
+
+      applyBookingUpdate({
+        ...nextBooking,
+        __typename: nextBooking.__typename || (isSession ? 'Session' : 'Booking'),
+      });
+    } catch (error) {
+      console.warn('Unable to refresh booking details:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Could not refresh booking',
+        text2: 'Pull down again to retry.',
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [
+    applyBookingUpdate,
+    booking?._id,
+    getBookingByID,
+    getSessionByID,
+    isAllocation,
+    isSession,
+  ]);
+
+  useEffect(() => {
+    if (!incomingBooking?._id) {
+      return;
+    }
+    if (incomingBooking._id !== liveBooking?._id) {
+      setLiveBooking(incomingBooking);
+      setStatus(resolveBookingStatus(incomingBooking));
+    }
+  }, [incomingBooking, liveBooking?._id]);
+
+  const refreshBookingRef = useRef(refreshBooking);
+  refreshBookingRef.current = refreshBooking;
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshBookingRef.current();
+    }, [booking?._id]),
+  );
   const statusStyle = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const documentLabel = Array.isArray(booking?.document_type)
     ? booking.document_type
@@ -449,6 +576,14 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     .filter(Boolean)
     .join(' ');
   const price = Number(booking?.totalPrice ?? booking?.price ?? 0);
+  const requiredSignatureCount = Math.max(
+    0,
+    Number(
+      booking?.total_signatures_required ??
+        booking?.totalSignaturesRequired ??
+        (Array.isArray(booking?.signatures) ? booking.signatures.length : 0),
+    ) || 0,
+  );
 
   const hasPrintFee = useMemo(() => {
     const docTypes = Array.isArray(booking?.document_type)
@@ -466,7 +601,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     booking?.service?.service_type,
   ]);
 
-  const allDocumentUrls = useMemo(() => {
+  const allDocuments = useMemo(() => {
     // `documents`/`proof_documents` are untyped JSON on the backend, so
     // they've shown up in the wild as a plain array of URL strings, an
     // array of `{id, name, url}` upload objects (what the current booking
@@ -477,26 +612,58 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         return value;
       }
       if (value && typeof value === 'object') {
-        return Object.values(value);
+        if (value.url || value.value || value.link) {
+          return [value];
+        }
+        return Object.entries(value).map(([key, item]) => {
+          const keyLooksLikeFileName = /\.[a-z0-9]{2,5}$/i.test(key);
+          if (typeof item === 'string') {
+            return {url: item, name: keyLooksLikeFileName ? key : ''};
+          }
+          if (item && typeof item === 'object') {
+            return {
+              ...item,
+              name: item.name || (keyLooksLikeFileName ? key : ''),
+            };
+          }
+          return item;
+        });
       }
       return [];
     };
-    const toUrl = item => {
+    const toDocument = item => {
       if (typeof item === 'string') {
-        return item;
+        return {url: item, name: ''};
       }
       if (item && typeof item === 'object') {
-        return item.url || item.value || item.link || '';
+        return {
+          url: item.url || item.value || item.link || '',
+          name:
+            item.name ||
+            item.fileName ||
+            item.filename ||
+            item.originalName ||
+            '',
+        };
       }
-      return '';
+      return {url: '', name: ''};
     };
     return [
       ...toEntries(booking?.documents),
       ...toEntries(booking?.proof_documents),
+      ...toEntries(booking?.client_documents),
     ]
-      .map(toUrl)
-      .filter(url => typeof url === 'string' && url.startsWith('http'));
-  }, [booking?.documents, booking?.proof_documents]);
+      .map(toDocument)
+      .filter(
+        document =>
+          typeof document.url === 'string' && document.url.startsWith('http'),
+      );
+  }, [booking?.client_documents, booking?.documents, booking?.proof_documents]);
+
+  const allDocumentUrls = useMemo(
+    () => allDocuments.map(document => document.url),
+    [allDocuments],
+  );
 
   const isDownloadingDocs = allDocumentUrls.some(u => downloadingDocs[u]);
 
@@ -562,10 +729,18 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       });
       return;
     }
-    for (const url of allDocumentUrls) {
-      const rawName = String(url).split('/').pop().split('?')[0];
-      const fileName = decodeURIComponent(rawName) || 'document.pdf';
-      await downloadDocument(url, fileName);
+    for (const document of allDocuments) {
+      const rawName = String(document.url).split('/').pop().split('?')[0];
+      let urlFileName = rawName;
+      try {
+        urlFileName = decodeURIComponent(rawName);
+      } catch {
+        // Keep the original path segment for malformed legacy URLs.
+      }
+      await downloadDocument(
+        document.url,
+        document.name || urlFileName || 'document.pdf',
+      );
     }
   };
 
@@ -715,6 +890,14 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       />
       <ScrollView
         contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshBooking}
+            tintColor={BookingColors.primary}
+            colors={[BookingColors.primary]}
+          />
+        }
         showsVerticalScrollIndicator={false}>
         <View style={styles.summary}>
           <View style={styles.summaryTopRow}>
@@ -905,14 +1088,15 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         /> */}
 
         <Section title="Notary Request">
-          {allDocumentUrls.length > 0 ? (
-            allDocumentUrls.map((url, index) => (
+          {allDocuments.length > 0 ? (
+            allDocuments.map((document, index) => (
               <DocumentActionRow
-                key={url}
-                url={url}
+                key={`${document.url}-${index}`}
+                url={document.url}
+                name={document.name}
                 index={index}
-                isLast={index === allDocumentUrls.length - 1}
-                downloading={!!downloadingDocs[url]}
+                isLast={false}
+                downloading={!!downloadingDocs[document.url]}
                 onView={viewDocument}
                 onDownload={downloadDocument}
               />
@@ -924,6 +1108,13 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
               value={documentLabel}
             />
           )}
+          <DetailRow
+            icon="edit-3"
+            label="Signatures required"
+            value={`${requiredSignatureCount} ${
+              requiredSignatureCount === 1 ? 'signature' : 'signatures'
+            }`}
+          />
           <DetailRow
             icon="align-left"
             label="Instructions"

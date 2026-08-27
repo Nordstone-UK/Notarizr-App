@@ -24,9 +24,10 @@ type PdfObjectProps = {
   id: string;
   object: PdfObject;
   selected: boolean;
+  locked?: boolean;
   onSignatureChange: (signatureInfo: any) => void;
 };
-export default function DraggableSignature({ id, object, selected, onSignatureChange }: PdfObjectProps) {
+export default function DraggableSignature({ id, object, selected, locked = false, onSignatureChange }: PdfObjectProps) {
   const updateObject = useLiveblocks(state => state.updateObject);
   const setSelectedObjectId = useLiveblocks(state => state.setSelectedObjectId);
   const deleteObject = useLiveblocks(state => state.deleteObject);
@@ -45,6 +46,9 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   };
 
   const onPanGestureEvent = ({ nativeEvent }) => {
+    if (locked) {
+      return;
+    }
     const x = clamp(
       gestureStartX.current + nativeEvent.translationX,
       0,
@@ -77,6 +81,9 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   }, [object.position]);
 
   const onPanGestureStateChange = ({ nativeEvent }) => {
+    if (locked) {
+      return;
+    }
     if (nativeEvent.state === State.BEGAN) {
       gestureStartX.current = translationX.value;
       gestureStartY.current = translationY.value;
@@ -205,17 +212,19 @@ export default function DraggableSignature({ id, object, selected, onSignatureCh
   }, [object.sourceUrl, object.text, object.type]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} pointerEvents={locked ? 'none' : 'auto'}>
       <PanGestureHandler
+        enabled={!locked}
         onGestureEvent={onPanGestureEvent}
         onHandlerStateChange={onPanGestureStateChange}
       >
         <PinchGestureHandler
+          enabled={!locked}
           onGestureEvent={onPinchGestureEvent}
         >
           <Animated.View style={[styles.box, animatedStyle, selected && styles.containerSelected,]}>
             {renderContent()}
-            {selected && (
+            {selected && !locked && (
               <View style={styles.placementActions}>
                 <TouchableOpacity
                   accessibilityLabel="Confirm signature placement"

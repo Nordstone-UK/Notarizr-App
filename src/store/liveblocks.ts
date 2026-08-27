@@ -19,9 +19,16 @@ type State = {
     status: 'idle' | 'pending' | 'approved' | 'rejected';
     requestedAt: string | null;
   };
+  // Keyed by document uri so each document in a multi-document call carries its
+  // own finalized state. Both participants read this to lock further edits.
+  completedDocuments: Record<
+    string,
+    {completedAt: string; signedUrl: string | null}
+  >;
   sessionParticipant: {
     name: string;
     role: string;
+    agoraUid?: number | null;
   } | null;
   signingActivity: {
     status: 'idle' | 'choosing' | 'signing' | 'placing';
@@ -52,9 +59,14 @@ type Action = {
     status: State['completionRequest']['status'],
     requestedAt?: string,
   ) => void;
+  markDocumentComplete: (
+    documentUris: string | (string | null | undefined)[],
+    signedUrl?: string | null,
+  ) => void;
   setSessionParticipant: (participant: {
     name: string;
     role: string;
+    agoraUid?: number | null;
   }) => void;
   setSigningActivity: (activity: State['signingActivity']) => void;
 };
@@ -76,6 +88,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         status: 'idle',
         requestedAt: null,
       },
+      completedDocuments: {},
       sessionParticipant: null,
       signingActivity: {
         status: 'idle',
@@ -192,6 +205,27 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       setSigningActivity: activity => {
         set({signingActivity: activity});
       },
+      markDocumentComplete: (documentUris, signedUrl) => {
+        const uris = (
+          Array.isArray(documentUris) ? documentUris : [documentUris]
+        )
+          .map(uri => (typeof uri === 'string' ? uri.trim() : ''))
+          .filter(Boolean);
+        if (!uris.length) {
+          return;
+        }
+
+        const completedAt = new Date().toISOString();
+        const nextCompleted = {...(get().completedDocuments || {})};
+        uris.forEach(uri => {
+          nextCompleted[uri] = {
+            completedAt,
+            signedUrl:
+              signedUrl ?? nextCompleted[uri]?.signedUrl ?? null,
+          };
+        });
+        set({completedDocuments: nextCompleted});
+      },
     }),
     {
       client,
@@ -204,6 +238,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         isSessionCompleted: true,
         sessionCompletedAt: true,
         completionRequest: true,
+        completedDocuments: true,
       },
       presenceMapping: {
         selectedObjectId: true,
