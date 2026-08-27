@@ -155,8 +155,10 @@ function Section({children, title}) {
   );
 }
 
-const SIGNATURE_RATE = 2;
-const PRINT_RATE = 1;
+const DOCUMENT_RATE = 99.99;
+const SIGNATURE_RATE = 10;
+const PRINT_RATE = 5;
+const PLATFORM_FEE = 10;
 
 function PricingBreakdown({booking, paid, price}) {
   const [expanded, setExpanded] = useState(false);
@@ -170,60 +172,70 @@ function PricingBreakdown({booking, paid, price}) {
   const signatures = Array.isArray(booking?.signatures)
     ? booking.signatures
     : [];
+  const additionalSignatureCount = Math.max(
+    0,
+    Number(
+      booking?.total_signatures_required ??
+        booking?.totalSignaturesRequired ??
+        signatures.length,
+    ),
+  );
 
   const isMobile =
     (booking?.service_type || booking?.service?.service_type) ===
     'mobile_notary';
 
-  if (price <= 0) {
-    return (
-      <DetailRow
-        icon="dollar-sign"
-        label="Estimated total"
-        last
-        value="Set in booking workspace"
-      />
-    );
-  }
-
-  const documentFee = docTypes.reduce(
-    (sum, doc) => sum + Number(doc.price || 0),
-    0,
+  const uploadedDocumentCount = Array.isArray(booking?.documents)
+    ? booking.documents.length
+    : 0;
+  const documentCount = Math.max(docTypes.length, uploadedDocumentCount);
+  const documentFee = Number(
+    booking?.documentCharge ?? documentCount * DOCUMENT_RATE,
   );
-  const signatureFee = signatures.length * SIGNATURE_RATE;
-  const printingFee = isMobile ? docTypes.length * PRINT_RATE : 0;
-  const computedSum = documentFee + signatureFee + printingFee;
-  const serviceFee = Math.max(0, price - computedSum);
-  const confirmedPlatformFee =
-    booking?.notarizer_platform_fee ?? booking?.platform_fee ?? serviceFee;
-  const platformFee = paid ? Number(confirmedPlatformFee || 0) : 10;
+  const signatureFee = Number(
+    booking?.additionalSignatureCharge ??
+      additionalSignatureCount * SIGNATURE_RATE,
+  );
+  const notesPrintCopies = Number(
+    String(booking?.notes || '').match(/Print request:\s*(\d+)/i)?.[1] || 0,
+  );
+  const printCopies = Number(booking?.printCopies || notesPrintCopies || 0);
+  const printingFee = Number(
+    booking?.printingCharge ??
+      (isMobile && printCopies > 0 ? printCopies * PRINT_RATE : 0),
+  );
+  const platformFee = Number(
+    booking?.notarizer_platform_fee ?? booking?.platform_fee ?? PLATFORM_FEE,
+  );
+  const calculatedPrice =
+    documentFee + signatureFee + printingFee + platformFee;
+  const displayPrice =
+    calculatedPrice > 0 ? calculatedPrice : Number(price || 0);
 
   const lineItems = [
-    ...docTypes
-      .filter(doc => Number(doc.price || 0) > 0)
-      .map(doc => ({
-        icon: 'file-text',
-        label: doc.name || 'Document',
-        sublabel: 'Notarization fee',
-        amount: Number(doc.price),
-      })),
-    signatures.length > 0 && {
+    documentFee > 0 && {
+      icon: 'file-text',
+      label:
+        docTypes.length === 1
+          ? docTypes[0]?.name || 'Notary document'
+          : 'Notary documents',
+      sublabel: `${documentCount || 1} × $${DOCUMENT_RATE.toFixed(2)}`,
+      amount: documentFee,
+    },
+    signatureFee > 0 && {
       icon: 'edit-3',
-      label: 'Signatures',
-      sublabel: `${signatures.length} signer${
-        signatures.length !== 1 ? 's' : ''
-      } × $${SIGNATURE_RATE.toFixed(2)}`,
+      label: 'Additional signatures',
+      sublabel: `${additionalSignatureCount} × $${SIGNATURE_RATE.toFixed(2)}`,
       amount: signatureFee,
     },
-    isMobile &&
-      docTypes.length > 0 && {
-        icon: 'printer',
-        label: 'Printing',
-        sublabel: `${docTypes.length} document${
-          docTypes.length !== 1 ? 's' : ''
-        }  × $${PRINT_RATE.toFixed(2)}`,
-        amount: printingFee,
-      },
+    printingFee > 0 && {
+      icon: 'printer',
+      label: 'Document printing',
+      sublabel: `${printCopies} ${
+        printCopies === 1 ? 'copy' : 'copies'
+      } × $${PRINT_RATE.toFixed(2)}`,
+      amount: printingFee,
+    },
     platformFee > 0 && {
       icon: 'briefcase',
       label: 'Notarizer Platform Fee',
@@ -250,7 +262,7 @@ function PricingBreakdown({booking, paid, price}) {
         </View>
         <View style={styles.detailCopy}>
           <Text style={styles.detailLabel}>Estimated total</Text>
-          <Text style={styles.detailValue}>${price.toFixed(2)}</Text>
+          <Text style={styles.detailValue}>${displayPrice.toFixed(2)}</Text>
         </View>
         <View style={styles.breakdownActions}>
           {paid ? (
@@ -302,7 +314,9 @@ function PricingBreakdown({booking, paid, price}) {
           ))}
           <View style={styles.breakdownTotalRow}>
             <Text style={styles.breakdownTotalLabel}>Estimated total</Text>
-            <Text style={styles.breakdownTotalAmount}>${price.toFixed(2)}</Text>
+            <Text style={styles.breakdownTotalAmount}>
+              ${displayPrice.toFixed(2)}
+            </Text>
           </View>
         </View>
       )}
@@ -312,7 +326,14 @@ function PricingBreakdown({booking, paid, price}) {
 
 const DOC_ACCENT = '#FF7A28';
 
-function DocumentActionRow({url, index, isLast, downloading, onView, onDownload}) {
+function DocumentActionRow({
+  url,
+  index,
+  isLast,
+  downloading,
+  onView,
+  onDownload,
+}) {
   const rawName = String(url).split('/').pop().split('?')[0];
   const fileName = decodeURIComponent(rawName) || `Document ${index + 1}`;
   return (
@@ -377,6 +398,14 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
 
   const normalized = useMemo(() => normalizeAgentBooking(booking), [booking]);
   const client = getBookingClient(booking);
+  const bookingInstructions =
+    booking?.notes ||
+    booking?.instructions ||
+    booking?.special_instructions ||
+    booking?.booking_notes ||
+    booking?.booked_for?.notes ||
+    booking?.booked_for?.instructions ||
+    'No additional instructions provided.';
   const initialStatus =
     booking?.agentResquesStatus || booking?.status || 'pending';
   const [status, setStatus] = useState(String(initialStatus).toLowerCase());
@@ -391,7 +420,9 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const isAllocation = booking?.__typename === 'Allocation';
   const isSession = booking?.__typename === 'Session';
   const pending = status === 'pending';
-  const isRemoteBooking = normalized.service_type === 'remote_online_notary';
+  // Backend records have used `ron`, `remote_online_notary`, and legacy
+  // remote labels. Mobile is the only distinct in-person booking type.
+  const isRemoteBooking = normalized.service_type !== 'mobile_notary';
   const canJoinRemoteSession =
     isRemoteBooking &&
     ['accepted', 'paid', 'payment_confirmed', 'ongoing'].includes(status);
@@ -613,19 +644,19 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       date: booking?.date_of_booking || booking?.date_time_session,
     });
 
-  const handlePrimary = () => {
-    if (canJoinRemoteSession) {
-      if (!sessionAvailability.canJoin) {
-        Toast.show({
-          type: 'info',
-          text1: sessionAvailability.title,
-          text2: sessionAvailability.message,
-        });
-        return;
-      }
-      openRemoteSession();
+  const handleJoinSession = () => {
+    if (!sessionAvailability.canJoin) {
+      Toast.show({
+        type: 'info',
+        text1: sessionAvailability.title,
+        text2: sessionAvailability.message,
+      });
       return;
     }
+    openRemoteSession();
+  };
+
+  const handlePrimary = () => {
     if (pending && isSession) {
       openWorkspace();
       return;
@@ -641,10 +672,6 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     ? isSession
       ? 'Review request setup'
       : 'Accept request'
-    : canJoinRemoteSession
-    ? sessionAvailability.canJoin
-      ? 'Join session'
-      : sessionAvailability.actionLabel
     : status === 'completed'
     ? 'View completed record'
     : 'Manage booking';
@@ -900,7 +927,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           <DetailRow
             icon="align-left"
             label="Instructions"
-            value={booking?.notes || 'No additional instructions provided.'}
+            value={bookingInstructions}
           />
           <PricingBreakdown
             booking={booking}
@@ -918,7 +945,24 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         </Section>
       </ScrollView>
 
-      <View style={styles.actionBar}>
+      <View
+        style={[
+          styles.actionBar,
+          canJoinRemoteSession && styles.sessionActionBar,
+        ]}>
+        {canJoinRemoteSession && (
+          <BookingActionButton
+            disabled={Boolean(activeAction) || !sessionAvailability.canJoin}
+            icon="video"
+            label={
+              sessionAvailability.canJoin
+                ? 'Join session'
+                : sessionAvailability.actionLabel
+            }
+            onPress={handleJoinSession}
+            style={styles.sessionButton}
+          />
+        )}
         {pending && (
           <BookingActionButton
             disabled={Boolean(activeAction)}
@@ -930,15 +974,16 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           />
         )}
         <BookingActionButton
-          disabled={
-            Boolean(activeAction) ||
-            (canJoinRemoteSession && !sessionAvailability.canJoin)
-          }
+          disabled={Boolean(activeAction)}
           icon="arrow-right"
           label={primaryLabel}
           loading={Boolean(activeAction && activeAction !== 'rejected')}
           onPress={handlePrimary}
-          style={styles.primaryButton}
+          style={[
+            styles.primaryButton,
+            canJoinRemoteSession && styles.manageButton,
+          ]}
+          variant={canJoinRemoteSession ? 'secondary' : 'primary'}
         />
       </View>
     </SafeAreaView>
@@ -1175,6 +1220,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: BookingColors.border,
     backgroundColor: BookingColors.surface,
+  },
+  sessionActionBar: {
+    minHeight: 128,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 8,
+  },
+  sessionButton: {
+    width: '100%',
+  },
+  manageButton: {
+    width: '100%',
   },
   secondaryButton: {
     height: 52,

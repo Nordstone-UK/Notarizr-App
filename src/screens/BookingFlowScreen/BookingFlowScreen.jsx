@@ -35,6 +35,7 @@ import {getBookingDisplayId} from '../../utils/bookingPresentation';
 const ADDITIONAL_SIGNATURE_PRICE = 10;
 const PRINT_COPY_PRICE = 5;
 const DOCUMENT_NOTARIZATION_PRICE = 99.99;
+const NOTARIZER_PLATFORM_FEE = 10;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const getMinimumBookingDate = () => {
   const date = new Date();
@@ -732,7 +733,8 @@ function ReviewStep({
           documentsUnknown={isMobile && uploadedDocumentsCount === 0}
           printingCharge={printingCharge}
           printingCopies={printCopies}
-          serviceLabel={serviceName}
+          platformFee={NOTARIZER_PLATFORM_FEE}
+          serviceLabel="Notarizer Platform Fee"
           total={price}
         />
         <View style={styles.paymentNotice}>
@@ -883,7 +885,11 @@ export default function BookingFlowScreen({navigation, route}) {
     additionalSignatures * ADDITIONAL_SIGNATURE_PRICE;
   const printingCharge =
     isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
-  const price = documentCharge + additionalSignatureCharge + printingCharge;
+  const price =
+    documentCharge +
+    NOTARIZER_PLATFORM_FEE +
+    additionalSignatureCharge +
+    printingCharge;
   const totalSteps = 3;
   const stepOneValid =
     Boolean(selectedDate && selectedTime && (!isMobile || selectedAddress)) &&

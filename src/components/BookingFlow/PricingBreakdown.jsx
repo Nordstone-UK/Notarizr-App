@@ -38,6 +38,7 @@ export default function PricingBreakdown({
   initiallyExpanded = false,
   printingCharge = 0,
   printingCopies = 0,
+  platformFee,
   serviceLabel = 'Notary service',
   showServiceCharge = true,
   style,
@@ -46,14 +47,21 @@ export default function PricingBreakdown({
   const [expanded, setExpanded] = useState(initiallyExpanded);
   const showUnknownDocumentPricing =
     documentsUnknown && Number(documentCharge) <= 0;
-  const displayTotal = showUnknownDocumentPricing ? perDocumentRate : total;
-  const serviceCharge = Math.max(
+  const inferredServiceCharge = Math.max(
     0,
     Number(total || 0) -
       Number(documentCharge || 0) -
       Number(additionalSignatures || 0) -
       Number(printingCharge || 0),
   );
+  const serviceCharge =
+    platformFee == null ? inferredServiceCharge : Number(platformFee || 0);
+  const displayTotal = showUnknownDocumentPricing
+    ? Number(perDocumentRate || 0) +
+      serviceCharge +
+      Number(additionalSignatures || 0) +
+      Number(printingCharge || 0)
+    : total;
   const rows = useMemo(() => {
     const costRows = [];
     if (showUnknownDocumentPricing) {

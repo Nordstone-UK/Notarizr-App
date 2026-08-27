@@ -55,6 +55,17 @@ export default function AgentManageBookingScreen({navigation, route}) {
     booking?.identity_authentication || 'client_choose',
   );
   const [saving, setSaving] = useState(false);
+  const clientInstructions = useMemo(
+    () =>
+      booking?.notes ||
+      booking?.instructions ||
+      booking?.special_instructions ||
+      booking?.booking_notes ||
+      booking?.booked_for?.notes ||
+      booking?.booked_for?.instructions ||
+      'No additional instructions provided.',
+    [booking],
+  );
 
   const addObserver = user => {
     const normalized = getObserverPhone(user);
@@ -134,6 +145,27 @@ export default function AgentManageBookingScreen({navigation, route}) {
             Invite observers and choose how the client will verify their
             identity.
           </Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeading}>
+            <View style={styles.sectionIcon}>
+              <Feather
+                name="align-left"
+                size={18}
+                color={BookingColors.primary}
+              />
+            </View>
+            <View style={styles.sectionCopy}>
+              <Text style={styles.sectionTitle}>Client instructions</Text>
+              <Text style={styles.sectionSubtitle}>
+                Notes supplied with this booking request.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.instructionsBox}>
+            <Text style={styles.instructionsText}>{clientInstructions}</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -323,6 +355,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 16,
+  },
+  instructionsBox: {
+    marginTop: 14,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 8,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
+  instructionsText: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 19,
   },
   emailRow: {flexDirection: 'row', marginTop: 16},
   input: {

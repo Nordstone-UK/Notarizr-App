@@ -82,7 +82,7 @@ export default function BookingDetailsPreview({booking, navigation}) {
   const serviceType = getBookingServiceType(booking);
   const service =
     serviceType === 'mobile_notary' ? 'Mobile notary' : 'Remote online notary';
-  const totalPrice = Number(booking.price || booking.totalPrice || 0);
+  const storedTotalPrice = Number(booking.price || booking.totalPrice || 0);
   const additionalSignatures = Number(
     booking.total_signatures_required || booking.totalSignaturesRequired || 0,
   );
@@ -95,24 +95,54 @@ export default function BookingDetailsPreview({booking, navigation}) {
   const printingCharge = Number(
     booking.printingCharge ?? (printCopies ? printCopies * 5 : 0),
   );
-  const listedDocumentCharge = Array.isArray(booking.document_type)
-    ? booking.document_type.reduce(
-        (total, document) => total + Number(document?.price || 0),
-        0,
-      )
-    : 0;
+  const documentCount = Math.max(
+    Array.isArray(booking.document_type) ? booking.document_type.length : 0,
+    Array.isArray(booking.documents) ? booking.documents.length : 0,
+  );
+  const platformFee = Number(
+    booking.notarizer_platform_fee ?? booking.platform_fee ?? 10,
+  );
   const documentCharge = Number(
     booking.documentCharge ??
-      (totalPrice
-        ? Math.max(0, totalPrice - additionalSignatureCharge - printingCharge)
-        : listedDocumentCharge),
+      (documentCount > 0
+        ? documentCount * 99.99
+        : Math.max(
+            0,
+            storedTotalPrice -
+              platformFee -
+              additionalSignatureCharge -
+              printingCharge,
+          )),
   );
+  const calculatedTotalPrice =
+    documentCharge + platformFee + additionalSignatureCharge + printingCharge;
+  const totalPrice =
+    calculatedTotalPrice > 0 ? calculatedTotalPrice : storedTotalPrice;
+  const normalizedStatus = String(booking.status || '').toLowerCase();
+  const paymentConfirmed =
+    ['paid', 'payment_confirmed', 'ongoing', 'completed'].includes(
+      normalizedStatus,
+    ) ||
+    ['paid', 'succeeded'].includes(
+      String(booking.payment_status || '').toLowerCase(),
+    ) ||
+    booking.is_paid === true;
   const paymentLabel =
-    booking.status === 'rejected'
+    normalizedStatus === 'rejected'
       ? 'No charge'
-      : booking.status === 'pending'
+      : paymentConfirmed
+      ? 'Paid securely'
+      : normalizedStatus === 'pending'
       ? 'Due after confirmation'
-      : 'Paid securely';
+      : 'Payment pending';
+  const bookingInstructions =
+    booking.notes ||
+    booking.instructions ||
+    booking.special_instructions ||
+    booking.booking_notes ||
+    booking.booked_for?.notes ||
+    booking.booked_for?.instructions ||
+    'No additional instructions provided.';
   const primaryLabel =
     booking.status === 'accepted'
       ? 'Message notary'
@@ -257,7 +287,7 @@ export default function BookingDetailsPreview({booking, navigation}) {
             icon="info"
             label="Instructions"
             last
-            value={booking.notes || 'No additional instructions provided.'}
+            value={bookingInstructions}
           />
         </Section>
 
@@ -268,15 +298,13 @@ export default function BookingDetailsPreview({booking, navigation}) {
             additionalSignatureCount={additionalSignatures}
             additionalSignatures={additionalSignatureCharge}
             documentCharge={documentCharge}
-            documentCount={
-              Array.isArray(booking.document_type)
-                ? booking.document_type.length
-                : 0
-            }
+            documentCount={documentCount}
             documentLabel={documentLabel}
+            paid={paymentConfirmed}
             printingCharge={printingCharge}
             printingCopies={printCopies}
-            serviceLabel={service}
+            platformFee={platformFee}
+            serviceLabel="Notarizer Platform Fee"
             style={styles.detailsPricing}
             total={totalPrice}
           />

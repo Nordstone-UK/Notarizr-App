@@ -253,6 +253,7 @@ export default function ClientBookingDetailsView({
   );
   const uploadedFiles = useMemo(() => getUploadedFiles(booking), [booking]);
   const hasUploadedFiles = uploadedFiles.length > 0;
+  const documentCount = Math.max(documents.length, uploadedFiles.length);
   const additionalSignatures = Math.max(
     0,
     Number(booking?.total_signatures_required || 0),
@@ -268,16 +269,34 @@ export default function ClientBookingDetailsView({
   const printingCharge = Number(
     booking?.printingCharge ?? (printCopies > 0 ? printCopies * 5 : 0),
   );
-  const listedDocumentCharge = documents.reduce(
-    (total, document) => total + Number(document?.price || 0),
-    0,
+  const storedTotalPrice = Number(booking?.totalPrice ?? booking?.price ?? 0);
+  const platformFee = Number(
+    booking?.notarizer_platform_fee ?? booking?.platform_fee ?? 10,
   );
-  const totalPrice = Number(booking?.totalPrice ?? booking?.price ?? 0);
   const documentCharge = Number(
     booking?.documentCharge ??
-      (listedDocumentCharge ||
-        Math.max(0, totalPrice - additionalSignatureCharge - printingCharge)),
+      (documentCount > 0
+        ? documentCount * 99.99
+        : Math.max(
+            0,
+            storedTotalPrice -
+              platformFee -
+              additionalSignatureCharge -
+              printingCharge,
+          )),
   );
+  const calculatedTotalPrice =
+    documentCharge + platformFee + additionalSignatureCharge + printingCharge;
+  const totalPrice =
+    calculatedTotalPrice > 0 ? calculatedTotalPrice : storedTotalPrice;
+  const bookingInstructions =
+    booking?.notes ||
+    booking?.instructions ||
+    booking?.special_instructions ||
+    booking?.booking_notes ||
+    booking?.booked_for?.notes ||
+    booking?.booked_for?.instructions ||
+    'No additional instructions provided.';
   const location = getBookingLocation(booking);
   const sessionAvailability = useMemo(
     () =>
@@ -575,14 +594,12 @@ export default function ClientBookingDetailsView({
               }
             />
           ) : null}
-          {booking?.notes ? (
-            <InfoRow
-              icon="align-left"
-              label="Instructions"
-              last
-              value={booking.notes}
-            />
-          ) : null}
+          <InfoRow
+            icon="align-left"
+            label="Instructions"
+            last
+            value={bookingInstructions}
+          />
         </Section>
 
         <Section title="Verification">
@@ -598,15 +615,15 @@ export default function ClientBookingDetailsView({
           additionalSignatureCount={additionalSignatures}
           additionalSignatures={additionalSignatureCharge}
           documentCharge={documentCharge}
-          documentCount={documents.length}
+          documentCount={documentCount}
           documentLabel={
             documents.length > 1 ? 'Notarized documents' : documents[0]?.name
           }
           printingCharge={printingCharge}
           printingCopies={printCopies}
           paid={paymentConfirmed}
-          serviceLabel={serviceName}
-          showServiceCharge={false}
+          platformFee={platformFee}
+          serviceLabel="Notarizer Platform Fee"
           style={styles.pricingSection}
           total={totalPrice}
         />
