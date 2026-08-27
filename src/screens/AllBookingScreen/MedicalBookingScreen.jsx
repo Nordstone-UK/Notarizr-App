@@ -738,13 +738,36 @@ function LiveMedicalBookingScreen({route, navigation}) {
     );
   };
   const handleDownloadDocuments = () => {
-    const downloadableDocuments =
+    const notarizedOrAgentDocs =
       bookingDetail?.notarized_docs?.length > 0
         ? bookingDetail.notarized_docs
-        : bookingDetail?.agent_document;
+        : bookingDetail?.agent_document?.length > 0
+        ? bookingDetail.agent_document
+        : null;
 
-    if (downloadableDocuments?.length > 0) {
-      handleNotarizrDocumentPress(downloadableDocuments, 'completedDocuments');
+    if (notarizedOrAgentDocs?.length > 0) {
+      handleNotarizrDocumentPress(notarizedOrAgentDocs, 'completedDocuments');
+      return;
+    }
+
+    // The notary hasn't attached a stamped copy yet — fall back to what the
+    // client uploaded themselves rather than leaving the button stuck on
+    // "Documents processing" with nothing actually downloadable.
+    const uploadedDocs = [
+      ...(Array.isArray(bookingDetail?.documents)
+        ? bookingDetail.documents
+        : bookingDetail?.documents &&
+          typeof bookingDetail.documents === 'object'
+        ? Object.values(bookingDetail.documents)
+        : []),
+      ...(bookingDetail?.client_documents &&
+      typeof bookingDetail.client_documents === 'object'
+        ? Object.values(bookingDetail.client_documents)
+        : []),
+    ];
+
+    if (uploadedDocs.length > 0) {
+      handleNotarizrDocumentPress(uploadedDocs, 'completedDocuments');
     }
   };
   // Downloads a single completed document, tracked by its own URL so each

@@ -133,7 +133,19 @@ const getUploadedFiles = booking => {
 
   return [...fromDocuments, ...fromClientDocuments]
     .map(item => (typeof item === 'string' ? {url: item} : item))
-    .filter(item => item?.url || item?.uri);
+    .map(item => ({...item, url: item?.url || item?.uri}))
+    .filter(item => item?.url);
+};
+
+// Uploaded files don't always carry a friendly name — fall back to the
+// filename in the URL, then a generic label, so the row is never blank.
+const getFileNameFromUrl = (url, index) => {
+  try {
+    const fileName = decodeURIComponent(String(url).split('/').pop() || '');
+    return fileName || `Uploaded document ${index + 1}`;
+  } catch {
+    return `Uploaded document ${index + 1}`;
+  }
 };
 
 // Once a session is completed the notary's finished, stamped copies (or the
@@ -198,15 +210,18 @@ function InfoRow({icon, label, last, value}) {
   );
 }
 
-function DocumentRow({downloading, last, name, onDownload, onView}) {
+function DocumentRow({downloading, label, last, name, onDownload, onView}) {
   return (
     <View style={[styles.documentRow, last && styles.infoRowLast]}>
       <View style={styles.infoIcon}>
         <Feather name="file-text" size={17} color={BookingColors.primary} />
       </View>
-      <Text numberOfLines={1} style={styles.documentName}>
-        {name}
-      </Text>
+      <View style={styles.documentCopy}>
+        {label ? <Text style={styles.infoLabel}>{label}</Text> : null}
+        <Text numberOfLines={1} style={styles.documentName}>
+          {name}
+        </Text>
+      </View>
       <TouchableOpacity
         accessibilityLabel={`View ${name}`}
         activeOpacity={0.72}
@@ -307,6 +322,10 @@ export default function ClientBookingDetailsView({
     () => getDocumentList(booking, isMobile),
     [booking, isMobile],
   );
+  // getDocumentList falls back to a "not provided" placeholder when there's
+  // no real document_type data — that placeholder must never be paired with
+  // an actual uploaded file below, or it'd wear a misleading label.
+  const hasRealDocumentTypes = Boolean(booking?.document_type);
   const uploadedFiles = useMemo(() => getUploadedFiles(booking), [booking]);
   const hasUploadedFiles = uploadedFiles.length > 0;
   const completedFiles = useMemo(() => getCompletedFiles(booking), [booking]);
@@ -379,8 +398,15 @@ export default function ClientBookingDetailsView({
       ? 'Passport'
       : 'You can choose during verification';
   const reference = getBookingDisplayId(booking);
+  // "Documents processing" should only show while there's truly nothing to
+  // download yet. The notarized/agent copies are the ideal source, but the
+  // client's own uploaded files are just as downloadable in the meantime —
+  // don't leave the button stuck disabled just because the notary hasn't
+  // attached a stamped copy.
   const hasDownload = Boolean(
-    booking?.notarized_docs?.length || booking?.agent_document?.length,
+    booking?.notarized_docs?.length ||
+      booking?.agent_document?.length ||
+      hasUploadedFiles,
   );
 
   const openPaymentMethods = async () => {
@@ -620,27 +646,53 @@ export default function ClientBookingDetailsView({
         </Section>
 
         <Section title="Notary Request">
-          {documents.map((document, index) => (
+          {documents.map((document, index) => {
+            const file = hasRealDocumentTypes ? uploadedFiles[index] : null;
+            const label =
+              index === 0 ? 'Document type' : `Document ${index + 1}`;
+
+            return file ? (
+              <DocumentRow
+                downloading={Boolean(documentDownloadState[file.url])}
+                key={file.url}
+                label={label}
+                name={document?.name || getFileNameFromUrl(file.url, index)}
+                onDownload={() => onDownloadDocument?.(file.url)}
+                onView={() => onViewDocument?.(file.url)}
+              />
+            ) : (
+              <InfoRow
+                icon="file-text"
+                key={`${document?.name || 'document'}-${index}`}
+                label={label}
+                value={document?.name || 'Notary document'}
+              />
+            );
+          })}
+          {/* Any uploaded file beyond the selected document types still
+              needs its own view/download controls. */}
+          {uploadedFiles
+            .slice(hasRealDocumentTypes ? documents.length : 0)
+            .map((file, index) => (
+              <DocumentRow
+                downloading={Boolean(documentDownloadState[file.url])}
+                key={file.url}
+                name={getFileNameFromUrl(file.url, index)}
+                onDownload={() => onDownloadDocument?.(file.url)}
+                onView={() => onViewDocument?.(file.url)}
+              />
+            ))}
+          {!hasUploadedFiles ? (
             <InfoRow
-              icon="file-text"
-              key={`${document?.name || 'document'}-${index}`}
-              label={index === 0 ? 'Document type' : `Document ${index + 1}`}
-              value={document?.name || 'Notary document'}
+              icon="upload-cloud"
+              label="Uploaded files"
+              value={
+                isMobile
+                  ? 'None yet — bring it or upload before your appointment'
+                  : 'None yet — upload before your session'
+              }
             />
-          ))}
-          <InfoRow
-            icon={hasUploadedFiles ? 'check-circle' : 'upload-cloud'}
-            label="Uploaded files"
-            value={
-              hasUploadedFiles
-                ? `${uploadedFiles.length} file${
-                    uploadedFiles.length === 1 ? '' : 's'
-                  } attached`
-                : isMobile
-                ? 'None yet — bring it or upload before your appointment'
-                : 'None yet — upload before your session'
-            }
-          />
+          ) : null}
           <InfoRow
             icon="edit-3"
             label="Additional signatures"
@@ -992,10 +1044,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: BookingColors.border,
   },
-  documentName: {
+  documentCopy: {
     flex: 1,
     minWidth: 0,
     marginLeft: 11,
+    paddingVertical: 10,
+  },
+  documentName: {
+    marginTop: 2,
     color: BookingColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 12,
