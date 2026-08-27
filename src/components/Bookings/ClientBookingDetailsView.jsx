@@ -4,6 +4,7 @@ import {
   Image,
   Modal,
   Pressable,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -48,6 +49,12 @@ const STATUS_CONFIG = {
     color: BookingColors.error,
     icon: 'x-circle',
     label: 'Cancelled',
+  },
+  expired: {
+    background: BookingColors.errorSoft,
+    color: BookingColors.error,
+    icon: 'clock',
+    label: 'Expired',
   },
   travelling: {
     background: BookingColors.infoSoft,
@@ -129,6 +136,19 @@ const getUploadedFiles = booking => {
     .filter(item => item?.url || item?.uri);
 };
 
+// Once a session is completed the notary's finished, stamped copies (or the
+// agent's uploaded copies as a fallback) become downloadable. Each entry
+// gets its own view/download controls rather than one bulk action.
+const getCompletedFiles = booking => {
+  const source = booking?.notarized_docs?.length
+    ? booking.notarized_docs
+    : booking?.agent_document || [];
+
+  return (Array.isArray(source) ? source : [])
+    .map(item => (typeof item === 'string' ? {url: item} : item))
+    .filter(item => item?.url);
+};
+
 const getDocumentList = (booking, isMobile) => {
   const value = booking?.document_type;
   if (Array.isArray(value)) {
@@ -178,6 +198,38 @@ function InfoRow({icon, label, last, value}) {
   );
 }
 
+function DocumentRow({downloading, last, name, onDownload, onView}) {
+  return (
+    <View style={[styles.documentRow, last && styles.infoRowLast]}>
+      <View style={styles.infoIcon}>
+        <Feather name="file-text" size={17} color={BookingColors.primary} />
+      </View>
+      <Text numberOfLines={1} style={styles.documentName}>
+        {name}
+      </Text>
+      <TouchableOpacity
+        accessibilityLabel={`View ${name}`}
+        activeOpacity={0.72}
+        onPress={onView}
+        style={styles.documentActionButton}>
+        <Feather name="eye" size={16} color={BookingColors.textPrimary} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityLabel={`Download ${name}`}
+        activeOpacity={0.72}
+        disabled={downloading}
+        onPress={onDownload}
+        style={[styles.documentActionButton, styles.documentDownloadButton]}>
+        {downloading ? (
+          <ActivityIndicator color={BookingColors.primary} size="small" />
+        ) : (
+          <Feather name="download" size={16} color={BookingColors.primary} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function Section({children, title}) {
   return (
     <View style={styles.section}>
@@ -220,11 +272,13 @@ function ActionButton({disabled, icon, label, onPress, secondary}) {
 export default function ClientBookingDetailsView({
   allowEarlySessionAccess = false,
   booking,
+  documentDownloadState = {},
   loading,
   onBack,
   onBookAgain,
   onCancel,
   onDownload,
+  onDownloadDocument,
   onHelp,
   onJoin,
   onMessage,
@@ -232,6 +286,8 @@ export default function ClientBookingDetailsView({
   onPay,
   onRefresh,
   onTrack,
+  onViewDocument,
+  refreshing = false,
   status: statusValue,
 }) {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
@@ -253,6 +309,7 @@ export default function ClientBookingDetailsView({
   );
   const uploadedFiles = useMemo(() => getUploadedFiles(booking), [booking]);
   const hasUploadedFiles = uploadedFiles.length > 0;
+  const completedFiles = useMemo(() => getCompletedFiles(booking), [booking]);
   const documentCount = Math.max(documents.length, uploadedFiles.length);
   const additionalSignatures = Math.max(
     0,
@@ -363,7 +420,7 @@ export default function ClientBookingDetailsView({
       );
     }
 
-    if (statusKey === 'cancelled') {
+    if (statusKey === 'cancelled' || statusKey === 'expired') {
       return (
         <ActionButton
           icon="arrow-right"
@@ -468,8 +525,14 @@ export default function ClientBookingDetailsView({
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        onRefresh={onRefresh}
-        refreshing={Boolean(loading)}
+        refreshControl={
+          <RefreshControl
+            colors={[BookingColors.primary]}
+            onRefresh={onRefresh}
+            refreshing={Boolean(refreshing)}
+            tintColor={BookingColors.primary}
+          />
+        }
         showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <View
@@ -492,6 +555,8 @@ export default function ClientBookingDetailsView({
               ? 'This appointment has been completed.'
               : statusKey === 'cancelled'
               ? 'This booking is no longer active.'
+              : statusKey === 'expired'
+              ? 'This session window has expired.'
               : statusKey === 'pending'
               ? 'We are confirming your notary and appointment.'
               : statusKey === 'to_be_paid'
@@ -610,6 +675,21 @@ export default function ClientBookingDetailsView({
             value={identity}
           />
         </Section>
+
+        {statusKey === 'completed' && completedFiles.length > 0 ? (
+          <Section title="Notarized documents">
+            {completedFiles.map((file, index) => (
+              <DocumentRow
+                downloading={Boolean(documentDownloadState[file.url])}
+                key={file.url}
+                last={index === completedFiles.length - 1}
+                name={file.name || `Notarized document ${index + 1}`}
+                onDownload={() => onDownloadDocument?.(file.url)}
+                onView={() => onViewDocument?.(file.url)}
+              />
+            ))}
+          </Section>
+        ) : null}
 
         <PricingBreakdown
           additionalSignatureCount={additionalSignatures}
@@ -903,6 +983,37 @@ const styles = StyleSheet.create({
     color: BookingColors.textMuted,
     fontFamily: 'Manrope-Regular',
     fontSize: 9,
+  },
+  documentRow: {
+    minHeight: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  documentName: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 11,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+  },
+  documentActionButton: {
+    width: 34,
+    height: 34,
+    marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 8,
+    backgroundColor: BookingColors.backgroundSubtle,
+  },
+  documentDownloadButton: {
+    borderColor: '#F6D7C6',
+    backgroundColor: BookingColors.primarySoft,
   },
   infoValue: {
     marginTop: 2,

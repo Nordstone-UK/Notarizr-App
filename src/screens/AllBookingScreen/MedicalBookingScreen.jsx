@@ -340,13 +340,49 @@ function LiveMedicalBookingScreen({route, navigation}) {
     bottomSheetModalRef.current?.dismiss();
   };
 
-  const onRefresh = React.useCallback(() => {
+  // Pull-to-refresh re-fetches the *entire* booking/session record (not just
+  // the status string) so everything on screen — price, documents, agent,
+  // address, observers — is brought back up to date, not only the badge.
+  const refreshBookingDetails = React.useCallback(async () => {
+    if (!bookingDetail?._id) {
+      return;
+    }
     setRefreshing(true);
-    getBookingStatus();
-    setTimeout(() => {
+    try {
+      if (bookingDetail?.__typename === 'Session') {
+        const response = await getSession({
+          variables: {sessionId: bookingDetail._id},
+        });
+        const session = response?.data?.getSession?.session;
+        if (session) {
+          dispatch(setBookingInfoState(session));
+          setStatus(capitalizeFirstLetter(session.status));
+        }
+      } else {
+        const response = await fetchBookingByID(bookingDetail._id);
+        const booking = response?.getBookingById?.booking;
+        if (booking) {
+          dispatch(setBookingInfoState(booking));
+          setStatus(capitalizeFirstLetter(booking.status));
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing booking details:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Could not refresh',
+        text2: 'Check your connection and try again.',
+      });
+    } finally {
       setRefreshing(false);
-    }, 2000);
-  }, []);
+    }
+  }, [
+    bookingDetail?._id,
+    bookingDetail?.__typename,
+    dispatch,
+    getSession,
+    fetchBookingByID,
+  ]);
   const showConfirmation = () => {
     Alert.alert('Is the agent at the location?', '', [
       {
@@ -711,6 +747,72 @@ function LiveMedicalBookingScreen({route, navigation}) {
       handleNotarizrDocumentPress(downloadableDocuments, 'completedDocuments');
     }
   };
+  // Downloads a single completed document, tracked by its own URL so each
+  // row in the "Notarized documents" list gets its own spinner instead of
+  // all of them lighting up together like the bulk download does.
+  const handleDownloadSingleDocument = async documentUri => {
+    if (!documentUri) {
+      return;
+    }
+    try {
+      setLoadingStates(prev => ({...prev, [documentUri]: true}));
+      Toast.show({
+        type: 'info',
+        text1: 'Download Starting',
+        text2: 'Preparing to download document...',
+      });
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        Toast.show({
+          type: 'error',
+          text1: 'Permission Denied',
+          text2: 'Storage permission is required to download files.',
+        });
+        return;
+      }
+
+      const downloadDirExists = await checkDownloadDirectory();
+      if (!downloadDirExists) {
+        Toast.show({
+          type: 'error',
+          text1: 'Download Directory Not Found',
+          text2: 'The download directory does not exist or is not accessible.',
+        });
+        return;
+      }
+
+      const fileName = decodeURIComponent(documentUri.split('/').pop());
+      const dirs = ReactNativeBlobUtil.fs.dirs;
+      const downloadPath = `${dirs.DownloadDir}/${fileName}`;
+      const result = await ReactNativeBlobUtil.config({
+        fileCache: true,
+        path: downloadPath,
+      }).fetch('GET', documentUri);
+
+      if (result.info().status === 200) {
+        Toast.show({
+          type: 'success',
+          text1: 'Download Successful',
+          text2: `File downloaded to ${downloadPath}`,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Download Failed',
+          text2: `Failed to download the file ${fileName}.`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Download Error',
+        text2: 'An error occurred while downloading the file.',
+      });
+    } finally {
+      setLoadingStates(prev => ({...prev, [documentUri]: false}));
+    }
+  };
   const handleBookAgain = () => {
     navigation.navigate('HomeScreen', {screen: 'Home'});
   };
@@ -720,23 +822,27 @@ function LiveMedicalBookingScreen({route, navigation}) {
     <ClientBookingDetailsView
       allowEarlySessionAccess={allowEarlySessionAccess}
       booking={bookingDetail}
-      loading={loading || refreshing}
+      loading={loading}
       onBack={() =>
         goBackOrNavigate(navigation, 'HomeScreen', {
           screen: 'AllBookingScreen',
         })
       }
+      documentDownloadState={loadingStates}
       onBookAgain={handleBookAgain}
       onCancel={handleCancelBooking}
       onDownload={handleDownloadDocuments}
+      onDownloadDocument={handleDownloadSingleDocument}
       onHelp={handleCallSupport}
       onJoin={handleJoinSession}
       onMessage={handleOpenMessages}
       onAddCard={() => navigation.navigate('AddCardScreen')}
       onPay={handleMakePayment}
-      onRefresh={getBookingStatus}
+      onRefresh={refreshBookingDetails}
       onTrack={() => handleAddressPress(bookedByAddress?.location_coordinates)}
       onUpload={selectDocuments}
+      onViewDocument={handleDocumentPress}
+      refreshing={refreshing}
       status={status || bookingDetail?.status}
     />
   );
@@ -774,7 +880,10 @@ function LiveMedicalBookingScreen({route, navigation}) {
         <ScrollView
           scrollEnabled={true}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refreshBookingDetails}
+            />
           }>
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}> </Text>
