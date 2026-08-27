@@ -37,6 +37,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import PdfView from 'react-native-pdf';
 
 import RNPickerSelect from 'react-native-picker-select';
+import { CommonActions } from '@react-navigation/native';
 import { useLiveblocks } from '../../store/liveblocks';
 const appId = 'f64e76f674b646bc965dc3e257b4e108';
 
@@ -1593,9 +1594,34 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       return;
     }
 
-    navigation.replace('ClientDetailsScreen', {
-      clientDetail: bookingData,
-    });
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          {
+            name: 'HomeScreen',
+            params: {screen: 'BookScreen'},
+            state: {
+              routes: [
+                {name: 'Home'},
+                {name: 'AllBookingScreen'},
+                {name: 'BookScreen'},
+                {name: 'ChatContactScreen'},
+                {name: 'ProfileInfoScreen'},
+              ],
+              index: 2,
+            },
+          },
+          {
+            name: 'ClientDetailsScreen',
+            params: {
+              clientDetail: bookingData,
+              fromCompletedSession: true,
+            },
+          },
+        ],
+      }),
+    );
   }, [bookingData, isClient, leaveRoom, navigation]);
   function showMessage(msg: string) {
     console.log(msg);

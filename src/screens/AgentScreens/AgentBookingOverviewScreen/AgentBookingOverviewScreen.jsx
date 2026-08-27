@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   LayoutAnimation,
   Linking,
   PermissionsAndroid,
@@ -497,8 +498,31 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const storedBooking = useSelector(state => state.booking.booking);
   const authenticatedAgent = useSelector(state => state.user.user);
   const incomingBooking = route.params?.clientDetail || storedBooking;
+  const fromCompletedSession = Boolean(route.params?.fromCompletedSession);
   const [liveBooking, setLiveBooking] = useState(incomingBooking);
   const booking = liveBooking || incomingBooking;
+
+  const handleBack = useCallback(() => {
+    if (fromCompletedSession) {
+      navigation.navigate('HomeScreen', {screen: 'BookScreen'});
+      return;
+    }
+    navigation.goBack();
+  }, [fromCompletedSession, navigation]);
+
+  useEffect(() => {
+    if (!fromCompletedSession) {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        handleBack();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [fromCompletedSession, handleBack]);
 
   const normalized = useMemo(() => normalizeAgentBooking(booking), [booking]);
   const client = getBookingClient(booking);
@@ -906,7 +930,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ProfileScreenHeader
-          onBack={() => navigation.goBack()}
+          onBack={handleBack}
           title="Booking details"
         />
         <View style={styles.missingState}>
@@ -926,7 +950,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       <ProfileScreenHeader
         actionLabel="Help"
         onAction={handleCallSupport}
-        onBack={() => navigation.goBack()}
+        onBack={handleBack}
         title={isAllocation ? 'Allocation details' : 'Booking details'}
       />
       <ScrollView
