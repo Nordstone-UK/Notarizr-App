@@ -19,11 +19,11 @@ export default function PhoneVerification({route, navigation}) {
   const [resendloading, setresendLoading] = useState(false);
 
   const verifyOTP = async () => {
-    if (otp.length !== 6) {
+    if (otp.length !== 4) {
       Toast.show({
         type: 'warning',
         text1: 'Enter the complete code',
-        text2: 'The verification code contains six digits.',
+        text2: 'The verification code contains four digits.',
       });
       return;
     }
