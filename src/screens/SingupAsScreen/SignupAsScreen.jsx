@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {
-  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -80,12 +79,6 @@ export default function SignupAsScreen({navigation}) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-        <Image
-          source={require('../../../assets/notarizrLogo1.png')}
-          resizeMode="contain"
-          style={styles.logo}
-        />
-
         <View style={styles.intro}>
           <Text style={styles.eyebrow}>CHOOSE YOUR ACCOUNT</Text>
           <Text style={styles.heading}>How will you use Notarizr?</Text>
@@ -136,13 +129,8 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 32,
   },
-  logo: {
-    width: 230,
-    height: 58,
-    alignSelf: 'center',
-  },
   intro: {
-    marginTop: 22,
+    marginTop: 8,
     marginBottom: 22,
   },
   eyebrow: {
