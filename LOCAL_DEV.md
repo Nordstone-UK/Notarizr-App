@@ -20,7 +20,8 @@ yarn dev
 
 **Cluster:** MongoDB Atlas — `notarizr.dnjijww.mongodb.net`
 
-All test accounts use OTP **`0000`** (Twilio is bypassed in local dev).
+OTP delivery and verification use Twilio Verify in local development. Configure
+valid Twilio credentials and use the code delivered to the account's phone.
 
 ---
 
@@ -31,7 +32,7 @@ All test accounts use OTP **`0000`** (Twilio is bypassed in local dev).
 | Field | Value |
 |---|---|
 | Phone | `+919600395864` |
-| OTP | `0000` |
+| OTP | Code delivered by Twilio Verify |
 | Email | `maya.local@notarizr.test` |
 | Account type | `individual-agent` |
 | Verified | ✅ |
@@ -43,9 +44,9 @@ All test accounts use OTP **`0000`** (Twilio is bypassed in local dev).
 
 | Name | Phone | OTP | Email | Location |
 |---|---|---|---|---|
-| Alex Client | `+12025550147` | `0000` | alex.local@notarizr.test | San Francisco, CA |
-| Jordan Smith | `+12025550200` | `0000` | jordan.local@notarizr.test | Oakland, CA |
-| Priya Patel | `+12025550300` | `0000` | priya.local@notarizr.test | Palo Alto, CA |
+| Alex Client | `+12025550147` | Twilio Verify | alex.local@notarizr.test | San Francisco, CA |
+| Jordan Smith | `+12025550200` | Twilio Verify | jordan.local@notarizr.test | Oakland, CA |
+| Priya Patel | `+12025550300` | Twilio Verify | priya.local@notarizr.test | Palo Alto, CA |
 
 ---
 
@@ -104,10 +105,11 @@ yarn seed:agent-maya
 
 ## Authentication Flow
 
-All phone/email OTPs are bypassed when `LOCAL_DEVELOPMENT=true` in `.env`.
+All phone/email OTPs are delivered and verified through Twilio Verify. Valid
+Twilio credentials are required even when `LOCAL_DEVELOPMENT=true`.
 
 1. Call `getValidPhoneOtp` or `getPhoneOTP` with any test phone number
-2. Call `verifyPhoneOTP` with OTP `0000`
+2. Call `verifyPhoneOTP` with the code delivered by Twilio Verify
 3. Use the returned `accessToken` as a Bearer token in the `Authorization` header for all subsequent requests
 
 ```

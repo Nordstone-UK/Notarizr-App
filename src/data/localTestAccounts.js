@@ -1,7 +1,5 @@
 const normalizePhone = value => String(value || '').replace(/\D/g, '');
 
-export const LOCAL_TEST_OTP = '0000';
-
 export const LOCAL_TEST_ACCOUNTS = {
   12025550147: {
     _id: 'local-client-alex',

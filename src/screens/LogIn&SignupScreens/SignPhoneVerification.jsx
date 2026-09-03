@@ -37,11 +37,12 @@ export default function SignPhoneVerification({route, navigation}) {
   const totalFields = registerData.accountType === 'client' ? 8 : 12;
 
   const handleOtpVerification = async () => {
-    if (otp.length !== 4) {
+    const isCompleteOtp = otp.length === 4 || otp.length === 6;
+    if (!isCompleteOtp) {
       Toast.show({
         type: 'warning',
         text1: 'Enter the complete code',
-        text2: 'The verification code contains four digits.',
+        text2: 'Enter the four- or six-digit verification code.',
       });
       return;
     }
@@ -76,10 +77,11 @@ export default function SignPhoneVerification({route, navigation}) {
       dispatch(setProgress(filledCount / totalFields));
       navigation.navigate('ProfilePictureScreen');
     } catch (error) {
+      console.error('Signup OTP verification failed:', error);
       Toast.show({
         type: 'error',
         text1: 'Verification failed',
-        text2: 'Something went wrong. Please try again.',
+        text2: error?.message || 'Something went wrong. Please try again.',
       });
     }
   };
@@ -101,10 +103,11 @@ export default function SignPhoneVerification({route, navigation}) {
         text2: `Check ${phoneNumber}`,
       });
     } catch (error) {
+      console.error('Signup OTP resend failed:', error);
       Toast.show({
         type: 'error',
         text1: 'Code not sent',
-        text2: 'Please try again.',
+        text2: error?.message || 'Please try again.',
       });
     }
   };

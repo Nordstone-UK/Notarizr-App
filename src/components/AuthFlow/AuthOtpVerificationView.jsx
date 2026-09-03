@@ -34,7 +34,7 @@ export default function AuthOtpVerificationView({
 
       <Text style={styles.heading}>Verify your phone</Text>
       <Text style={styles.subheading}>
-        Enter the four-digit code sent to{'\n'}
+        Enter the verification code sent to{'\n'}
         <Text style={styles.phoneNumber}>{phoneNumber}</Text>
       </Text>
 

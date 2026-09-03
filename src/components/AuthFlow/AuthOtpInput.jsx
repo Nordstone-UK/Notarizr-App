@@ -1,24 +1,26 @@
 import React, {useRef, useState} from 'react';
 import {Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 
+const OTP_LENGTH = 6;
+
 export default function AuthOtpInput({value = '', onChange, autoFocus = true}) {
   const inputRef = useRef(null);
   const [focused, setFocused] = useState(false);
   const digits = value.split('');
-  const activeIndex = Math.min(value.length, 3);
+  const activeIndex = Math.min(value.length, OTP_LENGTH - 1);
 
   const handleChange = text => {
-    onChange(text.replace(/\D/g, '').slice(0, 4));
+    onChange(text.replace(/\D/g, '').slice(0, OTP_LENGTH));
   };
 
   return (
     <Pressable
-      accessibilityLabel="Four digit verification code"
+      accessibilityLabel="Verification code"
       accessibilityRole="none"
       onPress={() => inputRef.current?.focus()}
       style={styles.container}>
       <View pointerEvents="none" style={styles.fields}>
-        {[0, 1, 2, 3].map(index => (
+        {Array.from({length: OTP_LENGTH}, (_, index) => (
           <View
             key={index}
             style={[
@@ -36,7 +38,7 @@ export default function AuthOtpInput({value = '', onChange, autoFocus = true}) {
         caretHidden
         contextMenuHidden={false}
         keyboardType="number-pad"
-        maxLength={4}
+        maxLength={OTP_LENGTH}
         onBlur={() => setFocused(false)}
         onChangeText={handleChange}
         onFocus={() => setFocused(true)}
@@ -58,16 +60,16 @@ const styles = StyleSheet.create({
   digit: {
     color: '#121826',
     fontFamily: 'Manrope-Bold',
-    fontSize: 22,
+    fontSize: 20,
   },
   field: {
-    width: 58,
-    height: 58,
+    width: 46,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#DDE0E5',
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: '#F8F9FA',
   },
   fields: {

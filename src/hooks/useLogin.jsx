@@ -85,9 +85,9 @@ const useLogin = () => {
       console.error('Error occurred:', error);
     }
   };
-  const handleResendOtp = async email => {
+  const handleResendOtp = async phone => {
     await getPhoneOTP({
-      variables: {email},
+      variables: {phone},
     })
       .then(response => {
         console.log(response.data);

@@ -103,9 +103,11 @@ export default function SignUpDetailScreen({navigation}) {
           text2: 'We encountered a problem please try again',
         });
       } else {
+        const sentTo =
+          response.data.getValidPhoneOtp.phoneNumber || phoneNumber;
         Toast.show({
           type: 'success',
-          text1: `OTP Sent on ${response.data.getValidPhoneOtp.phoneNumber}`,
+          text1: `OTP sent to ${sentTo}`,
           text2: '',
         });
         navigation.navigate('SignPhoneVerification', {
@@ -119,10 +121,11 @@ export default function SignUpDetailScreen({navigation}) {
         });
       }
     } catch (error) {
+      console.error('Signup OTP request failed:', error);
       Toast.show({
         type: 'error',
         text1: 'OTP not sent',
-        text2: 'Please try again.',
+        text2: error?.message || 'Please try again.',
       });
     }
   };
@@ -171,10 +174,11 @@ export default function SignUpDetailScreen({navigation}) {
 
       await handleGetPhoneOtp();
     } catch (error) {
+      console.error('Signup validation failed:', error);
       Toast.show({
         type: 'error',
         text1: 'Unable to continue',
-        text2: 'Please check your details and try again.',
+        text2: error?.message || 'Please check your details and try again.',
       });
     }
   };

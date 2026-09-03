@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import {useMutation} from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
@@ -21,7 +22,7 @@ import {
 } from '../../features/register/registerSlice';
 import useLogin from '../../hooks/useLogin';
 import useRegister from '../../hooks/useRegister';
-import {uriToBlob} from '../../utils/ImagePicker';
+import useFetchUser from '../../hooks/useFetchUser';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
 import {UPDATE_VERIFICATION} from '../../../request/mutations/updateVerification.mutation';
 import AppColors from '../../themes/AppColors';
@@ -63,9 +64,10 @@ export default function AgentVerificationScreen({navigation, route}) {
   const registerData = useSelector(state => state.register);
   const dispatch = useDispatch();
   const {resetStack} = useLogin();
+  const {fetchUserInfo} = useFetchUser();
   const {
-    uploadFiles,
-    uploadFilesToStorage,
+    pickDocumentDetails,
+    uploadDocumentToStorage,
     uploadMedia,
     handleCompression,
     handleRegister,
@@ -102,11 +104,11 @@ export default function AgentVerificationScreen({navigation, route}) {
   };
 
   const selectDocument = async (documentType, setter) => {
-    const uri = await uploadFiles();
-    if (!uri) {
+    const [document] = await pickDocumentDetails(false);
+    if (!document?.uri) {
       return;
     }
-    setter(uri);
+    setter(document);
     markUploaded(documentType);
   };
 
@@ -124,12 +126,35 @@ export default function AgentVerificationScreen({navigation, route}) {
     ]);
   };
 
-  const uploadDocument = async uri => {
-    if (uri.startsWith('https://')) {
+  const uploadDocument = async document => {
+    const uri = typeof document === 'string' ? document : document?.uri;
+    if (!uri) {
+      throw new Error('The selected document is no longer available.');
+    }
+    if (/^https?:\/\//i.test(uri)) {
       return uri;
     }
-    const blob = await uriToBlob(uri);
-    return uploadFilesToStorage(blob);
+    return uploadDocumentToStorage(uri, document?.name, document?.type);
+  };
+
+  const hasMatchingRegisteredAccount = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const registeredUser = await fetchUserInfo();
+      return (
+        registeredUser?.email?.trim().toLowerCase() ===
+          registerData.email?.trim().toLowerCase() &&
+        registeredUser?.phone_number?.trim() ===
+          registerData.phoneNumber?.trim()
+      );
+    } catch (error) {
+      console.error('Unable to resume notary registration:', error);
+      return false;
+    }
   };
 
   const submitVerification = async () => {
@@ -170,13 +195,16 @@ export default function AgentVerificationScreen({navigation, route}) {
         return;
       }
 
-      const isRegistered = await handleRegister({
-        ...registerData,
-        profilePicture: '',
-        certificateUrl: '',
-        photoId: '',
-        notarySeal: '',
-      });
+      const canResumeRegistration = await hasMatchingRegisteredAccount();
+      const isRegistered =
+        canResumeRegistration ||
+        (await handleRegister({
+          ...registerData,
+          profilePicture: '',
+          certificateUrl: '',
+          photoId: '',
+          notarySeal: '',
+        }));
       if (!isRegistered) {
         throw new Error('Registration failed');
       }
@@ -201,10 +229,11 @@ export default function AgentVerificationScreen({navigation, route}) {
       });
       resetStack('signup');
     } catch (error) {
+      console.log(error, 'error');
       Toast.show({
         type: 'error',
         text1: 'Unable to submit documents',
-        text2: 'Check your files and try again.',
+        text2: error?.message || 'Check your files and try again.',
       });
     } finally {
       setLoading(false);
