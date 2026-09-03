@@ -5,20 +5,20 @@ export default function AuthOtpInput({value = '', onChange, autoFocus = true}) {
   const inputRef = useRef(null);
   const [focused, setFocused] = useState(false);
   const digits = value.split('');
-  const activeIndex = Math.min(value.length, 3);
+  const activeIndex = Math.min(value.length, 5);
 
   const handleChange = text => {
-    onChange(text.replace(/\D/g, '').slice(0, 4));
+    onChange(text.replace(/\D/g, '').slice(0, 6));
   };
 
   return (
     <Pressable
-      accessibilityLabel="Four digit verification code"
+      accessibilityLabel="Six digit verification code"
       accessibilityRole="none"
       onPress={() => inputRef.current?.focus()}
       style={styles.container}>
       <View pointerEvents="none" style={styles.fields}>
-        {[0, 1, 2, 3].map(index => (
+        {[0, 1, 2, 3, 4, 5].map(index => (
           <View
             key={index}
             style={[
@@ -36,7 +36,7 @@ export default function AuthOtpInput({value = '', onChange, autoFocus = true}) {
         caretHidden
         contextMenuHidden={false}
         keyboardType="number-pad"
-        maxLength={4}
+        maxLength={6}
         onBlur={() => setFocused(false)}
         onChangeText={handleChange}
         onFocus={() => setFocused(true)}
@@ -58,16 +58,16 @@ const styles = StyleSheet.create({
   digit: {
     color: '#121826',
     fontFamily: 'Manrope-Bold',
-    fontSize: 22,
+    fontSize: 20,
   },
   field: {
-    width: 58,
-    height: 58,
+    width: 46,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#DDE0E5',
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: '#F8F9FA',
   },
   fields: {

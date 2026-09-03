@@ -37,11 +37,11 @@ export default function SignPhoneVerification({route, navigation}) {
   const totalFields = registerData.accountType === 'client' ? 8 : 12;
 
   const handleOtpVerification = async () => {
-    if (otp.length !== 4) {
+    if (otp.length !== 6) {
       Toast.show({
         type: 'warning',
         text1: 'Enter the complete code',
-        text2: 'The verification code contains four digits.',
+        text2: 'The verification code contains six digits.',
       });
       return;
     }
