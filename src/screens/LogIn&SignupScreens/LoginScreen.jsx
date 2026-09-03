@@ -106,13 +106,17 @@ export default function LoginScreen({navigation}) {
   const requestPermissions = async () => {
     try {
       if (Platform.OS === 'android') {
-        // Request location permission
-        const locationPermission = await PermissionsAndroid.request(
+        // Request location permission.
+        // Only request "while in use" here; requesting background location at
+        // login can trigger Android to redirect users to system settings.
+        const fineLocationAlreadyGranted = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
-        const locationPermission14 = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        );
+        const locationPermission = fineLocationAlreadyGranted
+          ? PermissionsAndroid.RESULTS.GRANTED
+          : await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            );
         // Request camera permission
         // const cameraPermission = await PermissionsAndroid.request(
         //   PermissionsAndroid.PERMISSIONS.CAMERA,
@@ -128,13 +132,17 @@ export default function LoginScreen({navigation}) {
         // const NotificationPermission = await PermissionsAndroid.request(
         //   PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
         // );
-        const PhonePermission = await PermissionsAndroid.request(
+        const phonePermissionAlreadyGranted = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.CALL_PHONE,
         );
+        const PhonePermission = phonePermissionAlreadyGranted
+          ? PermissionsAndroid.RESULTS.GRANTED
+          : await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.CALL_PHONE,
+            );
         // Check if permissions are granted
         if (
           locationPermission === PermissionsAndroid.RESULTS.GRANTED &&
-          locationPermission14 === PermissionsAndroid.RESULTS.GRANTED &&
           // cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
           // NotificationPermission === PermissionsAndroid.RESULTS.GRANTED &&
           PhonePermission === PermissionsAndroid.RESULTS.GRANTED
