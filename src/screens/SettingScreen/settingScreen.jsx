@@ -22,6 +22,7 @@ import {DELETE_ACCOUNT} from '../../../request/mutations/deleteAccount.mutation'
 import {UPDATE_ACCOUNT_TYPE} from '../../../request/mutations/updateAccountType.mutation';
 import AppColors from '../../themes/AppColors';
 import {socket} from '../../utils/Socket';
+import {widthToDp} from '../../utils/Responsive';
 
 const ORANGE = AppColors.primary;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
@@ -35,6 +36,18 @@ const DEFAULT_SERVICE_SETTINGS = {
 const getAccountLabel = accountType =>
   accountType === 'client' ? 'Client' : 'Notary';
 
+const getRegisteredNotaryType = user => {
+  const registeredFor = Array.isArray(user?.registered_for)
+    ? user.registered_for
+    : [];
+
+  return (
+    registeredFor.find(type =>
+      ['individual-agent', 'company-agent'].includes(type),
+    ) || 'individual-agent'
+  );
+};
+
 function PreferenceRow({description, icon, last, onChange, title, value}) {
   return (
     <View style={[styles.preferenceRow, last && styles.lastPreferenceRow]}>
@@ -45,13 +58,16 @@ function PreferenceRow({description, icon, last, onChange, title, value}) {
         <Text style={styles.preferenceTitle}>{title}</Text>
         <Text style={styles.preferenceDescription}>{description}</Text>
       </View>
-      <Switch
-        ios_backgroundColor={AppColors.borderStrong}
-        onValueChange={onChange}
-        trackColor={{false: AppColors.borderStrong, true: '#BCE8CF'}}
-        thumbColor={value ? AppColors.success : AppColors.white}
-        value={value}
-      />
+      <View style={styles.preferenceToggle}>
+        <Switch
+          accessibilityLabel={`${title} toggle`}
+          onValueChange={onChange}
+          trackColor={{false: AppColors.borderStrong, true: '#BCE8CF'}}
+          thumbColor={value ? AppColors.success : AppColors.white}
+          value={value}
+          style={{transform: [{scaleX: 0.8}, {scaleY: 0.8}]}}
+        />
+      </View>
     </View>
   );
 }
@@ -79,6 +95,12 @@ export default function SettingScreen({navigation}) {
       .catch(error => console.warn('Service settings could not load:', error));
   }, []);
 
+  useEffect(() => {
+    if (user?.account_type) {
+      setAccountType(user.account_type);
+    }
+  }, [user?.account_type]);
+
   const updateServiceSetting = (key, value) => {
     setServiceSettings(current => {
       const next = {...current, [key]: value};
@@ -95,8 +117,21 @@ export default function SettingScreen({navigation}) {
     });
 
   const finishAccountSwitch = newAccountType => {
+    const currentRegisteredFor = Array.isArray(user?.registered_for)
+      ? user.registered_for
+      : [];
+    const registeredFor = Array.from(
+      new Set([...currentRegisteredFor, newAccountType]),
+    );
+
     setAccountType(newAccountType);
-    dispatch(saveUserInfo({...user, account_type: newAccountType}));
+    dispatch(
+      saveUserInfo({
+        ...user,
+        account_type: newAccountType,
+        registered_for: registeredFor,
+      }),
+    );
   };
 
   const handleAccountTypeUpdate = async newAccountType => {
@@ -138,9 +173,11 @@ export default function SettingScreen({navigation}) {
     );
   };
 
-  const toggleAccountType = () => {
-    const newAccountType =
-      accountType === 'client' ? 'individual-agent' : 'client';
+  const selectAccountType = newAccountType => {
+    if (updatingRole || accountType === newAccountType) {
+      return;
+    }
+
     const registeredFor = Array.isArray(user?.registered_for)
       ? user.registered_for
       : [];
@@ -151,6 +188,7 @@ export default function SettingScreen({navigation}) {
       !registeredFor.includes(newAccountType)
     ) {
       navigation.navigate('AgentVerificationScreen', {
+        user,
         onComplete: () => handleAccountTypeUpdate(newAccountType),
       });
       return;
@@ -212,6 +250,7 @@ export default function SettingScreen({navigation}) {
   }
 
   const isClientMode = accountType === 'client';
+  const notaryAccountType = getRegisteredNotaryType(user);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -261,7 +300,7 @@ export default function SettingScreen({navigation}) {
             <TouchableOpacity
               activeOpacity={0.72}
               disabled={updatingRole || isClientMode}
-              onPress={toggleAccountType}
+              onPress={() => selectAccountType('client')}
               style={[styles.segment, isClientMode && styles.activeSegment]}>
               <Feather
                 name="user-check"
@@ -279,7 +318,7 @@ export default function SettingScreen({navigation}) {
             <TouchableOpacity
               activeOpacity={0.72}
               disabled={updatingRole || !isClientMode}
-              onPress={toggleAccountType}
+              onPress={() => selectAccountType(notaryAccountType)}
               style={[styles.segment, !isClientMode && styles.activeSegment]}>
               <Feather
                 name="briefcase"
@@ -528,7 +567,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
   },
-  preferenceCopy: {flex: 1, marginHorizontal: 11},
+  preferenceCopy: {
+    flex: 1,
+    marginLeft: 11,
+    marginRight: 8,
+    minWidth: 0,
+  },
   preferenceDescription: {
     color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
@@ -562,10 +606,17 @@ const styles = StyleSheet.create({
     borderBottomColor: AppColors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
-    minHeight: 70,
+    minHeight: 76,
     paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   preferenceSection: {marginHorizontal: 16, marginTop: 20},
+  preferenceToggle: {
+    alignItems: 'flex-end',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    width: widthToDp(23),
+  },
   preferenceTitle: {
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',

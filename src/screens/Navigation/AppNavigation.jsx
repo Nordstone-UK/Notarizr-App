@@ -130,6 +130,7 @@ function TabNavigation() {
   if (user.account_type === 'client') {
     return (
       <Tab.Navigator
+        key="client"
         initialRouteName="Home"
         tabBar={tabBar}
         screenOptions={screenOptions}>
@@ -143,6 +144,7 @@ function TabNavigation() {
 
   return (
     <Tab.Navigator
+      key={user.account_type}
       initialRouteName="Home"
       tabBar={tabBar}
       screenOptions={screenOptions}>

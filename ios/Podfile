@@ -92,6 +92,21 @@ post_install do |installer|
   )
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
 
+  # React Native 0.72 ships a prebuilt Hermes framework containing bitcode.
+  # App Store validation rejects that binary when archiving with Xcode 16+.
+  bitcode_strip = `xcrun --find bitcode_strip`.strip
+  hermes_binary = File.join(
+    Pod::Config.instance.installation_root,
+    'Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64/hermes.framework/hermes'
+  )
+
+  if File.exist?(hermes_binary)
+    Pod::UI.puts 'Stripping bitcode from the Hermes iOS framework'
+    unless system(bitcode_strip, hermes_binary, '-r', '-o', hermes_binary)
+      raise 'Failed to strip bitcode from the Hermes iOS framework'
+    end
+  end
+
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'i386'

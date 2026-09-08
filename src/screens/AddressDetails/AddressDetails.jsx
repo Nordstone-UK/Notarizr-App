@@ -18,16 +18,37 @@ import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
 import AppColors from '../../themes/AppColors';
 
+const getSavedAddresses = user => {
+  const addresses = Array.isArray(user?.addresses) ? user.addresses : [];
+  const profileLocation = String(user?.location || '')
+    .trim()
+    .toLowerCase();
+
+  return addresses.filter(address => {
+    const coordinates = address?.location_coordinates;
+    const hasSavedCoordinates =
+      Array.isArray(coordinates) && coordinates.length >= 2;
+    const isSignupDefault =
+      String(address?.tag || '').toLowerCase() === 'home' &&
+      String(address?.location || '')
+        .trim()
+        .toLowerCase() === profileLocation &&
+      !hasSavedCoordinates;
+
+    return !isSignupDefault;
+  });
+};
+
 export default function AddressDetails({navigation}) {
   const user = useSelector(state => state.user.user);
   const dispatch = useDispatch();
   const {fetchUserInfo, handleDeleteAddress} = useFetchUser();
-  const [addresses, setAddresses] = useState(user?.addresses || []);
+  const [addresses, setAddresses] = useState(() => getSavedAddresses(user));
   const previewMode = Boolean(user?.isHomePreview);
 
   useEffect(() => {
-    setAddresses(user?.addresses || []);
-  }, [user?.addresses]);
+    setAddresses(getSavedAddresses(user));
+  }, [user]);
 
   useEffect(() => {
     if (previewMode) {

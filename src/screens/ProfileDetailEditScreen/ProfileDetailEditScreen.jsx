@@ -332,7 +332,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
                 value={email}
               />
               <AuthPhoneField
-                editable={profileEdit}
+                editable={false}
                 label="Phone number"
                 onChangeText={setPhoneNumber}
                 value={phoneNumber}

@@ -25,8 +25,24 @@ import {IS_EMAIL_VALID} from '../../../request/queries/isEmailValid.query';
 import {IS_MOBILENO_VALID} from '../../../request/queries/isPhoneNoValid.query';
 import {GET_VALID_PHONE_OTP} from '../../../request/queries/getValidPhoneOTP.query';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
+import {normalizePhoneNumber} from '../../utils/CountryCode';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const getApiErrorMessage = (resultOrError, fallback) => {
+  const message =
+    resultOrError?.errors?.[0]?.message ||
+    resultOrError?.error?.graphQLErrors?.[0]?.message ||
+    resultOrError?.error?.message ||
+    resultOrError?.graphQLErrors?.[0]?.message ||
+    resultOrError?.networkError?.result?.errors?.[0]?.message ||
+    resultOrError?.networkError?.message ||
+    resultOrError?.message;
+
+  return typeof message === 'string' && message.trim()
+    ? message.trim()
+    : fallback;
+};
 
 export default function SignUpDetailScreen({navigation}) {
   const [firstName, setFirstName] = useState('');
@@ -39,11 +55,17 @@ export default function SignUpDetailScreen({navigation}) {
   const [emailTaken, setEmailTaken] = useState(false);
   const [phoneTaken, setPhoneTaken] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [isEmailValid, {loading: emailLoading}] = useLazyQuery(IS_EMAIL_VALID);
-  const [isMobileNoValid, {loading: phoneValidationLoading}] =
-    useLazyQuery(IS_MOBILENO_VALID);
-  const [getPhoneOtp, {loading: otpLoading}] =
-    useLazyQuery(GET_VALID_PHONE_OTP);
+  const [isEmailValid, {loading: emailLoading}] = useLazyQuery(IS_EMAIL_VALID, {
+    fetchPolicy: 'no-cache',
+  });
+  const [isMobileNoValid, {loading: phoneValidationLoading}] = useLazyQuery(
+    IS_MOBILENO_VALID,
+    {fetchPolicy: 'no-cache'},
+  );
+  const [getPhoneOtp, {loading: otpLoading}] = useLazyQuery(
+    GET_VALID_PHONE_OTP,
+    {fetchPolicy: 'no-cache'},
+  );
   const dispatch = useDispatch();
   const registerData = useSelector(state => state.register);
   const accountType = registerData.accountType;
@@ -86,36 +108,42 @@ export default function SignUpDetailScreen({navigation}) {
     totalFields,
   ]);
 
-  const handleGetPhoneOtp = async () => {
-    dispatch(emailSet(email));
+  const handleGetPhoneOtp = async (normalizedPhone, normalizedEmail) => {
+    dispatch(emailSet(normalizedEmail));
     try {
-      const response = await getPhoneOtp({variables: {phoneNumber}});
-      if (response?.data?.getValidPhoneOtp?.status === '403') {
+      const response = await getPhoneOtp({
+        variables: {phoneNumber: normalizedPhone},
+      });
+      const otpResponse = response?.data?.getValidPhoneOtp;
+      const responseMessage =
+        otpResponse?.message ||
+        getApiErrorMessage(response, 'The server could not send the OTP.');
+
+      if (otpResponse?.status === '403') {
         Toast.show({
           type: 'error',
-          text1: 'We are Sorry!',
-          text2: 'This User is Blocked',
+          text1: 'OTP not sent',
+          text2: responseMessage,
         });
-      } else if (response?.data?.getValidPhoneOtp?.status !== '200') {
+      } else if (otpResponse?.status !== '200') {
         Toast.show({
           type: 'error',
-          text1: 'OTP not sent!',
-          text2: 'We encountered a problem please try again',
+          text1: 'OTP not sent',
+          text2: responseMessage,
         });
       } else {
-        const sentTo =
-          response.data.getValidPhoneOtp.phoneNumber || phoneNumber;
+        const sentTo = otpResponse.phoneNumber || normalizedPhone;
         Toast.show({
           type: 'success',
-          text1: `OTP sent to ${sentTo}`,
-          text2: '',
+          text1: responseMessage,
+          text2: `Sent to ${sentTo}`,
         });
         navigation.navigate('SignPhoneVerification', {
           firstName,
           lastName,
           location,
-          email,
-          phoneNumber,
+          email: normalizedEmail,
+          phoneNumber: normalizedPhone,
           description,
           date,
         });
@@ -125,18 +153,20 @@ export default function SignUpDetailScreen({navigation}) {
       Toast.show({
         type: 'error',
         text1: 'OTP not sent',
-        text2: error?.message || 'Please try again.',
+        text2: getApiErrorMessage(error, 'Please try again.'),
       });
     }
   };
 
   const handleContinue = async () => {
     setSubmitted(true);
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
     const missingRequiredField =
       !firstName.trim() ||
       !lastName.trim() ||
-      !email.trim() ||
-      !phoneNumber.trim() ||
+      !normalizedEmail ||
+      !normalizedPhone ||
       !location.trim() ||
       (!isClient && !description.trim());
 
@@ -148,7 +178,7 @@ export default function SignUpDetailScreen({navigation}) {
       });
       return;
     }
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       Toast.show({
         type: 'error',
         text1: 'Invalid Email',
@@ -158,27 +188,54 @@ export default function SignUpDetailScreen({navigation}) {
     }
 
     try {
-      const emailResponse = await isEmailValid({variables: {email}});
-      const isEmailTaken = emailResponse?.data?.isEmailValid?.emailTaken;
+      const emailResponse = await isEmailValid({
+        variables: {email: normalizedEmail},
+      });
+      const emailResult = emailResponse?.data?.isEmailValid;
+      if (!emailResult || emailResult.status !== '200') {
+        throw new Error(
+          getApiErrorMessage(
+            emailResponse,
+            'The server could not validate this email address.',
+          ),
+        );
+      }
+
+      const isEmailTaken = emailResult.emailTaken;
       setEmailTaken(isEmailTaken);
       if (isEmailTaken) {
         return;
       }
 
-      const phoneResponse = await isMobileNoValid({variables: {phoneNumber}});
-      const isPhoneTaken = phoneResponse?.data?.isMobileNoValid?.phoneNoTaken;
+      const phoneResponse = await isMobileNoValid({
+        variables: {phoneNumber: normalizedPhone},
+      });
+      const phoneResult = phoneResponse?.data?.isMobileNoValid;
+      if (!phoneResult || phoneResult.status !== '200') {
+        throw new Error(
+          getApiErrorMessage(
+            phoneResponse,
+            'The server could not validate this phone number.',
+          ),
+        );
+      }
+
+      const isPhoneTaken = phoneResult.phoneNoTaken;
       setPhoneTaken(isPhoneTaken);
       if (isPhoneTaken) {
         return;
       }
 
-      await handleGetPhoneOtp();
+      await handleGetPhoneOtp(normalizedPhone, normalizedEmail);
     } catch (error) {
       console.error('Signup validation failed:', error);
       Toast.show({
         type: 'error',
         text1: 'Unable to continue',
-        text2: error?.message || 'Please check your details and try again.',
+        text2: getApiErrorMessage(
+          error,
+          'Please check your details and try again.',
+        ),
       });
     }
   };

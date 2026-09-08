@@ -1,4 +1,5 @@
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const path = require('path');
 
 /**
  * Metro configuration
@@ -6,8 +7,17 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  *
  * @type {import('metro-config').MetroConfig}
  */
-const config = getDefaultConfig(__dirname);
+const defaultConfig = getDefaultConfig(__dirname);
 
-config.resolver.sourceExts.push('cjs');
+// Exclude .claude worktrees to avoid "Duplicated files" errors from
+// nested package.json files that share the same Haste module name.
+const exclusionPattern = /\.claude[/\\].*/;
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+const config = mergeConfig(defaultConfig, {
+  resolver: {
+    sourceExts: [...(defaultConfig.resolver.sourceExts || []), 'cjs'],
+    blockList: exclusionPattern,
+  },
+});
+
+module.exports = config;
