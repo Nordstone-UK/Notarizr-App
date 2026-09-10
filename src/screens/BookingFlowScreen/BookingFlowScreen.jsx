@@ -27,15 +27,13 @@ import BookingFlowSection from '../../components/BookingFlow/BookingFlowSection'
 import PricingBreakdown from '../../components/BookingFlow/PricingBreakdown';
 import {setBookingInfoState} from '../../features/booking/bookingSlice';
 import useRegister from '../../hooks/useRegister';
+import usePricingApi from '../../hooks/usePricingApi';
 import {CREATE_BOOKING} from '../../../request/mutations/createBooking.mutation';
 import {UPDATE_BOOKING_STATUS} from '../../../request/mutations/updateBookingStatus.mutation';
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
-const ADDITIONAL_SIGNATURE_PRICE = 10;
 const PRINT_COPY_PRICE = 5;
-const DOCUMENT_NOTARIZATION_PRICE = 99.99;
-const NOTARIZER_PLATFORM_FEE = 10;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const getMinimumBookingDate = () => {
   const date = new Date();
@@ -351,16 +349,20 @@ function PrintOption({label, onPress, selected, subtitle}) {
 }
 
 function UploadAndPrintStep({
+  additionalSeals,
   additionalSignatures,
   isMobile,
   notes,
   onChangeNotes,
   onChangePrintCopies,
+  onChangeSeals,
   onChangeSigners,
+  onChangeWitnesses,
   onChooseDocuments,
   onRemoveDocument,
   onReplaceDocument,
   onTogglePrint,
+  platformWitnesses,
   printCopies,
   uploadedDocuments,
   wantsPrint,
@@ -372,23 +374,20 @@ function UploadAndPrintStep({
     <>
       <BookingFlowSection
         subtitle={
-          (isMobile
+          isMobile
             ? wantsPrint
               ? 'Required so the notary can prepare your printouts.'
               : 'Optional for mobile notary. You can bring the document with you.'
-            : 'Upload a readable copy for the assigned notary.') +
-          ` $${DOCUMENT_NOTARIZATION_PRICE.toFixed(2)} per document notarized.`
+            : 'Upload a readable copy for the assigned notary.'
         }
         title={isMobile ? 'Document upload (optional)' : 'Document upload'}>
         {uploaded ? (
           <View style={styles.documentList}>
             <Text style={styles.documentCostHint}>
-              Notarization cost: {uploadedDocuments.length}{' '}
-              {uploadedDocuments.length === 1 ? 'document' : 'documents'} × $
-              {DOCUMENT_NOTARIZATION_PRICE.toFixed(2)} = $
-              {(uploadedDocuments.length * DOCUMENT_NOTARIZATION_PRICE).toFixed(
-                2,
-              )}
+              {uploadedDocuments.length}{' '}
+              {uploadedDocuments.length === 1 ? 'document' : 'documents'}{' '}
+              attached — set how many seals, signers and witnesses this
+              notarization needs below.
             </Text>
             {uploadedDocuments.map((document, index) => (
               <View key={document.id} style={styles.uploadedDocumentCard}>
@@ -532,9 +531,7 @@ function UploadAndPrintStep({
       ) : null}
 
       <BookingFlowSection
-        subtitle={`Each additional signature adds $${ADDITIONAL_SIGNATURE_PRICE.toFixed(
-          2,
-        )} to the estimate.`}
+        subtitle="Your first seal and signer are included in the base price. Extra stamps, signers and witnesses each add to the estimate."
         title="Signing details">
         <View style={styles.stepperRow}>
           <View>
@@ -565,6 +562,72 @@ function UploadAndPrintStep({
               disabled={additionalSignatures === 10}
               onPress={() =>
                 onChangeSigners(Math.min(10, additionalSignatures + 1))
+              }
+              style={styles.stepperButton}>
+              <Feather name="plus" size={17} color="#303642" />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.stepperRow}>
+          <View>
+            <Text style={styles.stepperLabel}>Additional seals</Text>
+            <Text style={styles.stepperHint}>
+              Extra stamps beyond the first
+            </Text>
+          </View>
+          <View style={styles.stepper}>
+            <TouchableOpacity
+              accessibilityLabel="Remove seal"
+              activeOpacity={0.7}
+              disabled={additionalSeals === 0}
+              onPress={() => onChangeSeals(Math.max(0, additionalSeals - 1))}
+              style={styles.stepperButton}>
+              <Feather
+                name="minus"
+                size={17}
+                color={additionalSeals === 0 ? '#C4C8CE' : '#303642'}
+              />
+            </TouchableOpacity>
+            <Text style={styles.stepperValue}>{additionalSeals}</Text>
+            <TouchableOpacity
+              accessibilityLabel="Add seal"
+              activeOpacity={0.7}
+              disabled={additionalSeals === 10}
+              onPress={() => onChangeSeals(Math.min(10, additionalSeals + 1))}
+              style={styles.stepperButton}>
+              <Feather name="plus" size={17} color="#303642" />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.stepperRow}>
+          <View>
+            <Text style={styles.stepperLabel}>Notarizr-provided witnesses</Text>
+            <Text style={styles.stepperHint}>
+              Leave at 0 if you're bringing your own
+            </Text>
+          </View>
+          <View style={styles.stepper}>
+            <TouchableOpacity
+              accessibilityLabel="Remove witness"
+              activeOpacity={0.7}
+              disabled={platformWitnesses === 0}
+              onPress={() =>
+                onChangeWitnesses(Math.max(0, platformWitnesses - 1))
+              }
+              style={styles.stepperButton}>
+              <Feather
+                name="minus"
+                size={17}
+                color={platformWitnesses === 0 ? '#C4C8CE' : '#303642'}
+              />
+            </TouchableOpacity>
+            <Text style={styles.stepperValue}>{platformWitnesses}</Text>
+            <TouchableOpacity
+              accessibilityLabel="Add witness"
+              activeOpacity={0.7}
+              disabled={platformWitnesses === 5}
+              onPress={() =>
+                onChangeWitnesses(Math.min(5, platformWitnesses + 1))
               }
               style={styles.stepperButton}>
               <Feather name="plus" size={17} color="#303642" />
@@ -655,18 +718,19 @@ function SummaryRow({icon, label, last, value}) {
 }
 
 function ReviewStep({
+  additionalSeals,
   additionalSignatures,
-  additionalSignatureCharge,
   bookingFor,
   dateLabel,
-  documentCharge,
   documentType,
   isMobile,
   location,
   otherName,
+  platformWitnesses,
   printCopies,
   printingCharge,
-  price,
+  priceQuote,
+  priceQuoteLoading,
   serviceName,
   time,
   uploadedDocumentsCount = 0,
@@ -712,11 +776,15 @@ function ReviewStep({
           ) : null}
           <SummaryRow
             icon="edit-3"
-            label="Additional signatures"
+            label="Seals, signers & witnesses"
             last
-            value={`${additionalSignatures} required ($${additionalSignatureCharge.toFixed(
-              2,
-            )}) for ${bookingFor === 'self' ? 'my booking' : otherName}`}
+            value={`${additionalSeals} extra ${
+              additionalSeals === 1 ? 'seal' : 'seals'
+            }, ${additionalSignatures} extra ${
+              additionalSignatures === 1 ? 'signer' : 'signers'
+            }, ${platformWitnesses} ${
+              platformWitnesses === 1 ? 'witness' : 'witnesses'
+            } for ${bookingFor === 'self' ? 'my booking' : otherName}`}
           />
         </View>
       </BookingFlowSection>
@@ -725,18 +793,14 @@ function ReviewStep({
         subtitle="You will only be charged after a notary accepts."
         title="Estimated total">
         <PricingBreakdown
-          additionalSignatureCount={additionalSignatures}
-          additionalSignatures={additionalSignatureCharge}
-          documentCharge={documentCharge}
-          documentCount={uploadedDocumentsCount}
-          documentLabel={documentType}
-          documentsUnknown={isMobile && uploadedDocumentsCount === 0}
+          breakdown={priceQuote}
+          initiallyExpanded
           printingCharge={printingCharge}
           printingCopies={printCopies}
-          platformFee={NOTARIZER_PLATFORM_FEE}
-          serviceLabel="Notarizer Platform Fee"
-          total={price}
         />
+        {priceQuoteLoading ? (
+          <Text style={styles.quoteLoadingText}>Updating price…</Text>
+        ) : null}
         <View style={styles.paymentNotice}>
           <Feather name="shield" size={16} color="#168A52" />
           <Text style={styles.paymentNoticeText}>
@@ -821,6 +885,11 @@ export default function BookingFlowScreen({navigation, route}) {
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
   const [additionalSignatures, setAdditionalSignatures] = useState(0);
+  const [additionalSeals, setAdditionalSeals] = useState(0);
+  const [platformWitnesses, setPlatformWitnesses] = useState(0);
+  const [priceQuote, setPriceQuote] = useState(null);
+  const [priceQuoteLoading, setPriceQuoteLoading] = useState(false);
+  const {calculatePrice} = usePricingApi();
   const [notes, setNotes] = useState('');
   const [wantsPrint, setWantsPrint] = useState(false);
   const [printCopies, setPrintCopies] = useState(1);
@@ -877,20 +946,53 @@ export default function BookingFlowScreen({navigation, route}) {
   const location = isMobile
     ? selectedAddress?.location
     : 'Secure video appointment';
-  // Every document that gets notarized costs a flat $99.99 — priced by how
-  // many documents are actually uploaded, not by the (optional) document
-  // type label, since a booking can include several documents at once.
-  const documentCharge = uploadedDocuments.length * DOCUMENT_NOTARIZATION_PRICE;
-  const additionalSignatureCharge =
-    additionalSignatures * ADDITIONAL_SIGNATURE_PRICE;
   const printingCharge =
     isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
-  const price =
-    documentCharge +
-    NOTARIZER_PLATFORM_FEE +
-    additionalSignatureCharge +
-    printingCharge;
+  // Printing is a separate Notarizr add-on, not part of the seal/signer/witness pricing model
+  // (see priceQuote below), so it's added on top of whatever the engine quotes.
+  const price = (priceQuote?.customerTotal || 0) + printingCharge;
   const totalSteps = 3;
+
+  // Live server-computed quote (Open Call pricing — the platform sets this price, the agent
+  // never does) for whatever seal/signer/witness counts the client has chosen so far.
+  const userId = user?._id;
+  useEffect(() => {
+    if (!userId || previewMode) {
+      return;
+    }
+    let cancelled = false;
+    setPriceQuoteLoading(true);
+    calculatePrice('open_call', {
+      additionalSeals,
+      additionalSigners: additionalSignatures,
+      platformProvidedWitnesses: platformWitnesses,
+    }).then(result => {
+      if (cancelled) {
+        return;
+      }
+      if (!result) {
+        // calculatePrice already logged the underlying error — surface it in the UI too
+        // instead of silently sitting at $0.00 forever.
+        Toast.show({
+          type: 'error',
+          text1: 'Could not calculate the price',
+          text2: 'Pull to retry, or check your connection.',
+        });
+      }
+      setPriceQuote(result);
+      setPriceQuoteLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    additionalSeals,
+    additionalSignatures,
+    calculatePrice,
+    platformWitnesses,
+    previewMode,
+    userId,
+  ]);
   const stepOneValid =
     Boolean(selectedDate && selectedTime && (!isMobile || selectedAddress)) &&
     (bookingFor === 'self' || Boolean(otherName.trim() && otherPhone.trim()));
@@ -962,11 +1064,11 @@ export default function BookingFlowScreen({navigation, route}) {
           serviceType: backendServiceType,
           service: bookingAgent.service._id,
           agent: bookingAgent._id,
-          // One priced entry per document being notarized, at the flat
-          // $99.99-per-document rate.
+          // Just the document names now — the actual charge comes from the itemized
+          // seal/signer/witness quote (priceQuote/totalPrice below), not a per-document rate.
           documentType: uploadedDocuments.map(document => ({
             name: document.name || 'Document',
-            price: DOCUMENT_NOTARIZATION_PRICE,
+            price: 0,
           })),
           address: isMobile
             ? selectedAddress?._id || selectedAddress?.location
@@ -989,6 +1091,10 @@ export default function BookingFlowScreen({navigation, route}) {
           },
           preferenceAnalysis: 'distance',
           documents,
+          // totalPrice is the itemized quote (priceQuote.customerTotal) plus printing — computed
+          // client-side rather than via the backend's useStandardPricing opt-in, because that
+          // opt-in fully overrides totalPrice with the engine's number and has no concept of the
+          // printing add-on, which would silently drop the printing charge from what's billed.
           totalPrice: price,
           totalSignaturesRequired: additionalSignatures,
         },
@@ -1139,34 +1245,39 @@ export default function BookingFlowScreen({navigation, route}) {
             />
           ) : step === 2 ? (
             <UploadAndPrintStep
+              additionalSeals={additionalSeals}
               additionalSignatures={additionalSignatures}
               isMobile={isMobile}
               notes={notes}
               onChangeNotes={setNotes}
               onChangePrintCopies={setPrintCopies}
+              onChangeSeals={setAdditionalSeals}
               onChangeSigners={setAdditionalSignatures}
+              onChangeWitnesses={setPlatformWitnesses}
               onChooseDocuments={chooseDocuments}
               onRemoveDocument={removeDocument}
               onReplaceDocument={replaceDocument}
               onTogglePrint={setWantsPrint}
+              platformWitnesses={platformWitnesses}
               printCopies={printCopies}
               uploadedDocuments={uploadedDocuments}
               wantsPrint={wantsPrint}
             />
           ) : (
             <ReviewStep
+              additionalSeals={additionalSeals}
               additionalSignatures={additionalSignatures}
-              additionalSignatureCharge={additionalSignatureCharge}
               bookingFor={bookingFor}
               dateLabel={dateLabel}
-              documentCharge={documentCharge}
               documentType=""
               isMobile={isMobile}
               location={location}
               otherName={otherName}
+              platformWitnesses={platformWitnesses}
               printCopies={isMobile && wantsPrint ? printCopies : 0}
               printingCharge={printingCharge}
-              price={price}
+              priceQuote={priceQuote}
+              priceQuoteLoading={priceQuoteLoading}
               uploadedDocumentsCount={uploadedDocuments.length}
               serviceName={serviceName}
               time={selectedTime}
@@ -1528,6 +1639,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#D65322',
     fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  quoteLoadingText: {
+    marginTop: 6,
+    marginHorizontal: 20,
+    color: '#737B87',
+    fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },
   uploadedDocumentCard: {

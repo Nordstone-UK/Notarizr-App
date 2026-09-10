@@ -63,6 +63,23 @@ export const GET_CLIENT_SESSION = gql`
         rating
         review
         price
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         client_documents
         status
         document_type {

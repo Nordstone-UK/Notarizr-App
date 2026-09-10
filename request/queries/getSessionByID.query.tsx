@@ -52,6 +52,23 @@ export const GET_SESSION_BY_ID = gql`
           state
         }
         price
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         client_documents
         notarized_docs
         status

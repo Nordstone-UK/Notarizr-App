@@ -61,6 +61,23 @@ export const GET_AGENT_SESSION = gql`
           userAccessCode
         }
         price
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         client_documents
         notarized_docs
         status

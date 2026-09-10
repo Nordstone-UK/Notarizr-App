@@ -278,18 +278,27 @@ const useFetchBooking = () => {
     console.log('Answer', response?.data?.updateBookingsInfo?.status);
     return response?.data?.updateBookingsInfo?.status;
   };
-  const setSessionPrice = async (id, price, docs) => {
+  // pricingOptions, when passed, opts into the server-side pricing engine
+  // (calculatePriceR / pricing.mutation.helper on the backend): {useStandardPricing,
+  // additionalSeals, additionalSigners, platformProvidedWitnesses, customerProvidedWitnesses,
+  // isClosing, closingRoute, paymentType, customPrice}. Omitted, behavior is unchanged — `price`
+  // is sent as-is and nothing itemized gets saved, same as before.
+  const setSessionPrice = async (id, price, docs, pricingOptions = {}) => {
     const request = {
       variables: {
         sessionId: id,
         price: parseFloat(price),
         clientDocuments: docs,
+        ...pricingOptions,
       },
     };
     console.log('Request', request);
     const response = await updateSessionPricsDoc(request);
     console.log('Answer', response);
-    return response?.data?.updateSessionR?.status;
+    return {
+      status: response?.data?.updateSessionR?.status,
+      session: response?.data?.updateSessionR?.session,
+    };
   };
   return {
     fetchBookingInfo,

@@ -20,9 +20,95 @@ function CostRow({icon, label, last, subtitle, value}) {
   );
 }
 
+// Renders a server-computed itemized quote (calculatePriceR) — the seal/signer/witness style
+// breakdown, as opposed to the flat per-document pricing the rest of this file handles. Kept as
+// its own component (with its own expand/collapse state) so the dispatcher below never has to
+// call hooks conditionally.
+function ItemizedPricingBreakdown({
+  breakdown,
+  initiallyExpanded,
+  paid,
+  printingCharge = 0,
+  printingCopies = 0,
+  style,
+}) {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
+  const onToggle = () => setExpanded(current => !current);
+  const rows = (breakdown?.lineItems || []).map(item => ({
+    icon: 'file-text',
+    label: item.label,
+    value: item.amount,
+  }));
+  // Printing isn't part of the seal/signer/witness pricing model — it's a separate Notarizr
+  // add-on service — so it's appended here rather than coming from the server quote.
+  if (Number(printingCharge) > 0) {
+    rows.push({
+      icon: 'printer',
+      label: 'Document printing',
+      subtitle: printingCopies
+        ? `${printingCopies} ${printingCopies === 1 ? 'copy' : 'copies'}`
+        : 'Printed copies for your appointment',
+      value: printingCharge,
+    });
+  }
+  const displayTotal =
+    Number(breakdown?.customerTotal || 0) + Number(printingCharge || 0);
+
+  return (
+    <View style={[styles.container, style]}>
+      <TouchableOpacity
+        accessibilityHint="Shows or hides the itemized booking costs"
+        accessibilityLabel="Estimated price breakdown"
+        accessibilityRole="button"
+        activeOpacity={0.72}
+        onPress={onToggle}
+        style={styles.summary}>
+        <View style={styles.summaryIcon}>
+          <Text style={styles.currencyIcon}>$</Text>
+        </View>
+        <View style={styles.summaryCopy}>
+          <Text style={styles.eyebrow}>Estimated total</Text>
+          <Text style={styles.total}>{formatPrice(displayTotal)}</Text>
+        </View>
+        {paid ? (
+          <View style={styles.paidBadge}>
+            <Feather name="check-circle" size={13} color={AppColors.success} />
+            <Text style={styles.paidText}>Paid</Text>
+          </View>
+        ) : null}
+        <View style={styles.expandButton}>
+          <Text style={styles.expandText}>{expanded ? 'Hide' : 'Details'}</Text>
+          <Feather
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={17}
+            color={AppColors.primary}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {expanded ? (
+        <View style={styles.breakdown}>
+          <Text style={styles.breakdownTitle}>Cost breakdown</Text>
+          {rows.map((row, index) => (
+            <CostRow
+              {...row}
+              key={`${row.label}-${index}`}
+              last={index === rows.length - 1}
+            />
+          ))}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Estimated total</Text>
+            <Text style={styles.totalValue}>{formatPrice(displayTotal)}</Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 const DEFAULT_PER_DOCUMENT_RATE = 99.99;
 
-export default function PricingBreakdown({
+function FlatPricingBreakdown({
   additionalSignatureCount = 0,
   additionalSignatures = 0,
   documentCharge = 0,
@@ -194,6 +280,25 @@ export default function PricingBreakdown({
       ) : null}
     </View>
   );
+}
+
+// Dispatcher: renders the server-computed itemized quote (calculatePriceR) when `breakdown` is
+// passed, otherwise the original flat per-document pricing. Deliberately calls zero hooks itself
+// so switching between the two shapes across renders is safe — each branch owns its own state.
+export default function PricingBreakdown({breakdown, ...rest}) {
+  if (breakdown) {
+    return (
+      <ItemizedPricingBreakdown
+        breakdown={breakdown}
+        initiallyExpanded={rest.initiallyExpanded}
+        paid={rest.paid}
+        printingCharge={rest.printingCharge}
+        printingCopies={rest.printingCopies}
+        style={rest.style}
+      />
+    );
+  }
+  return <FlatPricingBreakdown {...rest} />;
 }
 
 const styles = StyleSheet.create({

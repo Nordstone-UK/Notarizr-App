@@ -30,7 +30,7 @@ export const GET_BOOKING_BY_ID = gql`
           description
           state
           addresses {
-             _id
+            _id
             tag
             location
             location_coordinates
@@ -82,6 +82,23 @@ export const GET_BOOKING_BY_ID = gql`
           state
         }
         totalPrice
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         total_signatures_required
         preference_analysis
         observers

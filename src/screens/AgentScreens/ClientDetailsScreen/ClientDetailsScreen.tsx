@@ -62,7 +62,8 @@ import UploadDocsSheet from '../../../components/UploadDocsSheet/UploadDocsSheet
 import { useSession } from '../../../hooks/useSession';
 import { useLiveblocks } from '../../../store/liveblocks';
 import Loading from '../../../components/LiveBlocksComponents/loading';
-import RequestPayment from '../../../components/RequestPayment/RequestPayment';
+import SessionPricingSheet from '../../../components/RequestPayment/SessionPricingSheet';
+import usePricingApi from '../../../hooks/usePricingApi';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { CheckCircle, CheckCircleSolid, Xmark } from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
@@ -200,12 +201,20 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
   const [notes, setNotes] = useState('');
   const [signaturePage, setSignaturePage] = useState();
   const [notaryBlock, setNotaryBlock] = useState();
-  const [AmountEntered, setAmountEntered] = useState<number>();
   const [searchFor, setSearchFor] = useState('');
   const [isLoading, setisLoading] = useState(false);
   const [showIcon, setShowIcon] = useState(true);
   const [uploadShow, setUploadShow] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
+  const [isCustomPricing, setIsCustomPricing] = useState(false);
+  const [additionalSeals, setAdditionalSeals] = useState(0);
+  const [additionalSigners, setAdditionalSigners] = useState(0);
+  const [platformWitnesses, setPlatformWitnesses] = useState(0);
+  const [customPriceInput, setCustomPriceInput] = useState('');
+  const [priceQuote, setPriceQuote] = useState(null);
+  const [priceQuoteLoading, setPriceQuoteLoading] = useState(false);
+  const [sendingPriceRequest, setSendingPriceRequest] = useState(false);
+  const {calculatePrice} = usePricingApi();
   const [price, setPrice] = useState(clientDetail?.price);
   const [totalPrice, setTotalPrice] = useState(clientDetail?.totalPrice);
   const [showModal, setShowModal] = useState(false);
@@ -245,6 +254,38 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     setPrice(clientDetail.price);
     setTotalPrice(clientDetail.totalPrice);
   }, [clientDetail.price, clientDetail.totalPrice, hasClientDetail]);
+
+  // Live server-computed quote for the "Notarizr pricing" branch of the request-payment sheet —
+  // recomputed whenever the itemized counts change. This only reads from calculatePriceR; the
+  // number it produces is submitted through the existing price-setting mutation unchanged, so
+  // none of this needs a backend change.
+  useEffect(() => {
+    if (isCustomPricing) {
+      return;
+    }
+    let cancelled = false;
+    setPriceQuoteLoading(true);
+    calculatePrice('invitation', {
+      billingMode: 'platform_standard',
+      additionalSeals,
+      additionalSigners,
+      platformProvidedWitnesses: platformWitnesses,
+    }).then(result => {
+      if (!cancelled) {
+        setPriceQuote(result);
+        setPriceQuoteLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    additionalSeals,
+    additionalSigners,
+    calculatePrice,
+    isCustomPricing,
+    platformWitnesses,
+  ]);
 
   const handleWitnessCountChange = text => {
     let number = parseInt(text, 10) || 1;
@@ -538,24 +579,52 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
     return namesString;
   }
   const setBookingAmount = async () => {
-    if (!AmountEntered) {
-      Alert.alert('Please fill in the amount');
+    // Either mode lands on one final number — the itemized quote's customerTotal, or the
+    // agent's own typed-in amount. Both now go through the pricing engine (useStandardPricing:
+    // true) so the itemized breakdown that built that number actually gets saved on the
+    // session, instead of only the flat total surviving.
+    const amountToSend = isCustomPricing
+      ? Number(customPriceInput)
+      : priceQuote?.customerTotal;
+
+    if (!amountToSend) {
+      Alert.alert(
+        isCustomPricing
+          ? 'Please fill in the amount'
+          : 'Still calculating the price — try again in a moment',
+      );
       return;
     }
+
+    setSendingPriceRequest(true);
     try {
       let response;
 
       if (clientDetail?.__typename === 'Session') {
+        const pricingOptions = isCustomPricing
+          ? {
+              useStandardPricing: true,
+              paymentType: 'on_agent',
+              customPrice: amountToSend,
+            }
+          : {
+              useStandardPricing: true,
+              paymentType: 'on_notarizr',
+              additionalSeals,
+              additionalSigners,
+              platformProvidedWitnesses: platformWitnesses,
+            };
         response = await setSessionPrice(
           clientDetail?._id,
-          AmountEntered,
+          amountToSend,
           clientDetail?.documents,
+          pricingOptions,
         );
         console.log(response);
       } else {
         // response = await setBookingPrice(
         //   clientDetail?._id,
-        //   AmountEntered,
+        //   amountToSend,
         //   clientDetail?.review,
         //   clientDetail?.rating,
         //   clientDetail?.notes,
@@ -563,21 +632,31 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
         // );
       }
       handleCloseModalPress();
-      if (response == 200) {
+      if (response?.status === '200') {
+        // The backend may adjust the amount (e.g. a Free agent's agent_custom request quietly
+        // falls back to standard pricing) — trust what it actually saved over our own guess.
+        const savedAmount =
+          response?.session?.price_breakdown?.customerTotal ??
+          response?.session?.price ??
+          amountToSend;
         if (clientDetail.__typename !== 'Booking') {
-          setPrice(AmountEntered);
+          setPrice(savedAmount);
         } else {
-          setTotalPrice(AmountEntered);
+          setTotalPrice(savedAmount);
         }
 
         Toast.show({
           type: 'success',
           text1: 'Amount requested successfully',
         });
+      } else if (clientDetail?.__typename === 'Session') {
+        Toast.show({type: 'error', text1: 'Could not send the payment request'});
       }
     } catch (error) {
       console.error('Error setting booking price:', error);
+      Toast.show({type: 'error', text1: 'Could not send the payment request'});
     }
+    setSendingPriceRequest(false);
   };
   const isStorageLoading = useLiveblocks(
     state => state.liveblocks.isStorageLoading,
@@ -2432,10 +2511,21 @@ export default function AgentMobileNotaryStartScreen({ route, navigation }: any)
           ref={bottomSheetModalRef}
           index={1}
           snapPoints={snapPoints}>
-          <RequestPayment
-            amount={AmountEntered}
-            onChangeText={(text: number) => setAmountEntered(text)}
-            onPress={() => setBookingAmount()}
+          <SessionPricingSheet
+            additionalSeals={additionalSeals}
+            additionalSigners={additionalSigners}
+            customPrice={customPriceInput}
+            isCustom={isCustomPricing}
+            onChangeAdditionalSeals={setAdditionalSeals}
+            onChangeAdditionalSigners={setAdditionalSigners}
+            onChangeCustomPrice={setCustomPriceInput}
+            onChangeIsCustom={setIsCustomPricing}
+            onChangePlatformWitnesses={setPlatformWitnesses}
+            onSubmit={() => setBookingAmount()}
+            platformWitnesses={platformWitnesses}
+            quote={priceQuote}
+            quoteLoading={priceQuoteLoading}
+            submitting={sendingPriceRequest}
           />
         </BottomSheetModal>
       </BottomSheetStyle>

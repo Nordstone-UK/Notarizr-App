@@ -111,6 +111,23 @@ export const GET_AGENT_BOOKING = gql`
         createdAt
         updatedAt
         totalPrice
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         total_signatures_required
         agora_channel_name
         agora_channel_token

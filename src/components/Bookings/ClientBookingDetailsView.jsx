@@ -746,6 +746,7 @@ export default function ClientBookingDetailsView({
         <PricingBreakdown
           additionalSignatureCount={additionalSignatures}
           additionalSignatures={additionalSignatureCharge}
+          breakdown={booking?.price_breakdown}
           documentCharge={documentCharge}
           documentCount={documentCount}
           documentLabel={

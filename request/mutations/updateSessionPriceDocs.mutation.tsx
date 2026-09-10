@@ -5,19 +5,54 @@ export const UPDATE_SESSION_PRICEDOCS = gql`
     $sessionId: String!
     $price: Float
     $clientDocuments: JSON
-      $review: String
+    $review: String
     $rating: Int
+    $paymentType: String
+    $useStandardPricing: Boolean
+    $additionalSeals: Int
+    $additionalSigners: Int
+    $platformProvidedWitnesses: Int
+    $customerProvidedWitnesses: Int
+    $isClosing: Boolean
+    $closingRoute: ClosingRoute
+    $customPrice: Float
   ) {
     updateSessionR(
       sessionId: $sessionId
       price: $price
       client_documents: $clientDocuments
-        review: $review
+      review: $review
       rating: $rating
+      payment_type: $paymentType
+      useStandardPricing: $useStandardPricing
+      additionalSeals: $additionalSeals
+      additionalSigners: $additionalSigners
+      platformProvidedWitnesses: $platformProvidedWitnesses
+      customerProvidedWitnesses: $customerProvidedWitnesses
+      isClosing: $isClosing
+      closingRoute: $closingRoute
+      customPrice: $customPrice
     ) {
       session {
         _id
         price
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         client_documents
         status
         client_email

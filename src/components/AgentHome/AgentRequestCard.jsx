@@ -13,6 +13,12 @@ export default function AgentRequestCard({booking, onPress}) {
   const avatarSource = client.profile_picture
     ? {uri: client.profile_picture}
     : require('../../../assets/userPic.png');
+  // Compact hint only — a card in a list isn't the place for the full expandable
+  // breakdown (that's on the booking detail screen). Skip the base line item; only
+  // call out the extras that make this booking cost more than the base price.
+  const extraItems = (booking?.price_breakdown?.lineItems || []).filter(
+    item => item.key !== 'first_seal_and_signer',
+  );
 
   return (
     <TouchableOpacity
@@ -48,6 +54,11 @@ export default function AgentRequestCard({booking, onPress}) {
             {'$' + Number(booking?.totalPrice || 0).toFixed(0)}
           </Text>
           <Text style={styles.estimate}>estimate</Text>
+          {extraItems.length > 0 ? (
+            <Text numberOfLines={1} style={styles.itemizedHint}>
+              +{extraItems.length} extra{extraItems.length === 1 ? '' : 's'}
+            </Text>
+          ) : null}
         </View>
       </View>
 
@@ -118,6 +129,12 @@ const styles = StyleSheet.create({
   priceBlock: {alignItems: 'flex-end', marginLeft: 10},
   price: {color: '#171D29', fontFamily: 'Manrope-Bold', fontSize: 16},
   estimate: {color: '#9A9FA8', fontFamily: 'Manrope-Regular', fontSize: 8},
+  itemizedHint: {
+    marginTop: 2,
+    color: '#D65322',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 8,
+  },
   details: {
     marginTop: 14,
     paddingTop: 5,
