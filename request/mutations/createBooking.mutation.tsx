@@ -3,8 +3,10 @@ import gql from 'graphql-tag';
 export const CREATE_BOOKING = gql`
   mutation CreateBookingR(
     $serviceType: String!
-    $service: String!
-    $agent: String!
+    $service: String
+    $agent: String
+    $assignmentCoordinates: [Float!]
+    $appointmentTimezone: String
     $documentType: [DocsTypeInput!]!
     $address: String
     $dateOfBooking: Date
@@ -28,6 +30,8 @@ export const CREATE_BOOKING = gql`
       service_type: $serviceType
       service: $service
       agent: $agent
+      assignment_coordinates: $assignmentCoordinates
+      appointment_timezone: $appointmentTimezone
       document_type: $documentType
       address: $address
       date_of_booking: $dateOfBooking

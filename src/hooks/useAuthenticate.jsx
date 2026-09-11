@@ -54,7 +54,7 @@ const useAuthenticate = () => {
       // console.log('requestttt', request);
       const response = await uploadAuthUserID(request);
       console.log(response?.data);
-      return response?.data?.uploadAuthenticateUsersId?.status;
+      return response?.data?.uploadAuthenticateUsersId;
     } catch (error) {
       console.log('errrr', error);
       throw error;
@@ -70,7 +70,7 @@ const useAuthenticate = () => {
     try {
       const response = await uploadAuthUserPassport(request);
       console.log(response?.data);
-      return response?.data?.uploadAuthenticateUsersPassport?.status;
+      return response?.data?.uploadAuthenticateUsersPassport;
     } catch (error) {
       console.log(error);
       throw error;

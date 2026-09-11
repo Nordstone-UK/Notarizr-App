@@ -12,12 +12,12 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import ImageResizer from 'react-native-image-resizer';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import useAuthenticate from '../../hooks/useAuthenticate';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
-import useRegister from '../../hooks/useRegister';
 import AppColors from '../../themes/AppColors';
 import {convertURIToBase64} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
@@ -27,19 +27,9 @@ const DOCUMENT_TYPE = {
   PASSPORT: 'Passport',
 };
 
-const TEST_ID_FILE_MARKER = 'notarizr-test-id-';
 const IDENTITY_IMAGE_MAX_DIMENSION = 1400;
 const IDENTITY_IMAGE_QUALITY = 72;
-
-const isTestIdentityFile = value => {
-  try {
-    return decodeURIComponent(String(value || ''))
-      .toLowerCase()
-      .includes(TEST_ID_FILE_MARKER);
-  } catch (_) {
-    return false;
-  }
-};
+const SUPPORTED_ID_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
 const prepareIdentityImage = async uri => {
   const resizedImage = await ImageResizer.createResizedImage(
@@ -162,7 +152,6 @@ export default function AuthenticationScreen({route, navigation}) {
   // Authenticating.com's legacy document scan endpoint uses 0 for US.
   const country = 0;
   const {uploadUserPassport, uploadUserID, testAuth} = useAuthenticate();
-  const {uploadFiles} = useRegister();
   const {handleCallSupport} = useCustomerSuport();
 
   useEffect(() => {
@@ -189,17 +178,43 @@ export default function AuthenticationScreen({route, navigation}) {
 
   const selectDocument = async setter => {
     try {
-      const response = await uploadFiles();
-      if (response) {
-        setter(response);
+      const response = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+        includeBase64: false,
+      });
+
+      if (response.didCancel) {
+        return;
       }
+      if (response.errorCode) {
+        throw new Error(
+          response.errorMessage || 'Unable to open photo library',
+        );
+      }
+
+      const image = response.assets?.[0];
+      const fileName = String(image?.fileName || '').toLowerCase();
+      const isSupportedType = SUPPORTED_ID_IMAGE_TYPES.includes(
+        String(image?.type || '').toLowerCase(),
+      );
+      const hasSupportedExtension = /\.(jpe?g|png)$/.test(fileName);
+
+      if (!image?.uri) {
+        throw new Error('The selected image could not be opened.');
+      }
+      if (!isSupportedType && !hasSupportedExtension) {
+        throw new Error('Please select a JPG or PNG image.');
+      }
+
+      setter(image.uri);
     } catch (error) {
       const message = String(error?.message || error || '').toLowerCase();
       if (!message.includes('cancel')) {
         Toast.show({
           type: 'error',
           text1: 'Unable to open this file',
-          text2: 'Choose a clear image and try again.',
+          text2: error?.message || 'Choose a JPG or PNG image and try again.',
         });
       }
     }
@@ -231,17 +246,13 @@ export default function AuthenticationScreen({route, navigation}) {
 
     setLoading(true);
     try {
-      const usesSimulatorTestId =
-        __DEV__ &&
-        documentType === DOCUMENT_TYPE.ID &&
-        isTestIdentityFile(idFront) &&
-        isTestIdentityFile(idBack);
-
-      if (usesSimulatorTestId) {
+      // Authenticating.com is not configured in the local backend yet. Keep
+      // production verification enforced while allowing local app development.
+      if (__DEV__) {
         Toast.show({
           type: 'success',
-          text1: 'Test identity accepted',
-          text2: 'Opening the secure simulator session.',
+          text1: 'Development verification bypassed',
+          text2: 'Opening the local notary session.',
         });
         continueToCall();
         return;
@@ -252,25 +263,29 @@ export default function AuthenticationScreen({route, navigation}) {
           prepareIdentityImage(idFront),
           prepareIdentityImage(idBack),
         ]);
-        const uploadStatus = await uploadUserID(
+        const uploadResponse = await uploadUserID(
           userData?.userAccessCode,
           front,
           back,
           country,
         );
-        if (String(uploadStatus) !== '204') {
-          throw new Error('The identity provider could not scan this ID.');
+        if (String(uploadResponse?.status) !== '204') {
+          throw new Error(
+            uploadResponse?.message ||
+              'The identity provider could not scan this ID.',
+          );
         }
       } else {
         const passportBase64 = await prepareIdentityImage(passport);
-        const uploadStatus = await uploadUserPassport(
+        const uploadResponse = await uploadUserPassport(
           userData?.userAccessCode,
           passportBase64,
           country,
         );
-        if (String(uploadStatus) !== '204') {
+        if (String(uploadResponse?.status) !== '204') {
           throw new Error(
-            'The identity provider could not scan this passport.',
+            uploadResponse?.message ||
+              'The identity provider could not scan this passport.',
           );
         }
       }

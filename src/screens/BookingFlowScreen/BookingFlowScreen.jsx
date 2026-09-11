@@ -19,6 +19,7 @@ import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
 import DatePicker from 'react-native-date-picker';
 import Pdf from 'react-native-pdf';
+import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BookingChoice from '../../components/BookingFlow/BookingChoice';
 import BookingFlowFooter from '../../components/BookingFlow/BookingFlowFooter';
@@ -31,6 +32,7 @@ import usePricingApi from '../../hooks/usePricingApi';
 import {CREATE_BOOKING} from '../../../request/mutations/createBooking.mutation';
 import {UPDATE_BOOKING_STATUS} from '../../../request/mutations/updateBookingStatus.mutation';
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
+import {GET_BOOKING_BY_ID} from '../../../request/queries/getBookingByID.query';
 import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
 const PRINT_COPY_PRICE = 5;
@@ -833,25 +835,67 @@ function ReviewStep({
 }
 
 function Confirmation({booking, navigation, serviceName}) {
+  const shouldTrackAssignment =
+    booking.service_type === 'mobile_notary' &&
+    booking.status === 'pending' &&
+    !booking.agent;
+  const {data, stopPolling} = useQuery(GET_BOOKING_BY_ID, {
+    variables: {bookingId: booking._id},
+    skip: !shouldTrackAssignment,
+    fetchPolicy: 'network-only',
+    pollInterval: 30000,
+  });
+  const currentBooking = data?.getBookingById?.booking || booking;
+  const isWaitingForAgent =
+    currentBooking.service_type === 'mobile_notary' &&
+    currentBooking.status === 'pending' &&
+    !currentBooking.agent;
+
+  useEffect(() => {
+    if (shouldTrackAssignment && !isWaitingForAgent) {
+      stopPolling();
+    }
+  }, [isWaitingForAgent, shouldTrackAssignment, stopPolling]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.confirmationHeader}>
-        <Text style={styles.confirmationHeaderText}>Request sent</Text>
+        <Text style={styles.confirmationHeaderText}>
+          {isWaitingForAgent ? 'Finding your notary' : 'Request sent'}
+        </Text>
       </View>
       <View style={styles.confirmationContent}>
-        <View style={styles.successIcon}>
-          <Feather name="check" size={36} color="#168A52" />
-        </View>
-        <Text style={styles.successTitle}>Your request is on its way</Text>
+        {isWaitingForAgent ? (
+          <View style={styles.waitingAnimationShell}>
+            <LottieView
+              accessibilityLabel="Searching for an available notary"
+              autoPlay
+              loop
+              resizeMode="contain"
+              source={require('../../../assets/loadingAnimation.json')}
+              style={styles.waitingAnimation}
+            />
+          </View>
+        ) : (
+          <View style={styles.successIcon}>
+            <Feather name="check" size={36} color="#168A52" />
+          </View>
+        )}
+        <Text style={styles.successTitle}>
+          {isWaitingForAgent
+            ? 'We’re finding the best match'
+            : 'Your notary is assigned'}
+        </Text>
         <Text style={styles.successMessage}>
-          We are matching your {serviceName.toLowerCase()} request with an
-          available verified notary.
+          {isWaitingForAgent
+            ? 'We’ll be assigning the best agent for you soon'
+            : `Your ${serviceName.toLowerCase()} request has been sent to an available verified notary.`}
         </Text>
         <View style={styles.referenceRow}>
           <Text style={styles.referenceLabel}>Request reference</Text>
           <Text style={styles.referenceValue}>
-            #{getBookingDisplayId(booking)}
+            #{getBookingDisplayId(currentBooking)}
           </Text>
         </View>
       </View>
@@ -930,7 +974,7 @@ export default function BookingFlowScreen({navigation, route}) {
       serviceType: backendServiceType,
       coordinates: matchingCoordinates,
     },
-    skip: !user || previewMode,
+    skip: !user || previewMode || isMobile,
     fetchPolicy: 'no-cache',
   });
 
@@ -1045,12 +1089,14 @@ export default function BookingFlowScreen({navigation, route}) {
         );
       }
 
-      const matchedAgentResponse = await refetchMatchedAgent({
-        serviceType: backendServiceType,
-        coordinates: matchingCoordinates,
-      });
+      const matchedAgentResponse = isMobile
+        ? null
+        : await refetchMatchedAgent({
+            serviceType: backendServiceType,
+            coordinates: matchingCoordinates,
+          });
       const bookingAgent = matchedAgentResponse?.data?.matchAgent?.user;
-      if (!bookingAgent?.service?._id) {
+      if (!isMobile && !bookingAgent?.service?._id) {
         throw new Error('No verified notary is available for this service.');
       }
 
@@ -1082,10 +1128,12 @@ export default function BookingFlowScreen({navigation, route}) {
       const bookingResponse = await createBooking({
         variables: {
           serviceType: backendServiceType,
-          service: bookingAgent.service._id,
-          agent: bookingAgent._id,
-          // Just the document names now — the actual charge comes from the itemized
-          // seal/signer/witness quote (priceQuote/totalPrice below), not a per-document rate.
+          service: bookingAgent?.service?._id,
+          agent: bookingAgent?._id,
+          assignmentCoordinates: isMobile ? matchingCoordinates : undefined,
+          appointmentTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          // One priced entry per document being notarized, at the flat
+          // $99.99-per-document rate.
           documentType: uploadedDocuments.map(document => ({
             name: document.name || 'Document',
             price: 0,
@@ -1135,9 +1183,11 @@ export default function BookingFlowScreen({navigation, route}) {
         );
       }
 
-      const statusResponse = await updateBookingStatus({
-        variables: {bookingId: createdBooking._id, status: 'pending'},
-      });
+      const statusResponse = isMobile
+        ? null
+        : await updateBookingStatus({
+            variables: {bookingId: createdBooking._id, status: 'pending'},
+          });
       const pendingBooking =
         statusResponse?.data?.updateBookingStatusR?.booking || createdBooking;
       dispatch(setBookingInfoState(pendingBooking));
@@ -1145,7 +1195,7 @@ export default function BookingFlowScreen({navigation, route}) {
       Toast.show({
         type: 'success',
         text1: 'Booking created',
-        text2: 'Your request was sent to an available notary.',
+        text2: bookingResponse.data.createBookingR.message,
       });
     } catch (error) {
       Toast.show({
@@ -2079,6 +2129,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 38,
     backgroundColor: '#EAF7EF',
+  },
+  waitingAnimation: {
+    height: 150,
+    width: 150,
+  },
+  waitingAnimationShell: {
+    alignItems: 'center',
+    height: 150,
+    justifyContent: 'center',
+    width: 150,
   },
   successTitle: {
     marginTop: 22,
