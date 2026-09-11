@@ -161,13 +161,17 @@ function Section({children, title}) {
   );
 }
 
-const DOCUMENT_RATE = 99.99;
-const SIGNATURE_RATE = 10;
+const DOCUMENT_RATE = 25;
+const SIGNATURE_RATE = 5;
 const PRINT_RATE = 5;
 const PLATFORM_FEE = 10;
 
 function PricingBreakdown({booking, paid, price}) {
   const [expanded, setExpanded] = useState(false);
+  const savedBreakdown = booking?.price_breakdown;
+  const savedLineItems = Array.isArray(savedBreakdown?.lineItems)
+    ? savedBreakdown.lineItems
+    : [];
 
   const docTypes = Array.isArray(booking?.document_type)
     ? booking.document_type
@@ -215,42 +219,53 @@ function PricingBreakdown({booking, paid, price}) {
   );
   const calculatedPrice =
     documentFee + signatureFee + printingFee + platformFee;
-  const displayPrice =
-    calculatedPrice > 0 ? calculatedPrice : Number(price || 0);
+  const displayPrice = Number(
+    savedBreakdown?.customerTotal ??
+      (calculatedPrice > 0 ? calculatedPrice : Number(price || 0)),
+  );
 
-  const lineItems = [
-    documentFee > 0 && {
-      icon: 'file-text',
-      label:
-        docTypes.length === 1
-          ? docTypes[0]?.name || 'Notary document'
-          : 'Notary documents',
-      sublabel: `${documentCount || 1} × $${DOCUMENT_RATE.toFixed(2)}`,
-      amount: documentFee,
-    },
-    signatureFee > 0 && {
-      icon: 'edit-3',
-      label: 'Additional signatures',
-      sublabel: `${additionalSignatureCount} × $${SIGNATURE_RATE.toFixed(2)}`,
-      amount: signatureFee,
-    },
-    printingFee > 0 && {
-      icon: 'printer',
-      label: 'Document printing',
-      sublabel: `${printCopies} ${
-        printCopies === 1 ? 'copy' : 'copies'
-      } × $${PRINT_RATE.toFixed(2)}`,
-      amount: printingFee,
-    },
-    platformFee > 0 && {
-      icon: 'briefcase',
-      label: 'Notarizer Platform Fee',
-      sublabel: paid
-        ? 'Confirmed platform charge'
-        : 'Pending client confirmation',
-      amount: platformFee,
-    },
-  ].filter(Boolean);
+  const lineItems = savedLineItems.length
+    ? savedLineItems.map(item => ({
+        icon: 'file-text',
+        label: item.label,
+        sublabel: '',
+        amount: Number(item.amount || 0),
+      }))
+    : [
+        documentFee > 0 && {
+          icon: 'file-text',
+          label:
+            docTypes.length === 1
+              ? docTypes[0]?.name || 'Notary document'
+              : 'Notary documents',
+          sublabel: `${documentCount || 1} × $${DOCUMENT_RATE.toFixed(2)}`,
+          amount: documentFee,
+        },
+        signatureFee > 0 && {
+          icon: 'edit-3',
+          label: 'Additional signatures',
+          sublabel: `${additionalSignatureCount} × $${SIGNATURE_RATE.toFixed(
+            2,
+          )}`,
+          amount: signatureFee,
+        },
+        printingFee > 0 && {
+          icon: 'printer',
+          label: 'Document printing',
+          sublabel: `${printCopies} ${
+            printCopies === 1 ? 'copy' : 'copies'
+          } × $${PRINT_RATE.toFixed(2)}`,
+          amount: printingFee,
+        },
+        platformFee > 0 && {
+          icon: 'briefcase',
+          label: 'Notarizer Platform Fee',
+          sublabel: paid
+            ? 'Confirmed platform charge'
+            : 'Pending client confirmation',
+          amount: platformFee,
+        },
+      ].filter(Boolean);
 
   const toggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -663,7 +678,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   useFocusEffect(
     useCallback(() => {
       refreshBookingRef.current();
-    }, [booking?._id]),
+    }, []),
   );
   const statusStyle = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const documentLabel = Array.isArray(booking?.document_type)
@@ -929,10 +944,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   if (!booking?._id) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ProfileScreenHeader
-          onBack={handleBack}
-          title="Booking details"
-        />
+        <ProfileScreenHeader onBack={handleBack} title="Booking details" />
         <View style={styles.missingState}>
           <Feather name="alert-circle" size={26} color={BookingColors.error} />
           <Text style={styles.missingTitle}>Booking unavailable</Text>
@@ -1177,9 +1189,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             <DetailRow
               icon="file-text"
               label={
-                showingNotarizedDocuments
-                  ? 'Notarized document'
-                  : 'Documents'
+                showingNotarizedDocuments ? 'Notarized document' : 'Documents'
               }
               value={documentLabel}
             />

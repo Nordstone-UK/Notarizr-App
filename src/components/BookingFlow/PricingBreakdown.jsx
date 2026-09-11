@@ -106,7 +106,7 @@ function ItemizedPricingBreakdown({
   );
 }
 
-const DEFAULT_PER_DOCUMENT_RATE = 99.99;
+const DEFAULT_PER_DOCUMENT_RATE = 25;
 
 function FlatPricingBreakdown({
   additionalSignatureCount = 0,
@@ -158,13 +158,17 @@ function FlatPricingBreakdown({
         value: perDocumentRate,
       });
     } else if (Number(documentCharge) > 0) {
-      const count = documentCount || Math.round(Number(documentCharge) / 99.99);
+      const count =
+        documentCount ||
+        Math.max(1, Math.round(Number(documentCharge) / perDocumentRate));
       costRows.push({
         icon: 'file-text',
         label: documentLabel || 'Notarized documents',
         subtitle:
           count > 0
-            ? `${count} ${count === 1 ? 'document' : 'documents'} × $99.99`
+            ? `${count} ${
+                count === 1 ? 'document' : 'documents'
+              } × ${formatPrice(perDocumentRate)}`
             : 'Notarization fee',
         value: documentCharge,
       });

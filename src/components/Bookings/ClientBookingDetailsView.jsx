@@ -352,7 +352,7 @@ export default function ClientBookingDetailsView({
   const documentCharge = Number(
     booking?.documentCharge ??
       (documentCount > 0
-        ? documentCount * 99.99
+        ? documentCount * 25
         : Math.max(
             0,
             storedTotalPrice -

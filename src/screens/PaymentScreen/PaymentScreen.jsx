@@ -20,18 +20,44 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useStripeApi from '../../hooks/useStripeApi';
 import Toast from 'react-native-toast-message';
 import {hasSavedTestCard} from '../../utils/TestPayments';
+
+const formatMoney = value => `$${Number(value || 0).toFixed(2)}`;
+
 export default function PaymentScreen({navigation}) {
   const bookingDetail = useSelector(state => state.booking.booking);
-  // console.log('bookingDetail payment', bookingDetail?.documentType?.price);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
-  const DocumentPrice = bookingDetail?.documentType?.price;
+  const breakdown = bookingDetail?.price_breakdown;
+  const documentItems = Array.isArray(bookingDetail?.document_type)
+    ? bookingDetail.document_type
+    : Array.isArray(bookingDetail?.documentType)
+    ? bookingDetail.documentType
+    : bookingDetail?.documentType
+    ? [bookingDetail.documentType]
+    : [];
+  const fallbackDocumentTotal = documentItems.reduce(
+    (sum, item) => sum + Number(item?.price || 0),
+    0,
+  );
+  const totalAmount = Number(
+    bookingDetail?.totalPrice ??
+      breakdown?.customerTotal ??
+      bookingDetail?.price ??
+      fallbackDocumentTotal,
+  );
+  const lineItems = breakdown?.lineItems?.length
+    ? breakdown.lineItems
+    : documentItems.map(item => ({
+        key: item?.name,
+        label: item?.name || 'Notary document',
+        amount: Number(item?.price || 0),
+      }));
 
   const initializePaymentSheet = async () => {
     setLoading(true);
     const response = await fetchPaymentSheetParams(
-      DocumentPrice * 100,
+      Math.round(totalAmount * 100),
       bookingDetail._id,
     );
     const {customer_id, ephemeralKey, paymentIntent} =
@@ -116,11 +142,16 @@ export default function PaymentScreen({navigation}) {
 
           <View style={{marginVertical: heightToDp(2)}}>
             <View style={styles.docsContainer}>
-              <Text style={styles.textPay}>
-                {bookingDetail?.documentType?.name}
-              </Text>
-              <Text style={styles.textPay}>${DocumentPrice}</Text>
+              <Text style={styles.textPay}>Pricing summary</Text>
             </View>
+            {lineItems.map((item, index) => (
+              <View
+                key={`${item.key || item.label || 'item'}-${index}`}
+                style={styles.docsContainer}>
+                <Text style={styles.textPay}>{item.label}</Text>
+                <Text style={styles.textPay}>{formatMoney(item.amount)}</Text>
+              </View>
+            ))}
           </View>
           <View
             style={{
@@ -133,7 +164,7 @@ export default function PaymentScreen({navigation}) {
           />
           <View style={styles.docsContainer}>
             <Text style={styles.textPay}>Total Amount</Text>
-            <Text style={styles.textPay}>${DocumentPrice}</Text>
+            <Text style={styles.textPay}>{formatMoney(totalAmount)}</Text>
           </View>
           <View
             style={{

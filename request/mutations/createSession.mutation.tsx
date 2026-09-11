@@ -11,6 +11,16 @@ export const CREATE_SESSION = gql`
     $price: Float!
     $documentType: [documentTypeInput!]!
     $paymentType: String
+    $useStandardPricing: Boolean
+    $agentTier: AgentTier
+    $billingMode: InvitationBillingMode
+    $additionalSeals: Int
+    $additionalSigners: Int
+    $platformProvidedWitnesses: Int
+    $customerProvidedWitnesses: Int
+    $isClosing: Boolean
+    $closingRoute: ClosingRoute
+    $customPrice: Float
   ) {
     createSessionR(
       client_email: $clientEmail
@@ -22,10 +32,37 @@ export const CREATE_SESSION = gql`
       price: $price
       document_type: $documentType
       payment_type: $paymentType
+      useStandardPricing: $useStandardPricing
+      agentTier: $agentTier
+      billingMode: $billingMode
+      additionalSeals: $additionalSeals
+      additionalSigners: $additionalSigners
+      platformProvidedWitnesses: $platformProvidedWitnesses
+      customerProvidedWitnesses: $customerProvidedWitnesses
+      isClosing: $isClosing
+      closingRoute: $closingRoute
+      customPrice: $customPrice
     ) {
       session {
         _id
         price
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         client_documents
         status
         client_email

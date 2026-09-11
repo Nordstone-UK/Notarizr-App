@@ -5,17 +5,52 @@ export const CREATE_CLIENTSESSION = gql`
     $agentEmail: String!
     $sessionSchedule: String!
     $dateTimeSession: String!
-    
+    $useStandardPricing: Boolean
+    $agentTier: AgentTier
+    $billingMode: InvitationBillingMode
+    $additionalSeals: Int
+    $additionalSigners: Int
+    $platformProvidedWitnesses: Int
+    $customerProvidedWitnesses: Int
+    $isClosing: Boolean
+    $closingRoute: ClosingRoute
+    $customPrice: Float
   ) {
     createSessionClientR(
       agent_email: $agentEmail
       session_schedule: $sessionSchedule
       date_time_session: $dateTimeSession
-     
+      useStandardPricing: $useStandardPricing
+      agentTier: $agentTier
+      billingMode: $billingMode
+      additionalSeals: $additionalSeals
+      additionalSigners: $additionalSigners
+      platformProvidedWitnesses: $platformProvidedWitnesses
+      customerProvidedWitnesses: $customerProvidedWitnesses
+      isClosing: $isClosing
+      closingRoute: $closingRoute
+      customPrice: $customPrice
     ) {
       session {
         _id
         price
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
         client_documents
         status
         client_email

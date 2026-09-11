@@ -1092,11 +1092,15 @@ export default function BookingFlowScreen({navigation, route}) {
           preferenceAnalysis: 'distance',
           documents,
           // totalPrice is the itemized quote (priceQuote.customerTotal) plus printing — computed
-          // client-side rather than via the backend's useStandardPricing opt-in, because that
-          // opt-in fully overrides totalPrice with the engine's number and has no concept of the
-          // printing add-on, which would silently drop the printing charge from what's billed.
+          // client-side for the printing add-on, then submitted with the pricing counts so the
+          // backend can save the official itemized quote plus that add-on.
           totalPrice: price,
           totalSignaturesRequired: additionalSignatures,
+          useStandardPricing: true,
+          additionalSeals,
+          additionalSigners: additionalSignatures,
+          platformProvidedWitnesses: platformWitnesses,
+          customerProvidedWitnesses: 0,
         },
       });
 

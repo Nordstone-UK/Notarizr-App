@@ -280,9 +280,9 @@ const useFetchBooking = () => {
   };
   // pricingOptions, when passed, opts into the server-side pricing engine
   // (calculatePriceR / pricing.mutation.helper on the backend): {useStandardPricing,
-  // additionalSeals, additionalSigners, platformProvidedWitnesses, customerProvidedWitnesses,
-  // isClosing, closingRoute, paymentType, customPrice}. Omitted, behavior is unchanged — `price`
-  // is sent as-is and nothing itemized gets saved, same as before.
+  // billingMode, additionalSeals, additionalSigners, platformProvidedWitnesses,
+  // customerProvidedWitnesses, isClosing, closingRoute, paymentType, customPrice}. Omitted,
+  // behavior is unchanged — `price` is sent as-is and nothing itemized gets saved, same as before.
   const setSessionPrice = async (id, price, docs, pricingOptions = {}) => {
     const request = {
       variables: {

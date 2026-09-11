@@ -14,8 +14,15 @@ export const CREATE_BOOKING = gql`
     $bookedFor: BookedForInput
     $preferenceAnalysis: String
     $documents: JSON
-    $totalPrice :Float
-    $totalSignaturesRequired :Int!
+    $totalPrice: Float
+    $totalSignaturesRequired: Int!
+    $useStandardPricing: Boolean
+    $additionalSeals: Int
+    $additionalSigners: Int
+    $platformProvidedWitnesses: Int
+    $customerProvidedWitnesses: Int
+    $isClosing: Boolean
+    $closingRoute: ClosingRoute
   ) {
     createBookingR(
       service_type: $serviceType
@@ -30,10 +37,15 @@ export const CREATE_BOOKING = gql`
       booked_for: $bookedFor
       preference_analysis: $preferenceAnalysis
       documents: $documents
-      totalPrice:$totalPrice
-      total_signatures_required:$totalSignaturesRequired
-
-
+      totalPrice: $totalPrice
+      total_signatures_required: $totalSignaturesRequired
+      useStandardPricing: $useStandardPricing
+      additionalSeals: $additionalSeals
+      additionalSigners: $additionalSigners
+      platformProvidedWitnesses: $platformProvidedWitnesses
+      customerProvidedWitnesses: $customerProvidedWitnesses
+      isClosing: $isClosing
+      closingRoute: $closingRoute
     ) {
       status
       message
@@ -139,6 +151,24 @@ export const CREATE_BOOKING = gql`
         review
         createdAt
         updatedAt
+        totalPrice
+        price_breakdown {
+          path
+          billingMode
+          lineItems {
+            key
+            label
+            amount
+          }
+          customerTotal
+          agentPayout
+          platformMargin
+          technologyFee
+          estimatedProcessingFee
+          configVersion
+          calculatedAt
+          warnings
+        }
       }
     }
   }

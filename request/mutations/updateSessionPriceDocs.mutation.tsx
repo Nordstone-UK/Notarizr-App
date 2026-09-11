@@ -9,6 +9,7 @@ export const UPDATE_SESSION_PRICEDOCS = gql`
     $rating: Int
     $paymentType: String
     $useStandardPricing: Boolean
+    $billingMode: InvitationBillingMode
     $additionalSeals: Int
     $additionalSigners: Int
     $platformProvidedWitnesses: Int
@@ -25,6 +26,7 @@ export const UPDATE_SESSION_PRICEDOCS = gql`
       rating: $rating
       payment_type: $paymentType
       useStandardPricing: $useStandardPricing
+      billingMode: $billingMode
       additionalSeals: $additionalSeals
       additionalSigners: $additionalSigners
       platformProvidedWitnesses: $platformProvidedWitnesses
