@@ -34,6 +34,9 @@ import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 import {getBookingDisplayId} from '../../utils/bookingPresentation';
 
 const PRINT_COPY_PRICE = 5;
+const ADDITIONAL_SIGNER_PRICE = 5;
+const ADDITIONAL_SEAL_PRICE = 8;
+const PLATFORM_WITNESS_PRICE = 10;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const getMinimumBookingDate = () => {
   const date = new Date();
@@ -538,7 +541,14 @@ function UploadAndPrintStep({
             <Text style={styles.stepperLabel}>
               Additional signatures required
             </Text>
-            <Text style={styles.stepperHint}>Beyond the primary signature</Text>
+            <Text style={styles.stepperHint}>
+              ${ADDITIONAL_SIGNER_PRICE.toFixed(2)} each
+              {additionalSignatures > 0
+                ? ` · $${(
+                    additionalSignatures * ADDITIONAL_SIGNER_PRICE
+                  ).toFixed(2)} added`
+                : ''}
+            </Text>
           </View>
           <View style={styles.stepper}>
             <TouchableOpacity
@@ -572,7 +582,12 @@ function UploadAndPrintStep({
           <View>
             <Text style={styles.stepperLabel}>Additional seals</Text>
             <Text style={styles.stepperHint}>
-              Extra stamps beyond the first
+              ${ADDITIONAL_SEAL_PRICE.toFixed(2)} each
+              {additionalSeals > 0
+                ? ` · $${(additionalSeals * ADDITIONAL_SEAL_PRICE).toFixed(
+                    2,
+                  )} added`
+                : ''}
             </Text>
           </View>
           <View style={styles.stepper}>
@@ -603,7 +618,12 @@ function UploadAndPrintStep({
           <View>
             <Text style={styles.stepperLabel}>Notarizr-provided witnesses</Text>
             <Text style={styles.stepperHint}>
-              Leave at 0 if you're bringing your own
+              ${PLATFORM_WITNESS_PRICE.toFixed(2)} each
+              {platformWitnesses > 0
+                ? ` · $${(platformWitnesses * PLATFORM_WITNESS_PRICE).toFixed(
+                    2,
+                  )} added`
+                : ''}
             </Text>
           </View>
           <View style={styles.stepper}>
