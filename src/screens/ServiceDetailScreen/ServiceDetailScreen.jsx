@@ -1,8 +1,8 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Alert,
   StyleSheet,
   Text,
-  ScrollView,
   SafeAreaView,
   View,
   FlatList,
@@ -232,11 +232,13 @@ export default function ServiceDetailScreen({route, navigation}) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1, paddingBottom: heightToDp(5)}}>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           scrollEnabled={true}
           removeClippedSubviews={false}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
+          showsVerticalScrollIndicator={false}>
           <BottomSheetStyle>
             <View style={{paddingBottom: widthToDp(5)}}>
               <View style={{marginVertical: heightToDp(2)}}>
@@ -499,7 +501,7 @@ export default function ServiceDetailScreen({route, navigation}) {
               </View>
             </View>
           </BottomSheetStyle>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

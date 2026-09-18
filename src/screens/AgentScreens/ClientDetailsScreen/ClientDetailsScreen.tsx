@@ -1,8 +1,8 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
   View,
   SafeAreaView,
   RefreshControl,
@@ -1239,7 +1239,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       </View>
 
       <BottomSheetStyle>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           scrollEnabled={true}
           nestedScrollEnabled={true}
           showsVerticalScrollIndicator={false}
@@ -1491,7 +1494,10 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                             style={{height: heightToDp(40)}}
                           />
                         ) : (
-                          <ScrollView
+                          <KeyboardAwareScrollView
+                            enableOnAndroid
+                            keyboardShouldPersistTaps="handled"
+                            extraScrollHeight={16}
                             showsVerticalScrollIndicator={false}
                             nestedScrollEnabled={true}
                             style={{
@@ -1515,7 +1521,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                                 </Text>
                               </TouchableOpacity>
                             ))}
-                          </ScrollView>
+                          </KeyboardAwareScrollView>
                         )
                       ) : null}
                     </View>
@@ -2503,7 +2509,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
 
             <View style={{height: 32}} />
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <BottomSheetModal
           ref={bottomSheetModalRef}

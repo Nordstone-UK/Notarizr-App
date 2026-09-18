@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -6,7 +7,6 @@ import {
   Linking,
   Platform,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -413,9 +413,11 @@ export default function AgentSessionInviteScreen({navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <NavigationHeader Title="Invite signer" />
-      <ScrollView
-        contentContainerStyle={styles.content}
+      <KeyboardAwareScrollView
+        enableOnAndroid
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={16}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
@@ -698,7 +700,7 @@ export default function AgentSessionInviteScreen({navigation}) {
           onPress={submitInvitation}
           viewStyle={styles.submitButton}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

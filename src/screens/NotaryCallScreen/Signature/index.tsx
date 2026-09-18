@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +8,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -17,12 +17,12 @@ import {
 import Signature from 'react-native-signature-canvas';
 import Feather from 'react-native-vector-icons/Feather';
 import ViewShot from 'react-native-view-shot';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 import BookingColors from '../../../themes/BookingColors';
 import useFetchUser from '../../../hooks/useFetchUser';
 import useUpdate from '../../../hooks/useUpdate';
-import { useLiveblocks } from '../../../store/liveblocks';
+import {useLiveblocks} from '../../../store/liveblocks';
 import {
   uploadDocumentToSpaces,
   uploadSignatureToSpaces,
@@ -63,11 +63,11 @@ type SigningActivity = {
 
 interface ActiveSignerPresenceProps {
   currentActivity?: SigningActivity;
-  currentParticipant?: { name?: string; role?: string } | null;
+  currentParticipant?: {name?: string; role?: string} | null;
   others?: ReadonlyArray<{
     connectionId?: number;
     presence?: {
-      sessionParticipant?: { name?: string; role?: string } | null;
+      sessionParticipant?: {name?: string; role?: string} | null;
       signingActivity?: SigningActivity;
     };
   }>;
@@ -80,12 +80,14 @@ export const ActiveSignerPresence: React.FC<ActiveSignerPresenceProps> = ({
 }) => {
   const activeSigners = [
     ...(currentActivity && currentActivity.status !== 'idle'
-      ? [{
-        id: 'local',
-        participant: currentParticipant,
-        activity: currentActivity,
-        isLocal: true,
-      }]
+      ? [
+          {
+            id: 'local',
+            participant: currentParticipant,
+            activity: currentActivity,
+            isLocal: true,
+          },
+        ]
       : []),
     ...others
       .filter(
@@ -149,9 +151,7 @@ export const ActiveSignerPresence: React.FC<ActiveSignerPresenceProps> = ({
           ]}>
           <View style={styles.signerCursorPointer} />
           <Text style={styles.signerCursorLabel}>
-            {signer.isLocal
-              ? 'You'
-              : signer.participant?.name || 'Participant'}
+            {signer.isLocal ? 'You' : signer.participant?.name || 'Participant'}
           </Text>
         </View>
       ))}
@@ -164,18 +164,18 @@ const options: Array<{
   label: string;
   icon: string;
 }> = [
-    { key: 'saved', label: 'Saved', icon: 'bookmark' },
-    { key: 'draw', label: 'Draw', icon: 'edit-3' },
-    { key: 'type', label: 'Type', icon: 'type' },
-    { key: 'upload', label: 'Upload', icon: 'upload' },
-    { key: 'date', label: 'Date', icon: 'calendar' },
-    { key: 'stamp', label: 'Stamp', icon: 'award' },
-  ];
+  {key: 'saved', label: 'Saved', icon: 'bookmark'},
+  {key: 'draw', label: 'Draw', icon: 'edit-3'},
+  {key: 'type', label: 'Type', icon: 'type'},
+  {key: 'upload', label: 'Upload', icon: 'upload'},
+  {key: 'date', label: 'Date', icon: 'calendar'},
+  {key: 'stamp', label: 'Stamp', icon: 'award'},
+];
 
 const fontStyles = [
-  { label: 'Script', value: 'DancingScript-VariableFont_wght' },
-  { label: 'Classic', value: 'JacquesFrancoisShadow-Regular' },
-  { label: 'Clean', value: 'Manrope-Bold' },
+  {label: 'Script', value: 'DancingScript-VariableFont_wght'},
+  {label: 'Classic', value: 'JacquesFrancoisShadow-Regular'},
+  {label: 'Clean', value: 'Manrope-Bold'},
 ];
 
 const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
@@ -185,8 +185,8 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
   onStampChanges,
   page = 1,
 }) => {
-  const { fetchUserInfo, handleDeleteSign } = useFetchUser();
-  const { handleNotarysignUpdate } = useUpdate();
+  const {fetchUserInfo, handleDeleteSign} = useFetchUser();
+  const {handleNotarysignUpdate} = useUpdate();
   const insertObject = useLiveblocks(state => state.insertObject);
   const setSigningActivity = useLiveblocks(state => state.setSigningActivity);
 
@@ -217,9 +217,10 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       setUploadedImageName('signature.jpg');
       const now = new Date();
       setDateValue(
-        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
-          now.getDate(),
-        ).padStart(2, '0')}`,
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+          2,
+          '0',
+        )}-${String(now.getDate()).padStart(2, '0')}`,
       );
       setStampImageUri(null);
       getSavedStamps(signs?._id).then(setSavedStamps);
@@ -229,13 +230,21 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
         page,
       });
     }
-  }, [isVisible, page, setSigningActivity, signs?._id, signs?.notarysigns?.length]);
+  }, [
+    isVisible,
+    page,
+    setSigningActivity,
+    signs?._id,
+    signs?.notarysigns?.length,
+  ]);
 
   const isAgent = signs?.account_type !== 'client';
-  const visibleOptions = options.filter(option => option.key !== 'stamp' || isAgent);
+  const visibleOptions = options.filter(
+    option => option.key !== 'stamp' || isAgent,
+  );
 
   const dismissModal = useCallback(() => {
-    setSigningActivity({ status: 'idle', label: '', page });
+    setSigningActivity({status: 'idle', label: '', page});
     onClose();
   }, [onClose, page, setSigningActivity]);
 
@@ -245,7 +254,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
         type: 'image',
         sourceUrl,
         page,
-        position: { x: 100, y: 100 },
+        position: {x: 100, y: 100},
       });
     },
     [insertObject, page],
@@ -274,7 +283,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
         }
       }
 
-      setSigningActivity({ status: 'idle', label: '', page });
+      setSigningActivity({status: 'idle', label: '', page});
       onClose();
     },
     [
@@ -393,7 +402,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       type: 'date',
       text: trimmedDate,
       page,
-      position: { x: 100, y: 100 },
+      position: {x: 100, y: 100},
     });
     setSigningActivity({
       status: 'placing',
@@ -408,7 +417,10 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
   const chooseStampImage = useCallback(async () => {
     setErrorMessage('');
     try {
-      const result = await launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 });
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+      });
       if (result.didCancel) {
         return;
       }
@@ -429,7 +441,9 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       setStampImageUri(asset.uri);
       setStampImageName(fileName);
     } catch (error: any) {
-      setErrorMessage(error?.message || 'The stamp image could not be selected.');
+      setErrorMessage(
+        error?.message || 'The stamp image could not be selected.',
+      );
     }
   }, []);
 
@@ -455,7 +469,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       }
       const nextStamps = await saveSavedStamps(signs?._id, [
         ...savedStamps,
-        { id: `${Date.now()}`, name: stampImageName, url },
+        {id: `${Date.now()}`, name: stampImageName, url},
       ]);
       setSavedStamps(nextStamps);
       setStampImageUri(null);
@@ -525,12 +539,12 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
     [fetchUserInfo, handleDeleteSign],
   );
 
-  const renderSavedSignature = ({ item }: { item: SavedSignature }) => (
+  const renderSavedSignature = ({item}: {item: SavedSignature}) => (
     <TouchableOpacity
       style={styles.savedCard}
       activeOpacity={0.8}
       onPress={() => selectSavedSignature(item.signUrl)}>
-      <Image source={{ uri: item.signUrl }} style={styles.savedImage} />
+      <Image source={{uri: item.signUrl}} style={styles.savedImage} />
       <View style={styles.savedCardFooter}>
         <Text style={styles.savedUseText}>Use signature</Text>
         <TouchableOpacity
@@ -562,9 +576,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                 Choose a method, preview it, then add it to the document.
               </Text>
             </View>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={dismissModal}>
+            <TouchableOpacity style={styles.closeButton} onPress={dismissModal}>
               <Feather name="x" size={21} color={BookingColors.textPrimary} />
             </TouchableOpacity>
           </View>
@@ -601,10 +613,12 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
             })}
           </View>
 
-          <ScrollView
+          <KeyboardAwareScrollView
+            enableOnAndroid
+            keyboardShouldPersistTaps="handled"
+            extraScrollHeight={16}
             style={styles.contentScroll}
             contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             {selectedOption === 'saved' && (
               <View>
@@ -663,7 +677,9 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                 <View style={styles.drawActionsRow}>
                   <TouchableOpacity
                     style={styles.clearButton}
-                    onPress={() => signatureCanvasRef.current?.clearSignature()}>
+                    onPress={() =>
+                      signatureCanvasRef.current?.clearSignature()
+                    }>
                     <Text style={styles.clearButtonText}>Clear</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -702,7 +718,10 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                   onChangeText={setInputText}
                   value={inputText}
                 />
-                <ScrollView
+                <KeyboardAwareScrollView
+                  enableOnAndroid
+                  keyboardShouldPersistTaps="handled"
+                  extraScrollHeight={16}
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.fontRow}>
@@ -726,17 +745,17 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                       </TouchableOpacity>
                     );
                   })}
-                </ScrollView>
+                </KeyboardAwareScrollView>
                 <ViewShot
                   ref={viewShotRef}
-                  options={{ format: 'png', quality: 1 }}
+                  options={{format: 'png', quality: 1}}
                   style={styles.typedPreview}>
                   <Text
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     style={[
                       styles.typedSignature,
-                      { fontFamily: selectedFontStyle },
+                      {fontFamily: selectedFontStyle},
                     ]}>
                     {inputText || 'Your signature'}
                   </Text>
@@ -774,7 +793,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                   onPress={chooseSignatureImage}>
                   {uploadedImageUri ? (
                     <Image
-                      source={{ uri: uploadedImageUri }}
+                      source={{uri: uploadedImageUri}}
                       style={styles.uploadedImage}
                     />
                   ) : (
@@ -834,7 +853,8 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
               <View>
                 <Text style={styles.sectionTitle}>Document date</Text>
                 <Text style={styles.sectionDescription}>
-                  Defaults to today. Override it when the legal document requires a different date.
+                  Defaults to today. Override it when the legal document
+                  requires a different date.
                 </Text>
                 <Text style={styles.inputLabel}>Date (YYYY-MM-DD)</Text>
                 <TextInput
@@ -850,7 +870,11 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                   style={styles.primaryButton}
                   onPress={addDateToDocument}>
                   <Text style={styles.primaryButtonText}>Place date</Text>
-                  <Feather name="calendar" size={18} color={BookingColors.white} />
+                  <Feather
+                    name="calendar"
+                    size={18}
+                    color={BookingColors.white}
+                  />
                 </TouchableOpacity>
               </View>
             )}
@@ -859,7 +883,8 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
               <View>
                 <Text style={styles.sectionTitle}>Notary stamp</Text>
                 <Text style={styles.sectionDescription}>
-                  Choose a saved stamp or upload a PNG. Up to two stamps can be saved.
+                  Choose a saved stamp or upload a PNG. Up to two stamps can be
+                  saved.
                 </Text>
                 {savedStamps.length > 0 && (
                   <View style={styles.stampGrid}>
@@ -868,13 +893,22 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                         key={stamp.id}
                         style={styles.savedCard}
                         onPress={() => selectSavedStamp(stamp.url)}>
-                        <Image source={{ uri: stamp.url }} style={styles.savedImage} />
+                        <Image
+                          source={{uri: stamp.url}}
+                          style={styles.savedImage}
+                        />
                         <View style={styles.savedCardFooter}>
-                          <Text style={styles.savedUseText}>Use stamp {index + 1}</Text>
+                          <Text style={styles.savedUseText}>
+                            Use stamp {index + 1}
+                          </Text>
                           <TouchableOpacity
                             hitSlop={10}
                             onPress={() => deleteSavedStamp(stamp.id)}>
-                            <Feather name="trash-2" size={17} color={BookingColors.error} />
+                            <Feather
+                              name="trash-2"
+                              size={17}
+                              color={BookingColors.error}
+                            />
                           </TouchableOpacity>
                         </View>
                       </TouchableOpacity>
@@ -883,16 +917,29 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                 )}
                 {savedStamps.length < 2 && (
                   <>
-                    <TouchableOpacity style={styles.uploadArea} onPress={chooseStampImage}>
+                    <TouchableOpacity
+                      style={styles.uploadArea}
+                      onPress={chooseStampImage}>
                       {stampImageUri ? (
-                        <Image source={{ uri: stampImageUri }} style={styles.uploadedImage} />
+                        <Image
+                          source={{uri: stampImageUri}}
+                          style={styles.uploadedImage}
+                        />
                       ) : (
                         <>
                           <View style={styles.uploadIcon}>
-                            <Feather name="award" size={24} color={BookingColors.primary} />
+                            <Feather
+                              name="award"
+                              size={24}
+                              color={BookingColors.primary}
+                            />
                           </View>
-                          <Text style={styles.uploadTitle}>Choose stamp PNG</Text>
-                          <Text style={styles.uploadDescription}>Transparent PNG recommended</Text>
+                          <Text style={styles.uploadTitle}>
+                            Choose stamp PNG
+                          </Text>
+                          <Text style={styles.uploadDescription}>
+                            Transparent PNG recommended
+                          </Text>
                         </>
                       )}
                     </TouchableOpacity>
@@ -924,7 +971,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                 <Text style={styles.errorText}>{errorMessage}</Text>
               </View>
             )}
-          </ScrollView>
+          </KeyboardAwareScrollView>
 
           {saving &&
             selectedOption !== 'type' &&
@@ -958,7 +1005,7 @@ const signatureWebStyle = `
 `;
 
 const styles = StyleSheet.create({
-  modalRoot: { flex: 1, justifyContent: 'flex-end' },
+  modalRoot: {flex: 1, justifyContent: 'flex-end'},
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(18, 24, 38, 0.56)',
@@ -986,7 +1033,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
-  headerCopy: { flex: 1, paddingRight: 12 },
+  headerCopy: {flex: 1, paddingRight: 12},
   heading: {
     fontFamily: 'Manrope-Bold',
     fontSize: 22,
@@ -1038,7 +1085,7 @@ const styles = StyleSheet.create({
     color: BookingColors.textSecondary,
     textAlign: 'center',
   },
-  optionTextActive: { color: BookingColors.primary },
+  optionTextActive: {color: BookingColors.primary},
   inputLabel: {
     marginBottom: 7,
     color: BookingColors.textPrimary,
@@ -1050,8 +1097,8 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12,
   },
-  contentScroll: { marginTop: 6 },
-  content: { padding: 20, paddingBottom: 30 },
+  contentScroll: {marginTop: 6},
+  content: {padding: 20, paddingBottom: 30},
   sectionTitle: {
     fontFamily: 'Manrope-Bold',
     fontSize: 18,
@@ -1065,7 +1112,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     marginBottom: 16,
   },
-  savedRow: { gap: 10 },
+  savedRow: {gap: 10},
   savedCard: {
     flex: 1,
     minHeight: 132,
@@ -1141,7 +1188,7 @@ const styles = StyleSheet.create({
     color: BookingColors.textPrimary,
     backgroundColor: BookingColors.surface,
   },
-  fontRow: { gap: 8, paddingVertical: 12 },
+  fontRow: {gap: 8, paddingVertical: 12},
   fontChip: {
     borderRadius: 9,
     borderWidth: 1,
@@ -1158,7 +1205,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: BookingColors.textSecondary,
   },
-  fontChipTextActive: { color: BookingColors.primary },
+  fontChipTextActive: {color: BookingColors.primary},
   typedPreview: {
     height: 110,
     borderRadius: 12,
@@ -1169,7 +1216,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BookingColors.border,
   },
-  typedSignature: { fontSize: 30, color: BookingColors.textPrimary },
+  typedSignature: {fontSize: 30, color: BookingColors.textPrimary},
   uploadArea: {
     minHeight: 160,
     borderRadius: 14,
@@ -1201,7 +1248,7 @@ const styles = StyleSheet.create({
     color: BookingColors.textSecondary,
     marginTop: 3,
   },
-  uploadedImage: { width: '100%', height: 130, resizeMode: 'contain' },
+  uploadedImage: {width: '100%', height: 130, resizeMode: 'contain'},
   replaceButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1224,7 +1271,7 @@ const styles = StyleSheet.create({
     backgroundColor: BookingColors.primary,
     marginTop: 14,
   },
-  primaryButtonDisabled: { backgroundColor: BookingColors.borderStrong },
+  primaryButtonDisabled: {backgroundColor: BookingColors.borderStrong},
   primaryButtonText: {
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
@@ -1236,7 +1283,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  drawUseButton: { flex: 1, marginTop: 0 },
+  drawUseButton: {flex: 1, marginTop: 0},
   clearButton: {
     height: 52,
     paddingHorizontal: 20,
@@ -1310,7 +1357,7 @@ const styles = StyleSheet.create({
     borderColor: '#7C3AED',
     backgroundColor: '#F5F3FF',
     shadowColor: '#111827',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.16,
     shadowRadius: 5,
     elevation: 5,
@@ -1326,7 +1373,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: '#7C3AED',
   },
-  signerPresenceCopy: { flexShrink: 1 },
+  signerPresenceCopy: {flexShrink: 1},
   signerPresenceName: {
     color: BookingColors.textPrimary,
     fontFamily: 'Manrope-Bold',
@@ -1354,7 +1401,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#7C3AED',
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    transform: [{ rotate: '-38deg' }],
+    transform: [{rotate: '-38deg'}],
   },
   signerCursorLabel: {
     marginLeft: -2,

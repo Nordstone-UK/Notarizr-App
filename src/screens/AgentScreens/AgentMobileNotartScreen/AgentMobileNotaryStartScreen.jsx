@@ -1,8 +1,8 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
   StyleSheet,
   Text,
-  ScrollView,
   View,
   RefreshControl,
   SafeAreaView,
@@ -116,7 +116,10 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
         <Text style={styles.Heading}>Medical documents</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           scrollEnabled={true}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -268,7 +271,7 @@ export default function AgentMobileNotaryStartScreen({navigation}) {
               />
             ) : null}
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
   );

@@ -1,4 +1,5 @@
-import {SafeAreaView, StyleSheet, Text, ScrollView, View} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import React, {useState} from 'react';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import {heightToDp, width, widthToDp} from '../../../utils/Responsive';
@@ -19,7 +20,10 @@ export default function AgentLocationScreen({navigation}) {
         <Text style={styles.Heading}>Profile Setup</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <Text style={styles.insideHeading}>
@@ -103,7 +107,7 @@ export default function AgentLocationScreen({navigation}) {
               }}
             />
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
         <View style={styles.bottomFlex}>
           <GradientButton
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}

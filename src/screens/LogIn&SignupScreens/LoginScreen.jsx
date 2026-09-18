@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
   ImageBackground,
@@ -5,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
   PermissionsAndroid,
   Platform,
   StatusBar,
@@ -190,9 +190,11 @@ export default function LoginScreen({navigation}) {
         backgroundColor="transparent"
         translucent
       />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <KeyboardAwareScrollView
+        enableOnAndroid
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={26}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
         <ImageBackground
           source={require('../../../assets/loginBackground.png')}
@@ -235,7 +237,7 @@ export default function LoginScreen({navigation}) {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

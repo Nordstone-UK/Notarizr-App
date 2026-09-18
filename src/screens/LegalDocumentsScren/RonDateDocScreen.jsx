@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
   StyleSheet,
@@ -12,7 +13,6 @@ import {
   Share,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 
@@ -209,7 +209,10 @@ export default function RonDateDocScreen({route, navigation}) {
       <NavigationHeader Title="Book RON" />
 
       <BottomSheetStyle>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           // scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}>
           <View
@@ -523,7 +526,10 @@ export default function RonDateDocScreen({route, navigation}) {
                     style={{height: heightToDp(40)}}
                   />
                 ) : (
-                  <ScrollView
+                  <KeyboardAwareScrollView
+                    enableOnAndroid
+                    keyboardShouldPersistTaps="handled"
+                    extraScrollHeight={16}
                     showsVerticalScrollIndicator={false}
                     style={{
                       height: heightToDp(40),
@@ -556,7 +562,7 @@ export default function RonDateDocScreen({route, navigation}) {
                           </Text>
                         </TouchableOpacity>
                       ))}
-                  </ScrollView>
+                  </KeyboardAwareScrollView>
                 )
               ) : null}
 
@@ -694,7 +700,7 @@ export default function RonDateDocScreen({route, navigation}) {
             {/* {isYes && <Text style={styles.text}>OR</Text>} */}
           </View>
           {/* </View> */}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
   );

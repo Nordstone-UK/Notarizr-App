@@ -1,9 +1,9 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useState} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -33,9 +33,11 @@ export default function PasswordEditScreen({navigation}) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>
-        <ScrollView
-          contentContainerStyle={styles.content}
+        <KeyboardAwareScrollView
+          enableOnAndroid
           keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
+          contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <View style={styles.heroGlow} />
@@ -101,7 +103,7 @@ export default function PasswordEditScreen({navigation}) {
               Passwords are encrypted and never displayed in your profile.
             </Text>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

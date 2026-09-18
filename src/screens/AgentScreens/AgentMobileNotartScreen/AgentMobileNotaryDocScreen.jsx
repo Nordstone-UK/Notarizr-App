@@ -1,11 +1,5 @@
-import {
-  Image,
-  StyleSheet,
-  Text,
-  ScrollView,
-  View,
-  SafeAreaView,
-} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {Image, StyleSheet, Text, View, SafeAreaView} from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
@@ -30,7 +24,11 @@ export default function AgentMobileNotaryDocScreen() {
         <Text style={styles.Heading}>Medical documents</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView scrollEnabled={true}>
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
+          scrollEnabled={true}>
           <View style={styles.insideContainer}>
             <Text style={styles.insideHeading}>Client details</Text>
             <View style={[styles.iconContainer, {width: widthToDp(35)}]}>
@@ -147,7 +145,7 @@ export default function AgentMobileNotaryDocScreen() {
               </View>
             )}
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
   );

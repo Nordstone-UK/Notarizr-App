@@ -1,11 +1,5 @@
-import {
-  Image,
-  StyleSheet,
-  Text,
-  ScrollView,
-  View,
-  SafeAreaView,
-} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {Image, StyleSheet, Text, View, SafeAreaView} from 'react-native';
 import React, {useState} from 'react';
 import BottomSheetStyle from '../../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../../themes/Colors';
@@ -30,7 +24,10 @@ export default function AgentLocalNotaryEndScreen({navigation}) {
         <Text style={styles.Heading}>Medical documents</Text>
       </View>
       <BottomSheetStyle>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           scrollEnabled={true}
           contentContainerStyle={{paddingVertical: heightToDp(5)}}>
           <View style={styles.insideContainer}>
@@ -111,7 +108,7 @@ export default function AgentLocalNotaryEndScreen({navigation}) {
               onPress={() => navigation.navigate('AgentBookingComplete')}
             />
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
   );

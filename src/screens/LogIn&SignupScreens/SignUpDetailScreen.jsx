@@ -1,12 +1,6 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useEffect, useState} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {SafeAreaView, StatusBar, StyleSheet, Text, View} from 'react-native';
 import {useLazyQuery} from '@apollo/react-hooks';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
@@ -248,8 +242,10 @@ export default function SignUpDetailScreen({navigation}) {
         progress={registerData.progress}
         onBack={() => goBackOrNavigate(navigation, 'SignupAsScreen')}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
+        enableOnAndroid
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
         <View style={styles.intro}>
@@ -364,7 +360,7 @@ export default function SignUpDetailScreen({navigation}) {
           onPress={handleContinue}
           style={styles.continueButton}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -377,7 +373,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 22,
-    paddingBottom: 36,
+    paddingBottom: 16,
+    // backgroundColor: 'red',
   },
   intro: {
     marginBottom: 24,

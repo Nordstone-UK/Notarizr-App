@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useMemo, useState} from 'react';
 import {
   Alert,
@@ -5,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -226,9 +226,11 @@ export default function ProfileDetailEditScreen({navigation, route}) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}>
-        <ScrollView
-          contentContainerStyle={styles.content}
+        <KeyboardAwareScrollView
+          enableOnAndroid
           keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
+          contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <View style={styles.profileHero}>
             <View style={styles.heroGlow} />
@@ -386,7 +388,7 @@ export default function ProfileDetailEditScreen({navigation, route}) {
               </View>
             )}
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

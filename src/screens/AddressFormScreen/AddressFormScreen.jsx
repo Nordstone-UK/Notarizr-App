@@ -1,9 +1,9 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useState} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -130,9 +130,11 @@ export default function AddressFormScreen({navigation, route}) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>
-        <ScrollView
-          contentContainerStyle={styles.content}
+        <KeyboardAwareScrollView
+          enableOnAndroid
           keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
+          contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <View style={styles.mapPreview}>
             <View style={styles.mapGlow} />
@@ -213,7 +215,7 @@ export default function AddressFormScreen({navigation, route}) {
               </View>
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
         <View style={styles.footer}>
           <AuthPrimaryButton
             icon="arrow-right"

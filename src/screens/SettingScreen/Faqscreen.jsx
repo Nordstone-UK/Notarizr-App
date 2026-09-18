@@ -1,8 +1,8 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -88,9 +88,11 @@ export default function Faqscreen({navigation}) {
         subtitle="Support center"
         title="Help and FAQ"
       />
-      <ScrollView
-        contentContainerStyle={styles.content}
+      <KeyboardAwareScrollView
+        enableOnAndroid
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={16}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <View style={styles.heroBadge}>
@@ -207,7 +209,7 @@ export default function Faqscreen({navigation}) {
             <Text style={styles.callText}>Call</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

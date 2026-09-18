@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   Image,
@@ -5,7 +6,6 @@ import {
   Modal,
   Platform,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -1290,10 +1290,12 @@ export default function BookingFlowScreen({navigation, route}) {
           step={step}
           totalSteps={totalSteps}
         />
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           {step === 1 ? (
             <AppointmentStep
@@ -1357,7 +1359,7 @@ export default function BookingFlowScreen({navigation, route}) {
               time={selectedTime}
             />
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
         <BookingFlowFooter
           disabled={disabled}
           label={step === totalSteps ? 'Confirm request' : 'Continue'}

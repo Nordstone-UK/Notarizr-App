@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
   StyleSheet,
@@ -7,7 +8,6 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
-  ScrollView,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
@@ -231,10 +231,12 @@ export default function LegalDocScreen({route, navigation}) {
       />
 
       <BottomSheetStyle>
-        <ScrollView
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
           scrollEnabled={true}
           contentContainerStyle={styles.contentContainer}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag">
           <Text style={styles.selectorHeading}>
@@ -388,7 +390,7 @@ export default function LegalDocScreen({route, navigation}) {
               onPress={() => submitAddressDetails(selectedDocs)}
             />
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetStyle>
     </SafeAreaView>
   );

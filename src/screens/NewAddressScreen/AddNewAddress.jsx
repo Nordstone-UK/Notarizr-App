@@ -1,3 +1,4 @@
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
   StyleSheet,
@@ -6,7 +7,6 @@ import {
   Animated,
   View,
   TextInput,
-  ScrollView,
   SafeAreaView,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -181,7 +181,11 @@ export default function AddNewAddress({navigation, route}, props) {
     <KeyboardAvoidingView style={styles.container}>
       <NavigationHeader Title="Address" />
       <BottomSheetStyle>
-        <ScrollView style={{marginTop: heightToDp(5)}}>
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={16}
+          style={{marginTop: heightToDp(5)}}>
           <LabelTextInput
             leftImageSoucre={require('../../../assets/buildingsIcon.png')}
             placeholder={'Enter your building/flat number'}
@@ -244,7 +248,7 @@ export default function AddNewAddress({navigation, route}, props) {
               loading={tempLoading}
             />
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetStyle>
     </KeyboardAvoidingView>
     // </SafeAreaView>
