@@ -26,19 +26,6 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-def common_pods
-  config = use_native_modules!
-
-  use_react_native!(
-    :path => config[:reactNativePath],
-    :hermes_enabled => flags[:hermes_enabled],
-    :fabric_enabled => flags[:fabric_enabled],
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
-end
-
-
-
 target 'Notarizr' do
    # pod 'Google-Maps-iOS-Utils', :git => '[https://github.com/Simon-TechForm/google-maps-ios-utils.git](https://github.com/Simon-TechForm/google-maps-ios-utils.git)', :branch => 'feat/support-apple-silicon'
 
@@ -49,16 +36,15 @@ target 'Notarizr' do
    # pod 'Firebase/Core', '~> 10.17.0'  # Upgrade Firebase/Core to version 10.17.0 or higher
  
    pod 'react-native-google-maps', :path => rn_maps_path
+   # Lottie is a Swift pod and needs glog to expose a module when CocoaPods
+   # integrates React Native as static libraries.
+   pod 'glog',
+     :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec',
+     :modular_headers => true
   config = use_native_modules!
-
-  # Flags change depending on the env values.
-  flags = get_default_flags()
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    :hermes_enabled => flags[:hermes_enabled],
-    :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
@@ -90,23 +76,6 @@ post_install do |installer|
     config[:reactNativePath],
     :mac_catalyst_enabled => false
   )
-  __apply_Xcode_12_5_M1_post_install_workaround(installer)
-
-  # React Native 0.72 ships a prebuilt Hermes framework containing bitcode.
-  # App Store validation rejects that binary when archiving with Xcode 16+.
-  bitcode_strip = `xcrun --find bitcode_strip`.strip
-  hermes_binary = File.join(
-    Pod::Config.instance.installation_root,
-    'Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64/hermes.framework/hermes'
-  )
-
-  if File.exist?(hermes_binary)
-    Pod::UI.puts 'Stripping bitcode from the Hermes iOS framework'
-    unless system(bitcode_strip, hermes_binary, '-r', '-o', hermes_binary)
-      raise 'Failed to strip bitcode from the Hermes iOS framework'
-    end
-  end
-
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'i386'

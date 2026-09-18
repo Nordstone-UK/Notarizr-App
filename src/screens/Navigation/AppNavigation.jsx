@@ -111,6 +111,7 @@ import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
 import BookingFlowScreen from '../BookingFlowScreen/BookingFlowScreen';
 import PreviewChatScreen from '../PreviewChatScreen/PreviewChatScreen';
 import AddressFormScreen from '../AddressFormScreen/AddressFormScreen';
+import AgentSubscriptionScreen from '../SubscriptionScreen/AgentSubscriptionScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -422,6 +423,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentVerificationScreen"
           component={AgentVerificationScreen}
+        />
+        <Stack.Screen
+          name="AgentSubscriptionScreen"
+          component={AgentSubscriptionScreen}
         />
         <Stack.Screen
           name="AgentLocalNotaryEndScreen"

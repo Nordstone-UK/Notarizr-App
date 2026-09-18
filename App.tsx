@@ -129,7 +129,8 @@ initializeOneSignal();
 // }
 function App(): JSX.Element {
 
-  const publishableKey = 'pk_test_FSxGM2WbrX0AZFSi8KLj9s4D00IxKQrrDI';
+  const publishableKey =
+    'pk_test_51UGHqiIyvJ2XOW61fdDykXEXJYRAYwhhv1ruu9rZeL6K44SBjE0Nn4QKd3fRqsVvk4YGiQnbLgN7Wu63q16XOTs500um6z3EmV';
   // useEffect(() => {
   //   initializeOneSignal();
 

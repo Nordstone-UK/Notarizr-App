@@ -30,6 +30,7 @@
 		A29DA9162CF4747100FD74F1 /* OneSignalNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A29DA90F2CF4747100FD74F1 /* OneSignalNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B3566F61431D48CAA9B6D243 /* Poppins-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AFC65925A9CF4790ABE90CFC /* Poppins-ExtraBold.ttf */; };
 		BFB33881A962477ABF607CA9 /* Poppins-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2D93FFE7AF914C1DA2BBBB0D /* Poppins-Light.ttf */; };
+		C37402A4B7761C995DE13F2A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = EEDFD59FE2E87B829B64100A /* PrivacyInfo.xcprivacy */; };
 		C7E95BAD9084450D960EFFFD /* Poppins-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9221F5EEA362460795825071 /* Poppins-Black.ttf */; };
 		C92BA60B2D014E16BF400AA3 /* Manrope-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8DD3EEE28DA343A4BB51100D /* Manrope-Bold.ttf */; };
 		CF7B09959D044447A36A7508 /* Manrope-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CA05E86AD193411FB5736C6C /* Manrope-ExtraBold.ttf */; };
@@ -145,6 +146,7 @@
 		DC9530FE4132487A875FE5F4 /* SofadiOne-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "SofadiOne-Regular.ttf"; path = "../assets/fonts/SofadiOne-Regular.ttf"; sourceTree = "<group>"; };
 		E72B6195A32549DE98A705EC /* Poppins-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-ExtraLight.ttf"; path = "../assets/fonts/Poppins-ExtraLight.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		EEDFD59FE2E87B829B64100A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Notarizr/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F102030405060708090A0B0E /* mainLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mainLogo.png; path = ../assets/mainLogo.png; sourceTree = "<group>"; };
 		F102030405060708090A0B0F /* notarizrLogo1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = notarizrLogo1.png; path = ../assets/notarizrLogo1.png; sourceTree = "<group>"; };
 		F4DADF6CDC374897BD16A59F /* Poppins-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				EEDFD59FE2E87B829B64100A /* PrivacyInfo.xcprivacy */,
 			);
 			name = Notarizr;
 			sourceTree = "<group>";
@@ -487,6 +490,7 @@
 				4B0E1F3B13064386839A2ADF /* PlaywriteCU-Thin.ttf in Resources */,
 				EC0D74A7A9A9406186B3BAB1 /* ProtestGuerrilla-Regular.ttf in Resources */,
 				735A39666AF34D3FA0A561E7 /* SofadiOne-Regular.ttf in Resources */,
+				C37402A4B7761C995DE13F2A /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -524,13 +528,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr/Pods-Notarizr-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr/Pods-Notarizr-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -611,13 +611,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr-NotarizrTests/Pods-Notarizr-NotarizrTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr-NotarizrTests/Pods-Notarizr-NotarizrTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -632,13 +628,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr/Pods-Notarizr-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr/Pods-Notarizr-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -653,13 +645,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr-NotarizrTests/Pods-Notarizr-NotarizrTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Notarizr-NotarizrTests/Pods-Notarizr-NotarizrTests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -787,7 +775,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 2QUL8T8AKF;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
@@ -819,7 +807,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 2QUL8T8AKF;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				INFOPLIST_FILE = Notarizr/Info.plist;
@@ -847,7 +835,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -911,43 +899,10 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -956,7 +911,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -1015,43 +970,10 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

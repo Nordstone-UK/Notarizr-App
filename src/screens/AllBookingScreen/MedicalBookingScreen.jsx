@@ -459,7 +459,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       autoPay: true,
     });
   };
-  const handleDocumentPress = (documentUri: string) => {
+  const handleDocumentPress = documentUri => {
     console.log('documentur', documentUri);
     navigation.navigate('NotaryDocumentDownloadScreen', {
       document: documentUri,

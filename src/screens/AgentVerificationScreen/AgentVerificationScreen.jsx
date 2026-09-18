@@ -20,7 +20,6 @@ import {
   setFilledCount,
   setProgress,
 } from '../../features/register/registerSlice';
-import useLogin from '../../hooks/useLogin';
 import useRegister from '../../hooks/useRegister';
 import useFetchUser from '../../hooks/useFetchUser';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
@@ -63,7 +62,6 @@ export default function AgentVerificationScreen({navigation, route}) {
   const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
   const registerData = useSelector(state => state.register);
   const dispatch = useDispatch();
-  const {resetStack} = useLogin();
   const {fetchUserInfo} = useFetchUser();
   const {
     pickDocumentDetails,
@@ -227,7 +225,7 @@ export default function AgentVerificationScreen({navigation, route}) {
         photoId: photoUrl,
         certificate_url: certificateUrl,
       });
-      resetStack('signup');
+      navigation.replace('AgentSubscriptionScreen');
     } catch (error) {
       console.log(error, 'error');
       Toast.show({
