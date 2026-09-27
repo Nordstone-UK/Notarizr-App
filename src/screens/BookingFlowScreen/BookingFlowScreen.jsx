@@ -993,7 +993,8 @@ export default function BookingFlowScreen({navigation, route}) {
   }, [isMobile]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({animated: false, y: 0});
+    // KeyboardAwareScrollView exposes scrollToPosition, not ScrollView's scrollTo.
+    scrollRef.current?.scrollToPosition?.(0, 0, false);
   }, [step]);
 
   useEffect(() => {
