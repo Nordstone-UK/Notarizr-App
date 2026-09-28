@@ -135,6 +135,11 @@ export const GET_BOOKING_BY_ID = gql`
         client_documents
         agent_document
         notarized_docs
+        ron_eligibility
+        scheduling_details
+        document_preparation
+        participants
+        identity_verification
       }
     }
   }

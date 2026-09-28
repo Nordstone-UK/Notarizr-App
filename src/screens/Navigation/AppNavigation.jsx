@@ -32,6 +32,8 @@ import SettingScreen from '../SettingScreen/settingScreen';
 import TermsAndConditionsScreen from '../SettingScreen/termsandConditionScreen';
 import PrivacyPolicyScreen from '../SettingScreen/privacypolicyScreen';
 import FaqScreen from '../SettingScreen/Faqscreen';
+import AgentPricingScreen from '../SettingScreen/AgentPricingScreen';
+import SubscriptionScreen from '../SettingScreen/SubscriptionScreen';
 
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
 import BookingPreferenceScreen from '../BookingPreference/BookingPreferenceScreen';
@@ -111,6 +113,7 @@ import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
 import BookingFlowScreen from '../BookingFlowScreen/BookingFlowScreen';
 import PreviewChatScreen from '../PreviewChatScreen/PreviewChatScreen';
 import AddressFormScreen from '../AddressFormScreen/AddressFormScreen';
+import SessionInvitationScreen from '../SessionInvitationScreen/SessionInvitationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -178,6 +181,10 @@ export default function AppNavigation() {
           component={NotificationScreen}
         />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen
+          name="SessionInvitationScreen"
+          component={SessionInvitationScreen}
+        />
         <Stack.Screen
           name="SignPhoneVerification"
           component={SignPhoneVerification}
@@ -319,6 +326,14 @@ export default function AppNavigation() {
           component={PrivacyPolicyScreen}
         />
         <Stack.Screen name="FaqScreen" component={FaqScreen} />
+        <Stack.Screen
+          name="AgentPricingScreen"
+          component={AgentPricingScreen}
+        />
+        <Stack.Screen
+          name="SubscriptionScreen"
+          component={SubscriptionScreen}
+        />
         <Stack.Screen name="ToBePaidScreen" component={ToBePaidScreen} />
         <Stack.Screen
           name="NearbyLoadingScreen"

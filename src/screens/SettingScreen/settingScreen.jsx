@@ -399,13 +399,32 @@ export default function SettingScreen({navigation}) {
             </View>
           </>
         ) : (
-          <View style={styles.notaryNotice}>
-            <Feather name="info" size={18} color={AppColors.info} />
-            <Text style={styles.notaryNoticeText}>
-              Switch to Client above to manage your mobile and remote booking
-              defaults.
-            </Text>
-          </View>
+          <>
+            <View style={styles.notaryNotice}>
+              <Feather name="info" size={18} color={AppColors.info} />
+              <Text style={styles.notaryNoticeText}>
+                Switch to Client above to manage your mobile and remote booking
+                defaults.
+              </Text>
+            </View>
+
+            <ProfileSection title="Pricing and plan">
+              <ProfileMenuItem
+                icon="dollar-sign"
+                title="Payouts"
+                description="See what you earn across every session and payment type"
+                tone="green"
+                onPress={() => navigation.navigate('AgentPricingScreen')}
+              />
+              <ProfileMenuItem
+                icon="star"
+                title="Subscription"
+                description="Free Agent · Upgrade to Agent Pro for Open Calls and more"
+                last
+                onPress={() => navigation.navigate('SubscriptionScreen')}
+              />
+            </ProfileSection>
+          </>
         )}
 
         <ProfileSection title="Account management">

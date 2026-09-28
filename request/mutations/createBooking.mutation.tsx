@@ -25,6 +25,11 @@ export const CREATE_BOOKING = gql`
     $customerProvidedWitnesses: Int
     $isClosing: Boolean
     $closingRoute: ClosingRoute
+    $ronEligibility: JSON
+    $schedulingDetails: JSON
+    $documentPreparation: JSON
+    $participants: [JSON]
+    $identityVerification: JSON
   ) {
     createBookingR(
       service_type: $serviceType
@@ -50,6 +55,11 @@ export const CREATE_BOOKING = gql`
       customerProvidedWitnesses: $customerProvidedWitnesses
       isClosing: $isClosing
       closingRoute: $closingRoute
+      ron_eligibility: $ronEligibility
+      scheduling_details: $schedulingDetails
+      document_preparation: $documentPreparation
+      participants: $participants
+      identity_verification: $identityVerification
     ) {
       status
       message
@@ -156,6 +166,11 @@ export const CREATE_BOOKING = gql`
         createdAt
         updatedAt
         totalPrice
+        ron_eligibility
+        scheduling_details
+        document_preparation
+        participants
+        identity_verification
         price_breakdown {
           path
           billingMode

@@ -14,6 +14,9 @@ export const CREATE_PAYMENT_INTENT = gql`
       status
       message
       paymentIntent
+      payment_intent_id
+      receipt_url
+      refund_status
       ephemeralKey
       customer_id
     }

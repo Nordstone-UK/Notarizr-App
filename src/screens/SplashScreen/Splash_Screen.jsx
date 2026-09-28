@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
@@ -16,6 +17,12 @@ import useFetchUser from '../../hooks/useFetchUser';
 import {saveUserInfo} from '../../features/user/userSlice';
 import {useDispatch} from 'react-redux';
 import AppColors from '../../themes/AppColors';
+import {
+  getPendingSessionInvite,
+  normalizeSessionInviteParams,
+  savePendingSessionInvite,
+} from '../../utils/sessionInvitation';
+import {getLocalTestAccountById} from '../../data/localTestAccounts';
 
 export default function Splash_Screen({navigation}) {
   const {fetchUserInfo} = useFetchUser();
@@ -40,55 +47,59 @@ export default function Splash_Screen({navigation}) {
       }
     };
 
-    const openLogin = () => {
+    const openLogin = pendingInvite => {
       dispatch(saveUserInfo(null));
-      navigation.reset({index: 0, routes: [{name: 'LoginScreen'}]});
+      navigation.reset({
+        index: 0,
+        routes: [
+          pendingInvite
+            ? {name: 'SessionInvitationScreen', params: pendingInvite}
+            : {name: 'LoginScreen'},
+        ],
+      });
     };
 
     const bootstrap = async () => {
       await requestNotificationPermission();
       try {
+        const initialUrl = await Linking.getInitialURL();
+        const incomingInvite = normalizeSessionInviteParams(initialUrl || '');
+        const pendingInvite = incomingInvite
+          ? await savePendingSessionInvite(incomingInvite)
+          : await getPendingSessionInvite();
         const token = await AsyncStorage.getItem('token');
         if (!token) {
-          openLogin();
+          openLogin(pendingInvite);
           return;
         }
 
         if (token.startsWith('local-preview:')) {
+          if (__DEV__) {
+            const localAccount = getLocalTestAccountById(
+              token.replace('local-preview:', ''),
+            );
+            if (localAccount) {
+              dispatch(saveUserInfo(localAccount));
+              navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
+              return;
+            }
+          }
           await AsyncStorage.removeItem('token');
-          // local-preview tokens are fake IDs for offline UI dev — they are NOT
-          // valid JWTs and the real server will reject them. When we find one:
-          //  • If the server is reachable → clear it and go to login so the user
-          //    gets a real JWT (useLogin now tries server auth first).
-          //  • If the server is down     → keep using the cached local account
-          //    for offline UI preview (no API calls will work, but UI renders).
-
-          // TODO: Uncomment this when we have a real server
-          // if (__DEV__ && token.startsWith('local-preview:')) {
-          //   const localAccount = getLocalTestAccountById(
-          //     token.replace('local-preview:', ''),
-          //   );
-          //   const serverReachable = await isServerReachable();
-          //   if (serverReachable) {
-          //     // Force the user to log in again and obtain a real JWT
-          //     await AsyncStorage.removeItem('token');
-          //     openLogin();
-          //     return;
-          //   }
-          //   // Offline preview mode — render UI without real API calls
-          //   if (localAccount) {
-          //     dispatch(saveUserInfo(localAccount));
-          //     navigation.reset({index: 0, routes: [{name: 'HomeScreen'}]});
-          //     return;
-          //   }
-          openLogin();
+          openLogin(pendingInvite);
           return;
         }
 
         const user = await fetchUserInfoRef.current();
         if (!user) {
           await AsyncStorage.removeItem('token');
-          openLogin();
+          openLogin(pendingInvite);
+          return;
+        }
+        if (pendingInvite) {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'SessionInvitationScreen', params: pendingInvite}],
+          });
           return;
         }
         if (user.isVerified === false && user.account_type === 'agent') {
@@ -105,7 +116,8 @@ export default function Splash_Screen({navigation}) {
         });
       } catch (error) {
         await AsyncStorage.removeItem('token');
-        openLogin();
+        const pendingInvite = await getPendingSessionInvite();
+        openLogin(pendingInvite);
       } finally {
         SplashScreen.hide();
       }

@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import {getPendingSessionInvite} from '../utils/sessionInvitation';
 
 const useLogin = () => {
   const [verifYOTP] = useLazyQuery(VERIFY_PHONE_OTP, {
@@ -61,6 +62,15 @@ const useLogin = () => {
 
       if (!userInfo) {
         throw new Error('Unable to load the signed-in account.');
+      }
+
+      const pendingInvite = await getPendingSessionInvite();
+      if (pendingInvite) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'SessionInvitationScreen', params: pendingInvite}],
+        });
+        return;
       }
 
       if (userInfo.account_type === 'client') {

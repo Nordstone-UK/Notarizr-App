@@ -8,5 +8,9 @@
 	<array>
 		<string>group.org.reactjs.native.example.Notarizr</string>
 	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:app.notarizr.co</string>
+	</array>
 </dict>
 </plist>

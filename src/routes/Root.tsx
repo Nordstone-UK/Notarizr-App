@@ -1,52 +1,91 @@
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import { FC, useEffect, useState } from 'react';
-import { EventRegister } from 'react-native-event-listeners';
-import notificationCacheMethods from '../cache/notification';
+import {
+  NavigationContainer,
+  StackActions,
+  useNavigation,
+} from '@react-navigation/native';
+import React, {FC, useEffect, useRef} from 'react';
+import {Linking} from 'react-native';
+import {EventRegister} from 'react-native-event-listeners';
 import AppNavigation from '../screens/Navigation/AppNavigation';
 import useFetchBooking from '../hooks/useFetchBooking';
-import { useDispatch } from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {
   setBookingInfoState,
   setCoordinates,
   setUser,
 } from '../features/booking/bookingSlice';
-import { useSession } from '../hooks/useSession';
+import {useSession} from '../hooks/useSession';
 import IncomingCallManager from '../components/Calls/IncomingCallManager';
+import {
+  normalizeSessionInviteParams,
+  savePendingSessionInvite,
+} from '../utils/sessionInvitation';
 
 const Root: FC = (): JSX.Element => {
   const navigation: any = useNavigation();
   const dispatch: any = useDispatch();
-  const { fetchBookingByID } = useFetchBooking();
-  const { getSessionByID } = useSession();
-  const dispatchingAgentData = async (bookingData: any) => {
-    await dispatch(setBookingInfoState(bookingData));
-    await dispatch(
-      setCoordinates(bookingData?.agent?.current_location?.coordinates),
-    );
-    await dispatch(setUser(bookingData?.agent));
-  };
-  const dispatchingClientData = async (bookingData: any) => {
-    await dispatch(setBookingInfoState(bookingData));
-    await dispatch(
-      setCoordinates(bookingData?.booked_by?.current_location?.coordinates),
-    );
-    await dispatch(setUser(bookingData?.booked_by));
-  };
+  const {fetchBookingByID} = useFetchBooking();
+  const {getSessionByID} = useSession();
+  const fetchBookingByIDRef = useRef(fetchBookingByID);
+  const getSessionByIDRef = useRef(getSessionByID);
+
+  fetchBookingByIDRef.current = fetchBookingByID;
+  getSessionByIDRef.current = getSessionByID;
+
   useEffect(() => {
+    const dispatchingAgentData = async (bookingData: any) => {
+      await dispatch(setBookingInfoState(bookingData));
+      await dispatch(
+        setCoordinates(bookingData?.agent?.current_location?.coordinates),
+      );
+      await dispatch(setUser(bookingData?.agent));
+    };
+    const dispatchingClientData = async (bookingData: any) => {
+      await dispatch(setBookingInfoState(bookingData));
+      await dispatch(
+        setCoordinates(bookingData?.booked_by?.current_location?.coordinates),
+      );
+      await dispatch(setUser(bookingData?.booked_by));
+    };
+
+    const openDeepLinkUrl = async (url?: string | null) => {
+      const invite = normalizeSessionInviteParams(url || '');
+      if (!invite) {
+        if (/^notarizr:\/\/book/i.test(url || '')) {
+          const previewStep = (url || '').match(/[?&]previewStep=([^&]+)/)?.[1];
+          navigation.dispatch(
+            StackActions.replace('BookingFlowScreen', {
+              serviceType: /mobile_notary/i.test(url || '')
+                ? 'mobile_notary'
+                : 'remote_online_notary',
+              previewStep: previewStep ? decodeURIComponent(previewStep) : '',
+            }),
+          );
+        }
+        return;
+      }
+      await savePendingSessionInvite(invite);
+      navigation.navigate('SessionInvitationScreen', invite);
+    };
+
+    const urlSubscription = Linking.addEventListener('url', event => {
+      openDeepLinkUrl(event.url);
+    });
+
     const listener = EventRegister.addEventListener(
       'notification',
       async data => {
-        const { type, value } = data?.notification?.additionalData;
+        const {type, value} = data?.notification?.additionalData;
 
         if (type === 'session_created') {
-          const item = await getSessionByID(value);
+          const item = await getSessionByIDRef.current(value);
           dispatch(setBookingInfoState(item));
           dispatch(setCoordinates(item?.client?.current_location?.coordinates));
           dispatch(setUser(item?.agent));
           navigation.navigate('MedicalBookingScreen');
         } else if (type === 'booking_accepted') {
           console.log('Am I running? ');
-          const bookingData = await fetchBookingByID(value);
+          const bookingData = await fetchBookingByIDRef.current(value);
           await dispatchingClientData(bookingData?.getBookingById?.booking);
           navigation.navigate('MedicalBookingScreen');
         } else if (
@@ -54,16 +93,17 @@ const Root: FC = (): JSX.Element => {
           type === 'booking_ongoing' ||
           type === 'booking_paid'
         ) {
-          const bookingData = await fetchBookingByID(value);
+          const bookingData = await fetchBookingByIDRef.current(value);
           await dispatchingAgentData(bookingData?.getBookingById?.booking);
           navigation.navigate('ClientDetailsScreen');
         }
       },
     );
     return () => {
-      EventRegister.removeAllListeners();
+      urlSubscription.remove();
+      EventRegister.removeEventListener(listener);
     };
-  }, [navigation]);
+  }, [dispatch, navigation]);
   return (
     <>
       <AppNavigation />
@@ -72,7 +112,7 @@ const Root: FC = (): JSX.Element => {
   );
 };
 
-const Wrapper: FC<{}> = ({ }) => {
+const Wrapper: FC<{}> = ({}) => {
   return (
     <NavigationContainer>
       <Root />
