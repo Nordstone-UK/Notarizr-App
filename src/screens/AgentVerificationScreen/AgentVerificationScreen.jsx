@@ -6,6 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import {useMutation} from '@apollo/client';
@@ -15,6 +16,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import AuthProgressHeader from '../../components/AuthFlow/AuthProgressHeader';
+import AuthSelectField from '../../components/AuthFlow/AuthSelectField';
+import AuthTextField from '../../components/AuthFlow/AuthTextField';
 import AuthUploadCard from '../../components/AuthFlow/AuthUploadCard';
 import {
   setFilledCount,
@@ -27,6 +30,7 @@ import {goBackOrNavigate} from '../../utils/navigationHelpers';
 import {UPDATE_VERIFICATION} from '../../../request/mutations/updateVerification.mutation';
 import AppColors from '../../themes/AppColors';
 import {UPDATE_PROFILE_PICTURE} from '../../../request/mutations/update.mutation';
+import {statesData} from '../../data/statesData';
 
 const DOCUMENTS = {
   photoID: {
@@ -34,28 +38,202 @@ const DOCUMENTS = {
     description: 'Upload a clear PDF or image of your valid ID.',
     icon: 'credit-card',
   },
-  certificate: {
-    title: 'Notary certificate',
+  commissionCertificate: {
+    title: 'Commission certificate',
     description: 'Upload your current commission certificate.',
     icon: 'award',
   },
+  ronApproval: {
+    title: 'RON approval',
+    description: 'Upload state approval for remote online notarization.',
+    icon: 'video',
+  },
+  bond: {
+    title: 'Bond document',
+    description: 'Upload proof of your active notary bond.',
+    icon: 'shield',
+  },
+  insurance: {
+    title: 'Insurance evidence',
+    description: 'Upload E&O or required insurance evidence.',
+    icon: 'umbrella',
+  },
+  training: {
+    title: 'Training evidence',
+    description: 'Upload required RON or notary training proof.',
+    icon: 'book-open',
+  },
+  signature: {
+    title: 'Notary signature',
+    description: 'Upload or scan the signature used for notarizations.',
+    icon: 'edit-3',
+  },
   seal: {
-    title: 'Notary seal',
-    description: 'Upload a clear sample of your official seal.',
+    title: 'eSeal',
+    description: 'Upload a clear sample of your official electronic seal.',
     icon: 'hexagon',
   },
+  digitalCertificate: {
+    title: 'Digital certificate',
+    description: 'Upload your digital signing certificate details.',
+    icon: 'key',
+  },
+  certificateForms: {
+    title: 'Certificate forms',
+    description: 'Upload reusable acknowledgment or jurat forms.',
+    icon: 'file-text',
+  },
 };
+
+const DOCUMENT_ORDER = [
+  'photoID',
+  'commissionCertificate',
+  'ronApproval',
+  'bond',
+  'insurance',
+  'training',
+  'signature',
+  'seal',
+  'digitalCertificate',
+  'certificateForms',
+];
+
+const RON_STATUS_OPTIONS = [
+  {label: 'Approved for RON', value: 'approved'},
+  {label: 'Pending RON approval', value: 'pending'},
+  {label: 'Not approved yet', value: 'not_approved'},
+];
+
+const APPROVAL_STATES = [
+  {label: 'Submitted', value: 'submitted', icon: 'send'},
+  {label: 'Under review', value: 'under_review', icon: 'clock'},
+  {label: 'Approved', value: 'approved', icon: 'check-circle'},
+  {label: 'Rejected', value: 'rejected', icon: 'x-circle'},
+  {label: 'Suspended', value: 'suspended', icon: 'pause-circle'},
+  {label: 'Expired', value: 'expired', icon: 'alert-triangle'},
+];
+
+const getApprovalState = user => {
+  if (user?.isBlocked) {
+    return 'suspended';
+  }
+  if (user?.isVerified) {
+    return 'approved';
+  }
+  if (user?._id) {
+    return 'under_review';
+  }
+  return 'submitted';
+};
+
+function SectionHeader({title, description}) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {description ? (
+        <Text style={styles.sectionDescription}>{description}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+function ApprovalStateTracker({currentState}) {
+  return (
+    <View style={styles.approvalCard}>
+      <View style={styles.approvalHeader}>
+        <View style={styles.statusIcon}>
+          <Feather name="activity" size={17} color={AppColors.primary} />
+        </View>
+        <View style={styles.statusCopy}>
+          <Text style={styles.statusLabel}>Approval status</Text>
+          <Text style={styles.statusHint}>
+            Administrative review controls live-session access
+          </Text>
+        </View>
+      </View>
+      <View style={styles.approvalGrid}>
+        {APPROVAL_STATES.map(state => {
+          const active = state.value === currentState;
+          return (
+            <View
+              key={state.value}
+              style={[
+                styles.approvalPill,
+                active && styles.approvalPillActive,
+              ]}>
+              <Feather
+                name={state.icon}
+                size={14}
+                color={active ? AppColors.primary : AppColors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.approvalPillText,
+                  active && styles.approvalPillTextActive,
+                ]}>
+                {state.label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function RonStatusSegment({value, onChange}) {
+  return (
+    <View style={styles.segmentWrap}>
+      <Text style={styles.segmentLabel}>RON approval status</Text>
+      <View style={styles.segmentRow}>
+        {RON_STATUS_OPTIONS.map(option => {
+          const selected = value === option.value;
+          return (
+            <TouchableOpacity
+              key={option.value}
+              activeOpacity={0.78}
+              onPress={() => onChange(option.value)}
+              style={[styles.segment, selected && styles.segmentSelected]}>
+              <Text
+                style={[
+                  styles.segmentText,
+                  selected && styles.segmentTextSelected,
+                ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
 
 export default function AgentVerificationScreen({navigation, route}) {
   const {user, onComplete} = route.params || {};
   const [photoID, setPhotoID] = useState(user?.photoId || null);
   const [certificate, setCertificate] = useState(user?.certificate_url || null);
+  const [ronApproval, setRonApproval] = useState(null);
+  const [bond, setBond] = useState(null);
+  const [insurance, setInsurance] = useState(null);
+  const [training, setTraining] = useState(null);
+  const [signature, setSignature] = useState(null);
   const [seal, setSeal] = useState(user?.notarySeal || null);
+  const [digitalCertificate, setDigitalCertificate] = useState(null);
+  const [certificateForms, setCertificateForms] = useState(null);
+  const [commissionState, setCommissionState] = useState(user?.state || '');
+  const [commissionCounty, setCommissionCounty] = useState('');
+  const [commissionCity, setCommissionCity] = useState(user?.location || '');
+  const [commissionNumber, setCommissionNumber] = useState('');
+  const [commissionIssueDate, setCommissionIssueDate] = useState('');
+  const [commissionExpirationDate, setCommissionExpirationDate] = useState('');
+  const [ronStatus, setRonStatus] = useState('approved');
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState(() =>
     [
       user?.photoId && 'photoID',
-      user?.certificate_url && 'certificate',
+      user?.certificate_url && 'commissionCertificate',
       user?.notarySeal && 'seal',
     ].filter(Boolean),
   );
@@ -75,7 +253,22 @@ export default function AgentVerificationScreen({navigation, route}) {
     handleUpdatecertificate,
   } = useRegister();
   const totalFields = 12;
-  const uploadedCount = [photoID, certificate, seal].filter(Boolean).length;
+  const documentValues = {
+    photoID,
+    commissionCertificate: certificate,
+    ronApproval,
+    bond,
+    insurance,
+    training,
+    signature,
+    seal,
+    digitalCertificate,
+    certificateForms,
+  };
+  const uploadedCount = DOCUMENT_ORDER.filter(key =>
+    Boolean(documentValues[key]),
+  ).length;
+  const approvalState = getApprovalState(user);
 
   const markUploaded = documentType => {
     if (uploadedDocuments.includes(documentType)) {
@@ -157,12 +350,50 @@ export default function AgentVerificationScreen({navigation, route}) {
     }
   };
 
+  const buildOnboardingPayload = documentUrlMap => ({
+    approvalStatus: 'submitted',
+    commission: {
+      state: commissionState,
+      county: commissionCounty.trim(),
+      city: commissionCity.trim(),
+      number: commissionNumber.trim(),
+      issueDate: commissionIssueDate.trim(),
+      expirationDate: commissionExpirationDate.trim(),
+      ronStatus,
+    },
+    credentials: {
+      photoId: documentUrlMap.photoID,
+      commissionCertificate: documentUrlMap.commissionCertificate,
+      ronApproval: documentUrlMap.ronApproval,
+      bond: documentUrlMap.bond,
+      insurance: documentUrlMap.insurance,
+      training: documentUrlMap.training,
+    },
+    assets: {
+      signature: documentUrlMap.signature,
+      eSeal: documentUrlMap.seal,
+      digitalCertificate: documentUrlMap.digitalCertificate,
+      certificateForms: documentUrlMap.certificateForms,
+    },
+  });
+
   const submitVerification = async () => {
-    if (!photoID || !certificate || !seal) {
+    setSubmitted(true);
+    const missingCommission =
+      !commissionState ||
+      !commissionCounty.trim() ||
+      !commissionCity.trim() ||
+      !commissionNumber.trim() ||
+      !commissionIssueDate.trim() ||
+      !commissionExpirationDate.trim() ||
+      !ronStatus;
+    const missingDocuments = DOCUMENT_ORDER.some(key => !documentValues[key]);
+
+    if (missingCommission || missingDocuments) {
       Toast.show({
         type: 'warning',
-        text1: 'Documents required',
-        text2: 'Upload all three documents to continue.',
+        text1: 'Onboarding incomplete',
+        text2: 'Complete commission details and all credential uploads.',
       });
       return;
     }
@@ -170,16 +401,23 @@ export default function AgentVerificationScreen({navigation, route}) {
     setLoading(true);
     try {
       if (user) {
-        const [photoUrl, certificateUrl, sealUrl] = await Promise.all([
-          uploadDocument(photoID),
-          uploadDocument(certificate),
-          uploadDocument(seal),
-        ]);
-        await handleUpdateSeal({notarySeal: sealUrl});
+        const uploadedUrls = await Promise.all(
+          DOCUMENT_ORDER.map(key => uploadDocument(documentValues[key])),
+        );
+        const documentUrlMap = DOCUMENT_ORDER.reduce((acc, key, index) => {
+          acc[key] = uploadedUrls[index];
+          return acc;
+        }, {});
+        await handleUpdateSeal({notarySeal: documentUrlMap.seal});
         await handleUpdatecertificate({
-          photoId: photoUrl,
-          certificate_url: certificateUrl,
+          photoId: documentUrlMap.photoID,
+          certificate_url: documentUrlMap.commissionCertificate,
+          notaryOnboarding: buildOnboardingPayload(documentUrlMap),
         });
+        await AsyncStorage.setItem(
+          `agentOnboarding:${user?._id}`,
+          JSON.stringify(buildOnboardingPayload(documentUrlMap)),
+        );
         if (typeof onComplete === 'function') {
           await onComplete();
         }
@@ -217,16 +455,23 @@ export default function AgentVerificationScreen({navigation, route}) {
         const profilePicture = await uploadMedia(imageBlob, 'profile');
         await updateProfilePicture({variables: {profilePicture}});
       }
-      const [photoUrl, certificateUrl, sealUrl] = await Promise.all([
-        uploadDocument(photoID),
-        uploadDocument(certificate),
-        uploadDocument(seal),
-      ]);
-      await handleUpdateSeal({notarySeal: sealUrl});
+      const uploadedUrls = await Promise.all(
+        DOCUMENT_ORDER.map(key => uploadDocument(documentValues[key])),
+      );
+      const documentUrlMap = DOCUMENT_ORDER.reduce((acc, key, index) => {
+        acc[key] = uploadedUrls[index];
+        return acc;
+      }, {});
+      await handleUpdateSeal({notarySeal: documentUrlMap.seal});
       await handleUpdatecertificate({
-        photoId: photoUrl,
-        certificate_url: certificateUrl,
+        photoId: documentUrlMap.photoID,
+        certificate_url: documentUrlMap.commissionCertificate,
+        notaryOnboarding: buildOnboardingPayload(documentUrlMap),
       });
+      await AsyncStorage.setItem(
+        `agentOnboarding:${registerData.email}`,
+        JSON.stringify(buildOnboardingPayload(documentUrlMap)),
+      );
       resetStack('signup');
     } catch (error) {
       console.log(error, 'error');
@@ -270,9 +515,11 @@ export default function AgentVerificationScreen({navigation, route}) {
           <Text style={styles.eyebrow}>NOTARY VERIFICATION</Text>
           <Text style={styles.heading}>Verify your credentials</Text>
           <Text style={styles.subheading}>
-            Upload the documents below so clients can book with confidence.
+            Complete your commission, credential, and notary asset review.
           </Text>
         </View>
+
+        <ApprovalStateTracker currentState={approvalState} />
 
         <View style={styles.statusRow}>
           <View style={styles.statusIcon}>
@@ -285,10 +532,90 @@ export default function AgentVerificationScreen({navigation, route}) {
             </Text>
           </View>
           <View style={styles.countPill}>
-            <Text style={styles.statusValue}>{uploadedCount} / 3</Text>
+            <Text style={styles.statusValue}>
+              {uploadedCount} / {DOCUMENT_ORDER.length}
+            </Text>
           </View>
         </View>
 
+        <SectionHeader
+          title="Commission details"
+          description="Used to determine state eligibility and review status."
+        />
+        <View style={styles.formCard}>
+          <AuthSelectField
+            label="Commission state"
+            placeholder="Select state"
+            data={statesData}
+            value={commissionState}
+            onSelect={item => setCommissionState(item.value)}
+            error={submitted && !commissionState ? 'Select a state' : ''}
+          />
+          <AuthTextField
+            label="County"
+            icon="map-pin"
+            placeholder="County"
+            value={commissionCounty}
+            onChangeText={setCommissionCounty}
+            error={submitted && !commissionCounty.trim() ? 'Enter county' : ''}
+          />
+          <AuthTextField
+            label="City"
+            icon="home"
+            placeholder="City"
+            value={commissionCity}
+            onChangeText={setCommissionCity}
+            error={submitted && !commissionCity.trim() ? 'Enter city' : ''}
+          />
+          <AuthTextField
+            label="Commission number"
+            icon="hash"
+            placeholder="Commission number"
+            value={commissionNumber}
+            onChangeText={setCommissionNumber}
+            error={
+              submitted && !commissionNumber.trim()
+                ? 'Enter commission number'
+                : ''
+            }
+          />
+          <View style={styles.twoColumnRow}>
+            <View style={styles.twoColumnItem}>
+              <AuthTextField
+                label="Issue date"
+                icon="calendar"
+                placeholder="MM/DD/YYYY"
+                value={commissionIssueDate}
+                onChangeText={setCommissionIssueDate}
+                error={
+                  submitted && !commissionIssueDate.trim()
+                    ? 'Enter issue date'
+                    : ''
+                }
+              />
+            </View>
+            <View style={styles.twoColumnItem}>
+              <AuthTextField
+                label="Expiration"
+                icon="calendar"
+                placeholder="MM/DD/YYYY"
+                value={commissionExpirationDate}
+                onChangeText={setCommissionExpirationDate}
+                error={
+                  submitted && !commissionExpirationDate.trim()
+                    ? 'Enter expiration'
+                    : ''
+                }
+              />
+            </View>
+          </View>
+          <RonStatusSegment value={ronStatus} onChange={setRonStatus} />
+        </View>
+
+        <SectionHeader
+          title="Credentials"
+          description="Upload the documents required for notary approval."
+        />
         <View style={styles.documentStack}>
           <AuthUploadCard
             {...DOCUMENTS.photoID}
@@ -298,11 +625,66 @@ export default function AgentVerificationScreen({navigation, route}) {
           />
           <View style={styles.documentSpacer} />
           <AuthUploadCard
-            {...DOCUMENTS.certificate}
+            {...DOCUMENTS.commissionCertificate}
             uploaded={Boolean(certificate)}
-            onPress={() => selectDocument('certificate', setCertificate)}
+            onPress={() =>
+              selectDocument('commissionCertificate', setCertificate)
+            }
             onRemove={() =>
-              confirmDelete('certificate', 'certificate', setCertificate)
+              confirmDelete(
+                'commission certificate',
+                'commissionCertificate',
+                setCertificate,
+              )
+            }
+          />
+          <View style={styles.documentSpacer} />
+          <AuthUploadCard
+            {...DOCUMENTS.ronApproval}
+            uploaded={Boolean(ronApproval)}
+            onPress={() => selectDocument('ronApproval', setRonApproval)}
+            onRemove={() =>
+              confirmDelete('RON approval', 'ronApproval', setRonApproval)
+            }
+          />
+          <View style={styles.documentSpacer} />
+          <AuthUploadCard
+            {...DOCUMENTS.bond}
+            uploaded={Boolean(bond)}
+            onPress={() => selectDocument('bond', setBond)}
+            onRemove={() => confirmDelete('bond', 'bond', setBond)}
+          />
+          <View style={styles.documentSpacer} />
+          <AuthUploadCard
+            {...DOCUMENTS.insurance}
+            uploaded={Boolean(insurance)}
+            onPress={() => selectDocument('insurance', setInsurance)}
+            onRemove={() =>
+              confirmDelete('insurance evidence', 'insurance', setInsurance)
+            }
+          />
+          <View style={styles.documentSpacer} />
+          <AuthUploadCard
+            {...DOCUMENTS.training}
+            uploaded={Boolean(training)}
+            onPress={() => selectDocument('training', setTraining)}
+            onRemove={() =>
+              confirmDelete('training evidence', 'training', setTraining)
+            }
+          />
+        </View>
+
+        <SectionHeader
+          title="Notary assets"
+          description="Add the assets used during document completion."
+        />
+        <View style={styles.documentStack}>
+          <AuthUploadCard
+            {...DOCUMENTS.signature}
+            uploaded={Boolean(signature)}
+            onPress={() => selectDocument('signature', setSignature)}
+            onRemove={() =>
+              confirmDelete('notary signature', 'signature', setSignature)
             }
           />
           <View style={styles.documentSpacer} />
@@ -310,7 +692,37 @@ export default function AgentVerificationScreen({navigation, route}) {
             {...DOCUMENTS.seal}
             uploaded={Boolean(seal)}
             onPress={() => selectDocument('seal', setSeal)}
-            onRemove={() => confirmDelete('notary seal', 'seal', setSeal)}
+            onRemove={() => confirmDelete('eSeal', 'seal', setSeal)}
+          />
+          <View style={styles.documentSpacer} />
+          <AuthUploadCard
+            {...DOCUMENTS.digitalCertificate}
+            uploaded={Boolean(digitalCertificate)}
+            onPress={() =>
+              selectDocument('digitalCertificate', setDigitalCertificate)
+            }
+            onRemove={() =>
+              confirmDelete(
+                'digital certificate',
+                'digitalCertificate',
+                setDigitalCertificate,
+              )
+            }
+          />
+          <View style={styles.documentSpacer} />
+          <AuthUploadCard
+            {...DOCUMENTS.certificateForms}
+            uploaded={Boolean(certificateForms)}
+            onPress={() =>
+              selectDocument('certificateForms', setCertificateForms)
+            }
+            onRemove={() =>
+              confirmDelete(
+                'certificate forms',
+                'certificateForms',
+                setCertificateForms,
+              )
+            }
           />
         </View>
 
@@ -420,6 +832,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  approvalCard: {
+    marginBottom: 14,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.white,
+  },
+  approvalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  approvalGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+    marginBottom: -8,
+  },
+  approvalPill: {
+    minHeight: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 4,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.backgroundSubtle,
+  },
+  approvalPillActive: {
+    borderColor: AppColors.primary,
+    backgroundColor: AppColors.primarySoft,
+  },
+  approvalPillText: {
+    marginLeft: 6,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  approvalPillTextActive: {
+    color: AppColors.primary,
+  },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -464,6 +920,72 @@ const styles = StyleSheet.create({
     color: AppColors.primary,
     fontFamily: 'Manrope-Bold',
     fontSize: 10,
+  },
+  sectionHeader: {
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+  },
+  sectionDescription: {
+    marginTop: 4,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  formCard: {
+    marginBottom: 14,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.white,
+  },
+  twoColumnRow: {
+    flexDirection: 'row',
+    columnGap: 10,
+  },
+  twoColumnItem: {
+    flex: 1,
+  },
+  segmentWrap: {
+    marginBottom: 4,
+  },
+  segmentLabel: {
+    marginBottom: 8,
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  segmentRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  segment: {
+    minHeight: 38,
+    justifyContent: 'center',
+    paddingHorizontal: 11,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.backgroundSubtle,
+  },
+  segmentSelected: {
+    borderColor: AppColors.primary,
+    backgroundColor: AppColors.primarySoft,
+  },
+  segmentText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  segmentTextSelected: {
+    color: AppColors.primary,
   },
   documentStack: {
     width: '100%',

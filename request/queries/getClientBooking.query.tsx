@@ -140,6 +140,11 @@ export const GET_CLIENT_BOOKING = gql`
           signature_url
         }
         total_signatures_required
+        ron_eligibility
+        scheduling_details
+        document_preparation
+        participants
+        identity_verification
       }
       totalDocs
       limit

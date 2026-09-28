@@ -46,6 +46,13 @@ const ADDITIONAL_SEAL_PRICE = 8;
 const PLATFORM_WITNESS_PRICE = 10;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
 const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
+const FULL_PREVIEW_STEPS = [
+  'full',
+  'fullReview',
+  'fullParticipants',
+  'fullDocuments',
+  'fullDocumentPreview',
+];
 const STATE_OPTIONS = statesData.map(state => ({
   key: state.value,
   value: state.label,
@@ -229,6 +236,24 @@ const formatFileSize = size => {
 
 const formatCurrency = value => `$${Number(value || 0).toFixed(2)}`;
 
+const formatPaymentStatusText = value => {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return 'Pending';
+  }
+
+  return normalized
+    .replace(/^local\s+/i, '')
+    .replace(/^test\s+/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, letter => letter.toUpperCase());
+};
+
+const isDisplayablePaymentReference = value => {
+  const normalized = String(value || '');
+  return Boolean(normalized && !normalized.startsWith('local_payment_intent_'));
+};
+
 const isValidEmail = value => /\S+@\S+\.\S+/.test(String(value || '').trim());
 
 const isImageDocument = document =>
@@ -237,6 +262,9 @@ const isImageDocument = document =>
 
 const isPdfDocument = document =>
   document?.type === 'application/pdf' || /\.pdf$/i.test(document?.name || '');
+
+const isPreviewOnlyDocument = document =>
+  String(document?.uri || '').startsWith('preview://');
 
 const buildAppointmentDate = (date, time) => {
   const [, clock, meridiem] = time.match(/^(\d{1,2}:\d{2})\s(AM|PM)$/) || [];
@@ -273,6 +301,51 @@ const createDefaultParticipants = user => {
       email: user?.email || '',
       phone: user?.phone_number || '',
       inviteStatus: 'ready',
+    },
+  ];
+};
+
+const createFullPreviewParticipants = user => {
+  const [primarySigner] = createDefaultParticipants(user);
+  return [
+    {
+      ...primarySigner,
+      fullName: primarySigner.fullName || 'Alex Morgan',
+      email: primarySigner.email || 'alex.us.local@notarizr.test',
+      phone: primarySigner.phone || '+12025550147',
+      inviteStatus: 'queued',
+    },
+    {
+      id: 'preview-additional-signer',
+      role: 'signer',
+      fullName: 'Jordan Lee',
+      email: 'jordan.signer@notarizr.test',
+      phone: '+12025550162',
+      inviteStatus: 'queued',
+    },
+    {
+      id: 'preview-witness',
+      role: 'witness',
+      fullName: 'Taylor Brooks',
+      email: 'taylor.witness@notarizr.test',
+      phone: '+12025550183',
+      inviteStatus: 'queued',
+    },
+    {
+      id: 'preview-observer',
+      role: 'observer',
+      fullName: 'Morgan Patel',
+      email: 'morgan.observer@notarizr.test',
+      phone: '+12025550194',
+      inviteStatus: 'queued',
+    },
+    {
+      id: 'preview-recipient',
+      role: 'recipient',
+      fullName: 'Casey Rivera',
+      email: 'casey.recipient@notarizr.test',
+      phone: '+12025550205',
+      inviteStatus: 'queued',
     },
   ];
 };
@@ -1133,6 +1206,7 @@ function UploadAndPrintStep({
   onRemoveDocument,
   onReplaceDocument,
   onTogglePrint,
+  openInitialPreview,
   platformWitnesses,
   printCopies,
   uploadedDocuments,
@@ -1140,6 +1214,18 @@ function UploadAndPrintStep({
 }) {
   const uploaded = uploadedDocuments.length > 0;
   const [previewDocument, setPreviewDocument] = useState(null);
+  const openedInitialPreviewRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      openInitialPreview &&
+      !openedInitialPreviewRef.current &&
+      uploadedDocuments[0]
+    ) {
+      openedInitialPreviewRef.current = true;
+      setPreviewDocument(uploadedDocuments[0]);
+    }
+  }, [openInitialPreview, uploadedDocuments]);
 
   return (
     <>
@@ -1173,7 +1259,8 @@ function UploadAndPrintStep({
                       source={{uri: document.uri}}
                       style={styles.documentThumbnail}
                     />
-                  ) : isPdfDocument(document) ? (
+                  ) : isPdfDocument(document) &&
+                    !isPreviewOnlyDocument(document) ? (
                     <View pointerEvents="none" style={styles.documentThumbnail}>
                       <Pdf
                         page={1}
@@ -1520,7 +1607,8 @@ function UploadAndPrintStep({
                   source={{uri: previewDocument?.uri}}
                   style={styles.imagePreview}
                 />
-              ) : isPdfDocument(previewDocument) ? (
+              ) : isPdfDocument(previewDocument) &&
+                !isPreviewOnlyDocument(previewDocument) ? (
                 <Pdf
                   source={{uri: previewDocument?.uri}}
                   style={styles.pdfPreview}
@@ -1531,10 +1619,14 @@ function UploadAndPrintStep({
                     <Feather name="file" size={36} color="#FD6D1F" />
                   </View>
                   <Text style={styles.genericPreviewTitle}>
-                    Preview unavailable
+                    {isPreviewOnlyDocument(previewDocument)
+                      ? 'Sample document attached'
+                      : 'Preview unavailable'}
                   </Text>
                   <Text style={styles.genericPreviewText}>
-                    This file is selected and ready to attach.
+                    {isPreviewOnlyDocument(previewDocument)
+                      ? 'This test document is ready for the booking preview.'
+                      : 'This file is selected and ready to attach.'}
                   </Text>
                 </View>
               )}
@@ -2034,32 +2126,54 @@ function Confirmation({
         </View>
         {paymentAuthorization?.status &&
         paymentAuthorization.status !== 'idle' ? (
-          <View style={styles.confirmationPaymentCard}>
+          <View
+            style={[
+              styles.confirmationPaymentCard,
+              paymentAuthorization.status === 'authorized' &&
+                styles.confirmationPaymentCardSuccess,
+              paymentAuthorization.status === 'failed' &&
+                styles.confirmationPaymentCardError,
+            ]}>
             <View style={styles.confirmationPaymentHeader}>
-              <Feather
-                name={
-                  paymentAuthorization.status === 'authorized'
-                    ? 'check-circle'
+              <View
+                style={[
+                  styles.confirmationPaymentIcon,
+                  paymentAuthorization.status === 'failed' &&
+                    styles.confirmationPaymentIconError,
+                  paymentAuthorization.status !== 'authorized' &&
+                    paymentAuthorization.status !== 'failed' &&
+                    styles.confirmationPaymentIconPending,
+                ]}>
+                <Feather
+                  name={
+                    paymentAuthorization.status === 'authorized'
+                      ? 'check'
+                      : paymentAuthorization.status === 'failed'
+                      ? 'alert-circle'
+                      : 'clock'
+                  }
+                  size={17}
+                  color={
+                    paymentAuthorization.status === 'authorized'
+                      ? '#168A52'
+                      : paymentAuthorization.status === 'failed'
+                      ? '#B33B3B'
+                      : '#A86900'
+                  }
+                />
+              </View>
+              <View style={styles.confirmationPaymentTitleCopy}>
+                <Text style={styles.confirmationPaymentTitle}>
+                  {paymentAuthorization.status === 'authorized'
+                    ? 'Payment authorization saved'
                     : paymentAuthorization.status === 'failed'
-                    ? 'alert-circle'
-                    : 'clock'
-                }
-                size={18}
-                color={
-                  paymentAuthorization.status === 'authorized'
-                    ? '#168A52'
-                    : paymentAuthorization.status === 'failed'
-                    ? '#B33B3B'
-                    : '#A86900'
-                }
-              />
-              <Text style={styles.confirmationPaymentTitle}>
-                {paymentAuthorization.status === 'authorized'
-                  ? 'Payment authorized'
-                  : paymentAuthorization.status === 'failed'
-                  ? 'Payment not authorized'
-                  : 'Payment pending'}
-              </Text>
+                    ? 'Payment not authorized'
+                    : 'Payment pending'}
+                </Text>
+                <Text style={styles.confirmationPaymentSubtitle}>
+                  Your booking details are saved.
+                </Text>
+              </View>
             </View>
             <Text style={styles.confirmationPaymentText}>
               {paymentAuthorization.message}
@@ -2067,15 +2181,27 @@ function Confirmation({
             <View style={styles.paymentDetailRow}>
               <Text style={styles.paymentDetailLabel}>Receipt</Text>
               <Text style={styles.paymentDetailValue}>
-                {paymentAuthorization.receiptStatus || 'Pending'}
+                {formatPaymentStatusText(paymentAuthorization.receiptStatus)}
               </Text>
             </View>
             <View style={styles.paymentDetailRow}>
               <Text style={styles.paymentDetailLabel}>Refund status</Text>
               <Text style={styles.paymentDetailValue}>
-                {paymentAuthorization.refundStatus || 'Not requested'}
+                {formatPaymentStatusText(
+                  paymentAuthorization.refundStatus || 'Not requested',
+                )}
               </Text>
             </View>
+            {isDisplayablePaymentReference(
+              paymentAuthorization.paymentIntentId,
+            ) ? (
+              <View style={styles.paymentDetailRow}>
+                <Text style={styles.paymentDetailLabel}>Payment reference</Text>
+                <Text style={styles.paymentDetailValue} numberOfLines={1}>
+                  {paymentAuthorization.paymentIntentId}
+                </Text>
+              </View>
+            ) : null}
             {paymentAuthorization.status === 'failed' && onRetryPayment ? (
               <TouchableOpacity
                 activeOpacity={0.74}
@@ -2120,11 +2246,13 @@ export default function BookingFlowScreen({navigation, route}) {
   const backendServiceType = isMobile ? 'mobile_notary' : 'ron';
   const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
   const previewStep = __DEV__ ? route.params?.previewStep : '';
+  const fullPreview = FULL_PREVIEW_STEPS.includes(previewStep);
   const previewDefaults = Boolean(previewStep);
   const previewHasPreparedDocuments =
     previewStep === 'documents' ||
     previewStep === 'review' ||
-    previewStep === 'payment';
+    previewStep === 'payment' ||
+    fullPreview;
   const initialStep =
     previewStep === 'scheduling' || previewStep === 'appointment'
       ? isMobile
@@ -2134,7 +2262,13 @@ export default function BookingFlowScreen({navigation, route}) {
       ? isMobile
         ? 2
         : 3
-      : previewStep === 'documents'
+      : previewStep === 'fullParticipants'
+      ? isMobile
+        ? 2
+        : 3
+      : previewStep === 'documents' ||
+        previewStep === 'fullDocuments' ||
+        previewStep === 'fullDocumentPreview'
       ? isMobile
         ? 3
         : 4
@@ -2142,11 +2276,11 @@ export default function BookingFlowScreen({navigation, route}) {
       ? isMobile
         ? 4
         : 5
-      : previewStep === 'review'
+      : previewStep === 'review' || previewStep === 'fullReview'
       ? isMobile
         ? 5
         : 6
-      : previewStep === 'payment'
+      : previewStep === 'payment' || previewStep === 'full'
       ? isMobile
         ? 6
         : 7
@@ -2331,7 +2465,7 @@ export default function BookingFlowScreen({navigation, route}) {
         (checks, participant) => ({
           ...checks,
           [participant.id]:
-            checks[participant.id] || createIdentityCheck(participant),
+            current[participant.id] || createIdentityCheck(participant),
         }),
         {},
       ),
@@ -2524,6 +2658,53 @@ export default function BookingFlowScreen({navigation, route}) {
     setDocumentJurisdiction(current => current || 'CA');
     setDocumentCategory(current => current || 'power_of_attorney');
 
+    if (fullPreview) {
+      const nextParticipants = createFullPreviewParticipants(user);
+      setNotarialAct(current => current || 'acknowledgment');
+      setCompletionChecks({
+        readable: true,
+        complete: true,
+        unsigned: true,
+      });
+      setAdditionalSignatures(1);
+      setAdditionalSeals(1);
+      setPlatformWitnesses(1);
+      setParticipants(nextParticipants);
+      setScheduleMode('scheduled');
+      setNotes(
+        current =>
+          current ||
+          'Please confirm every signer, witness, observer and recipient before the session.',
+      );
+      setIdentityChecks(current =>
+        nextParticipants
+          .filter(participant => participant.role === 'signer')
+          .reduce(
+            (checks, participant) => ({
+              ...checks,
+              [participant.id]: {
+                ...(current[participant.id] ||
+                  createIdentityCheck(participant)),
+                retriesRemaining: 2,
+                status: 'verified',
+              },
+            }),
+            current,
+          ),
+      );
+      setStep(
+        previewStep === 'fullParticipants'
+          ? participantStep
+          : previewStep === 'fullDocuments' ||
+            previewStep === 'fullDocumentPreview'
+          ? documentStep
+          : previewStep === 'fullReview'
+          ? reviewStep
+          : paymentStep,
+      );
+      return;
+    }
+
     if (previewStep === 'scheduling' || previewStep === 'appointment') {
       setStep(appointmentStep);
       return;
@@ -2557,17 +2738,20 @@ export default function BookingFlowScreen({navigation, route}) {
         unsigned: true,
       });
       setIdentityChecks(current =>
-        signerParticipants.reduce(
-          (checks, participant) => ({
-            ...checks,
-            [participant.id]: {
-              ...(current[participant.id] || createIdentityCheck(participant)),
-              retriesRemaining: 2,
-              status: 'verified',
-            },
-          }),
-          current,
-        ),
+        signerParticipants
+          .filter(participant => participant.role === 'signer')
+          .reduce(
+            (checks, participant) => ({
+              ...checks,
+              [participant.id]: {
+                ...(current[participant.id] ||
+                  createIdentityCheck(participant)),
+                retriesRemaining: 2,
+                status: 'verified',
+              },
+            }),
+            current,
+          ),
       );
       setStep(
         previewStep === 'payment'
@@ -2579,6 +2763,7 @@ export default function BookingFlowScreen({navigation, route}) {
     }
   }, [
     documentStep,
+    fullPreview,
     identityStep,
     appointmentStep,
     participantStep,
@@ -2587,6 +2772,7 @@ export default function BookingFlowScreen({navigation, route}) {
     reviewStep,
     serviceType,
     signerParticipants,
+    user,
   ]);
 
   const handleBack = () => {
@@ -2646,8 +2832,9 @@ export default function BookingFlowScreen({navigation, route}) {
       const paymentIntentId = `local_payment_intent_${booking._id}`;
       setPaymentAuthorization({
         status: 'authorized',
-        message: 'Test payment authorized. No real charge was made.',
-        receiptStatus: 'Test receipt ready',
+        message:
+          'Payment authorization is saved. You will only be charged according to the final booking terms.',
+        receiptStatus: 'Receipt pending',
         refundStatus: 'Not requested',
         paymentIntentId,
       });
@@ -2671,8 +2858,8 @@ export default function BookingFlowScreen({navigation, route}) {
       setPaymentAuthorization({
         status: 'authorized',
         message:
-          'Local payment authorization completed. No real charge was made.',
-        receiptStatus: 'Local receipt ready',
+          'Payment authorization is saved. You will only be charged according to the final booking terms.',
+        receiptStatus: 'Receipt pending',
         refundStatus: payload.refund_status || 'Not requested',
         paymentIntentId: payload.payment_intent_id || payload.paymentIntent,
       });
@@ -3372,6 +3559,7 @@ export default function BookingFlowScreen({navigation, route}) {
               onRemoveDocument={removeDocument}
               onReplaceDocument={replaceDocument}
               onTogglePrint={setWantsPrint}
+              openInitialPreview={previewStep === 'fullDocumentPreview'}
               platformWitnesses={platformWitnesses}
               printCopies={printCopies}
               uploadedDocuments={uploadedDocuments}
@@ -4932,28 +5120,63 @@ const styles = StyleSheet.create({
   confirmationPaymentCard: {
     width: '100%',
     marginTop: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E2E5E9',
+    padding: 16,
+    borderWidth: 1.2,
+    borderColor: '#DDE8E3',
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
   },
+  confirmationPaymentCardSuccess: {
+    borderColor: '#BFE4CE',
+    backgroundColor: '#F8FCFA',
+  },
+  confirmationPaymentCardError: {
+    borderColor: '#F1C9C9',
+    backgroundColor: '#FFF8F8',
+  },
   confirmationPaymentHeader: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  confirmationPaymentIcon: {
+    width: 34,
+    height: 34,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#EAF7EF',
+  },
+  confirmationPaymentIconError: {
+    backgroundColor: '#FCEEEE',
+  },
+  confirmationPaymentIconPending: {
+    backgroundColor: '#FFF5DC',
+  },
+  confirmationPaymentTitleCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 10,
   },
   confirmationPaymentTitle: {
-    marginLeft: 8,
     color: '#202632',
     fontFamily: 'Manrope-Bold',
-    fontSize: 12,
+    fontSize: 13,
   },
-  confirmationPaymentText: {
-    marginTop: 8,
-    color: '#646B76',
+  confirmationPaymentSubtitle: {
+    marginTop: 2,
+    color: '#7A818D',
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
-    lineHeight: 15,
+  },
+  confirmationPaymentText: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E6EFEA',
+    color: '#4D5A54',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10.5,
+    lineHeight: 16,
   },
   retryPaymentButton: {
     height: 40,

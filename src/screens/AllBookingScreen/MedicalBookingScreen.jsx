@@ -138,6 +138,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
   const [bookedByAddress, setBookedByAddress] = useState(null);
   const bottomSheetModalRef = useRef(null);
   const snapPoints = useMemo(() => [300, 350], []);
+  const hydratedBookingIdsRef = useRef(new Set());
 
   // const pdfRef = React.useRef<Pdf>(null);
 
@@ -381,6 +382,54 @@ function LiveMedicalBookingScreen({route, navigation}) {
     bookingDetail?.__typename,
     dispatch,
     getSession,
+    fetchBookingByID,
+  ]);
+
+  useEffect(() => {
+    const hydrateBookingDetails = async () => {
+      if (
+        !bookingDetail?._id ||
+        bookingDetail?.__typename === 'Session' ||
+        hydratedBookingIdsRef.current.has(bookingDetail._id)
+      ) {
+        return;
+      }
+
+      const hasRichBookingFields = Boolean(
+        bookingDetail?.document_preparation ||
+          bookingDetail?.participants ||
+          bookingDetail?.ron_eligibility ||
+          bookingDetail?.identity_verification,
+      );
+
+      if (hasRichBookingFields) {
+        hydratedBookingIdsRef.current.add(bookingDetail._id);
+        return;
+      }
+
+      hydratedBookingIdsRef.current.add(bookingDetail._id);
+      try {
+        const response = await fetchBookingByID(bookingDetail._id);
+        const booking = response?.getBookingById?.booking;
+        if (booking) {
+          dispatch(setBookingInfoState(booking));
+          setStatus(capitalizeFirstLetter(booking.status));
+        }
+      } catch (error) {
+        hydratedBookingIdsRef.current.delete(bookingDetail._id);
+        console.error('Error loading complete booking details:', error);
+      }
+    };
+
+    hydrateBookingDetails();
+  }, [
+    bookingDetail?._id,
+    bookingDetail?.__typename,
+    bookingDetail?.document_preparation,
+    bookingDetail?.participants,
+    bookingDetail?.ron_eligibility,
+    bookingDetail?.identity_verification,
+    dispatch,
     fetchBookingByID,
   ]);
   const showConfirmation = () => {

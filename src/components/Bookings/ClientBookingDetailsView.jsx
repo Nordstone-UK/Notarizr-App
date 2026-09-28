@@ -180,6 +180,80 @@ const getDocumentList = (booking, isMobile) => {
   ];
 };
 
+const valueOrFallback = (value, fallback = 'Not provided') => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  const normalized = String(value).trim();
+  return normalized || fallback;
+};
+
+const titleize = value =>
+  String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, letter => letter.toUpperCase());
+
+const getCleanInstructions = booking => {
+  const generatedNotes = String(booking?.notes || '');
+  const notesLookGenerated =
+    generatedNotes.includes('ATLAS_REAL_BOOKING') ||
+    generatedNotes.includes('Document preparation:') ||
+    generatedNotes.includes('Participants:') ||
+    generatedNotes.includes('RON eligibility:');
+
+  return (
+    booking?.document_preparation?.specialInstructions ||
+    booking?.instructions ||
+    booking?.special_instructions ||
+    booking?.booking_notes ||
+    booking?.booked_for?.notes ||
+    booking?.booked_for?.instructions ||
+    (!notesLookGenerated ? booking?.notes : null) ||
+    'No additional instructions provided.'
+  );
+};
+
+const getPreparationConfirmations = documentPreparation => {
+  if (Array.isArray(documentPreparation?.confirmations)) {
+    return documentPreparation.confirmations.filter(Boolean);
+  }
+
+  const checks = documentPreparation?.completionChecks || {};
+  return [
+    checks.readable ? 'Document is readable' : null,
+    checks.complete ? 'All pages are included' : null,
+    checks.unsigned ? 'Notarial signature areas are unsigned' : null,
+  ].filter(Boolean);
+};
+
+const getRoleIcon = role => {
+  switch (String(role || '').toLowerCase()) {
+    case 'witness':
+      return 'user-check';
+    case 'observer':
+      return 'eye';
+    case 'recipient':
+      return 'send';
+    default:
+      return 'user';
+  }
+};
+
+const getStatusTone = status => {
+  const normalized = String(status || '').toLowerCase();
+  if (
+    ['ready', 'sent', 'accepted', 'verified', 'success'].includes(normalized)
+  ) {
+    return 'success';
+  }
+  if (['failed', 'rejected', 'expired'].includes(normalized)) {
+    return 'error';
+  }
+  return 'warning';
+};
+
 function IconButton({accessibilityLabel, icon, onPress, primary}) {
   return (
     <TouchableOpacity
@@ -250,6 +324,132 @@ function Section({children, title}) {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionBody}>{children}</View>
+    </View>
+  );
+}
+
+function StatusPill({label, tone = 'warning'}) {
+  const toneStyle =
+    tone === 'success'
+      ? styles.successPill
+      : tone === 'error'
+      ? styles.errorPill
+      : tone === 'info'
+      ? styles.infoPill
+      : styles.warningPill;
+  const textStyle =
+    tone === 'success'
+      ? styles.successPillText
+      : tone === 'error'
+      ? styles.errorPillText
+      : tone === 'info'
+      ? styles.infoPillText
+      : styles.warningPillText;
+
+  return (
+    <View style={[styles.statusPill, toneStyle]}>
+      <Text style={[styles.statusPillText, textStyle]} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function Checklist({items}) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <View style={styles.checklist}>
+      {items.map(item => (
+        <View key={item} style={styles.checkItem}>
+          <Feather
+            name="check-circle"
+            size={16}
+            color={BookingColors.success}
+          />
+          <Text style={styles.checkText}>{item}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function ParticipantRow({last, participant}) {
+  const roleLabel =
+    participant?.roleLabel ||
+    participant?.role_label ||
+    titleize(participant?.role);
+  const statusLabel =
+    participant?.preparationStatusLabel ||
+    participant?.invitationStatus ||
+    participant?.preparationStatus ||
+    'Pending';
+  const tone = getStatusTone(
+    participant?.preparationStatus || participant?.invitationStatus,
+  );
+
+  return (
+    <View style={[styles.personRow, last && styles.infoRowLast]}>
+      <View style={styles.infoIcon}>
+        <Feather
+          name={getRoleIcon(participant?.role)}
+          size={17}
+          color={BookingColors.primary}
+        />
+      </View>
+      <View style={styles.personCopy}>
+        <View style={styles.personHeader}>
+          <Text numberOfLines={1} style={styles.personName}>
+            {valueOrFallback(
+              participant?.fullName || participant?.name,
+              'Guest',
+            )}
+          </Text>
+          <StatusPill
+            label={valueOrFallback(roleLabel, 'Signer')}
+            tone="info"
+          />
+        </View>
+        <Text numberOfLines={1} style={styles.personMeta}>
+          {valueOrFallback(participant?.email)}
+        </Text>
+        <Text numberOfLines={1} style={styles.personMeta}>
+          {valueOrFallback(participant?.phone)}
+        </Text>
+      </View>
+      <StatusPill label={valueOrFallback(statusLabel, 'Pending')} tone={tone} />
+    </View>
+  );
+}
+
+function VerificationSignerRow({last, signer}) {
+  const result = signer?.result || signer?.status || 'Verified';
+  const tone = getStatusTone(result);
+
+  return (
+    <View style={[styles.personRow, last && styles.infoRowLast]}>
+      <View style={styles.infoIcon}>
+        <Feather name="shield" size={17} color={BookingColors.primary} />
+      </View>
+      <View style={styles.personCopy}>
+        <Text numberOfLines={1} style={styles.personName}>
+          {valueOrFallback(signer?.fullName || signer?.name, 'Signer')}
+        </Text>
+        <Text style={styles.personMeta}>
+          {valueOrFallback(
+            signer?.methodLabel || signer?.method,
+            'Government ID, selfie match and knowledge check',
+          )}
+        </Text>
+        <Text style={styles.personMeta}>
+          {Number.isFinite(Number(signer?.permittedRetries))
+            ? `${signer.permittedRetries} retries remaining`
+            : 'Retry rules set by verification provider'}
+        </Text>
+      </View>
+      <StatusPill label={valueOrFallback(result, 'Verified')} tone={tone} />
     </View>
   );
 }
@@ -365,14 +565,26 @@ export default function ClientBookingDetailsView({
     documentCharge + platformFee + additionalSignatureCharge + printingCharge;
   const totalPrice =
     calculatedTotalPrice > 0 ? calculatedTotalPrice : storedTotalPrice;
-  const bookingInstructions =
-    booking?.notes ||
-    booking?.instructions ||
-    booking?.special_instructions ||
-    booking?.booking_notes ||
-    booking?.booked_for?.notes ||
-    booking?.booked_for?.instructions ||
-    'No additional instructions provided.';
+  const documentPreparation = useMemo(
+    () => booking?.document_preparation || {},
+    [booking?.document_preparation],
+  );
+  const preparationConfirmations = useMemo(
+    () => getPreparationConfirmations(documentPreparation),
+    [documentPreparation],
+  );
+  const bookingInstructions = getCleanInstructions(booking);
+  const participants = Array.isArray(booking?.participants)
+    ? booking.participants
+    : [];
+  const signerVerifications = Array.isArray(
+    booking?.identity_verification?.signers,
+  )
+    ? booking.identity_verification.signers
+    : [];
+  const ronEligibility = booking?.ron_eligibility || null;
+  const hasRonEligibility =
+    ronEligibility && Object.keys(ronEligibility).length > 0;
   const location = getBookingLocation(booking);
   const sessionAvailability = useMemo(
     () =>
@@ -645,7 +857,7 @@ export default function ClientBookingDetailsView({
           />
         </Section>
 
-        <Section title="Notary Request">
+        <Section title="Documents">
           {documents.map((document, index) => {
             const file = hasRealDocumentTypes ? uploadedFiles[index] : null;
             const label =
@@ -693,6 +905,27 @@ export default function ClientBookingDetailsView({
               }
             />
           ) : null}
+        </Section>
+
+        <Section title="Document preparation">
+          <InfoRow
+            icon="edit-3"
+            label="Requested notarial act"
+            value={valueOrFallback(
+              documentPreparation?.requestedNotarialActLabel ||
+                titleize(documentPreparation?.requestedNotarialAct),
+              'Not selected',
+            )}
+          />
+          <InfoRow
+            icon="calendar"
+            label="Deadline"
+            value={valueOrFallback(
+              documentPreparation?.deadlineLabel ||
+                documentPreparation?.deadlineDate,
+              'No deadline set',
+            )}
+          />
           <InfoRow
             icon="edit-3"
             label="Additional signatures"
@@ -713,19 +946,104 @@ export default function ClientBookingDetailsView({
           ) : null}
           <InfoRow
             icon="align-left"
-            label="Instructions"
+            label="Special instructions"
             last
             value={bookingInstructions}
           />
+          <Checklist items={preparationConfirmations} />
         </Section>
 
+        {participants.length > 0 ? (
+          <Section title="Participants">
+            {participants.map((participant, index) => (
+              <ParticipantRow
+                key={participant?.id || `${participant?.email}-${index}`}
+                last={index === participants.length - 1}
+                participant={participant}
+              />
+            ))}
+          </Section>
+        ) : null}
+
+        {hasRonEligibility ? (
+          <Section title="RON eligibility">
+            <InfoRow
+              icon="map-pin"
+              label="Signer physical location"
+              value={valueOrFallback(ronEligibility?.signerLocation)}
+            />
+            <InfoRow
+              icon="map"
+              label="Document jurisdiction"
+              value={valueOrFallback(
+                ronEligibility?.documentJurisdictionLabel ||
+                  ronEligibility?.documentJurisdiction,
+              )}
+            />
+            <InfoRow
+              icon="file-text"
+              label="Document category"
+              value={valueOrFallback(
+                ronEligibility?.documentCategoryLabel ||
+                  titleize(ronEligibility?.documentCategory),
+              )}
+            />
+            <InfoRow
+              icon="globe"
+              label="Language"
+              value={valueOrFallback(ronEligibility?.languagePreference)}
+            />
+            <InfoRow
+              icon="video"
+              label="Service type"
+              last
+              value={valueOrFallback(ronEligibility?.serviceType)}
+            />
+            {ronEligibility?.message ? (
+              <View style={styles.eligibilityBanner}>
+                <Feather
+                  name={
+                    ronEligibility?.eligible === false
+                      ? 'alert-circle'
+                      : 'check-circle'
+                  }
+                  size={17}
+                  color={
+                    ronEligibility?.eligible === false
+                      ? BookingColors.error
+                      : BookingColors.success
+                  }
+                />
+                <Text
+                  style={[
+                    styles.eligibilityText,
+                    ronEligibility?.eligible === false &&
+                      styles.eligibilityErrorText,
+                  ]}>
+                  {ronEligibility.message}
+                </Text>
+              </View>
+            ) : null}
+          </Section>
+        ) : null}
+
         <Section title="Verification">
-          <InfoRow
-            icon="shield"
-            label="Identity method"
-            last
-            value={identity}
-          />
+          {signerVerifications.length > 0 ? (
+            signerVerifications.map((signer, index) => (
+              <VerificationSignerRow
+                key={signer?.id || signer?.fullName || index}
+                last={index === signerVerifications.length - 1}
+                signer={signer}
+              />
+            ))
+          ) : (
+            <InfoRow
+              icon="shield"
+              label="Identity method"
+              last
+              value={identity}
+            />
+          )}
         </Section>
 
         {statusKey === 'completed' && completedFiles.length > 0 ? (
@@ -1079,6 +1397,98 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
   },
+  checklist: {
+    marginHorizontal: 14,
+    marginBottom: 14,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: BookingColors.successSoft,
+  },
+  checkItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 7,
+  },
+  checkText: {
+    flex: 1,
+    marginLeft: 8,
+    color: BookingColors.success,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  personRow: {
+    minHeight: 78,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BookingColors.border,
+  },
+  personCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 11,
+    paddingRight: 8,
+  },
+  personHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  personName: {
+    flex: 1,
+    minWidth: 0,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  personMeta: {
+    marginTop: 3,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  statusPill: {
+    maxWidth: 116,
+    alignSelf: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 7,
+  },
+  statusPillText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  successPill: {backgroundColor: BookingColors.successSoft},
+  successPillText: {color: BookingColors.success},
+  warningPill: {backgroundColor: BookingColors.warningSoft},
+  warningPillText: {color: BookingColors.warning},
+  errorPill: {backgroundColor: BookingColors.errorSoft},
+  errorPillText: {color: BookingColors.error},
+  infoPill: {backgroundColor: BookingColors.infoSoft},
+  infoPillText: {color: BookingColors.info},
+  eligibilityBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 14,
+    marginBottom: 14,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: BookingColors.successSoft,
+  },
+  eligibilityText: {
+    flex: 1,
+    marginLeft: 8,
+    color: BookingColors.success,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  eligibilityErrorText: {color: BookingColors.error},
   pricingSection: {
     marginTop: 14,
     marginHorizontal: 0,

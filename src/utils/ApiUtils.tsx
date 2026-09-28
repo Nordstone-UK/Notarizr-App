@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import {Platform} from 'react-native';
 
 const productionServerURL = 'https://app.notarizr.co';
 const localServerURL =

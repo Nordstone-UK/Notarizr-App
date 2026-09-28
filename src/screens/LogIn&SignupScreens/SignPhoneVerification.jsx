@@ -26,8 +26,10 @@ export default function SignPhoneVerification({route, navigation}) {
     date,
   } = route.params;
   const [otp, setOtp] = useState('');
-  const [getPhoneOtp, {loading: resendLoading}] =
-    useLazyQuery(GET_VALID_PHONE_OTP);
+  const [getPhoneOtp, {loading: resendLoading}] = useLazyQuery(
+    GET_VALID_PHONE_OTP,
+    {fetchPolicy: 'no-cache'},
+  );
   const [verifyOtp, {loading: verifyLoading}] = useLazyQuery(
     VERIFY_SIGNUP_WITH_OTP,
     {fetchPolicy: 'no-cache'},

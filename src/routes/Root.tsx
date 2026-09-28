@@ -51,6 +51,21 @@ const Root: FC = (): JSX.Element => {
     const openDeepLinkUrl = async (url?: string | null) => {
       const invite = normalizeSessionInviteParams(url || '');
       if (!invite) {
+        const bookingDetailId =
+          (url || '').match(/^notarizr:\/\/booking-detail\/([^?]+)/i)?.[1] ||
+          (url || '').match(/[?&]bookingId=([^&]+)/)?.[1];
+        if (bookingDetailId) {
+          const bookingData = await fetchBookingByIDRef.current(
+            decodeURIComponent(bookingDetailId),
+          );
+          const booking = bookingData?.getBookingById?.booking;
+          if (booking) {
+            await dispatchingClientData(booking);
+            navigation.navigate('MedicalBookingScreen');
+          }
+          return;
+        }
+
         if (/^notarizr:\/\/book/i.test(url || '')) {
           const previewStep = (url || '').match(/[?&]previewStep=([^&]+)/)?.[1];
           navigation.dispatch(
