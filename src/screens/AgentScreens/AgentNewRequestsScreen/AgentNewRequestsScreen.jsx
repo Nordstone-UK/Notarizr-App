@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,6 +23,34 @@ import {
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import {PREVIEW_AGENT_BOOKINGS} from '../../../data/previewBookings';
 
+const ACCEPT_WINDOW_SECONDS = 90;
+
+const getCreatedAt = booking => {
+  const rawDate =
+    booking?.open_call_started_at ||
+    booking?.createdAt ||
+    booking?.created_at ||
+    booking?.updatedAt;
+  const timestamp = rawDate ? new Date(rawDate).getTime() : NaN;
+  return Number.isNaN(timestamp) ? null : timestamp;
+};
+
+const getCountdownLabel = (booking, now) => {
+  const createdAt = getCreatedAt(booking);
+  if (!createdAt) {
+    return 'Accept window open';
+  }
+
+  const elapsed = Math.max(0, Math.floor((now - createdAt) / 1000));
+  const remaining = ACCEPT_WINDOW_SECONDS - elapsed;
+
+  if (remaining <= 0) {
+    return 'Accept before another notary locks it';
+  }
+
+  return `${remaining}s accept window`;
+};
+
 // A dedicated "new requests" list — every pending request awaiting this
 // notary's Accept/Decline, and nothing else. Deliberately its own screen
 // rather than a filtered view of the general Bookings list, since a request
@@ -37,6 +65,7 @@ export default function AgentNewRequestsScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
   fetchRef.current = fetchAgentBookingInfo;
 
@@ -76,6 +105,11 @@ export default function AgentNewRequestsScreen({navigation}) {
       loadRequests();
     }, [loadRequests]),
   );
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const openRequest = request => {
     dispatch(setBookingInfoState(request));
@@ -118,6 +152,46 @@ export default function AgentNewRequestsScreen({navigation}) {
         contentContainerStyle={styles.listContent}
         data={visibleRequests}
         keyExtractor={item => item._id}
+        ListHeaderComponent={
+          <View style={styles.alertPanel}>
+            <View style={styles.alertIcon}>
+              <Feather name="radio" size={18} color={BookingColors.primary} />
+            </View>
+            <View style={styles.alertCopy}>
+              <Text style={styles.alertTitle}>Open call flow</Text>
+              <Text style={styles.alertText}>
+                Eligible notaries receive alerts together. Review quickly; the
+                first notary to accept locks the booking.
+              </Text>
+              <View style={styles.alertSteps}>
+                <View style={styles.alertStep}>
+                  <Feather
+                    name="bell"
+                    size={12}
+                    color={BookingColors.primary}
+                  />
+                  <Text style={styles.alertStepText}>Alert</Text>
+                </View>
+                <View style={styles.alertStep}>
+                  <Feather
+                    name="clock"
+                    size={12}
+                    color={BookingColors.primary}
+                  />
+                  <Text style={styles.alertStepText}>Countdown</Text>
+                </View>
+                <View style={styles.alertStep}>
+                  <Feather
+                    name="lock"
+                    size={12}
+                    color={BookingColors.primary}
+                  />
+                  <Text style={styles.alertStepText}>First accept locks</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        }
         ListEmptyComponent={
           <View style={styles.stateContainer}>
             <Feather name="inbox" size={26} color={BookingColors.textMuted} />
@@ -136,7 +210,12 @@ export default function AgentNewRequestsScreen({navigation}) {
           />
         }
         renderItem={({item}) => (
-          <AgentRequestCard booking={item} onPress={() => openRequest(item)} />
+          <AgentRequestCard
+            booking={item}
+            countdownLabel={getCountdownLabel(item, now)}
+            lockLabel="First eligible notary to accept gets this booking"
+            onPress={() => openRequest(item)}
+          />
         )}
         showsVerticalScrollIndicator={false}
       />
@@ -207,6 +286,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   content: {flex: 1, backgroundColor: BookingColors.background},
+  alertCopy: {flex: 1, minWidth: 0, marginLeft: 12},
+  alertIcon: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFF0E7',
+  },
+  alertPanel: {
+    flexDirection: 'row',
+    marginTop: 16,
+    marginBottom: 4,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 8,
+    backgroundColor: BookingColors.surface,
+  },
+  alertSteps: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  alertStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#FFF7F0',
+  },
+  alertStepText: {
+    marginLeft: 5,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  alertText: {
+    marginTop: 4,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  alertTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
   listContent: {
     flexGrow: 1,
     paddingHorizontal: 16,

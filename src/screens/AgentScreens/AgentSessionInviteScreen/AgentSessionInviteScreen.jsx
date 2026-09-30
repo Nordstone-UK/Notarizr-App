@@ -33,6 +33,33 @@ const IDENTITY_OPTIONS = [
   {label: 'Passport', value: 'user_passport'},
 ];
 
+const SESSION_TYPES = [
+  {
+    label: 'General notary',
+    value: 'general_notary',
+    description: 'Acknowledgments, jurats and common notarial acts.',
+    icon: 'file-text',
+  },
+  {
+    label: 'Closing',
+    value: 'closing',
+    description: 'Loan, title and signing-agent style appointments.',
+    icon: 'home',
+  },
+  {
+    label: 'Estate planning',
+    value: 'estate_planning',
+    description: 'POA, wills, trusts and related signer preparation.',
+    icon: 'archive',
+  },
+  {
+    label: 'Private RON',
+    value: 'private_ron',
+    description: 'Invite-only online session with selected participants.',
+    icon: 'lock',
+  },
+];
+
 const getName = person =>
   [person?.first_name, person?.last_name].filter(Boolean).join(' ') ||
   'Notarizr client';
@@ -210,6 +237,7 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
+  const [sessionType, setSessionType] = useState('general_notary');
 
   const INVITE_MESSAGE =
     'You are invited to your next session. Download the Notarizer app to proceed.';
@@ -237,6 +265,14 @@ export default function AgentSessionInviteScreen({navigation}) {
 
   const [clientNoResults, setClientNoResults] = useState(false);
   const [observerNoResults, setObserverNoResults] = useState(false);
+  const readinessItems = [
+    {label: 'Signer selected', ready: Boolean(selectedClient)},
+    {label: 'Documents uploaded', ready: fileResponse.length > 0},
+    {label: 'Participants added', ready: observers.length > 0},
+    {label: 'Signer auth chosen', ready: Boolean(selectedIdentity)},
+    {label: 'Session time set', ready: Boolean(date)},
+    {label: 'Payment route selected', ready: Boolean(paymentMethod)},
+  ];
 
   useEffect(() => {
     SplashScreen.hide();
@@ -428,6 +464,45 @@ export default function AgentSessionInviteScreen({navigation}) {
             <Text style={styles.heroDescription}>
               Add everyone involved, choose verification and schedule the call.
             </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader
+            eyebrow="PRIVATE SESSION"
+            title="Session type"
+            description="Choose how this invite-only session should be prepared."
+          />
+          <View style={styles.sessionTypeGrid}>
+            {SESSION_TYPES.map(item => {
+              const isSelected = sessionType === item.value;
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  key={item.value}
+                  onPress={() => setSessionType(item.value)}
+                  style={[
+                    styles.sessionTypeCard,
+                    isSelected && styles.sessionTypeCardActive,
+                  ]}>
+                  <View
+                    style={[
+                      styles.sessionTypeIcon,
+                      isSelected && styles.sessionTypeIconActive,
+                    ]}>
+                    <Feather
+                      name={item.icon}
+                      size={17}
+                      color={
+                        isSelected ? AppColors.primary : AppColors.textSecondary
+                      }
+                    />
+                  </View>
+                  <Text style={styles.sessionTypeTitle}>{item.label}</Text>
+                  <Text style={styles.sessionTypeText}>{item.description}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -692,6 +767,39 @@ export default function AgentSessionInviteScreen({navigation}) {
             <Text style={styles.summaryHint}>Fixed session fee</Text>
           </View>
           <Text style={styles.summaryPrice}>${SESSION_PRICE}</Text>
+        </View>
+
+        <View style={styles.readinessPanel}>
+          <View style={styles.readinessHeader}>
+            <View>
+              <Text style={styles.readinessTitle}>Invitation readiness</Text>
+              <Text style={styles.readinessText}>
+                Confirm the session package before sending invites.
+              </Text>
+            </View>
+            <View style={styles.readinessBadge}>
+              <Text style={styles.readinessBadgeText}>
+                {readinessItems.filter(item => item.ready).length}/
+                {readinessItems.length}
+              </Text>
+            </View>
+          </View>
+          {readinessItems.map(item => (
+            <View key={item.label} style={styles.readinessRow}>
+              <Feather
+                name={item.ready ? 'check-circle' : 'circle'}
+                size={16}
+                color={item.ready ? AppColors.success : AppColors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.readinessLabel,
+                  item.ready && styles.readinessLabelReady,
+                ]}>
+                {item.label}
+              </Text>
+            </View>
+          ))}
         </View>
 
         <GradientButton
@@ -969,6 +1077,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 34,
   },
+  readinessBadge: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderRadius: 8,
+    justifyContent: 'center',
+    minWidth: 44,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  readinessBadgeText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  readinessHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  readinessLabel: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+    marginLeft: 9,
+  },
+  readinessLabelReady: {color: AppColors.textPrimary},
+  readinessPanel: {
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 16,
+  },
+  readinessRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingVertical: 7,
+  },
+  readinessText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  readinessTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
   resultsPanel: {
     backgroundColor: AppColors.surface,
     borderColor: AppColors.border,
@@ -1099,6 +1260,46 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',
     fontSize: 13,
+  },
+  sessionTypeCard: {
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 10,
+    padding: 12,
+    width: '48.5%',
+  },
+  sessionTypeCardActive: {
+    backgroundColor: '#FFF9F4',
+    borderColor: '#FFC9A8',
+  },
+  sessionTypeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  sessionTypeIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 7,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  sessionTypeIconActive: {backgroundColor: AppColors.primarySoft},
+  sessionTypeText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 14,
+    marginTop: 5,
+  },
+  sessionTypeTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    marginTop: 9,
   },
   smallIconButton: {
     alignItems: 'center',

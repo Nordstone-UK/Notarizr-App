@@ -8,7 +8,12 @@ import {
   getBookingLocation,
 } from '../../utils/bookingPresentation';
 
-export default function AgentRequestCard({booking, onPress}) {
+export default function AgentRequestCard({
+  booking,
+  countdownLabel,
+  lockLabel,
+  onPress,
+}) {
   const client = booking?.booked_by || {};
   const avatarSource = client.profile_picture
     ? {uri: client.profile_picture}
@@ -79,7 +84,12 @@ export default function AgentRequestCard({booking, onPress}) {
 
       <View style={styles.footer}>
         <View style={styles.statusDot} />
-        <Text style={styles.status}>Awaiting your response</Text>
+        <View style={styles.statusCopy}>
+          <Text style={styles.status}>
+            {countdownLabel || 'Awaiting your response'}
+          </Text>
+          {lockLabel ? <Text style={styles.lockLabel}>{lockLabel}</Text> : null}
+        </View>
         <Text style={styles.review}>Review</Text>
         <Feather name="chevron-right" size={16} color="#D65322" />
       </View>
@@ -159,11 +169,20 @@ const styles = StyleSheet.create({
   },
   statusDot: {width: 7, height: 7, borderRadius: 4, backgroundColor: '#F4A11A'},
   status: {
-    flex: 1,
-    marginLeft: 7,
     color: '#8A6A24',
     fontFamily: 'Manrope-SemiBold',
     fontSize: 9,
+  },
+  statusCopy: {
+    flex: 1,
+    marginLeft: 7,
+    minWidth: 0,
+  },
+  lockLabel: {
+    marginTop: 2,
+    color: '#858C97',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 8,
   },
   review: {
     marginRight: 3,

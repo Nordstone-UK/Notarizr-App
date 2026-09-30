@@ -161,6 +161,24 @@ function Section({children, title}) {
   );
 }
 
+const LIVE_SESSION_TOOLKIT = [
+  {label: 'Video', icon: 'video'},
+  {label: 'Recording consent', icon: 'shield'},
+  {label: 'Participants', icon: 'users'},
+  {label: 'Document viewer', icon: 'file-text'},
+  {label: 'Chat', icon: 'message-circle'},
+  {label: 'Signing fields', icon: 'edit-3'},
+];
+
+const COMPLETION_TOOLKIT = [
+  'Certificate wording',
+  'Signature',
+  'eSeal',
+  'Digital cert',
+  'Journal',
+  'Final PDF seal',
+];
+
 const DOCUMENT_RATE = 25;
 const SIGNATURE_RATE = 5;
 const PRINT_RATE = 5;
@@ -1164,6 +1182,45 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           schedule={booking?.service?.availability?.schedule}
         /> */}
 
+        <Section title="Notary toolkit">
+          <View style={styles.toolkitIntro}>
+            <Text style={styles.toolkitTitle}>Live session tools</Text>
+            <Text style={styles.toolkitText}>
+              Use these during the call to manage participants, documents, chat
+              and signer fields.
+            </Text>
+          </View>
+          <View style={styles.toolkitGrid}>
+            {LIVE_SESSION_TOOLKIT.map(item => (
+              <View key={item.label} style={styles.toolkitItem}>
+                <View style={styles.toolkitIcon}>
+                  <Feather
+                    name={item.icon}
+                    size={14}
+                    color={BookingColors.primary}
+                  />
+                </View>
+                <Text style={styles.toolkitItemText}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.completionToolkit}>
+            <Text style={styles.toolkitTitle}>Completion package</Text>
+            <View style={styles.completionChips}>
+              {COMPLETION_TOOLKIT.map(label => (
+                <View key={label} style={styles.completionChip}>
+                  <Feather
+                    name="check-circle"
+                    size={12}
+                    color={BookingColors.success}
+                  />
+                  <Text style={styles.completionChipText}>{label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </Section>
+
         <Section title="Notary Request">
           {displayedDocuments.length > 0 ? (
             displayedDocuments.map((document, index) => (
@@ -1423,6 +1480,31 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: BookingColors.successSoft,
   },
+  completionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+    marginTop: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: BookingColors.successSoft,
+  },
+  completionChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  completionChipText: {
+    marginLeft: 5,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 9,
+  },
+  completionToolkit: {
+    padding: 14,
+    borderTopWidth: 1,
+    borderTopColor: BookingColors.border,
+  },
   detailRow: {
     minHeight: 66,
     flexDirection: 'row',
@@ -1487,6 +1569,48 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     fontSize: 11,
     lineHeight: 16,
+  },
+  toolkitGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+  toolkitIcon: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  toolkitIntro: {
+    padding: 14,
+  },
+  toolkitItem: {
+    width: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 6,
+  },
+  toolkitItemText: {
+    flex: 1,
+    marginLeft: 8,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+  },
+  toolkitText: {
+    marginTop: 4,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  toolkitTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
   actionBar: {
     minHeight: 76,

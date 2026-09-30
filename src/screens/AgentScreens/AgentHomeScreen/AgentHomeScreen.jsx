@@ -40,6 +40,53 @@ const renderAccountBackdrop = props => (
   />
 );
 
+const WORKBENCH_ACTIONS = [
+  {
+    title: 'Open calls',
+    description:
+      'Review live client requests and accept before the window closes.',
+    icon: 'radio',
+    route: 'AgentNewRequestsScreen',
+  },
+  {
+    title: 'Scheduled sessions',
+    description: 'See accepted sessions, upcoming calls and client details.',
+    icon: 'calendar',
+    route: 'BookScreen',
+  },
+  {
+    title: 'Private sessions',
+    description: 'Create a notary-led session, upload docs and invite signers.',
+    icon: 'send',
+    route: 'AgentSessionInviteScreen',
+  },
+  {
+    title: 'Journal',
+    description:
+      'Track completed notarizations and audit-ready session records.',
+    icon: 'book-open',
+    route: 'BookScreen',
+  },
+];
+
+const LIVE_TOOLS = [
+  {label: 'Secure video', icon: 'video'},
+  {label: 'Recording consent', icon: 'shield'},
+  {label: 'Participants', icon: 'users'},
+  {label: 'Document viewer', icon: 'file-text'},
+  {label: 'Session chat', icon: 'message-circle'},
+  {label: 'Signing fields', icon: 'edit-3'},
+];
+
+const COMPLETION_STEPS = [
+  'Certificate wording',
+  'Notary signature',
+  'eSeal',
+  'Digital certificate',
+  'Journal entry',
+  'Final sealed PDF',
+];
+
 export default function AgentHomeScreen({navigation}) {
   const user = useSelector(state => state.user.user);
   const dispatch = useDispatch();
@@ -73,6 +120,10 @@ export default function AgentHomeScreen({navigation}) {
         0,
       )
     : earnings;
+  const isOnline =
+    user?.online_status === 'online' ||
+    user?.availability_status === 'online' ||
+    user?.is_online;
 
   fetchBookingsRef.current = fetchAgentBookingInfo;
   fetchSessionsRef.current = handleAgentSessions;
@@ -243,6 +294,144 @@ export default function AgentHomeScreen({navigation}) {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Agent workbench</Text>
+          <Text style={styles.sectionSubtitle}>
+            Start calls, manage private sessions and keep your records clean.
+          </Text>
+
+          <View style={styles.availabilityPanel}>
+            <View
+              style={[
+                styles.availabilityIcon,
+                isOnline && styles.availabilityIconOnline,
+              ]}>
+              <Feather
+                name={isOnline ? 'wifi' : 'wifi-off'}
+                size={20}
+                color={isOnline ? '#168A52' : '#7B8490'}
+              />
+            </View>
+            <View style={styles.availabilityCopy}>
+              <Text style={styles.availabilityTitle}>
+                {isOnline ? 'Online for calls' : 'Offline'}
+              </Text>
+              <Text style={styles.availabilityText}>
+                {isOnline
+                  ? 'You can receive open-call alerts and scheduled session updates.'
+                  : 'Go online when you are ready to receive eligible call alerts.'}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.statusBadge,
+                isOnline ? styles.statusBadgeOnline : styles.statusBadgeIdle,
+              ]}>
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  isOnline
+                    ? styles.statusBadgeTextOnline
+                    : styles.statusBadgeTextIdle,
+                ]}>
+                {isOnline ? 'Online' : 'Offline'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.workbenchGrid}>
+            {WORKBENCH_ACTIONS.map(item => (
+              <TouchableOpacity
+                activeOpacity={0.74}
+                key={item.title}
+                onPress={() => navigation.navigate(item.route)}
+                style={styles.workbenchTile}>
+                <View style={styles.workbenchIcon}>
+                  <Feather name={item.icon} size={18} color="#D65322" />
+                </View>
+                <Text style={styles.workbenchTitle}>{item.title}</Text>
+                <Text style={styles.workbenchText}>{item.description}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Live session tools</Text>
+          <Text style={styles.sectionSubtitle}>
+            The call room should expose the tools a notary needs while signing.
+          </Text>
+          <View style={styles.toolPanel}>
+            {LIVE_TOOLS.map(item => (
+              <View key={item.label} style={styles.toolRow}>
+                <View style={styles.toolIcon}>
+                  <Feather name={item.icon} size={15} color="#D65322" />
+                </View>
+                <Text style={styles.toolLabel}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Completion checklist</Text>
+          <Text style={styles.sectionSubtitle}>
+            Finish the session with certificate wording, notary assets and a
+            sealed record.
+          </Text>
+          <View style={styles.completionPanel}>
+            {COMPLETION_STEPS.map((label, index) => (
+              <View
+                key={label}
+                style={[
+                  styles.completionRow,
+                  index === COMPLETION_STEPS.length - 1 &&
+                    styles.completionRowLast,
+                ]}>
+                <Feather name="check-circle" size={16} color="#168A52" />
+                <Text style={styles.completionText}>{label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Earnings</Text>
+          <Text style={styles.sectionSubtitle}>
+            Track invoices, payouts, pending balance and adjustments.
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.74}
+            onPress={() => navigation.navigate('TransactionScreen')}
+            style={styles.earningsPanel}>
+            <View style={styles.earningsHeader}>
+              <View>
+                <Text style={styles.earningsLabel}>Pending payout balance</Text>
+                <Text style={styles.earningsValue}>
+                  {'$' + visibleEarnings.toFixed(0)}
+                </Text>
+              </View>
+              <View style={styles.earningsIcon}>
+                <Feather name="arrow-up-right" size={18} color="#168A52" />
+              </View>
+            </View>
+            <View style={styles.earningsRows}>
+              <View style={styles.earningsRow}>
+                <Text style={styles.earningsRowLabel}>Invoices</Text>
+                <Text style={styles.earningsRowValue}>Review</Text>
+              </View>
+              <View style={styles.earningsRow}>
+                <Text style={styles.earningsRowLabel}>Payouts</Text>
+                <Text style={styles.earningsRowValue}>History</Text>
+              </View>
+              <View style={styles.earningsRow}>
+                <Text style={styles.earningsRowLabel}>Refunds/adjustments</Text>
+                <Text style={styles.earningsRowValue}>Tracked</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your services</Text>
           <Text style={styles.sectionSubtitle}>
             Set when and where clients can book you.
@@ -379,6 +568,120 @@ const styles = StyleSheet.create({
   metricGap: {
     width: 10,
   },
+  availabilityCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 12,
+  },
+  availabilityIcon: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#EEF1F4',
+  },
+  availabilityIconOnline: {
+    backgroundColor: '#E8F6EE',
+  },
+  availabilityPanel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  availabilityText: {
+    marginTop: 3,
+    color: '#7D8591',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  availabilityTitle: {
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  completionPanel: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  completionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF0F2',
+  },
+  completionRowLast: {
+    borderBottomWidth: 0,
+  },
+  completionText: {
+    marginLeft: 9,
+    color: '#242B36',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  earningsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  earningsIcon: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#E8F6EE',
+  },
+  earningsLabel: {
+    color: '#7D8591',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  earningsPanel: {
+    marginTop: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#DDEBE3',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  earningsRows: {
+    marginTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#EEF0F2',
+  },
+  earningsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+  },
+  earningsRowLabel: {
+    color: '#7D8591',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  earningsRowValue: {
+    color: '#242B36',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
+  earningsValue: {
+    marginTop: 2,
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 20,
+  },
   section: {
     marginTop: 28,
     paddingHorizontal: 20,
@@ -394,6 +697,95 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 15,
+  },
+  statusBadge: {
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  statusBadgeIdle: {
+    backgroundColor: '#EEF1F4',
+  },
+  statusBadgeOnline: {
+    backgroundColor: '#E8F6EE',
+  },
+  statusBadgeText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  statusBadgeTextIdle: {
+    color: '#69717D',
+  },
+  statusBadgeTextOnline: {
+    color: '#168A52',
+  },
+  toolIcon: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFF0E7',
+  },
+  toolLabel: {
+    flex: 1,
+    marginLeft: 9,
+    color: '#242B36',
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+  },
+  toolPanel: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  toolRow: {
+    width: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 6,
+  },
+  workbenchGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  workbenchIcon: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFF0E7',
+  },
+  workbenchText: {
+    marginTop: 5,
+    color: '#7D8591',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
+    lineHeight: 13,
+  },
+  workbenchTile: {
+    width: '48.5%',
+    minHeight: 132,
+    marginTop: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  workbenchTitle: {
+    marginTop: 10,
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
   serviceList: {
     marginTop: 12,

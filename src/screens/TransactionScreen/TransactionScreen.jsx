@@ -69,8 +69,31 @@ export default function TransactionScreen({navigation}) {
     (sum, transaction) => sum + Number(transaction.amount || 0),
     0,
   );
+  const pendingPayoutAmount = transactions
+    .filter(transaction =>
+      ['processing', 'pending', 'requires_capture'].includes(
+        String(transaction.status || '').toLowerCase(),
+      ),
+    )
+    .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
+  const paidPayoutCount = transactions.filter(transaction =>
+    ['paid', 'succeeded', 'completed'].includes(
+      String(transaction.status || '').toLowerCase(),
+    ),
+  ).length;
+  const adjustmentCount = transactions.filter(transaction =>
+    ['refund', 'refunded', 'adjustment', 'partially_refunded'].some(status =>
+      String(transaction.status || '')
+        .toLowerCase()
+        .includes(status),
+    ),
+  ).length;
   const displayTotal = formatAmount(
     totalAmount,
+    transactions[0]?.currency || 'USD',
+  );
+  const displayPendingPayout = formatAmount(
+    pendingPayoutAmount,
     transactions[0]?.currency || 'USD',
   );
 
@@ -123,6 +146,46 @@ export default function TransactionScreen({navigation}) {
               </Text>
             </View>
             <PayoutSummary amount={displayTotal} count={transactions.length} />
+            {isAgent ? (
+              <View style={styles.agentEarningsPanel}>
+                <View style={styles.agentEarningsRow}>
+                  <View style={styles.agentEarningsTile}>
+                    <Feather name="file-text" size={16} color="#D65322" />
+                    <Text style={styles.agentEarningsLabel}>Invoices</Text>
+                    <Text style={styles.agentEarningsValue}>
+                      {transactions.length}
+                    </Text>
+                  </View>
+                  <View style={styles.agentEarningsTile}>
+                    <Feather name="clock" size={16} color="#D65322" />
+                    <Text style={styles.agentEarningsLabel}>
+                      Pending payout
+                    </Text>
+                    <Text style={styles.agentEarningsValue}>
+                      {displayPendingPayout}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.agentEarningsRow}>
+                  <View style={styles.agentEarningsTile}>
+                    <Feather name="arrow-up-right" size={16} color="#168A52" />
+                    <Text style={styles.agentEarningsLabel}>Payouts</Text>
+                    <Text style={styles.agentEarningsValue}>
+                      {paidPayoutCount}
+                    </Text>
+                  </View>
+                  <View style={styles.agentEarningsTile}>
+                    <Feather name="refresh-ccw" size={16} color="#7B8490" />
+                    <Text style={styles.agentEarningsLabel}>
+                      Refunds/adjustments
+                    </Text>
+                    <Text style={styles.agentEarningsValue}>
+                      {adjustmentCount}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
           </>
         }
         onRefresh={refetch}
@@ -144,6 +207,36 @@ const styles = StyleSheet.create({
   content: {paddingBottom: 28, backgroundColor: '#F7F8FA'},
   emptyContent: {flexGrow: 1},
   intro: {paddingHorizontal: 20, paddingTop: 20},
+  agentEarningsLabel: {
+    marginTop: 8,
+    color: '#7D8591',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  agentEarningsPanel: {
+    marginHorizontal: 20,
+    marginTop: 14,
+  },
+  agentEarningsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  agentEarningsTile: {
+    width: '48.5%',
+    minHeight: 94,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  agentEarningsValue: {
+    marginTop: 3,
+    color: '#171D29',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+  },
   title: {color: '#171D29', fontFamily: 'Manrope-Bold', fontSize: 20},
   subtitle: {
     marginTop: 4,
