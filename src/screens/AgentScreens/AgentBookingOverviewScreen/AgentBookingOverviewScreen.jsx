@@ -744,7 +744,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     ? booking.document_type
         .map(document => document.name)
         .filter(Boolean)
-        .join(', ')
+        .join(', ') || 'Session document'
     : booking?.document_type?.name || 'Notary documents';
   const clientName = [client?.first_name, client?.last_name]
     .filter(Boolean)
@@ -778,8 +778,14 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       ...normalizeDocuments(booking?.documents),
       ...normalizeDocuments(booking?.proof_documents),
       ...normalizeDocuments(booking?.client_documents),
+      ...normalizeDocuments(booking?.agent_document),
     ],
-    [booking?.client_documents, booking?.documents, booking?.proof_documents],
+    [
+      booking?.agent_document,
+      booking?.client_documents,
+      booking?.documents,
+      booking?.proof_documents,
+    ],
   );
 
   const notarizedDocuments = useMemo(() => {

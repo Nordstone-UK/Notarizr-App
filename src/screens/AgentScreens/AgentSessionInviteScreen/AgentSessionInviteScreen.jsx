@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   Linking,
+  Modal,
   Platform,
   SafeAreaView,
   StyleSheet,
@@ -267,6 +268,7 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [sessionType, setSessionType] = useState('general_notary');
   const [priceQuote, setPriceQuote] = useState(null);
   const [priceQuoteLoading, setPriceQuoteLoading] = useState(false);
+  const [successVisible, setSuccessVisible] = useState(false);
 
   const INVITE_MESSAGE =
     'You are invited to your next session. Download the Notarizer app to proceed.';
@@ -534,7 +536,7 @@ export default function AgentSessionInviteScreen({navigation}) {
       );
 
       if (response === '200') {
-        navigation.navigate('SessionCreation');
+        setSuccessVisible(true);
       } else {
         Toast.show({type: 'error', text1: 'Something went wrong'});
       }
@@ -942,6 +944,70 @@ export default function AgentSessionInviteScreen({navigation}) {
           viewStyle={styles.submitButton}
         />
       </KeyboardAwareScrollView>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setSuccessVisible(false)}
+        transparent
+        visible={successVisible}>
+        <View style={styles.successBackdrop}>
+          <View style={styles.successCard}>
+            <View style={styles.successIconWrap}>
+              <Feather name="check" size={30} color={AppColors.success} />
+            </View>
+            <Text style={styles.successTitle}>Session created</Text>
+            <Text style={styles.successText}>
+              The client invitation is ready and the booking is now in Pending.
+            </Text>
+
+            <View style={styles.successDetails}>
+              <View style={styles.successDetailRow}>
+                <Feather name="user" size={16} color={AppColors.primary} />
+                <Text numberOfLines={1} style={styles.successDetailText}>
+                  {selectedClientData ? getName(selectedClientData) : 'Client'}
+                </Text>
+              </View>
+              <View style={styles.successDetailRow}>
+                <Feather name="calendar" size={16} color={AppColors.primary} />
+                <Text numberOfLines={1} style={styles.successDetailText}>
+                  {moment(date).format('MMM D, YYYY [at] h:mm A')}
+                </Text>
+              </View>
+              <View style={styles.successDetailRow}>
+                <Feather name="file-text" size={16} color={AppColors.primary} />
+                <Text numberOfLines={1} style={styles.successDetailText}>
+                  {fileResponse.length} PDF{' '}
+                  {fileResponse.length === 1 ? 'attached' : 'files attached'}
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.78}
+              onPress={() => {
+                setSuccessVisible(false);
+                navigation.navigate('HomeScreen', {
+                  screen: 'AllBookingScreen',
+                  params: {initialStatus: 'pending'},
+                });
+              }}
+              style={styles.successPrimary}>
+              <Text style={styles.successPrimaryText}>View session</Text>
+              <Feather name="arrow-right" size={18} color={AppColors.white} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.78}
+              onPress={() => {
+                setSuccessVisible(false);
+                navigation.navigate('HomeScreen', {screen: 'Home'});
+              }}
+              style={styles.successSecondary}>
+              <Text style={styles.successSecondaryText}>Back to dashboard</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1454,6 +1520,94 @@ const styles = StyleSheet.create({
     marginVertical: 22,
   },
   submitButton: {marginHorizontal: 8, marginTop: 2},
+  successBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(18, 24, 38, 0.55)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  successCard: {
+    alignItems: 'center',
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 22,
+    width: '100%',
+  },
+  successDetailRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  successDetailText: {
+    color: AppColors.textPrimary,
+    flex: 1,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+  },
+  successDetails: {
+    alignSelf: 'stretch',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  successIconWrap: {
+    alignItems: 'center',
+    backgroundColor: AppColors.successSoft,
+    borderRadius: 42,
+    height: 84,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 84,
+  },
+  successPrimary: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: AppColors.primary,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    minHeight: 52,
+  },
+  successPrimaryText: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  successSecondary: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    marginTop: 8,
+    minHeight: 48,
+  },
+  successSecondaryText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  successText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  successTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 22,
+    marginBottom: 6,
+  },
   summaryHint: {
     color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',

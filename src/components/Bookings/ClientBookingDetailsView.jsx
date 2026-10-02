@@ -130,8 +130,11 @@ const getUploadedFiles = booking => {
     booking?.client_documents && typeof booking.client_documents === 'object'
       ? Object.values(booking.client_documents)
       : [];
+  const fromAgentDocuments = Array.isArray(booking?.agent_document)
+    ? booking.agent_document
+    : [];
 
-  return [...fromDocuments, ...fromClientDocuments]
+  return [...fromDocuments, ...fromClientDocuments, ...fromAgentDocuments]
     .map(item => (typeof item === 'string' ? {url: item} : item))
     .map(item => ({...item, url: item?.url || item?.uri}))
     .filter(item => item?.url);
@@ -589,10 +592,14 @@ export default function ClientBookingDetailsView({
   const sessionAvailability = useMemo(
     () =>
       getSessionAvailability({
-        date: booking?.date_of_booking,
-        time: booking?.time_of_booking,
+        date: booking?.date_of_booking || booking?.date_time_session,
+        time: booking?.time_of_booking || booking?.date_time_session,
       }),
-    [booking?.date_of_booking, booking?.time_of_booking],
+    [
+      booking?.date_of_booking,
+      booking?.date_time_session,
+      booking?.time_of_booking,
+    ],
   );
   const canJoinSession =
     sessionAvailability.canJoin ||
