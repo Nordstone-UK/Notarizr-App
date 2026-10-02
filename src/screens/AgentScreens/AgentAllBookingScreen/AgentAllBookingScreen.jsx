@@ -318,8 +318,16 @@ export default function AgentAllBookingScreen({navigation, route}) {
 
   useFocusEffect(
     useCallback(() => {
+      const nextStatus = getInitialStatus(route);
+      if (nextStatus !== activeStatusRef.current) {
+        activeStatusRef.current = nextStatus;
+        setActiveStatus(nextStatus);
+        setBookings([]);
+        loadBookings(nextStatus);
+        return;
+      }
       loadBookings(activeStatusRef.current);
-    }, [loadBookings]),
+    }, [loadBookings, route]),
   );
 
   const changeStatus = status => {
