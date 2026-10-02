@@ -91,6 +91,65 @@ const uploadToSpaces = async ({body, fileName, contentType, purpose}) => {
   return upload.publicUrl;
 };
 
+const getUriFromFile = file => {
+  if (typeof file === 'string') {
+    return file;
+  }
+  return file?.url || file?.uri || file?.fileCopyUri;
+};
+
+const getNameFromFile = (file, fallbackName) => {
+  if (typeof file === 'string') {
+    try {
+      return decodeURIComponent(file.split('/').pop() || fallbackName);
+    } catch {
+      return fallbackName;
+    }
+  }
+  return file?.name || file?.fileName || fallbackName;
+};
+
+const getContentTypeFromFile = (file, fileName, selectedContentType) => {
+  if (selectedContentType) {
+    return selectedContentType;
+  }
+  if (typeof file !== 'string' && (file?.type || file?.mimeType)) {
+    return file.type || file.mimeType;
+  }
+  return inferContentType(fileName);
+};
+
+const normalizeFilePath = uri => {
+  const value = String(uri || '');
+  if (value.startsWith('file://')) {
+    return decodeURIComponent(value.replace('file://', ''));
+  }
+  return decodeURIComponent(value);
+};
+
+const uploadLocalUriToSpaces = async ({
+  uri,
+  fileName,
+  contentType,
+  purpose,
+}) => {
+  const upload = await requestUpload(fileName, contentType, purpose);
+  const response = await ReactNativeBlobUtil.fetch(
+    'PUT',
+    upload.uploadUrl,
+    {
+      'Content-Type': contentType,
+      'x-amz-acl': 'public-read',
+    },
+    ReactNativeBlobUtil.wrap(normalizeFilePath(uri)),
+  );
+  const status = response.info().status;
+  if (status < 200 || status >= 300) {
+    throw new Error(`DigitalOcean upload failed (${status}).`);
+  }
+  return upload.publicUrl;
+};
+
 const uploadBase64ToSpaces = async ({
   base64Data,
   fileName,
@@ -146,15 +205,26 @@ export const uploadDocumentToSpaces = async ({
   fileName,
   contentType: selectedContentType,
 }) => {
-  const blob = await uriToBlob(file);
-  const {name, contentType} = blobDetails(
-    blob,
-    fileName || `document-${Date.now()}.pdf`,
-  );
+  const fallbackName = `document-${Date.now()}.pdf`;
+  const name = fileName || getNameFromFile(file, fallbackName);
+  const contentType = getContentTypeFromFile(file, name, selectedContentType);
+  const uri = getUriFromFile(file);
+
+  if (uri && !uri.startsWith('http')) {
+    return uploadLocalUriToSpaces({
+      uri,
+      fileName: name,
+      contentType,
+      purpose: 'document',
+    });
+  }
+
+  const blob = await uriToBlob(uri || file);
+  const details = blobDetails(blob, name);
   return uploadToSpaces({
     body: blob,
-    fileName: fileName || name,
-    contentType: selectedContentType || contentType,
+    fileName: name || details.name,
+    contentType: contentType || details.contentType,
     purpose: 'document',
   });
 };

@@ -75,8 +75,8 @@ const useRegister = () => {
   const uploadDocumentToStorage = async (fileUri, fileName, contentType) => {
     const url = await uploadDocumentToSpaces({
       file: fileUri,
-      fileName,
-      contentType,
+      fileName: fileName || fileUri?.name || fileUri?.fileName,
+      contentType: contentType || fileUri?.type || fileUri?.mimeType,
     });
     return url;
   };
@@ -158,11 +158,16 @@ const useRegister = () => {
     try {
       const results = await DocumentPicker.pick({
         allowMultiSelection: true,
+        copyTo: 'cachesDirectory',
+        type: [DocumentPicker.types.allFiles],
       });
-      const documentUris = results.map(result => {
-        return result.uri;
-      });
-      return documentUris;
+      return results.map(result => ({
+        name: result.name || 'Untitled document',
+        size: result.size || 0,
+        type: result.type || '',
+        uri: result.fileCopyUri || result.uri,
+        url: result.fileCopyUri || result.uri,
+      }));
     } catch (err) {
       console.warn(err);
     }
@@ -197,7 +202,11 @@ const useRegister = () => {
     try {
       const uploadedFiles = await Promise.all(
         documentURIs.map(async (fileUri, index) => {
-          const uploadedLink = await uploadDocumentToStorage(fileUri);
+          const uploadedLink = await uploadDocumentToStorage(
+            fileUri,
+            fileUri?.name,
+            fileUri?.type,
+          );
           return {
             id: index + 1,
             name: `Document ${index + 1}`,
@@ -244,7 +253,11 @@ const useRegister = () => {
     try {
       const uploadedFiles = await Promise.all(
         documentURIs.map(async fileUri => {
-          const uploadedLink = await uploadDocumentToStorage(fileUri);
+          const uploadedLink = await uploadDocumentToStorage(
+            fileUri,
+            fileUri?.name,
+            fileUri?.type,
+          );
           return uploadedLink;
         }),
       );
