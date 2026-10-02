@@ -431,12 +431,28 @@ export default function AgentSessionInviteScreen({navigation}) {
       ? [response]
       : [];
     const pdfFiles = selectedFiles.filter(file => {
+      const isUriString = typeof file === 'string';
       const name = String(
-        file?.name || file?.fileName || file?.uri || '',
+        isUriString
+          ? file
+          : file?.name ||
+              file?.fileName ||
+              file?.uri ||
+              file?.url ||
+              file?.fileCopyUri ||
+              '',
       ).toLowerCase();
-      const type = String(file?.type || file?.mimeType || '').toLowerCase();
+      const type = String(
+        isUriString ? '' : file?.type || file?.mimeType || '',
+      ).toLowerCase();
 
-      return type === 'application/pdf' || name.endsWith('.pdf');
+      return (
+        type === 'application/pdf' ||
+        type === 'com.adobe.pdf' ||
+        type === 'com.apple.pdf' ||
+        name.endsWith('.pdf') ||
+        decodeURIComponent(name).endsWith('.pdf')
+      );
     });
 
     if (selectedFiles.length !== pdfFiles.length) {
@@ -510,7 +526,7 @@ export default function AgentSessionInviteScreen({navigation}) {
         paymentType,
         {
           useStandardPricing: true,
-      agentTier: currentAgentTier,
+          agentTier: currentAgentTier,
           billingMode,
           isClosing,
           closingRoute: isClosing ? 'notary_invited' : 'on_demand',
