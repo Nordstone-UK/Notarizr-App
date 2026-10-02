@@ -262,15 +262,23 @@ function AgentBookingCard({booking, onPress}) {
   );
 }
 
-export default function AgentAllBookingScreen({navigation}) {
+const getInitialStatus = route => {
+  const initialStatus = route?.params?.initialStatus;
+  return AGENT_TABS.some(tab => tab.value === initialStatus)
+    ? initialStatus
+    : 'accepted';
+};
+
+export default function AgentAllBookingScreen({navigation, route}) {
   const {fetchAdminAllocations, fetchAgentBookingInfo, handleAgentSessions} =
     useFetchBooking();
+  const initialStatus = getInitialStatus(route);
   const fetchAllocationsRef = useRef(fetchAdminAllocations);
   const fetchBookingsRef = useRef(fetchAgentBookingInfo);
   const fetchSessionsRef = useRef(handleAgentSessions);
-  const activeStatusRef = useRef('accepted');
+  const activeStatusRef = useRef(initialStatus);
   const dispatch = useDispatch();
-  const [activeStatus, setActiveStatus] = useState('accepted');
+  const [activeStatus, setActiveStatus] = useState(initialStatus);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

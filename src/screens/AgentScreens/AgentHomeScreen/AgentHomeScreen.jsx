@@ -29,10 +29,7 @@ import useAgentService from '../../../hooks/useAgentService';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import useStripeApi from '../../../hooks/useStripeApi';
 import {PREVIEW_AGENT_BOOKINGS} from '../../../data/previewBookings';
-import {
-  agentPlanFeatures,
-  agentPlanLabel,
-} from '../../../utils/agentPlan';
+import {agentPlanFeatures, agentPlanLabel} from '../../../utils/agentPlan';
 
 const renderAccountBackdrop = props => (
   <BottomSheetBackdrop
@@ -57,7 +54,8 @@ const WORKBENCH_ACTIONS = [
     title: 'Scheduled sessions',
     description: 'See accepted sessions, upcoming calls and client details.',
     icon: 'calendar',
-    route: 'BookScreen',
+    params: {initialStatus: 'pending'},
+    route: 'AllBookingScreen',
   },
   {
     title: 'Private sessions',
@@ -234,7 +232,7 @@ export default function AgentHomeScreen({navigation}) {
       navigation.navigate('SubscriptionScreen');
       return;
     }
-    navigation.navigate(item.route);
+    navigation.navigate(item.route, item.params);
   };
 
   const accountMessage = useMemo(() => {
