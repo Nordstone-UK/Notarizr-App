@@ -102,6 +102,72 @@ const formatStatus = value =>
     .replaceAll('_', ' ')
     .replace(/\b\w/g, character => character.toUpperCase());
 
+const titleize = value =>
+  String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, letter => letter.toUpperCase());
+
+const valueOrFallback = (value, fallback = 'Not provided') => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  const normalized = String(value).trim();
+  return normalized || fallback;
+};
+
+const getCleanInstructions = booking => {
+  const generatedNotes = String(booking?.notes || '');
+  const notesLookGenerated =
+    generatedNotes.includes('ATLAS_REAL_BOOKING') ||
+    generatedNotes.includes('Document preparation:') ||
+    generatedNotes.includes('Participants:') ||
+    generatedNotes.includes('RON eligibility:') ||
+    generatedNotes.includes('Identity verification:');
+
+  return (
+    booking?.document_preparation?.specialInstructions ||
+    booking?.instructions ||
+    booking?.special_instructions ||
+    booking?.booking_notes ||
+    booking?.booked_for?.notes ||
+    booking?.booked_for?.instructions ||
+    (!notesLookGenerated ? booking?.notes : null) ||
+    'No additional instructions provided.'
+  );
+};
+
+const getPreparationConfirmations = documentPreparation => {
+  if (Array.isArray(documentPreparation?.confirmations)) {
+    return documentPreparation.confirmations.filter(Boolean);
+  }
+
+  const checks = documentPreparation?.completionChecks || {};
+  return [
+    checks.readable ? 'Document is readable' : null,
+    checks.complete ? 'All pages are included' : null,
+    checks.unsigned ? 'Signature areas are unsigned' : null,
+  ].filter(Boolean);
+};
+
+const getParticipantName = participant =>
+  [participant?.firstName, participant?.lastName].filter(Boolean).join(' ') ||
+  participant?.fullName ||
+  participant?.name ||
+  participant?.email ||
+  'Participant';
+
+const getParticipantMeta = participant =>
+  [
+    participant?.email,
+    participant?.phone,
+    participant?.phoneNumber,
+    titleize(participant?.preparationStatus || participant?.inviteStatus),
+  ]
+    .filter(Boolean)
+    .join(' • ') || 'Preparation status not available';
+
 function DetailRow({
   icon,
   label,
@@ -160,24 +226,6 @@ function Section({children, title}) {
     </View>
   );
 }
-
-const LIVE_SESSION_TOOLKIT = [
-  {label: 'Video', icon: 'video'},
-  {label: 'Recording consent', icon: 'shield'},
-  {label: 'Participants', icon: 'users'},
-  {label: 'Document viewer', icon: 'file-text'},
-  {label: 'Chat', icon: 'message-circle'},
-  {label: 'Signing fields', icon: 'edit-3'},
-];
-
-const COMPLETION_TOOLKIT = [
-  'Certificate wording',
-  'Signature',
-  'eSeal',
-  'Digital cert',
-  'Journal',
-  'Final PDF seal',
-];
 
 const DOCUMENT_RATE = 25;
 const SIGNATURE_RATE = 5;
@@ -559,14 +607,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
 
   const normalized = useMemo(() => normalizeAgentBooking(booking), [booking]);
   const client = getBookingClient(booking);
-  const bookingInstructions =
-    booking?.notes ||
-    booking?.instructions ||
-    booking?.special_instructions ||
-    booking?.booking_notes ||
-    booking?.booked_for?.notes ||
-    booking?.booked_for?.instructions ||
-    'No additional instructions provided.';
+  const bookingInstructions = getCleanInstructions(booking);
   const initialStatus = resolveBookingStatus(booking);
   const [status, setStatus] = useState(initialStatus);
   const [activeAction, setActiveAction] = useState(null);
@@ -717,22 +758,20 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         (Array.isArray(booking?.signatures) ? booking.signatures.length : 0),
     ) || 0,
   );
-
-  const hasPrintFee = useMemo(() => {
-    const docTypes = Array.isArray(booking?.document_type)
-      ? booking.document_type
-      : booking?.document_type
-      ? [booking.document_type]
-      : [];
-    const isMobile =
-      (booking?.service_type || booking?.service?.service_type) ===
-      'mobile_notary';
-    return isMobile && docTypes.length > 0;
-  }, [
-    booking?.document_type,
-    booking?.service_type,
-    booking?.service?.service_type,
-  ]);
+  const documentPreparation = booking?.document_preparation || {};
+  const preparationConfirmations =
+    getPreparationConfirmations(documentPreparation);
+  const participants = Array.isArray(booking?.participants)
+    ? booking.participants
+    : [];
+  const signerVerifications = Array.isArray(
+    booking?.identity_verification?.signers,
+  )
+    ? booking.identity_verification.signers
+    : [];
+  const ronEligibility = booking?.ron_eligibility || null;
+  const hasRonEligibility =
+    ronEligibility && Object.keys(ronEligibility).length > 0;
 
   const allDocuments = useMemo(
     () => [
@@ -757,13 +796,6 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const displayedDocuments =
     notarizedDocuments.length > 0 ? notarizedDocuments : allDocuments;
   const showingNotarizedDocuments = notarizedDocuments.length > 0;
-
-  const allDocumentUrls = useMemo(
-    () => displayedDocuments.map(document => document.url),
-    [displayedDocuments],
-  );
-
-  const isDownloadingDocs = allDocumentUrls.some(u => downloadingDocs[u]);
 
   const downloadDocument = async (url, fileName) => {
     setDownloadingDocs(prev => ({...prev, [url]: true}));
@@ -815,30 +847,6 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       });
     } finally {
       setDownloadingDocs(prev => ({...prev, [url]: false}));
-    }
-  };
-
-  const downloadAllDocuments = async () => {
-    if (allDocumentUrls.length === 0) {
-      Toast.show({
-        type: 'info',
-        text1: 'No files attached',
-        text2: 'No downloadable documents are attached to this booking yet.',
-      });
-      return;
-    }
-    for (const document of displayedDocuments) {
-      const rawName = String(document.url).split('/').pop().split('?')[0];
-      let urlFileName = rawName;
-      try {
-        urlFileName = decodeURIComponent(rawName);
-      } catch {
-        // Keep the original path segment for malformed legacy URLs.
-      }
-      await downloadDocument(
-        document.url,
-        document.name || urlFileName || 'document.pdf',
-      );
     }
   };
 
@@ -1182,45 +1190,6 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           schedule={booking?.service?.availability?.schedule}
         /> */}
 
-        <Section title="Notary toolkit">
-          <View style={styles.toolkitIntro}>
-            <Text style={styles.toolkitTitle}>Live session tools</Text>
-            <Text style={styles.toolkitText}>
-              Use these during the call to manage participants, documents, chat
-              and signer fields.
-            </Text>
-          </View>
-          <View style={styles.toolkitGrid}>
-            {LIVE_SESSION_TOOLKIT.map(item => (
-              <View key={item.label} style={styles.toolkitItem}>
-                <View style={styles.toolkitIcon}>
-                  <Feather
-                    name={item.icon}
-                    size={14}
-                    color={BookingColors.primary}
-                  />
-                </View>
-                <Text style={styles.toolkitItemText}>{item.label}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.completionToolkit}>
-            <Text style={styles.toolkitTitle}>Completion package</Text>
-            <View style={styles.completionChips}>
-              {COMPLETION_TOOLKIT.map(label => (
-                <View key={label} style={styles.completionChip}>
-                  <Feather
-                    name="check-circle"
-                    size={12}
-                    color={BookingColors.success}
-                  />
-                  <Text style={styles.completionChipText}>{label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </Section>
-
         <Section title="Notary Request">
           {displayedDocuments.length > 0 ? (
             displayedDocuments.map((document, index) => (
@@ -1258,11 +1227,6 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
               requiredSignatureCount === 1 ? 'signature' : 'signatures'
             }`}
           />
-          <DetailRow
-            icon="align-left"
-            label="Instructions"
-            value={bookingInstructions}
-          />
           <PricingBreakdown
             booking={booking}
             paid={
@@ -1277,6 +1241,126 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             price={price}
           />
         </Section>
+
+        <Section title="Document preparation">
+          <DetailRow
+            icon="edit-3"
+            label="Requested notarial act"
+            value={valueOrFallback(
+              documentPreparation?.requestedNotarialActLabel ||
+                titleize(documentPreparation?.requestedNotarialAct),
+              'Not selected',
+            )}
+          />
+          <DetailRow
+            icon="calendar"
+            label="Deadline"
+            value={valueOrFallback(
+              documentPreparation?.deadlineLabel ||
+                documentPreparation?.deadlineDate,
+              'No deadline set',
+            )}
+          />
+          <DetailRow
+            icon="check-circle"
+            label="Completeness"
+            value={
+              preparationConfirmations.length
+                ? preparationConfirmations.join(', ')
+                : 'Not confirmed'
+            }
+          />
+          <DetailRow
+            icon="align-left"
+            label="Special instructions"
+            last
+            value={bookingInstructions}
+          />
+        </Section>
+
+        {participants.length > 0 ? (
+          <Section title="Participants">
+            {participants.map((participant, index) => (
+              <DetailRow
+                icon={
+                  String(participant?.role || '').toLowerCase() === 'witness'
+                    ? 'user-check'
+                    : String(participant?.role || '').toLowerCase() ===
+                      'observer'
+                    ? 'eye'
+                    : String(participant?.role || '').toLowerCase() ===
+                      'recipient'
+                    ? 'send'
+                    : 'user'
+                }
+                key={participant?.id || participant?.email || index}
+                label={titleize(participant?.role || 'Signer')}
+                last={index === participants.length - 1}
+                value={`${getParticipantName(
+                  participant,
+                )}\n${getParticipantMeta(participant)}`}
+              />
+            ))}
+          </Section>
+        ) : null}
+
+        {hasRonEligibility ? (
+          <Section title="RON eligibility">
+            <DetailRow
+              icon="map-pin"
+              label="Signer location"
+              value={valueOrFallback(ronEligibility?.signerLocation)}
+            />
+            <DetailRow
+              icon="map"
+              label="Document jurisdiction"
+              value={valueOrFallback(
+                ronEligibility?.documentJurisdictionLabel ||
+                  ronEligibility?.documentJurisdiction,
+              )}
+            />
+            <DetailRow
+              icon="file-text"
+              label="Document category"
+              value={valueOrFallback(
+                ronEligibility?.documentCategoryLabel ||
+                  titleize(ronEligibility?.documentCategory),
+              )}
+            />
+            <DetailRow
+              icon="globe"
+              label="Language"
+              value={valueOrFallback(ronEligibility?.languagePreference)}
+            />
+            <DetailRow
+              icon="video"
+              label="Service type"
+              last
+              value={valueOrFallback(ronEligibility?.serviceType)}
+            />
+          </Section>
+        ) : null}
+
+        {signerVerifications.length > 0 ? (
+          <Section title="Verification">
+            {signerVerifications.map((signer, index) => (
+              <DetailRow
+                icon="shield"
+                key={signer?.id || signer?.fullName || index}
+                label={
+                  signer?.fullName || signer?.name || `Signer ${index + 1}`
+                }
+                last={index === signerVerifications.length - 1}
+                value={`${valueOrFallback(
+                  signer?.methodLabel || signer?.method,
+                  'Identity method not set',
+                )} • ${titleize(signer?.status || 'pending')} • ${
+                  signer?.retriesRemaining ?? 0
+                } retries remaining`}
+              />
+            ))}
+          </Section>
+        ) : null}
       </ScrollView>
 
       <View
@@ -1480,31 +1564,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: BookingColors.successSoft,
   },
-  completionChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 8,
-    marginTop: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: BookingColors.successSoft,
-  },
-  completionChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  completionChipText: {
-    marginLeft: 5,
-    color: BookingColors.textPrimary,
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 9,
-  },
-  completionToolkit: {
-    padding: 14,
-    borderTopWidth: 1,
-    borderTopColor: BookingColors.border,
-  },
   detailRow: {
     minHeight: 66,
     flexDirection: 'row',
@@ -1569,48 +1628,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     fontSize: 11,
     lineHeight: 16,
-  },
-  toolkitGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 8,
-    paddingBottom: 8,
-  },
-  toolkitIcon: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: BookingColors.primarySoft,
-  },
-  toolkitIntro: {
-    padding: 14,
-  },
-  toolkitItem: {
-    width: '50%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 6,
-  },
-  toolkitItemText: {
-    flex: 1,
-    marginLeft: 8,
-    color: BookingColors.textPrimary,
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 10,
-  },
-  toolkitText: {
-    marginTop: 4,
-    color: BookingColors.textSecondary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 10,
-    lineHeight: 15,
-  },
-  toolkitTitle: {
-    color: BookingColors.textPrimary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
   },
   actionBar: {
     minHeight: 76,

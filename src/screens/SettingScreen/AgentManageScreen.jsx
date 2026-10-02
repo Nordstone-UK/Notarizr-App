@@ -44,16 +44,30 @@ const PRO_FEATURES = [
   },
 ];
 
-const CLIENT_JOIN_CHECKLIST = [
-  'Accept the secure invitation and sign in or create an account.',
-  'Confirm name, email and phone so invites and receipts are tied to the signer.',
-  'Confirm physical location, document jurisdiction, language and service type.',
-  'Review documents, participants, appointment time and price before payment.',
-  'Complete identity verification, device check and recording consent before the call.',
-];
-
 const statusCopy = (ready, loading) =>
   loading ? 'Uploading' : ready ? 'Ready' : 'Needs setup';
+
+const titleize = value =>
+  String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, letter => letter.toUpperCase());
+
+const formatDate = value => {
+  if (!value) {
+    return 'Not provided';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
 
 function Section({children, subtitle, title}) {
   return (
@@ -110,14 +124,103 @@ function ProFeature({description, icon, title}) {
   );
 }
 
-function ChecklistItem({children, index}) {
+function DetailRow({label, value, last}) {
   return (
-    <View style={styles.checklistItem}>
-      <View style={styles.checklistIndex}>
-        <Text style={styles.checklistIndexText}>{index + 1}</Text>
-      </View>
-      <Text style={styles.checklistText}>{children}</Text>
+    <View style={[styles.detailRow, last && styles.lastDetailRow]}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value || 'Not provided'}</Text>
     </View>
+  );
+}
+
+function VerificationSummary({onboarding, user}) {
+  const commission = onboarding?.commission || {};
+  const credentials = onboarding?.credentials || {};
+  const agentName =
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+    user?.full_name ||
+    'This notary';
+  const credentialCount = [
+    credentials.photoId,
+    credentials.commissionCertificate,
+    credentials.ronApproval,
+    credentials.bond,
+    credentials.insurance,
+    credentials.training,
+  ].filter(Boolean).length;
+  const approved =
+    onboarding?.approvalStatus === 'approved' || user?.isVerified;
+  const status = approved
+    ? 'Approved'
+    : titleize(onboarding?.approvalStatus || 'Under review');
+
+  return (
+    <Section
+      subtitle="Your commission, RON approval and credential status used by admin review."
+      title="Verification">
+      <View style={styles.verificationBanner}>
+        <View style={styles.verificationIcon}>
+          <Feather
+            name={approved ? 'check-circle' : 'clock'}
+            size={19}
+            color={approved ? AppColors.success : AppColors.warning}
+          />
+        </View>
+        <View style={styles.verificationCopy}>
+          <Text style={styles.verificationTitle}>
+            {approved ? 'Verified notary' : 'Verification in review'}
+          </Text>
+          <Text style={styles.verificationText}>
+            {approved
+              ? `${agentName} is approved to receive eligible online sessions.`
+              : 'Admin review is required before all agent tools are unlocked.'}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.verificationPill,
+            approved && styles.verificationPillReady,
+          ]}>
+          <Text
+            style={[
+              styles.verificationPillText,
+              approved && styles.verificationPillTextReady,
+            ]}>
+            {status}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.detailGrid}>
+        <DetailRow
+          label="Commission state"
+          value={commission.state || user?.state}
+        />
+        <DetailRow
+          label="RON approval"
+          value={titleize(commission.ronStatus || (approved ? 'approved' : ''))}
+        />
+        <DetailRow label="Commission no." value={commission.number} />
+        <DetailRow
+          label="Expires"
+          value={formatDate(commission.expirationDate)}
+        />
+        <DetailRow
+          label="Credentials"
+          value={`${credentialCount}/6 uploaded`}
+        />
+        <DetailRow
+          label="Reviewed"
+          last
+          value={formatDate(onboarding?.reviewedAt)}
+        />
+      </View>
+      {onboarding?.reviewNotes ? (
+        <View style={styles.reviewNote}>
+          <Text style={styles.reviewNoteLabel}>Admin note</Text>
+          <Text style={styles.reviewNoteText}>{onboarding.reviewNotes}</Text>
+        </View>
+      ) : null}
+    </Section>
   );
 }
 
@@ -186,8 +289,8 @@ export default function AgentManageScreen({navigation}) {
   const showComingSoon = title =>
     Toast.show({
       type: 'info',
-      text1: `${title} is coming soon`,
-      text2: 'This belongs in the agent manage hub, not booking details.',
+      text1: `${title} is a Pro tool`,
+      text2: 'Available for agents with Pro access.',
     });
 
   return (
@@ -220,6 +323,8 @@ export default function AgentManageScreen({navigation}) {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
+        <VerificationSummary onboarding={onboarding} user={user} />
+
         <Section
           subtitle="These apply across sessions and should not be collected during signup."
           title="Notary assets">
@@ -270,16 +375,6 @@ export default function AgentManageScreen({navigation}) {
             </TouchableOpacity>
           ))}
         </Section>
-
-        <Section
-          subtitle="When an invited signer opens Notarizr for the first time, ask only for what is needed to prepare the session."
-          title="Client first-join checklist">
-          {CLIENT_JOIN_CHECKLIST.map((item, index) => (
-            <ChecklistItem index={index} key={item}>
-              {item}
-            </ChecklistItem>
-          ))}
-        </Section>
       </ScrollView>
     </SafeAreaView>
   );
@@ -325,32 +420,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 40,
   },
-  checklistIndex: {
-    alignItems: 'center',
-    backgroundColor: AppColors.successSoft,
-    borderRadius: 8,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  checklistIndexText: {
-    color: AppColors.success,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-  },
-  checklistItem: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    paddingVertical: 10,
-  },
-  checklistText: {
-    color: AppColors.textPrimary,
-    flex: 1,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 12,
-    lineHeight: 18,
-    marginLeft: 10,
-  },
   content: {
     backgroundColor: AppColors.background,
     flexGrow: 1,
@@ -394,6 +463,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  detailGrid: {
+    borderTopColor: AppColors.border,
+    borderTopWidth: 1,
+  },
+  detailLabel: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
+  detailRow: {
+    borderBottomColor: AppColors.border,
+    borderBottomWidth: 1,
+    paddingVertical: 11,
+  },
+  detailValue: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 3,
+  },
+  lastDetailRow: {borderBottomWidth: 0},
   proBadge: {
     backgroundColor: AppColors.infoSoft,
     borderRadius: 8,
@@ -457,6 +548,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
   },
+  reviewNote: {
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 8,
+    marginBottom: 14,
+    padding: 12,
+  },
+  reviewNoteLabel: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    textTransform: 'uppercase',
+  },
+  reviewNoteText: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  },
   statusPill: {
     backgroundColor: AppColors.backgroundSubtle,
     borderRadius: 8,
@@ -475,5 +585,48 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 24,
     letterSpacing: 0,
+  },
+  verificationBanner: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingBottom: 14,
+    paddingTop: 8,
+  },
+  verificationCopy: {
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  verificationIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.successSoft,
+    borderRadius: 8,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  verificationPill: {
+    backgroundColor: AppColors.warningSoft,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  verificationPillReady: {backgroundColor: AppColors.successSoft},
+  verificationPillText: {
+    color: AppColors.warning,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  verificationPillTextReady: {color: AppColors.success},
+  verificationText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 3,
+  },
+  verificationTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
   },
 });

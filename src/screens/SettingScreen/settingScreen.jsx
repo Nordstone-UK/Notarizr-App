@@ -422,13 +422,6 @@ export default function SettingScreen({navigation}) {
 
             <ProfileSection title="Pricing and plan">
               <ProfileMenuItem
-                icon="dollar-sign"
-                title="Payouts"
-                description="See what you earn across every session and payment type"
-                tone="green"
-                onPress={() => navigation.navigate('AgentPricingScreen')}
-              />
-              <ProfileMenuItem
                 icon="star"
                 title="Subscription"
                 description={`${currentAgentPlan} · Manage agent plan access`}
