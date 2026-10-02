@@ -12,11 +12,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import {useSelector} from 'react-redux';
 import AppColors from '../../themes/AppColors';
-import {
-  agentPlanFeatures,
-  agentPlanId,
-  agentPlanLabel,
-} from '../../utils/agentPlan';
+import {agentPlanId, agentPlanLabel} from '../../utils/agentPlan';
 
 const PLANS = [
   {
@@ -152,7 +148,6 @@ function PlanCard({onSelect, plan}) {
 export default function SubscriptionScreen({navigation}) {
   const user = useSelector(state => state.user.user);
   const currentPlanId = agentPlanId(user);
-  const features = agentPlanFeatures(user);
 
   const selectPlan = plan => {
     Toast.show({
@@ -203,40 +198,6 @@ export default function SubscriptionScreen({navigation}) {
             }}
           />
         ))}
-
-        <View style={styles.featureGateCard}>
-          <Text style={styles.sectionEyebrow}>CURRENT ACCESS</Text>
-          <View style={styles.gateRow}>
-            <Text style={styles.gateLabel}>Open Calls</Text>
-            <Text
-              style={[
-                styles.gateValue,
-                features.openCalls && styles.gateValueEnabled,
-              ]}>
-              {features.openCalls ? 'Enabled' : 'Pro only'}
-            </Text>
-          </View>
-          <View style={styles.gateRow}>
-            <Text style={styles.gateLabel}>Custom/private billing</Text>
-            <Text
-              style={[
-                styles.gateValue,
-                features.customPricing && styles.gateValueEnabled,
-              ]}>
-              {features.customPricing ? 'Enabled' : 'Pro only'}
-            </Text>
-          </View>
-          <View style={[styles.gateRow, styles.lastGateRow]}>
-            <Text style={styles.gateLabel}>Templates and branded invites</Text>
-            <Text
-              style={[
-                styles.gateValue,
-                features.sessionTemplates && styles.gateValueEnabled,
-              ]}>
-              {features.sessionTemplates ? 'Enabled' : 'Pro only'}
-            </Text>
-          </View>
-        </View>
 
         <View style={styles.disclaimer}>
           <Feather name="info" size={14} color={AppColors.textMuted} />
@@ -337,14 +298,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 9,
   },
-  featureGateCard: {
-    backgroundColor: AppColors.white,
-    borderColor: AppColors.border,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 16,
-    padding: 16,
-  },
   featureText: {
     color: AppColors.textPrimary,
     flex: 1,
@@ -383,26 +336,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  gateLabel: {
-    color: AppColors.textPrimary,
-    flex: 1,
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 12,
-  },
-  gateRow: {
-    alignItems: 'center',
-    borderBottomColor: AppColors.border,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    paddingVertical: 11,
-  },
-  gateValue: {
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-  },
-  gateValueEnabled: {color: AppColors.success},
-  lastGateRow: {borderBottomWidth: 0},
   lastFeatureRow: {marginBottom: 0},
   planButton: {
     alignItems: 'center',
