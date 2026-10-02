@@ -10,8 +10,8 @@ export const UPDATE_NOTARY_SIGN = gql`
 `;
 export const UPDATE_AGENT_PHOTO_AND_CERTIFICATE = gql`
   mutation UpdateAgentPhotoAndCertificate(
-    $photoId: String!
-    $certificate_url: String!
+    $photoId: String
+    $certificate_url: String
     $notaryOnboarding: AgentOnboardingInput
   ) {
     updateAgentPhotoAndCertificate(

@@ -63,26 +63,6 @@ const DOCUMENTS = {
     description: 'Upload required RON or notary training proof.',
     icon: 'book-open',
   },
-  signature: {
-    title: 'Notary signature',
-    description: 'Upload or scan the signature used for notarizations.',
-    icon: 'edit-3',
-  },
-  seal: {
-    title: 'eSeal',
-    description: 'Upload a clear sample of your official electronic seal.',
-    icon: 'hexagon',
-  },
-  digitalCertificate: {
-    title: 'Digital certificate',
-    description: 'Upload your digital signing certificate details.',
-    icon: 'key',
-  },
-  certificateForms: {
-    title: 'Certificate forms',
-    description: 'Upload reusable acknowledgment or jurat forms.',
-    icon: 'file-text',
-  },
 };
 
 const DOCUMENT_ORDER = [
@@ -92,10 +72,6 @@ const DOCUMENT_ORDER = [
   'bond',
   'insurance',
   'training',
-  'signature',
-  'seal',
-  'digitalCertificate',
-  'certificateForms',
 ];
 
 const RON_STATUS_OPTIONS = [
@@ -116,6 +92,9 @@ const APPROVAL_STATES = [
 const getApprovalState = user => {
   if (user?.isBlocked) {
     return 'suspended';
+  }
+  if (user?.notaryOnboarding?.approvalStatus) {
+    return user.notaryOnboarding.approvalStatus;
   }
   if (user?.isVerified) {
     return 'approved';
@@ -211,30 +190,60 @@ function RonStatusSegment({value, onChange}) {
 
 export default function AgentVerificationScreen({navigation, route}) {
   const {user, onComplete} = route.params || {};
-  const [photoID, setPhotoID] = useState(user?.photoId || null);
-  const [certificate, setCertificate] = useState(user?.certificate_url || null);
-  const [ronApproval, setRonApproval] = useState(null);
-  const [bond, setBond] = useState(null);
-  const [insurance, setInsurance] = useState(null);
-  const [training, setTraining] = useState(null);
-  const [signature, setSignature] = useState(null);
-  const [seal, setSeal] = useState(user?.notarySeal || null);
-  const [digitalCertificate, setDigitalCertificate] = useState(null);
-  const [certificateForms, setCertificateForms] = useState(null);
-  const [commissionState, setCommissionState] = useState(user?.state || '');
-  const [commissionCounty, setCommissionCounty] = useState('');
-  const [commissionCity, setCommissionCity] = useState(user?.location || '');
-  const [commissionNumber, setCommissionNumber] = useState('');
-  const [commissionIssueDate, setCommissionIssueDate] = useState('');
-  const [commissionExpirationDate, setCommissionExpirationDate] = useState('');
-  const [ronStatus, setRonStatus] = useState('approved');
+  const onboarding = user?.notaryOnboarding || {};
+  const onboardingCommission = onboarding?.commission || {};
+  const onboardingCredentials = onboarding?.credentials || {};
+  const [photoID, setPhotoID] = useState(
+    onboardingCredentials?.photoId || user?.photoId || null,
+  );
+  const [certificate, setCertificate] = useState(
+    onboardingCredentials?.commissionCertificate ||
+      user?.certificate_url ||
+      null,
+  );
+  const [ronApproval, setRonApproval] = useState(
+    onboardingCredentials?.ronApproval || null,
+  );
+  const [bond, setBond] = useState(onboardingCredentials?.bond || null);
+  const [insurance, setInsurance] = useState(
+    onboardingCredentials?.insurance || null,
+  );
+  const [training, setTraining] = useState(
+    onboardingCredentials?.training || null,
+  );
+  const [commissionState, setCommissionState] = useState(
+    onboardingCommission?.state || user?.state || '',
+  );
+  const [commissionCounty, setCommissionCounty] = useState(
+    onboardingCommission?.county || '',
+  );
+  const [commissionCity, setCommissionCity] = useState(
+    onboardingCommission?.city || user?.location || '',
+  );
+  const [commissionNumber, setCommissionNumber] = useState(
+    onboardingCommission?.number || '',
+  );
+  const [commissionIssueDate, setCommissionIssueDate] = useState(
+    onboardingCommission?.issueDate || '',
+  );
+  const [commissionExpirationDate, setCommissionExpirationDate] = useState(
+    onboardingCommission?.expirationDate || '',
+  );
+  const [ronStatus, setRonStatus] = useState(
+    onboardingCommission?.ronStatus || 'approved',
+  );
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState(() =>
     [
       user?.photoId && 'photoID',
       user?.certificate_url && 'commissionCertificate',
-      user?.notarySeal && 'seal',
+      onboardingCredentials?.photoId && 'photoID',
+      onboardingCredentials?.commissionCertificate && 'commissionCertificate',
+      onboardingCredentials?.ronApproval && 'ronApproval',
+      onboardingCredentials?.bond && 'bond',
+      onboardingCredentials?.insurance && 'insurance',
+      onboardingCredentials?.training && 'training',
     ].filter(Boolean),
   );
   const [updateVerification] = useMutation(UPDATE_VERIFICATION);
@@ -249,10 +258,9 @@ export default function AgentVerificationScreen({navigation, route}) {
     uploadMedia,
     handleCompression,
     handleRegister,
-    handleUpdateSeal,
     handleUpdatecertificate,
   } = useRegister();
-  const totalFields = 12;
+  const totalFields = 8;
   const documentValues = {
     photoID,
     commissionCertificate: certificate,
@@ -260,10 +268,6 @@ export default function AgentVerificationScreen({navigation, route}) {
     bond,
     insurance,
     training,
-    signature,
-    seal,
-    digitalCertificate,
-    certificateForms,
   };
   const uploadedCount = DOCUMENT_ORDER.filter(key =>
     Boolean(documentValues[key]),
@@ -369,12 +373,7 @@ export default function AgentVerificationScreen({navigation, route}) {
       insurance: documentUrlMap.insurance,
       training: documentUrlMap.training,
     },
-    assets: {
-      signature: documentUrlMap.signature,
-      eSeal: documentUrlMap.seal,
-      digitalCertificate: documentUrlMap.digitalCertificate,
-      certificateForms: documentUrlMap.certificateForms,
-    },
+    assets: {},
   });
 
   const submitVerification = async () => {
@@ -408,7 +407,6 @@ export default function AgentVerificationScreen({navigation, route}) {
           acc[key] = uploadedUrls[index];
           return acc;
         }, {});
-        await handleUpdateSeal({notarySeal: documentUrlMap.seal});
         await handleUpdatecertificate({
           photoId: documentUrlMap.photoID,
           certificate_url: documentUrlMap.commissionCertificate,
@@ -462,7 +460,6 @@ export default function AgentVerificationScreen({navigation, route}) {
         acc[key] = uploadedUrls[index];
         return acc;
       }, {});
-      await handleUpdateSeal({notarySeal: documentUrlMap.seal});
       await handleUpdatecertificate({
         photoId: documentUrlMap.photoID,
         certificate_url: documentUrlMap.commissionCertificate,
@@ -515,7 +512,7 @@ export default function AgentVerificationScreen({navigation, route}) {
           <Text style={styles.eyebrow}>NOTARY VERIFICATION</Text>
           <Text style={styles.heading}>Verify your credentials</Text>
           <Text style={styles.subheading}>
-            Complete your commission, credential, and notary asset review.
+            Complete your commission details and required credential review.
           </Text>
         </View>
 
@@ -670,58 +667,6 @@ export default function AgentVerificationScreen({navigation, route}) {
             onPress={() => selectDocument('training', setTraining)}
             onRemove={() =>
               confirmDelete('training evidence', 'training', setTraining)
-            }
-          />
-        </View>
-
-        <SectionHeader
-          title="Notary assets"
-          description="Add the assets used during document completion."
-        />
-        <View style={styles.documentStack}>
-          <AuthUploadCard
-            {...DOCUMENTS.signature}
-            uploaded={Boolean(signature)}
-            onPress={() => selectDocument('signature', setSignature)}
-            onRemove={() =>
-              confirmDelete('notary signature', 'signature', setSignature)
-            }
-          />
-          <View style={styles.documentSpacer} />
-          <AuthUploadCard
-            {...DOCUMENTS.seal}
-            uploaded={Boolean(seal)}
-            onPress={() => selectDocument('seal', setSeal)}
-            onRemove={() => confirmDelete('eSeal', 'seal', setSeal)}
-          />
-          <View style={styles.documentSpacer} />
-          <AuthUploadCard
-            {...DOCUMENTS.digitalCertificate}
-            uploaded={Boolean(digitalCertificate)}
-            onPress={() =>
-              selectDocument('digitalCertificate', setDigitalCertificate)
-            }
-            onRemove={() =>
-              confirmDelete(
-                'digital certificate',
-                'digitalCertificate',
-                setDigitalCertificate,
-              )
-            }
-          />
-          <View style={styles.documentSpacer} />
-          <AuthUploadCard
-            {...DOCUMENTS.certificateForms}
-            uploaded={Boolean(certificateForms)}
-            onPress={() =>
-              selectDocument('certificateForms', setCertificateForms)
-            }
-            onRemove={() =>
-              confirmDelete(
-                'certificate forms',
-                'certificateForms',
-                setCertificateForms,
-              )
             }
           />
         </View>

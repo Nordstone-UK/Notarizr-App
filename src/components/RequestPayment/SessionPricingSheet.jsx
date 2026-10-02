@@ -10,12 +10,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import AppColors from '../../themes/AppColors';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
 
-// Client-side-only replacement for the old flat "type an amount" request-payment sheet.
-// "Notarizr pricing" computes a live itemized quote via calculatePriceR (seal/signer/witness
-// rates); "Set my own price" is a plain manual entry. Either way, only the final numeric total
-// gets submitted — through the existing, unmodified updateSessionR(price: Float) mutation, same
-// as before. No backend changes; the itemized breakdown is purely a client-side aid for landing
-// on that number.
+// Uses the backend pricing engine for platform billing. Custom pricing is a
+// Pro-agent billing lane and stays disabled for Free agents.
 function Stepper({label, value, onChange, hint}) {
   const clamp = n => Math.max(0, Math.min(20, n));
   return (
@@ -57,6 +53,7 @@ export default function SessionPricingSheet({
   platformWitnesses = 0,
   quote,
   quoteLoading = false,
+  supportsCustomPricing = true,
   submitting = false,
 }) {
   const canSubmit = isCustom
@@ -77,14 +74,30 @@ export default function SessionPricingSheet({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
+          disabled={!supportsCustomPricing}
           onPress={() => onChangeIsCustom(true)}
-          style={[styles.toggleButton, isCustom && styles.toggleButtonActive]}>
+          style={[
+            styles.toggleButton,
+            isCustom && styles.toggleButtonActive,
+            !supportsCustomPricing && styles.toggleButtonDisabled,
+          ]}>
           <Text
-            style={[styles.toggleText, isCustom && styles.toggleTextActive]}>
-            Set my own price
+            style={[
+              styles.toggleText,
+              isCustom && styles.toggleTextActive,
+              !supportsCustomPricing && styles.toggleTextDisabled,
+            ]}>
+            {supportsCustomPricing ? 'Set my own price' : 'Pro custom price'}
           </Text>
         </TouchableOpacity>
       </View>
+
+      {!supportsCustomPricing ? (
+        <Text style={styles.proNotice}>
+          Free agents use automatic Notarizr billing. Upgrade to Pro to send
+          your own invoice.
+        </Text>
+      ) : null}
 
       {isCustom ? (
         <View style={styles.customInputWrap}>
@@ -173,6 +186,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
   },
+  proNotice: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginBottom: 12,
+  },
   stepperButton: {
     width: 28,
     height: 28,
@@ -241,6 +261,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   toggleButtonActive: {backgroundColor: AppColors.surface},
+  toggleButtonDisabled: {opacity: 0.55},
   toggleRow: {
     flexDirection: 'row',
     marginBottom: 16,
@@ -254,4 +275,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   toggleTextActive: {color: AppColors.textPrimary},
+  toggleTextDisabled: {color: AppColors.textMuted},
 });

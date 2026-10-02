@@ -33,6 +33,7 @@ import TermsAndConditionsScreen from '../SettingScreen/termsandConditionScreen';
 import PrivacyPolicyScreen from '../SettingScreen/privacypolicyScreen';
 import FaqScreen from '../SettingScreen/Faqscreen';
 import AgentPricingScreen from '../SettingScreen/AgentPricingScreen';
+import AgentManageScreen from '../SettingScreen/AgentManageScreen';
 import SubscriptionScreen from '../SettingScreen/SubscriptionScreen';
 
 import ChatContactScreen from '../ChatContactScreen/ChatContactScreen';
@@ -454,6 +455,7 @@ export default function AppNavigation() {
           name="StampAndSignatureScreen"
           component={StampAndSignatureScreen}
         />
+        <Stack.Screen name="AgentManageScreen" component={AgentManageScreen} />
         <Stack.Screen
           name="ClientDetailsScreen"
           component={AgentBookingOverviewScreen}

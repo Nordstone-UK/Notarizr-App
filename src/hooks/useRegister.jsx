@@ -72,11 +72,7 @@ const useRegister = () => {
     });
     return url;
   };
-  const uploadDocumentToStorage = async (
-    fileUri,
-    fileName,
-    contentType,
-  ) => {
+  const uploadDocumentToStorage = async (fileUri, fileName, contentType) => {
     const url = await uploadDocumentToSpaces({
       file: fileUri,
       fileName,
@@ -117,7 +113,9 @@ const useRegister = () => {
 
       const {data} = await updateAgentPhotoAndCertificate(request);
       console.log('dffffaaaaaaaaaaaaaa', data);
-      if (data?.updateAgentPhotoAndCertificate?.status === '200') {
+      if (
+        ['200', '204'].includes(data?.updateAgentPhotoAndCertificate?.status)
+      ) {
         return true;
       } else {
         return false;

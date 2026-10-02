@@ -28,6 +28,7 @@ export const useSession = () => {
     totalPrice,
     documentObjects,
     payment_type,
+    pricingOptions = {},
   ) => {
     const request = {
       variables: {
@@ -40,6 +41,7 @@ export const useSession = () => {
         price: totalPrice,
         documentType: documentObjects,
         paymentType: payment_type,
+        ...pricingOptions,
       },
     };
     console.log('requestssss', request);

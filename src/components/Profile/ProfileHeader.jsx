@@ -22,13 +22,15 @@ export default function ProfileHeader({user, onDetails, onSettings}) {
             <Text style={styles.eyebrow}>MY NOTARIZR</Text>
             <Text style={styles.pageTitle}>Account</Text>
           </View>
-          <TouchableOpacity
-            accessibilityLabel="Account settings"
-            activeOpacity={0.75}
-            onPress={onSettings}
-            style={styles.settingsButton}>
-            <Feather name="sliders" size={19} color={AppColors.white} />
-          </TouchableOpacity>
+          {onSettings ? (
+            <TouchableOpacity
+              accessibilityLabel="Account settings"
+              activeOpacity={0.75}
+              onPress={onSettings}
+              style={styles.settingsButton}>
+              <Feather name="sliders" size={19} color={AppColors.white} />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <View style={styles.identityRow}>

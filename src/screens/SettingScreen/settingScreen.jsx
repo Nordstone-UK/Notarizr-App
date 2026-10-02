@@ -23,6 +23,7 @@ import {UPDATE_ACCOUNT_TYPE} from '../../../request/mutations/updateAccountType.
 import AppColors from '../../themes/AppColors';
 import {socket} from '../../utils/Socket';
 import {widthToDp} from '../../utils/Responsive';
+import {agentPlanLabel} from '../../utils/agentPlan';
 
 const ORANGE = AppColors.primary;
 const SERVICE_SETTINGS_KEY = 'notarizr_client_service_settings';
@@ -84,6 +85,7 @@ export default function SettingScreen({navigation}) {
   );
   const [updateAccountType] = useMutation(UPDATE_ACCOUNT_TYPE);
   const [deleteAccount] = useMutation(DELETE_ACCOUNT);
+  const currentAgentPlan = agentPlanLabel(user);
 
   useEffect(() => {
     AsyncStorage.getItem(SERVICE_SETTINGS_KEY)
@@ -408,6 +410,16 @@ export default function SettingScreen({navigation}) {
               </Text>
             </View>
 
+            <ProfileSection title="Notary management">
+              <ProfileMenuItem
+                icon="grid"
+                title="Manage"
+                description="Digital certificate, eSeal, RON approval, signature and Pro tools"
+                tone="blue"
+                onPress={() => navigation.navigate('AgentManageScreen')}
+              />
+            </ProfileSection>
+
             <ProfileSection title="Pricing and plan">
               <ProfileMenuItem
                 icon="dollar-sign"
@@ -419,7 +431,7 @@ export default function SettingScreen({navigation}) {
               <ProfileMenuItem
                 icon="star"
                 title="Subscription"
-                description="Free Agent · Upgrade to Agent Pro for Open Calls and more"
+                description={`${currentAgentPlan} · Manage agent plan access`}
                 last
                 onPress={() => navigation.navigate('SubscriptionScreen')}
               />

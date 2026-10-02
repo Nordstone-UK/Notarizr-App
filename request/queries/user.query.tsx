@@ -16,9 +16,44 @@ export const FETCH_USER_INFO = gql`
       notarySeal
       photoId
       certificate_url
-      notarysigns{
-      signUrl
-      _id
+      notaryOnboarding {
+        approvalStatus
+        submittedAt
+        reviewedAt
+        reviewedBy
+        reviewNotes
+        commission {
+          state
+          county
+          city
+          number
+          issueDate
+          expirationDate
+          ronStatus
+        }
+        credentials {
+          photoId
+          commissionCertificate
+          ronApproval
+          bond
+          insurance
+          training
+        }
+        assets {
+          signature
+          eSeal
+          digitalCertificate
+          certificateForms
+        }
+      }
+      agentPlan {
+        tier
+        status
+        billingProvider
+      }
+      notarysigns {
+        signUrl
+        _id
       }
       location
       rating
@@ -36,7 +71,7 @@ export const FETCH_USER_INFO = gql`
         _id
         tag
         location
-       location_coordinates
+        location_coordinates
       }
       registered_for
       userAccessCode

@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import {gql} from '@apollo/client';
 
 // Define the mutation
 export const UPDATE_VERIFICATION = gql`
@@ -17,6 +17,13 @@ export const UPDATE_VERIFICATION = gql`
       notarySeal
       photoId
       certificate_url
+      notaryOnboarding {
+        approvalStatus
+        submittedAt
+        reviewedAt
+        reviewedBy
+        reviewNotes
+      }
       location
       rating
       subscriptionType

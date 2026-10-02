@@ -29,6 +29,10 @@ import useAgentService from '../../../hooks/useAgentService';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import useStripeApi from '../../../hooks/useStripeApi';
 import {PREVIEW_AGENT_BOOKINGS} from '../../../data/previewBookings';
+import {
+  agentPlanFeatures,
+  agentPlanLabel,
+} from '../../../utils/agentPlan';
 
 const renderAccountBackdrop = props => (
   <BottomSheetBackdrop
@@ -46,6 +50,7 @@ const WORKBENCH_ACTIONS = [
     description:
       'Review live client requests and accept before the window closes.',
     icon: 'radio',
+    proOnly: true,
     route: 'AgentNewRequestsScreen',
   },
   {
@@ -67,24 +72,6 @@ const WORKBENCH_ACTIONS = [
     icon: 'book-open',
     route: 'BookScreen',
   },
-];
-
-const LIVE_TOOLS = [
-  {label: 'Secure video', icon: 'video'},
-  {label: 'Recording consent', icon: 'shield'},
-  {label: 'Participants', icon: 'users'},
-  {label: 'Document viewer', icon: 'file-text'},
-  {label: 'Session chat', icon: 'message-circle'},
-  {label: 'Signing fields', icon: 'edit-3'},
-];
-
-const COMPLETION_STEPS = [
-  'Certificate wording',
-  'Notary signature',
-  'eSeal',
-  'Digital certificate',
-  'Journal entry',
-  'Final sealed PDF',
 ];
 
 export default function AgentHomeScreen({navigation}) {
@@ -120,6 +107,8 @@ export default function AgentHomeScreen({navigation}) {
         0,
       )
     : earnings;
+  const planFeatures = agentPlanFeatures(user);
+  const planLabel = agentPlanLabel(user);
   const isOnline =
     user?.online_status === 'online' ||
     user?.availability_status === 'online' ||
@@ -235,6 +224,19 @@ export default function AgentHomeScreen({navigation}) {
     }
   };
 
+  const openWorkbenchAction = item => {
+    if (item.proOnly && !planFeatures.openCalls) {
+      Toast.show({
+        type: 'info',
+        text1: 'Open Calls are Pro',
+        text2: 'Upgrade to Agent Pro when RevenueCat billing is connected.',
+      });
+      navigation.navigate('SubscriptionScreen');
+      return;
+    }
+    navigation.navigate(item.route);
+  };
+
   const accountMessage = useMemo(() => {
     if (user?.isBlocked) {
       return {
@@ -296,7 +298,8 @@ export default function AgentHomeScreen({navigation}) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Agent workbench</Text>
           <Text style={styles.sectionSubtitle}>
-            Start calls, manage private sessions and keep your records clean.
+            {planLabel} · Start calls, manage private sessions and keep your
+            records clean.
           </Text>
 
           <View style={styles.availabilityPanel}>
@@ -343,53 +346,24 @@ export default function AgentHomeScreen({navigation}) {
               <TouchableOpacity
                 activeOpacity={0.74}
                 key={item.title}
-                onPress={() => navigation.navigate(item.route)}
-                style={styles.workbenchTile}>
+                onPress={() => openWorkbenchAction(item)}
+                style={[
+                  styles.workbenchTile,
+                  item.proOnly &&
+                    !planFeatures.openCalls &&
+                    styles.workbenchTileLocked,
+                ]}>
                 <View style={styles.workbenchIcon}>
                   <Feather name={item.icon} size={18} color="#D65322" />
                 </View>
+                {item.proOnly && !planFeatures.openCalls ? (
+                  <View style={styles.proPill}>
+                    <Text style={styles.proPillText}>PRO</Text>
+                  </View>
+                ) : null}
                 <Text style={styles.workbenchTitle}>{item.title}</Text>
                 <Text style={styles.workbenchText}>{item.description}</Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Live session tools</Text>
-          <Text style={styles.sectionSubtitle}>
-            The call room should expose the tools a notary needs while signing.
-          </Text>
-          <View style={styles.toolPanel}>
-            {LIVE_TOOLS.map(item => (
-              <View key={item.label} style={styles.toolRow}>
-                <View style={styles.toolIcon}>
-                  <Feather name={item.icon} size={15} color="#D65322" />
-                </View>
-                <Text style={styles.toolLabel}>{item.label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Completion checklist</Text>
-          <Text style={styles.sectionSubtitle}>
-            Finish the session with certificate wording, notary assets and a
-            sealed record.
-          </Text>
-          <View style={styles.completionPanel}>
-            {COMPLETION_STEPS.map((label, index) => (
-              <View
-                key={label}
-                style={[
-                  styles.completionRow,
-                  index === COMPLETION_STEPS.length - 1 &&
-                    styles.completionRowLast,
-                ]}>
-                <Feather name="check-circle" size={16} color="#168A52" />
-                <Text style={styles.completionText}>{label}</Text>
-              </View>
             ))}
           </View>
         </View>
@@ -475,7 +449,12 @@ export default function AgentHomeScreen({navigation}) {
             </View>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('AgentNewRequestsScreen')}
+              onPress={() =>
+                openWorkbenchAction({
+                  route: 'AgentNewRequestsScreen',
+                  proOnly: true,
+                })
+              }
               style={styles.viewAllButton}>
               <Text style={styles.viewAllText}>View all</Text>
               <Feather name="arrow-right" size={14} color="#D65322" />
@@ -606,30 +585,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 13,
   },
-  completionPanel: {
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#E4E7EB',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  completionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF0F2',
-  },
-  completionRowLast: {
-    borderBottomWidth: 0,
-  },
-  completionText: {
-    marginLeft: 9,
-    color: '#242B36',
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 11,
-  },
   earningsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -719,36 +674,19 @@ const styles = StyleSheet.create({
   statusBadgeTextOnline: {
     color: '#168A52',
   },
-  toolIcon: {
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+  proPill: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    backgroundColor: '#EAF2FC',
     borderRadius: 8,
-    backgroundColor: '#FFF0E7',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
   },
-  toolLabel: {
-    flex: 1,
-    marginLeft: 9,
-    color: '#242B36',
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 11,
-  },
-  toolPanel: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#E4E7EB',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  toolRow: {
-    width: '50%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 6,
+  proPillText: {
+    color: '#2878A9',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 8,
   },
   workbenchGrid: {
     flexDirection: 'row',
@@ -780,6 +718,9 @@ const styles = StyleSheet.create({
     borderColor: '#E4E7EB',
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
+  },
+  workbenchTileLocked: {
+    backgroundColor: '#F8FAFC',
   },
   workbenchTitle: {
     marginTop: 10,

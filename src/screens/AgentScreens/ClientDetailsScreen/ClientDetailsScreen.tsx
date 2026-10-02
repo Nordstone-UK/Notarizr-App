@@ -64,6 +64,7 @@ import {useLiveblocks} from '../../../store/liveblocks';
 import Loading from '../../../components/LiveBlocksComponents/loading';
 import SessionPricingSheet from '../../../components/RequestPayment/SessionPricingSheet';
 import usePricingApi from '../../../hooks/usePricingApi';
+import {isAgentPro} from '../../../utils/agentPlan';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
@@ -137,6 +138,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const storedClientDetail = useSelector(
     (state: any) => state?.booking?.booking,
   );
+  const currentAgent = useSelector((state: any) => state?.user?.user);
   const routeClientDetail = route?.params?.clientDetail;
   const latestClientDetailRef = useRef(
     storedClientDetail || routeClientDetail || null,
@@ -215,6 +217,7 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [priceQuoteLoading, setPriceQuoteLoading] = useState(false);
   const [sendingPriceRequest, setSendingPriceRequest] = useState(false);
   const {calculatePrice} = usePricingApi();
+  const isProAgent = isAgentPro(currentAgent);
   const [price, setPrice] = useState(clientDetail?.price);
   const [totalPrice, setTotalPrice] = useState(clientDetail?.totalPrice);
   const [showModal, setShowModal] = useState(false);
@@ -585,6 +588,15 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     const amountToSend = isCustomPricing
       ? Number(customPriceInput)
       : priceQuote?.customerTotal;
+
+    if (isCustomPricing && !isProAgent) {
+      Alert.alert(
+        'Agent Pro required',
+        'Free agents use Notarizr automatic billing and receive the standard platform payout.',
+      );
+      setIsCustomPricing(false);
+      return;
+    }
 
     if (!amountToSend) {
       Alert.alert(
@@ -2523,12 +2535,22 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
             onChangeAdditionalSeals={setAdditionalSeals}
             onChangeAdditionalSigners={setAdditionalSigners}
             onChangeCustomPrice={setCustomPriceInput}
-            onChangeIsCustom={setIsCustomPricing}
+            onChangeIsCustom={nextValue => {
+              if (nextValue && !isProAgent) {
+                Alert.alert(
+                  'Agent Pro required',
+                  'Free agents use Notarizr automatic billing and receive the standard platform payout.',
+                );
+                return;
+              }
+              setIsCustomPricing(nextValue);
+            }}
             onChangePlatformWitnesses={setPlatformWitnesses}
             onSubmit={() => setBookingAmount()}
             platformWitnesses={platformWitnesses}
             quote={priceQuote}
             quoteLoading={priceQuoteLoading}
+            supportsCustomPricing={isProAgent}
             submitting={sendingPriceRequest}
           />
         </BottomSheetModal>

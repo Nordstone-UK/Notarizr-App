@@ -18,6 +18,7 @@ import moment from 'moment-timezone';
 import DatePicker from 'react-native-date-picker';
 import SplashScreen from 'react-native-splash-screen';
 import Toast from 'react-native-toast-message';
+import {useSelector} from 'react-redux';
 
 import NavigationHeader from '../../../components/Navigation Header/NavigationHeader';
 import GradientButton from '../../../components/MainGradientButton/GradientButton';
@@ -25,6 +26,8 @@ import AppColors from '../../../themes/AppColors';
 import useFetchUser from '../../../hooks/useFetchUser';
 import useRegister from '../../../hooks/useRegister';
 import {useSession} from '../../../hooks/useSession';
+import usePricingApi from '../../../hooks/usePricingApi';
+import {agentTier, isAgentPro} from '../../../utils/agentPlan';
 import {getObserverPhone} from '../../../utils/observerPhone';
 
 const IDENTITY_OPTIONS = [
@@ -189,22 +192,43 @@ function SearchResults({results, onSelect}) {
   );
 }
 
-function SelectCard({selected, title, description, onPress, icon}) {
+function SelectCard({disabled, selected, title, description, onPress, icon}) {
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
+      activeOpacity={disabled ? 1 : 0.75}
+      disabled={disabled}
       onPress={onPress}
-      style={[styles.selectCard, selected && styles.selectCardActive]}>
-      <View style={[styles.selectIcon, selected && styles.selectIconActive]}>
+      style={[
+        styles.selectCard,
+        selected && styles.selectCardActive,
+        disabled && styles.selectCardDisabled,
+      ]}>
+      <View
+        style={[
+          styles.selectIcon,
+          selected && styles.selectIconActive,
+          disabled && styles.selectIconDisabled,
+        ]}>
         <Feather
           name={icon}
           size={19}
-          color={selected ? AppColors.primary : AppColors.textSecondary}
+          color={
+            disabled
+              ? AppColors.textMuted
+              : selected
+              ? AppColors.primary
+              : AppColors.textSecondary
+          }
         />
       </View>
       <View style={styles.selectCopy}>
-        <Text style={styles.selectTitle}>{title}</Text>
-        <Text style={styles.selectDescription}>{description}</Text>
+        <Text style={[styles.selectTitle, disabled && styles.disabledText]}>
+          {title}
+        </Text>
+        <Text
+          style={[styles.selectDescription, disabled && styles.disabledText]}>
+          {description}
+        </Text>
       </View>
       <View style={[styles.radio, selected && styles.radioActive]}>
         {selected ? <View style={styles.radioDot} /> : null}
@@ -217,10 +241,13 @@ export default function AgentSessionInviteScreen({navigation}) {
   const {uploadDocArray, uploadMultipleFiles} = useRegister();
   const {handleSessionCreation} = useSession();
   const {searchUserByEmail, searchUserByPhone} = useFetchUser();
+  const {calculatePrice} = usePricingApi();
+  const user = useSelector(state => state.user.user);
   const searchUserByEmailRef = useRef(searchUserByEmail);
   const searchUserByPhoneRef = useRef(searchUserByPhone);
 
-  const SESSION_PRICE = 99;
+  const isProAgent = isAgentPro(user);
+  const currentAgentTier = agentTier(user);
 
   const [selectedIdentity, setSelectedIdentity] = useState('client_choose');
   const [fileResponse, setFileResponse] = useState([]);
@@ -238,6 +265,8 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   const [sessionType, setSessionType] = useState('general_notary');
+  const [priceQuote, setPriceQuote] = useState(null);
+  const [priceQuoteLoading, setPriceQuoteLoading] = useState(false);
 
   const INVITE_MESSAGE =
     'You are invited to your next session. Download the Notarizer app to proceed.';
@@ -277,6 +306,41 @@ export default function AgentSessionInviteScreen({navigation}) {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
+
+  useEffect(() => {
+    if (!isProAgent && paymentMethod === 'on_agent') {
+      setPaymentMethod('on_notarizr');
+    }
+  }, [isProAgent, paymentMethod]);
+
+  useEffect(() => {
+    let active = true;
+    const isClosing =
+      sessionType === 'closing' || sessionType === 'estate_planning';
+
+    setPriceQuoteLoading(true);
+    calculatePrice('invitation', {
+      agentTier: currentAgentTier,
+      billingMode:
+        paymentMethod === 'on_agent' ? 'outside_platform' : 'standard_invoice',
+      isClosing,
+      closingRoute: isClosing ? 'notary_invited' : 'on_demand',
+    })
+      .then(result => {
+        if (active) {
+          setPriceQuote(result);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setPriceQuoteLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentAgentTier, calculatePrice, paymentMethod, sessionType]);
 
   useEffect(() => {
     if (clientQuery.trim().length < 2 || selectedClientData) {
@@ -415,9 +479,25 @@ export default function AgentSessionInviteScreen({navigation}) {
       return;
     }
 
+    if (priceQuoteLoading || !priceQuote?.customerTotal) {
+      Toast.show({
+        type: 'error',
+        text1: 'Price is not ready',
+        text2: 'Please wait for Notarizr pricing to finish calculating.',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const uploadedUrls = await uploadDocArray(fileResponse);
+      const isClosing =
+        sessionType === 'closing' || sessionType === 'estate_planning';
+      const paymentType = isProAgent ? paymentMethod : 'on_notarizr';
+      const billingMode =
+        paymentType === 'on_agent' ? 'outside_platform' : 'standard_invoice';
+      const sessionTotal = priceQuote?.customerTotal || 0;
+
       const response = await handleSessionCreation(
         uploadedUrls,
         selectedClient,
@@ -425,9 +505,16 @@ export default function AgentSessionInviteScreen({navigation}) {
         date,
         selectedIdentity,
         observerPhones,
-        SESSION_PRICE,
+        sessionTotal,
         [],
-        paymentMethod,
+        paymentType,
+        {
+          useStandardPricing: true,
+      agentTier: currentAgentTier,
+          billingMode,
+          isClosing,
+          closingRoute: isClosing ? 'notary_invited' : 'on_demand',
+        },
       );
 
       if (response === '200') {
@@ -742,12 +829,32 @@ export default function AgentSessionInviteScreen({navigation}) {
           <SectionHeader
             eyebrow="PAYMENT"
             title="How will the client pay?"
-            description="Select who will collect payment for this session."
+            description={
+              isProAgent
+                ? 'Pro agents can bill through Notarizr or collect their own invoice.'
+                : 'Free agents use Notarizr automatic billing and receive the standard platform payout.'
+            }
           />
           <SelectCard
-            description="You collect payment directly from the client."
+            description={
+              isProAgent
+                ? 'You collect payment directly from the client; Notarizr records only the platform fee.'
+                : 'Available after upgrading to Agent Pro.'
+            }
+            disabled={!isProAgent}
             icon="briefcase"
-            onPress={() => setPaymentMethod('on_agent')}
+            onPress={() => {
+              if (!isProAgent) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Agent Pro required',
+                  text2:
+                    'Free agents are paid through Notarizr automatic billing.',
+                });
+                return;
+              }
+              setPaymentMethod('on_agent');
+            }}
             selected={paymentMethod === 'on_agent'}
             title="Invoice independently"
           />
@@ -764,9 +871,19 @@ export default function AgentSessionInviteScreen({navigation}) {
         <View style={styles.summaryRow}>
           <View>
             <Text style={styles.summaryLabel}>Session total</Text>
-            <Text style={styles.summaryHint}>Fixed session fee</Text>
+            <Text style={styles.summaryHint}>
+              {priceQuoteLoading
+                ? 'Calculating with Notarizr pricing'
+                : paymentMethod === 'on_agent'
+                ? 'Platform fee recorded in Notarizr'
+                : `Agent payout $${Number(priceQuote?.agentPayout || 0).toFixed(
+                    2,
+                  )}`}
+            </Text>
           </View>
-          <Text style={styles.summaryPrice}>${SESSION_PRICE}</Text>
+          <Text style={styles.summaryPrice}>
+            ${Number(priceQuote?.customerTotal || 0).toFixed(2)}
+          </Text>
         </View>
 
         <View style={styles.readinessPanel}>
@@ -868,6 +985,9 @@ const styles = StyleSheet.create({
     marginLeft: 56,
   },
   documentLoading: {marginVertical: 50},
+  disabledText: {
+    color: AppColors.textMuted,
+  },
   documentOption: {
     alignItems: 'center',
     borderBottomColor: AppColors.border,
@@ -1239,6 +1359,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9F4',
     borderColor: '#FFC9A8',
   },
+  selectCardDisabled: {
+    backgroundColor: AppColors.backgroundSubtle,
+    opacity: 0.72,
+  },
   selectCopy: {flex: 1, marginHorizontal: 12},
   selectDescription: {
     color: AppColors.textSecondary,
@@ -1256,6 +1380,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
   selectIconActive: {backgroundColor: AppColors.primarySoft},
+  selectIconDisabled: {backgroundColor: AppColors.border},
   selectTitle: {
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',

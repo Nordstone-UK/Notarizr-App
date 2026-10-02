@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -10,10 +10,14 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
+import {useSelector} from 'react-redux';
 import AppColors from '../../themes/AppColors';
+import {
+  agentPlanFeatures,
+  agentPlanId,
+  agentPlanLabel,
+} from '../../utils/agentPlan';
 
-// UI only — no billing integration yet. Plan figures are a product starting point (see
-// "Recommended Notarizr pricing" doc, Agent subscriptions table), not wired to any mutation.
 const PLANS = [
   {
     id: 'free',
@@ -23,6 +27,7 @@ const PLANS = [
     purpose: 'Invited sessions at standard prices',
     features: [
       'Accept invited sessions at standard Notarizr pricing',
+      'Platform collects from the client and pays you after completion',
       'Basic profile and booking tools',
       'Standard email support',
     ],
@@ -36,9 +41,9 @@ const PLANS = [
     priceHint: '$25–$29/mo',
     purpose: 'Open Calls, custom pricing, templates, branding and invoicing',
     features: [
-      'Open Call bookings — get matched to nearby clients',
-      'Custom pricing by state, document and session type',
-      'Branded invoicing and receipts',
+      'Open Call bookings when your profile is approved and online',
+      'Custom/private pricing for agent-invited sessions',
+      'Branded invites, invoices and receipts',
       'Reusable session templates',
       'Priority support',
     ],
@@ -145,13 +150,15 @@ function PlanCard({onSelect, plan}) {
 }
 
 export default function SubscriptionScreen({navigation}) {
-  const [currentPlanId] = useState('free');
+  const user = useSelector(state => state.user.user);
+  const currentPlanId = agentPlanId(user);
+  const features = agentPlanFeatures(user);
 
   const selectPlan = plan => {
     Toast.show({
       type: 'info',
-      text1: `${plan.name} is coming soon`,
-      text2: 'Billing for agent plans isn’t live yet.',
+      text1: `${plan.name} selected`,
+      text2: 'Plan changes are managed securely through your Notarizr account.',
     });
   };
 
@@ -178,8 +185,8 @@ export default function SubscriptionScreen({navigation}) {
           <View style={styles.headerSpacer} />
         </View>
         <Text style={styles.headerSubtitle}>
-          Choose the plan that fits how you notarize. Upgrade, downgrade or
-          cancel anytime.
+          {agentPlanLabel(user)} is active. Manage your agent access, billing
+          cycle and plan features from here.
         </Text>
       </View>
 
@@ -192,10 +199,44 @@ export default function SubscriptionScreen({navigation}) {
             onSelect={selectPlan}
             plan={{
               ...plan,
-              current: plan.id === 'free' && currentPlanId === 'free',
+              current: plan.id === currentPlanId,
             }}
           />
         ))}
+
+        <View style={styles.featureGateCard}>
+          <Text style={styles.sectionEyebrow}>CURRENT ACCESS</Text>
+          <View style={styles.gateRow}>
+            <Text style={styles.gateLabel}>Open Calls</Text>
+            <Text
+              style={[
+                styles.gateValue,
+                features.openCalls && styles.gateValueEnabled,
+              ]}>
+              {features.openCalls ? 'Enabled' : 'Pro only'}
+            </Text>
+          </View>
+          <View style={styles.gateRow}>
+            <Text style={styles.gateLabel}>Custom/private billing</Text>
+            <Text
+              style={[
+                styles.gateValue,
+                features.customPricing && styles.gateValueEnabled,
+              ]}>
+              {features.customPricing ? 'Enabled' : 'Pro only'}
+            </Text>
+          </View>
+          <View style={[styles.gateRow, styles.lastGateRow]}>
+            <Text style={styles.gateLabel}>Templates and branded invites</Text>
+            <Text
+              style={[
+                styles.gateValue,
+                features.sessionTemplates && styles.gateValueEnabled,
+              ]}>
+              {features.sessionTemplates ? 'Enabled' : 'Pro only'}
+            </Text>
+          </View>
+        </View>
 
         <View style={styles.disclaimer}>
           <Feather name="info" size={14} color={AppColors.textMuted} />
@@ -296,6 +337,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 9,
   },
+  featureGateCard: {
+    backgroundColor: AppColors.white,
+    borderColor: AppColors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+    padding: 16,
+  },
   featureText: {
     color: AppColors.textPrimary,
     flex: 1,
@@ -334,6 +383,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  gateLabel: {
+    color: AppColors.textPrimary,
+    flex: 1,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+  },
+  gateRow: {
+    alignItems: 'center',
+    borderBottomColor: AppColors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    paddingVertical: 11,
+  },
+  gateValue: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  gateValueEnabled: {color: AppColors.success},
+  lastGateRow: {borderBottomWidth: 0},
   lastFeatureRow: {marginBottom: 0},
   planButton: {
     alignItems: 'center',
@@ -411,6 +480,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   safeArea: {backgroundColor: AppColors.textPrimary, flex: 1},
+  sectionEyebrow: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
   title: {
     color: AppColors.white,
     fontFamily: 'Manrope-Bold',
