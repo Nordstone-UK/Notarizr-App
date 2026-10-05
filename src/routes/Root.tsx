@@ -51,6 +51,11 @@ const Root: FC = (): JSX.Element => {
     const openDeepLinkUrl = async (url?: string | null) => {
       const invite = normalizeSessionInviteParams(url || '');
       if (!invite) {
+        if (/^notarizr:\/\/stripe/i.test(url || '')) {
+          navigation.navigate('PaymentUpdateScreen');
+          return;
+        }
+
         const bookingDetailId =
           (url || '').match(/^notarizr:\/\/booking-detail\/([^?]+)/i)?.[1] ||
           (url || '').match(/[?&]bookingId=([^&]+)/)?.[1];

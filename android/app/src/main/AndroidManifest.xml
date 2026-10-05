@@ -67,6 +67,7 @@
         <data android:scheme="notarizr" android:host="session" />
         <data android:scheme="notarizr" android:host="invite" />
         <data android:scheme="notarizr" android:host="invitation" />
+        <data android:scheme="notarizr" android:host="stripe" />
       </intent-filter>
       <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW" />

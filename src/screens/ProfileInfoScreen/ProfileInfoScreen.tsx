@@ -295,11 +295,11 @@ export default function ProfileInfoScreen({navigation}: any) {
           />
           <ProfileMenuItem
             icon={isClient ? 'credit-card' : 'dollar-sign'}
-            title="Payment method"
+            title={isClient ? 'Payment method' : 'Payout setup'}
             description={
               isClient
                 ? 'Cards and billing details'
-                : 'Payout and payment details'
+                : 'Connect Stripe to receive payouts'
             }
             tone="green"
             onPress={() =>

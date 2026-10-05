@@ -1,16 +1,19 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  AppState,
+  Linking,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
-import WebView from 'react-native-webview';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
 import useStripeApi from '../../hooks/useStripeApi';
@@ -29,7 +32,7 @@ export default function PaymentUpdateScreen({navigation}) {
   const {handleStripeCreation, handleOnboardingLink, checkUserStipeAccount} =
     useStripeApi();
   const checkStripeRef = useRef(checkUserStipeAccount);
-  const [onboardingLink, setOnboardingLink] = useState(null);
+  const returningFromStripeRef = useRef(false);
   const [stripeStatus, setStripeStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -56,6 +59,23 @@ export default function PaymentUpdateScreen({navigation}) {
     loadStripeStatus();
   }, [loadStripeStatus]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadStripeStatus();
+    }, [loadStripeStatus]),
+  );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active' && returningFromStripeRef.current) {
+        returningFromStripeRef.current = false;
+        loadStripeStatus();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [loadStripeStatus]);
+
   const openStripe = async () => {
     setActionLoading(true);
     try {
@@ -65,7 +85,22 @@ export default function PaymentUpdateScreen({navigation}) {
       if (!link) {
         throw new Error('Stripe link unavailable');
       }
-      setOnboardingLink(link);
+      if (link === 'notarizr://stripe/local-onboarding') {
+        Toast.show({
+          type: 'success',
+          text1: 'Payouts ready',
+          text2: 'Local Stripe onboarding is marked complete.',
+        });
+        loadStripeStatus();
+        return;
+      }
+
+      const supported = await Linking.canOpenURL(link);
+      if (!supported) {
+        throw new Error('Stripe link unsupported');
+      }
+      returningFromStripeRef.current = true;
+      await Linking.openURL(link);
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -80,37 +115,6 @@ export default function PaymentUpdateScreen({navigation}) {
   const connected =
     stripeStatus?.has_stripe_account && stripeStatus?.has_details_submitted;
   const started = stripeStatus?.has_stripe_account && !connected;
-
-  if (onboardingLink) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor={AppColors.surface}
-        />
-        <ProfileScreenHeader
-          actionLabel="Close"
-          onAction={() => {
-            setOnboardingLink(null);
-            loadStripeStatus();
-          }}
-          onBack={() => setOnboardingLink(null)}
-          title="Stripe setup"
-        />
-        <WebView
-          renderLoading={() => (
-            <View style={styles.webLoading}>
-              <ActivityIndicator color={AppColors.info} />
-              <Text style={styles.webLoadingText}>Opening Stripe...</Text>
-            </View>
-          )}
-          source={{uri: onboardingLink}}
-          startInLoadingState
-          style={styles.webView}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -177,8 +181,16 @@ export default function PaymentUpdateScreen({navigation}) {
           <Text style={styles.statusDescription}>
             {connected
               ? 'Your Stripe account is ready to receive Notarizr payouts.'
-              : 'Complete Stripe verification before accepting paid bookings.'}
+              : 'Complete Stripe verification before accepting paid bookings and private sessions.'}
           </Text>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            disabled={statusLoading}
+            onPress={loadStripeStatus}
+            style={styles.refreshButton}>
+            <Feather name="refresh-cw" size={14} color={AppColors.primary} />
+            <Text style={styles.refreshText}>Refresh Stripe status</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.requirementsSection}>
@@ -194,7 +206,8 @@ export default function PaymentUpdateScreen({navigation}) {
           <Feather name="shield" size={18} color={AppColors.info} />
           <Text style={styles.securityText}>
             Your financial details are entered directly with Stripe and are not
-            stored by Notarizr.
+            stored by Notarizr. After Stripe finishes, return here and refresh
+            your status.
           </Text>
         </View>
 
@@ -208,7 +221,7 @@ export default function PaymentUpdateScreen({navigation}) {
               ? 'Manage Stripe account'
               : started
               ? 'Continue Stripe setup'
-              : 'Set up payouts with Stripe'
+              : 'Connect Stripe account'
           }
         />
       </ScrollView>
@@ -292,6 +305,22 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 16,
   },
+  refreshButton: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  refreshText: {
+    marginLeft: 7,
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+  },
   requirementsSection: {marginTop: 24},
   sectionTitle: {
     marginBottom: 11,
@@ -332,17 +361,4 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   primaryButton: {marginTop: 24, borderRadius: 8},
-  webView: {flex: 1},
-  webLoading: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: AppColors.white,
-  },
-  webLoadingText: {
-    marginTop: 9,
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 11,
-  },
 });
