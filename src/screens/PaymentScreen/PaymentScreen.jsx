@@ -53,12 +53,14 @@ export default function PaymentScreen({navigation}) {
         label: item?.name || 'Notary document',
         amount: Number(item?.price || 0),
       }));
+  const isSessionPayment = bookingDetail?.__typename === 'Session';
 
   const initializePaymentSheet = async () => {
     setLoading(true);
     const response = await fetchPaymentSheetParams(
       Math.round(totalAmount * 100),
       bookingDetail._id,
+      isSessionPayment,
     );
     const {customer_id, ephemeralKey, paymentIntent} =
       response?.data?.createPaymentIntentR;
