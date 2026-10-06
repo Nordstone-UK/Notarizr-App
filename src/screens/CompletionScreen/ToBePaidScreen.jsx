@@ -24,8 +24,6 @@ import {useStripe} from '@stripe/stripe-react-native';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import useChatService from '../../hooks/useChatService';
 import {useSession} from '../../hooks/useSession';
-import Toast from 'react-native-toast-message';
-import {hasSavedTestCard} from '../../utils/TestPayments';
 
 export default function ToBePaidScreen({route, navigation}) {
   const {bookingData, autoPay = false} = route.params;
@@ -117,16 +115,6 @@ export default function ToBePaidScreen({route, navigation}) {
   const openPaymentSheet = async () => {
     setLoading(true);
     try {
-      if (await hasSavedTestCard()) {
-        await init();
-        Toast.show({
-          type: 'success',
-          text1: 'Test payment approved',
-          text2: 'Visa ending in 4242 was used. No real charge was made.',
-        });
-        return;
-      }
-
       const {error} = await presentPaymentSheet();
 
       if (error) {
@@ -146,18 +134,12 @@ export default function ToBePaidScreen({route, navigation}) {
     }
   };
   useEffect(() => {
-    hasSavedTestCard().then(isTestCard => {
-      if (isTestCard) {
-        setIsDataInitialized(true);
-        if (autoPay && !autoPaymentStarted.current) {
-          autoPaymentStarted.current = true;
-          openPaymentSheet();
-        }
-        return;
+    initializePaymentSheet().then(() => {
+      setIsDataInitialized(true);
+      if (autoPay && !autoPaymentStarted.current) {
+        autoPaymentStarted.current = true;
+        openPaymentSheet();
       }
-      initializePaymentSheet().then(() => {
-        setIsDataInitialized(true);
-      });
     });
     // Payment initialization is intentionally tied to the active booking screen.
     // eslint-disable-next-line react-hooks/exhaustive-deps

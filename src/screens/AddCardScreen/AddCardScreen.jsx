@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {
   Modal,
   SafeAreaView,
@@ -16,37 +15,11 @@ import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
 import AppColors from '../../themes/AppColors';
-import {
-  getSavedTestCard,
-  isTestCardNumber,
-  saveTestCard,
-} from '../../utils/TestPayments';
 
 export default function AddCardScreen({navigation}) {
   const [cardForm, setCardForm] = useState({valid: false});
-  const [cards, setCards] = useState([]);
   const [formVisible, setFormVisible] = useState(false);
   const [saving, setSaving] = useState(false);
-  const values = cardForm?.values || {};
-  const testCardReady =
-    isTestCardNumber(values.number) &&
-    Boolean(
-      values.expiry?.trim() &&
-        values.cvc?.trim() &&
-        values.name?.trim() &&
-        values.postalCode?.trim(),
-    );
-
-  const loadCards = useCallback(async () => {
-    const savedCard = await getSavedTestCard();
-    setCards(savedCard ? [savedCard] : []);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadCards();
-    }, [loadCards]),
-  );
 
   const openAddCard = () => {
     setCardForm({valid: false});
@@ -60,27 +33,12 @@ export default function AddCardScreen({navigation}) {
   };
 
   const handleSaveCard = async () => {
-    const cardNumber = cardForm?.values?.number;
-    if (!isTestCardNumber(cardNumber)) {
-      Toast.show({
-        type: 'info',
-        text1: 'Test card only',
-        text2: 'Use 4242 4242 4242 4242 with a future expiry and any CVC.',
-      });
-      return;
-    }
-
     setSaving(true);
     try {
-      await saveTestCard({
-        expiry: values.expiry,
-        name: values.name,
-      });
-      await loadCards();
       Toast.show({
-        type: 'success',
-        text1: 'Test card saved',
-        text2: 'Visa ending in 4242 is ready for simulated payments.',
+        type: 'info',
+        text1: 'Use secure checkout',
+        text2: 'Cards are collected by Stripe when you confirm a booking.',
       });
       setFormVisible(false);
     } finally {
@@ -106,7 +64,7 @@ export default function AddCardScreen({navigation}) {
           </View>
           <View style={styles.heroCopy}>
             <Text style={styles.eyebrow}>SECURE PAYMENT</Text>
-            <Text style={styles.title}>Your saved cards</Text>
+            <Text style={styles.title}>Payment cards</Text>
             <Text style={styles.description}>
               Manage the cards used for booking payments.
             </Text>
@@ -115,7 +73,7 @@ export default function AddCardScreen({navigation}) {
 
         <View style={styles.cardsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Saved cards</Text>
+            <Text style={styles.sectionTitle}>Stripe checkout</Text>
             <TouchableOpacity
               activeOpacity={0.82}
               onPress={openAddCard}
@@ -125,59 +83,23 @@ export default function AddCardScreen({navigation}) {
             </TouchableOpacity>
           </View>
 
-          {cards.length > 0 ? (
-            cards.map(card => (
-              <View key={`${card.brand}-${card.last4}`} style={styles.cardRow}>
-                <View style={styles.cardBrandIcon}>
-                  <Feather
-                    name="credit-card"
-                    size={20}
-                    color={AppColors.primary}
-                  />
-                </View>
-                <View style={styles.cardRowCopy}>
-                  <Text style={styles.cardRowTitle}>
-                    {card.brand || 'Card'} ending in {card.last4}
-                  </Text>
-                  <Text style={styles.cardRowText}>
-                    {card.expiry
-                      ? `Expires ${card.expiry}`
-                      : 'Ready for payments'}
-                  </Text>
-                </View>
-                {card.isDefault ? (
-                  <View style={styles.defaultPill}>
-                    <Text style={styles.defaultPillText}>Default</Text>
-                  </View>
-                ) : null}
-              </View>
-            ))
-          ) : (
-            <View style={styles.emptyCards}>
-              <View style={styles.emptyIcon}>
-                <Feather
-                  name="credit-card"
-                  size={22}
-                  color={AppColors.primary}
-                />
-              </View>
-              <Text style={styles.emptyTitle}>No cards yet</Text>
-              <Text style={styles.emptyText}>
-                Add a card once and it will appear here for future bookings.
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.82}
-                onPress={openAddCard}
-                style={styles.emptyAddButton}>
-                <Text style={styles.emptyAddButtonText}>Add payment card</Text>
-                <Feather
-                  name="arrow-right"
-                  size={15}
-                  color={AppColors.primary}
-                />
-              </TouchableOpacity>
+          <View style={styles.emptyCards}>
+            <View style={styles.emptyIcon}>
+              <Feather name="credit-card" size={22} color={AppColors.primary} />
             </View>
-          )}
+            <Text style={styles.emptyTitle}>Cards are stored by Stripe</Text>
+            <Text style={styles.emptyText}>
+              Add or choose a card during secure checkout when confirming a
+              booking.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              onPress={openAddCard}
+              style={styles.emptyAddButton}>
+              <Text style={styles.emptyAddButtonText}>View card form</Text>
+              <Feather name="arrow-right" size={15} color={AppColors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -240,12 +162,12 @@ export default function AddCardScreen({navigation}) {
               </View>
 
               <AuthPrimaryButton
-                disabled={(!cardForm.valid && !testCardReady) || saving}
+                disabled={!cardForm.valid || saving}
                 icon="arrow-right"
                 loading={saving}
                 onPress={handleSaveCard}
                 style={styles.saveButton}
-                title="Save card"
+                title="Done"
               />
             </ScrollView>
           </View>

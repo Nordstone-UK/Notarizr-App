@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingColors from '../../themes/BookingColors';
-import {getSavedTestCard} from '../../utils/TestPayments';
 import {
   formatBookingDate,
   formatBookingTime,
@@ -500,7 +499,6 @@ export default function ClientBookingDetailsView({
   onHelp,
   onJoin,
   onMessage,
-  onAddCard,
   onPay,
   onRefresh,
   onTrack,
@@ -509,8 +507,6 @@ export default function ClientBookingDetailsView({
   status: statusValue,
 }) {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
-  const [savedCard, setSavedCard] = useState(null);
-  const [cardLoading, setCardLoading] = useState(false);
   const statusKey = normalizeStatus(statusValue || booking?.status);
   const status = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
   const isMobile = booking?.service_type === 'mobile_notary';
@@ -630,14 +626,6 @@ export default function ClientBookingDetailsView({
 
   const openPaymentMethods = async () => {
     setPaymentModalVisible(true);
-    setCardLoading(true);
-    setSavedCard(await getSavedTestCard());
-    setCardLoading(false);
-  };
-
-  const handleAddCard = () => {
-    setPaymentModalVisible(false);
-    onAddCard?.();
   };
 
   const handleContinuePayment = () => {
@@ -1106,7 +1094,7 @@ export default function ClientBookingDetailsView({
               <View style={styles.sheetTitleCopy}>
                 <Text style={styles.sheetTitle}>Choose payment method</Text>
                 <Text style={styles.sheetSubtitle}>
-                  Select a saved card to confirm this booking.
+                  Continue to Stripe to enter or choose your card securely.
                 </Text>
               </View>
               <TouchableOpacity
@@ -1122,71 +1110,35 @@ export default function ClientBookingDetailsView({
               </TouchableOpacity>
             </View>
 
-            {cardLoading ? (
-              <View style={styles.cardLoadingState}>
-                <ActivityIndicator color={BookingColors.primary} />
-                <Text style={styles.cardLoadingText}>
-                  Loading your cards...
-                </Text>
-              </View>
-            ) : savedCard ? (
-              <TouchableOpacity
-                accessibilityLabel={`${savedCard.brand} ending in ${savedCard.last4}`}
-                activeOpacity={0.78}
-                style={styles.savedCardRow}>
-                <View style={styles.savedCardIcon}>
-                  <Feather
-                    color={BookingColors.primary}
-                    name="credit-card"
-                    size={20}
-                  />
-                </View>
-                <View style={styles.savedCardCopy}>
-                  <Text style={styles.savedCardBrand}>{savedCard.brand}</Text>
-                  <Text style={styles.savedCardNumber}>
-                    •••• •••• •••• {savedCard.last4}
-                  </Text>
-                </View>
+            <View style={styles.emptyCardState}>
+              <View style={styles.emptyCardIcon}>
                 <Feather
                   color={BookingColors.primary}
-                  name="check-circle"
-                  size={21}
+                  name="credit-card"
+                  size={22}
                 />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.emptyCardState}>
-                <View style={styles.emptyCardIcon}>
-                  <Feather
-                    color={BookingColors.primary}
-                    name="credit-card"
-                    size={22}
-                  />
-                </View>
-                <Text style={styles.emptyCardTitle}>No saved cards</Text>
-                <Text style={styles.emptyCardText}>
-                  Add a payment card to confirm your appointment.
-                </Text>
               </View>
-            )}
+              <Text style={styles.emptyCardTitle}>Secure Stripe checkout</Text>
+              <Text style={styles.emptyCardText}>
+                Stripe will collect or confirm your card details before this
+                booking is paid.
+              </Text>
+            </View>
 
-            {!cardLoading ? (
-              <TouchableOpacity
-                accessibilityRole="button"
-                activeOpacity={0.78}
-                onPress={savedCard ? handleContinuePayment : handleAddCard}
-                style={styles.sheetPrimaryButton}>
-                <Text style={styles.sheetPrimaryButtonText}>
-                  {savedCard
-                    ? `Continue with •••• ${savedCard.last4}`
-                    : 'Add a payment card'}
-                </Text>
-                <Feather
-                  color={BookingColors.white}
-                  name={savedCard ? 'arrow-right' : 'plus'}
-                  size={18}
-                />
-              </TouchableOpacity>
-            ) : null}
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={0.78}
+              onPress={handleContinuePayment}
+              style={styles.sheetPrimaryButton}>
+              <Text style={styles.sheetPrimaryButtonText}>
+                Continue to secure checkout
+              </Text>
+              <Feather
+                color={BookingColors.white}
+                name="arrow-right"
+                size={18}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

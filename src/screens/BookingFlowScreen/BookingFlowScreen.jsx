@@ -37,7 +37,6 @@ import {UPDATE_BOOKING_STATUS} from '../../../request/mutations/updateBookingSta
 import {GET_MATCHED_AGENT} from '../../../request/queries/matchAgent.query';
 import {GET_BOOKING_BY_ID} from '../../../request/queries/getBookingByID.query';
 import {getBookingDisplayId} from '../../utils/bookingPresentation';
-import {hasSavedTestCard} from '../../utils/TestPayments';
 import {statesData} from '../../data/statesData';
 
 const PRINT_COPY_PRICE = 5;
@@ -2827,19 +2826,6 @@ export default function BookingFlowScreen({navigation, route}) {
       refundStatus: 'Not requested',
       paymentIntentId: '',
     }));
-
-    if (await hasSavedTestCard()) {
-      const paymentIntentId = `local_payment_intent_${booking._id}`;
-      setPaymentAuthorization({
-        status: 'authorized',
-        message:
-          'Payment authorization is saved. You will only be charged according to the final booking terms.',
-        receiptStatus: 'Receipt pending',
-        refundStatus: 'Not requested',
-        paymentIntentId,
-      });
-      return {authorized: true, paymentIntentId};
-    }
 
     const response = await fetchPaymentSheetParams(
       Math.round(amount * 100),
