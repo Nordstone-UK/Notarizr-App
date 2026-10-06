@@ -1,6 +1,11 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -9,40 +14,176 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {CreditCardInput} from 'react-native-credit-card-input';
+import {useMutation, useQuery} from '@apollo/client';
+import {CardField, useStripe} from '@stripe/stripe-react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
-import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
+import {
+  CREATE_CARD_SETUP_INTENT,
+  REMOVE_PAYMENT_CARD,
+} from '../../../request/mutations/cardSetup.mutation';
+import {GET_PAYMENT_CARDS} from '../../../request/queries/getPaymentCards.query';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
 import AppColors from '../../themes/AppColors';
 
-export default function AddCardScreen({navigation}) {
-  const [cardForm, setCardForm] = useState({valid: false});
-  const [formVisible, setFormVisible] = useState(false);
-  const [saving, setSaving] = useState(false);
+const brandLabels = {
+  amex: 'Amex',
+  diners: 'Diners Club',
+  discover: 'Discover',
+  jcb: 'JCB',
+  mastercard: 'Mastercard',
+  unionpay: 'UnionPay',
+  visa: 'Visa',
+};
 
-  const openAddCard = () => {
-    setCardForm({valid: false});
-    setFormVisible(true);
+const brandIcons = {
+  amex: 'credit-card',
+  diners: 'credit-card',
+  discover: 'credit-card',
+  jcb: 'credit-card',
+  mastercard: 'credit-card',
+  unionpay: 'credit-card',
+  visa: 'credit-card',
+};
+
+function formatBrand(brand) {
+  return brandLabels[String(brand || '').toLowerCase()] || 'Card';
+}
+
+function formatExpiry(card) {
+  if (!card?.exp_month || !card?.exp_year) {
+    return 'Expiry not available';
+  }
+  return `Expires ${String(card.exp_month).padStart(2, '0')}/${String(
+    card.exp_year,
+  ).slice(-2)}`;
+}
+
+export default function AddCardScreen({navigation}) {
+  const {confirmSetupIntent} = useStripe();
+  const [busy, setBusy] = useState(false);
+  const [cardModalVisible, setCardModalVisible] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
+  const {data, loading, refetch} = useQuery(GET_PAYMENT_CARDS, {
+    fetchPolicy: 'cache-and-network',
+  });
+  const [createCardSetupIntent] = useMutation(CREATE_CARD_SETUP_INTENT);
+  const [removePaymentCard] = useMutation(REMOVE_PAYMENT_CARD);
+
+  const cards = useMemo(
+    () => (data?.getPaymentCardsR?.cards || []).filter(Boolean),
+    [data],
+  );
+
+  const addCard = async () => {
+    setCardComplete(false);
+    setCardModalVisible(true);
   };
 
-  const closeAddCard = () => {
-    if (!saving) {
-      setFormVisible(false);
+  const closeCardModal = () => {
+    if (busy) {
+      return;
+    }
+    setCardModalVisible(false);
+    setCardComplete(false);
+  };
+
+  const saveCard = async () => {
+    if (!cardComplete) {
+      Toast.show({
+        type: 'error',
+        text1: 'Card details incomplete',
+        text2: 'Please enter the full card number, expiry and CVC.',
+      });
+      return;
+    }
+    if (busy) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const response = await createCardSetupIntent();
+      const payload = response?.data?.createCardSetupIntentR;
+      if (!payload?.setupIntent) {
+        throw new Error(payload?.message || 'Could not start card setup.');
+      }
+
+      const {error: setupError} = await confirmSetupIntent(
+        payload.setupIntent,
+        {
+          paymentMethodType: 'Card',
+        },
+        {
+          setupFutureUsage: 'OffSession',
+        },
+      );
+
+      if (setupError) {
+        throw new Error(setupError.message);
+      }
+
+      setCardModalVisible(false);
+      setCardComplete(false);
+      await refetch();
+      Toast.show({
+        type: 'success',
+        text1: 'Card added',
+        text2: 'Your card is ready for booking payments.',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Card could not be added',
+        text2: error?.message || 'Please try again.',
+      });
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleSaveCard = async () => {
-    setSaving(true);
+  const confirmRemove = card => {
+    Alert.alert(
+      'Remove card?',
+      `${formatBrand(card.brand)} ending in ${
+        card.last4 || '••••'
+      } will be removed from your account.`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => removeCard(card),
+        },
+      ],
+    );
+  };
+
+  const removeCard = async card => {
+    if (!card?.id || busy) {
+      return;
+    }
+    setBusy(true);
     try {
-      Toast.show({
-        type: 'info',
-        text1: 'Use secure checkout',
-        text2: 'Cards are collected by Stripe when you confirm a booking.',
+      const response = await removePaymentCard({
+        variables: {paymentMethodId: card.id},
       });
-      setFormVisible(false);
+      const result = response?.data?.removePaymentCardR;
+      if (
+        result?.status &&
+        !['200', '201', 'SUCCESS'].includes(result.status)
+      ) {
+        throw new Error(result.message || 'Could not remove card.');
+      }
+      await refetch();
+      Toast.show({type: 'success', text1: 'Card removed'});
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Card could not be removed',
+        text2: error?.message || 'Please try again.',
+      });
     } finally {
-      setSaving(false);
+      setBusy(false);
     }
   };
 
@@ -56,6 +197,9 @@ export default function AddCardScreen({navigation}) {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={refetch} />
+        }
         showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <View style={styles.heroGlow} />
@@ -66,289 +210,205 @@ export default function AddCardScreen({navigation}) {
             <Text style={styles.eyebrow}>SECURE PAYMENT</Text>
             <Text style={styles.title}>Payment cards</Text>
             <Text style={styles.description}>
-              Manage the cards used for booking payments.
+              Add and manage cards used for booking payments.
             </Text>
           </View>
         </View>
 
         <View style={styles.cardsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Stripe checkout</Text>
+            <View>
+              <Text style={styles.sectionTitle}>Saved cards</Text>
+              <Text style={styles.sectionSubtitle}>
+                Choose from these when paying for a booking.
+              </Text>
+            </View>
             <TouchableOpacity
               activeOpacity={0.82}
-              onPress={openAddCard}
-              style={styles.addCardButton}>
-              <Feather name="plus" size={15} color={AppColors.white} />
+              disabled={busy}
+              onPress={addCard}
+              style={[styles.addCardButton, busy && styles.disabledButton]}>
+              {busy ? (
+                <ActivityIndicator color={AppColors.white} size="small" />
+              ) : (
+                <Feather name="plus" size={15} color={AppColors.white} />
+              )}
               <Text style={styles.addCardButtonText}>Add</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.emptyCards}>
-            <View style={styles.emptyIcon}>
-              <Feather name="credit-card" size={22} color={AppColors.primary} />
+          {loading && !cards.length ? (
+            <View style={styles.loadingCard}>
+              <ActivityIndicator color={AppColors.primary} />
+              <Text style={styles.loadingText}>Loading cards...</Text>
             </View>
-            <Text style={styles.emptyTitle}>Cards are stored by Stripe</Text>
-            <Text style={styles.emptyText}>
-              Add or choose a card during secure checkout when confirming a
-              booking.
+          ) : cards.length ? (
+            <View style={styles.cardList}>
+              {cards.map((card, index) => {
+                const brand = String(card?.brand || '').toLowerCase();
+                return (
+                  <View
+                    key={card.id || `${card.last4}-${index}`}
+                    style={styles.cardRow}>
+                    <View style={styles.cardBrandIcon}>
+                      <Feather
+                        name={brandIcons[brand] || 'credit-card'}
+                        size={22}
+                        color={AppColors.primary}
+                      />
+                    </View>
+                    <View style={styles.cardRowCopy}>
+                      <Text style={styles.cardRowTitle}>
+                        {formatBrand(card.brand)} ending in{' '}
+                        {card.last4 || '••••'}
+                      </Text>
+                      <Text style={styles.cardRowText}>
+                        {formatExpiry(card)}
+                        {card.funding ? ` · ${card.funding}` : ''}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      activeOpacity={0.76}
+                      disabled={busy}
+                      onPress={() => confirmRemove(card)}
+                      style={styles.removeButton}>
+                      <Feather
+                        name="trash-2"
+                        size={16}
+                        color={AppColors.error}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View style={styles.emptyCards}>
+              <View style={styles.emptyIcon}>
+                <Feather
+                  name="credit-card"
+                  size={22}
+                  color={AppColors.primary}
+                />
+              </View>
+              <Text style={styles.emptyTitle}>No cards added yet</Text>
+              <Text style={styles.emptyText}>
+                Add a payment card once, then use it faster during future
+                bookings.
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.82}
+                disabled={busy}
+                onPress={addCard}
+                style={styles.emptyAddButton}>
+                <Text style={styles.emptyAddButtonText}>Add payment card</Text>
+                <Feather
+                  name="arrow-right"
+                  size={15}
+                  color={AppColors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.securityNote}>
+            <View style={styles.securityIcon}>
+              <Feather name="lock" size={16} color={AppColors.info} />
+            </View>
+            <Text style={styles.securityText}>
+              Card details are encrypted and used only for secure booking
+              payments.
             </Text>
-            <TouchableOpacity
-              activeOpacity={0.82}
-              onPress={openAddCard}
-              style={styles.emptyAddButton}>
-              <Text style={styles.emptyAddButtonText}>View card form</Text>
-              <Feather name="arrow-right" size={15} color={AppColors.primary} />
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
       <Modal
         animationType="slide"
-        onRequestClose={closeAddCard}
+        onRequestClose={closeCardModal}
         transparent
-        visible={formVisible}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
+        visible={cardModalVisible}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={closeCardModal}
+            style={styles.modalBackdrop}
+          />
+          <View style={styles.cardModal}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <View style={styles.formHeadingIcon}>
-                <Feather name="edit-3" size={17} color={AppColors.primary} />
-              </View>
-              <View style={styles.formHeadingCopy}>
-                <Text style={styles.formTitle}>Card information</Text>
-                <Text style={styles.formSubtitle}>
-                  All fields are required and encrypted.
+              <View>
+                <Text style={styles.modalTitle}>Add payment card</Text>
+                <Text style={styles.modalSubtitle}>
+                  Enter the card you want to use for bookings.
                 </Text>
               </View>
               <TouchableOpacity
-                activeOpacity={0.75}
-                disabled={saving}
-                onPress={closeAddCard}
-                style={styles.closeButton}>
-                <Feather name="x" size={21} color={AppColors.textSecondary} />
+                activeOpacity={0.76}
+                disabled={busy}
+                onPress={closeCardModal}
+                style={styles.modalClose}>
+                <Feather name="x" size={18} color={AppColors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}>
-              <View style={styles.cardForm}>
-                <CreditCardInput
-                  allowScroll
-                  cardFontFamily="Manrope-Regular"
-                  cardScale={0.92}
-                  inputContainerStyle={styles.inputContainer}
-                  inputStyle={styles.input}
-                  invalidColor={AppColors.error}
-                  labelStyle={styles.label}
-                  onChange={setCardForm}
-                  placeholderColor={AppColors.textMuted}
-                  requiresCVC
-                  requiresName
-                  requiresPostalCode
-                  validColor={AppColors.textPrimary}
-                />
-              </View>
-
-              <View style={styles.securityNote}>
-                <View style={styles.securityIcon}>
-                  <Feather name="lock" size={16} color={AppColors.info} />
+            <View style={styles.cardInputShell}>
+              <View style={styles.cardPreview}>
+                <View>
+                  <Text style={styles.cardPreviewLabel}>NOTARIZR CARD</Text>
+                  <Text style={styles.cardPreviewNumber}>
+                    •••• •••• •••• ••••
+                  </Text>
                 </View>
-                <Text style={styles.securityText}>
-                  Payment information is protected using secure, encrypted
-                  transfer.
-                </Text>
+                <Feather name="credit-card" size={24} color={AppColors.white} />
               </View>
-
-              <AuthPrimaryButton
-                disabled={!cardForm.valid || saving}
-                icon="arrow-right"
-                loading={saving}
-                onPress={handleSaveCard}
-                style={styles.saveButton}
-                title="Done"
+              <CardField
+                autofocus
+                cardStyle={styles.cardFieldStyle}
+                onCardChange={card => setCardComplete(Boolean(card?.complete))}
+                placeholders={{
+                  number: '4242 4242 4242 4242',
+                  expiration: 'MM/YY',
+                  cvc: 'CVC',
+                  postalCode: 'ZIP',
+                }}
+                postalCodeEnabled
+                style={styles.cardField}
               />
-            </ScrollView>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.84}
+              disabled={busy || !cardComplete}
+              onPress={saveCard}
+              style={[
+                styles.saveCardButton,
+                (!cardComplete || busy) && styles.disabledButton,
+              ]}>
+              {busy ? (
+                <ActivityIndicator color={AppColors.white} size="small" />
+              ) : (
+                <Text style={styles.saveCardButtonText}>Save card</Text>
+              )}
+              {!busy && (
+                <Feather name="arrow-right" size={18} color={AppColors.white} />
+              )}
+            </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  cardForm: {
-    marginHorizontal: 0,
-    paddingBottom: 22,
-    paddingTop: 16,
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    borderRadius: 8,
-    backgroundColor: AppColors.surface,
-    overflow: 'hidden',
-  },
+  safeArea: {flex: 1, backgroundColor: AppColors.surface},
   content: {
     flexGrow: 1,
     paddingBottom: 34,
     backgroundColor: AppColors.background,
-  },
-  addCardButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 13,
-    paddingVertical: 9,
-    borderRadius: 8,
-    backgroundColor: AppColors.primary,
-  },
-  addCardButtonText: {
-    marginLeft: 6,
-    color: AppColors.white,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-  },
-  cardBrandIcon: {
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: AppColors.primarySoft,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    borderRadius: 8,
-    backgroundColor: AppColors.surface,
-  },
-  cardRowCopy: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 12,
-  },
-  cardRowText: {
-    marginTop: 3,
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 10,
-  },
-  cardRowTitle: {
-    color: AppColors.textPrimary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 13,
-  },
-  cardsSection: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-  },
-  closeButton: {
-    width: 38,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: AppColors.background,
-  },
-  defaultPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: AppColors.successSoft,
-  },
-  defaultPillText: {
-    color: AppColors.success,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-  },
-  description: {
-    marginTop: 4,
-    color: AppColors.textMuted,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 11,
-    lineHeight: 17,
-  },
-  eyebrow: {
-    color: AppColors.primary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-    letterSpacing: 0.9,
-  },
-  formHeading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  formHeadingCopy: {flex: 1, marginLeft: 11},
-  formHeadingIcon: {
-    width: 38,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: AppColors.primarySoft,
-  },
-  formSubtitle: {
-    marginTop: 2,
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 9,
-  },
-  formTitle: {
-    color: AppColors.textPrimary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
-  },
-  emptyAddButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 15,
-    paddingHorizontal: 13,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: AppColors.primarySoft,
-  },
-  emptyAddButtonText: {
-    marginRight: 6,
-    color: AppColors.primary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-  },
-  emptyCards: {
-    alignItems: 'center',
-    marginTop: 12,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    borderRadius: 8,
-    backgroundColor: AppColors.surface,
-  },
-  emptyIcon: {
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: AppColors.primarySoft,
-  },
-  emptyText: {
-    marginTop: 5,
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 10,
-    lineHeight: 15,
-    textAlign: 'center',
-  },
-  emptyTitle: {
-    marginTop: 13,
-    color: AppColors.textPrimary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
   },
   hero: {
     flexDirection: 'row',
@@ -357,7 +417,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.textPrimary,
     overflow: 'hidden',
   },
-  heroCopy: {flex: 1, marginLeft: 14},
   heroGlow: {
     position: 'absolute',
     top: -70,
@@ -375,49 +434,185 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: AppColors.primarySoft,
   },
-  input: {
-    color: AppColors.textPrimary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 14,
-  },
-  inputContainer: {
-    borderBottomColor: AppColors.borderStrong,
-    borderBottomWidth: 1,
-  },
-  label: {
-    color: AppColors.textSecondary,
+  heroCopy: {flex: 1, marginLeft: 14},
+  eyebrow: {
+    color: AppColors.primary,
     fontFamily: 'Manrope-Bold',
-    fontSize: 10,
+    fontSize: 9,
+    letterSpacing: 0.9,
   },
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(17,23,35,0.5)',
+  title: {
+    marginTop: 4,
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
   },
-  modalHandle: {
-    alignSelf: 'center',
-    width: 44,
-    height: 4,
-    marginTop: 10,
-    borderRadius: 2,
-    backgroundColor: AppColors.borderStrong,
+  description: {
+    marginTop: 4,
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 17,
   },
-  modalHeader: {
+  cardsSection: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    paddingTop: 16,
+    justifyContent: 'space-between',
+    gap: 14,
   },
-  modalSheet: {
-    maxHeight: '88%',
-    paddingBottom: 24,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    backgroundColor: AppColors.background,
+  sectionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
   },
-  safeArea: {flex: 1, backgroundColor: AppColors.surface},
-  saveButton: {marginHorizontal: 16, marginTop: 20},
+  sectionSubtitle: {
+    marginTop: 4,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+  },
+  addCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 82,
+    justifyContent: 'center',
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: AppColors.primary,
+  },
+  disabledButton: {opacity: 0.7},
+  addCardButtonText: {
+    marginLeft: 6,
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  loadingCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 12,
+    minHeight: 138,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.surface,
+  },
+  loadingText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
+  cardList: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.surface,
+    overflow: 'hidden',
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 82,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.border,
+    backgroundColor: AppColors.surface,
+  },
+  cardBrandIcon: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  cardRowCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 12,
+  },
+  cardRowTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  cardRowText: {
+    marginTop: 3,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    textTransform: 'capitalize',
+  },
+  removeButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.errorSoft,
+  },
+  emptyCards: {
+    alignItems: 'center',
+    marginTop: 12,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.surface,
+  },
+  emptyIcon: {
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  emptyTitle: {
+    marginTop: 13,
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  emptyText: {
+    marginTop: 5,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+    textAlign: 'center',
+  },
+  emptyAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 15,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: AppColors.primarySoft,
+  },
+  emptyAddButtonText: {
+    marginRight: 6,
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  securityNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: AppColors.infoSoft,
+  },
   securityIcon: {
     width: 36,
     height: 36,
@@ -425,15 +620,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 8,
     backgroundColor: AppColors.surface,
-  },
-  securityNote: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: AppColors.infoSoft,
   },
   securityText: {
     flex: 1,
@@ -443,20 +629,113 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 15,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-  sectionTitle: {
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,23,42,0.45)',
+  },
+  cardModal: {
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 24,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: AppColors.surface,
+  },
+  modalHandle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: AppColors.border,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    gap: 12,
+  },
+  modalTitle: {
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
-    fontSize: 16,
+    fontSize: 18,
   },
-  title: {
+  modalSubtitle: {
     marginTop: 4,
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  modalClose: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.background,
+  },
+  cardInputShell: {
+    marginTop: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.background,
+  },
+  cardPreview: {
+    minHeight: 124,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    padding: 18,
+    borderRadius: 8,
+    backgroundColor: AppColors.textPrimary,
+  },
+  cardPreviewLabel: {
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+    letterSpacing: 0.8,
+  },
+  cardPreviewNumber: {
+    marginTop: 18,
     color: AppColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 18,
+  },
+  cardField: {
+    height: 52,
+    marginTop: 14,
+  },
+  cardFieldStyle: {
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursorColor: AppColors.primary,
+    fontSize: 16,
+    placeholderColor: AppColors.textMuted,
+    textColor: AppColors.textPrimary,
+    textErrorColor: AppColors.error,
+  },
+  saveCardButton: {
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 16,
+    borderRadius: 8,
+    backgroundColor: AppColors.primary,
+  },
+  saveCardButtonText: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
   },
 });

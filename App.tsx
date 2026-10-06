@@ -140,7 +140,7 @@ function App(): JSX.Element {
   return (
     <ApolloProvider client={client}>
       <Provider store={store}>
-        <StripeProvider publishableKey={publishableKey}>
+        <StripeProvider publishableKey={publishableKey} urlScheme="notarizr">
           <GestureHandlerRootView style={{flex: 1}}>
             <SafeAreaProvider>
               <BottomSheetModalProvider>
