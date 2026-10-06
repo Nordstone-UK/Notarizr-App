@@ -85,16 +85,6 @@ export default function PaymentUpdateScreen({navigation}) {
       if (!link) {
         throw new Error('Stripe link unavailable');
       }
-      if (link === 'notarizr://stripe/local-onboarding') {
-        Toast.show({
-          type: 'success',
-          text1: 'Payouts ready',
-          text2: 'Local Stripe onboarding is marked complete.',
-        });
-        loadStripeStatus();
-        return;
-      }
-
       const supported = await Linking.canOpenURL(link);
       if (!supported) {
         throw new Error('Stripe link unsupported');
