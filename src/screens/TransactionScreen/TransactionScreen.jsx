@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -6,15 +6,18 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import {useQuery} from '@apollo/client';
+import {useFocusEffect} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import moment from 'moment';
 import PayoutSummary from '../../components/Payouts/PayoutSummary';
 import TransactionRow from '../../components/Payouts/TransactionRow';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
+import useStripeApi from '../../hooks/useStripeApi';
 import {GET_PAYMENT_INTENTS} from '../../../request/queries/getTranscation.query';
 
 const formatAmount = (amount, currency) =>
@@ -41,10 +44,46 @@ const SectionGap = () => <View style={styles.sectionGap} />;
 
 export default function TransactionScreen({navigation}) {
   const accountType = useSelector(state => state.user.user.account_type);
+  const {checkUserStipeAccount} = useStripeApi();
+  const checkStripeRef = useRef(checkUserStipeAccount);
+  const [payoutConnected, setPayoutConnected] = useState(null);
   const {data, error, loading, refetch} = useQuery(GET_PAYMENT_INTENTS, {
     fetchPolicy: 'network-only',
   });
   const isAgent = accountType !== 'client';
+  checkStripeRef.current = checkUserStipeAccount;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isAgent) {
+        return undefined;
+      }
+      let active = true;
+      checkStripeRef
+        .current()
+        .then(response => {
+          if (!active) {
+            return;
+          }
+          const stripeAccount = response?.isUserStripeOnboard;
+          setPayoutConnected(
+            Boolean(
+              stripeAccount?.has_stripe_account &&
+                stripeAccount?.has_details_submitted,
+            ),
+          );
+        })
+        .catch(() => {
+          if (active) {
+            setPayoutConnected(false);
+          }
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [isAgent]),
+  );
   const transactions = useMemo(
     () =>
       (data?.getPaymentIntents?.transactions || []).map(normalizeTransaction),
@@ -148,6 +187,31 @@ export default function TransactionScreen({navigation}) {
             <PayoutSummary amount={displayTotal} count={transactions.length} />
             {isAgent ? (
               <View style={styles.agentEarningsPanel}>
+                {payoutConnected === false ? (
+                  <View style={styles.payoutWarning}>
+                    <Feather name="alert-circle" size={16} color="#C44242" />
+                    <View style={styles.payoutWarningCopy}>
+                      <Text style={styles.payoutWarningTitle}>
+                        Stripe is not connected
+                      </Text>
+                      <Text style={styles.payoutWarningText}>
+                        You can see earnings here, but you cannot get paid until
+                        payout setup is complete.
+                      </Text>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() =>
+                          navigation.navigate('PaymentUpdateScreen')
+                        }
+                        style={styles.payoutWarningButton}>
+                        <Text style={styles.payoutWarningButtonText}>
+                          Connect Stripe
+                        </Text>
+                        <Feather name="arrow-right" size={13} color="#C44242" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : null}
                 <View style={styles.agentEarningsRow}>
                   <View style={styles.agentEarningsTile}>
                     <Feather name="file-text" size={16} color="#D65322" />
@@ -216,6 +280,45 @@ const styles = StyleSheet.create({
   agentEarningsPanel: {
     marginHorizontal: 20,
     marginTop: 14,
+  },
+  payoutWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F3D1D1',
+    borderRadius: 8,
+    backgroundColor: '#FFF1F1',
+  },
+  payoutWarningCopy: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 9,
+  },
+  payoutWarningTitle: {
+    color: '#C44242',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
+  payoutWarningText: {
+    marginTop: 3,
+    color: '#C44242',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  payoutWarningButton: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 9,
+  },
+  payoutWarningButtonText: {
+    marginRight: 5,
+    color: '#C44242',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
   },
   agentEarningsRow: {
     flexDirection: 'row',

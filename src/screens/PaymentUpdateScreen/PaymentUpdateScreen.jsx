@@ -181,8 +181,16 @@ export default function PaymentUpdateScreen({navigation}) {
           <Text style={styles.statusDescription}>
             {connected
               ? 'Your Stripe account is ready to receive Notarizr payouts.'
-              : 'Complete Stripe verification before accepting paid bookings and private sessions.'}
+              : 'You cannot receive payouts until Stripe is connected and verified. Any completed earnings will stay pending.'}
           </Text>
+          {!connected ? (
+            <View style={styles.blockedPayoutNotice}>
+              <Feather name="alert-circle" size={16} color="#C44242" />
+              <Text style={styles.blockedPayoutText}>
+                Connect Stripe to get paid for completed sessions.
+              </Text>
+            </View>
+          ) : null}
           <TouchableOpacity
             activeOpacity={0.8}
             disabled={statusLoading}
@@ -304,6 +312,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 10,
     lineHeight: 16,
+  },
+  blockedPayoutNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F3D1D1',
+    borderRadius: 8,
+    backgroundColor: '#FFF1F1',
+  },
+  blockedPayoutText: {
+    flex: 1,
+    marginLeft: 9,
+    color: '#C44242',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    lineHeight: 15,
   },
   refreshButton: {
     alignSelf: 'flex-start',

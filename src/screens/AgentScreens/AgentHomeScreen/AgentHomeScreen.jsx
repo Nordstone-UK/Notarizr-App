@@ -80,6 +80,7 @@ export default function AgentHomeScreen({navigation}) {
   const {checkUserStipeAccount} = useStripeApi();
   const fetchBookingsRef = useRef(fetchAgentBookingInfo);
   const fetchSessionsRef = useRef(handleAgentSessions);
+  const checkStripeRef = useRef(checkUserStipeAccount);
   const hasRequestsRef = useRef(false);
   const bottomSheetRef = useRef(null);
   const [requests, setRequests] = useState([]);
@@ -88,6 +89,7 @@ export default function AgentHomeScreen({navigation}) {
   const [loading, setLoading] = useState(!user?.isHomePreview);
   const [refreshing, setRefreshing] = useState(false);
   const [activeService, setActiveService] = useState(null);
+  const [payoutConnected, setPayoutConnected] = useState(null);
   const previewMode = Boolean(user?.isHomePreview);
   const previewRequests = PREVIEW_AGENT_BOOKINGS.filter(
     booking => booking.status === 'pending',
@@ -114,6 +116,7 @@ export default function AgentHomeScreen({navigation}) {
 
   fetchBookingsRef.current = fetchAgentBookingInfo;
   fetchSessionsRef.current = handleAgentSessions;
+  checkStripeRef.current = checkUserStipeAccount;
   hasRequestsRef.current = requests.length > 0;
 
   const loadDashboard = useCallback(
@@ -128,11 +131,12 @@ export default function AgentHomeScreen({navigation}) {
         ? setRefreshing(true)
         : !hasRequestsRef.current && setLoading(true);
       try {
-        const [pending, completedBookings, completedSessions] =
+        const [pending, completedBookings, completedSessions, stripeData] =
           await Promise.all([
             fetchBookingsRef.current('pending', isRefresh),
             fetchBookingsRef.current('completed', isRefresh),
             fetchSessionsRef.current('completed', isRefresh),
+            checkStripeRef.current(),
           ]);
         const safePending = Array.isArray(pending) ? pending : [];
         const safeBookings = Array.isArray(completedBookings)
@@ -144,6 +148,13 @@ export default function AgentHomeScreen({navigation}) {
 
         setRequests(safePending);
         setCompletedCount(safeBookings.length + safeSessions.length);
+        const stripeAccount = stripeData?.isUserStripeOnboard;
+        setPayoutConnected(
+          Boolean(
+            stripeAccount?.has_stripe_account &&
+              stripeAccount?.has_details_submitted,
+          ),
+        );
         setEarnings(
           [...safeBookings, ...safeSessions].reduce(
             (sum, item) => sum + Number(item?.totalPrice ?? item?.price ?? 0),
@@ -375,6 +386,15 @@ export default function AgentHomeScreen({navigation}) {
             activeOpacity={0.74}
             onPress={() => navigation.navigate('TransactionScreen')}
             style={styles.earningsPanel}>
+            {payoutConnected === false ? (
+              <View style={styles.payoutWarning}>
+                <Feather name="alert-circle" size={16} color="#C44242" />
+                <Text style={styles.payoutWarningText}>
+                  Stripe is not connected. You can track earnings here, but you
+                  cannot get paid until payout setup is complete.
+                </Text>
+              </View>
+            ) : null}
             <View style={styles.earningsHeader}>
               <View>
                 <Text style={styles.earningsLabel}>Pending payout balance</Text>
@@ -608,6 +628,24 @@ const styles = StyleSheet.create({
     borderColor: '#DDEBE3',
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
+  },
+  payoutWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F3D1D1',
+    borderRadius: 8,
+    backgroundColor: '#FFF1F1',
+  },
+  payoutWarningText: {
+    flex: 1,
+    marginLeft: 9,
+    color: '#C44242',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    lineHeight: 15,
   },
   earningsRows: {
     marginTop: 14,
