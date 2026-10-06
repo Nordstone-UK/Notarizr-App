@@ -9,9 +9,13 @@ const {
 
 const useStripeApi = () => {
   const [createStripeAccount] = useMutation(CREATE_STRIPE_ACCOUNT);
-  const [getOnboardingLink] = useLazyQuery(GET_STRIPE_ONBOARDING_LINK);
+  const [getOnboardingLink] = useLazyQuery(GET_STRIPE_ONBOARDING_LINK, {
+    fetchPolicy: 'no-cache',
+  });
   const [createPaymentIntent] = useMutation(CREATE_PAYMENT_INTENT);
-  const [iseUserStripeOnboard] = useLazyQuery(IS_USER_STRIPE_ONBOARD);
+  const [iseUserStripeOnboard] = useLazyQuery(IS_USER_STRIPE_ONBOARD, {
+    fetchPolicy: 'no-cache',
+  });
   const handleStripeCreation = async () => {
     try {
       const data = await createStripeAccount();

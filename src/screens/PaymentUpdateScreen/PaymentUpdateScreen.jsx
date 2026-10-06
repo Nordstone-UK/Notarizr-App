@@ -45,6 +45,7 @@ export default function PaymentUpdateScreen({navigation}) {
       const response = await checkStripeRef.current();
       setStripeStatus(response?.isUserStripeOnboard || null);
     } catch (error) {
+      setStripeStatus(null);
       Toast.show({
         type: 'error',
         text1: 'Payout status unavailable',
