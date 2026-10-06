@@ -4,25 +4,22 @@
  *
  * @format
  */
-import React, { useEffect, useState } from 'react';
-import SoundPlayer from 'react-native-sound-player';
+import React from 'react';
 
-import { ApolloProvider } from '@apollo/client';
-import { store } from './src/app/store';
-import { Provider, useDispatch } from 'react-redux';
+import {ApolloProvider} from '@apollo/client';
+import {store} from './src/app/store';
+import {Provider} from 'react-redux';
 import init from './apollo/init';
-import { polyfill as polyfillEncoding } from 'react-native-polyfill-globals/src/encoding';
-import { polyfill as polyfillReadableStream } from 'react-native-polyfill-globals/src/readable-stream';
-import { polyfill as polyfillFetch } from 'react-native-polyfill-globals/src/fetch';
+import {polyfill as polyfillEncoding} from 'react-native-polyfill-globals/src/encoding';
+import {polyfill as polyfillReadableStream} from 'react-native-polyfill-globals/src/readable-stream';
+import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch';
 
-import { StripeProvider } from '@stripe/stripe-react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { initializeOneSignal } from './src/utils/oneSignal';
+import {StripeProvider} from '@stripe/stripe-react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {initializeOneSignal} from './src/utils/oneSignal';
 import Wrapper from './src/routes/Root';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { EventRegister } from 'react-native-event-listeners';
-import { setNotification } from './src/features/user/userSlice';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 polyfillReadableStream();
 polyfillEncoding();
@@ -86,7 +83,6 @@ initializeOneSignal();
 //       requestPermissions: Platform.OS === 'ios',
 //     });
 
-
 //   } else {
 //     console.warn("PushNotification is not initialized.");
 //   }
@@ -115,7 +111,6 @@ initializeOneSignal();
 
 // useEffect(() => {
 
-
 // const listener = EventRegister.addEventListener('notification', notification => {
 //   dispatch(setNotification(notification));
 // });
@@ -128,8 +123,8 @@ initializeOneSignal();
 //   return null;
 // }
 function App(): JSX.Element {
-
-  const publishableKey = 'pk_test_FSxGM2WbrX0AZFSi8KLj9s4D00IxKQrrDI';
+  const publishableKey =
+    'pk_test_51PsnpQCHDRBYmq9QyDySZJkHpbqD1nwE0fjruhwbwYhUDOlDdbIvnQhtau4Kuu8VtE9R5JYnpnvQLaC6i8WdInC800LuU8ArnZ';
   // useEffect(() => {
   //   initializeOneSignal();
 
@@ -146,7 +141,7 @@ function App(): JSX.Element {
     <ApolloProvider client={client}>
       <Provider store={store}>
         <StripeProvider publishableKey={publishableKey}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
+          <GestureHandlerRootView style={{flex: 1}}>
             <SafeAreaProvider>
               <BottomSheetModalProvider>
                 <Wrapper />
