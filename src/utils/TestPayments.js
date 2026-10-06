@@ -8,10 +8,17 @@ const normalizeDigits = value => String(value || '').replace(/\D/g, '');
 export const isTestCardNumber = value =>
   normalizeDigits(value) === TEST_CARD_NUMBER;
 
-export const saveTestCard = () =>
+export const saveTestCard = (details = {}) =>
   AsyncStorage.setItem(
     TEST_CARD_STORAGE_KEY,
-    JSON.stringify({brand: 'Visa', isTest: true, last4: '4242'}),
+    JSON.stringify({
+      brand: 'Visa',
+      expiry: details.expiry || '',
+      holderName: details.name || '',
+      isDefault: true,
+      isTest: true,
+      last4: '4242',
+    }),
   );
 
 export const getSavedTestCard = async () => {
