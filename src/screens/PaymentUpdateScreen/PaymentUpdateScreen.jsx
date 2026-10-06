@@ -28,11 +28,57 @@ const Requirement = ({children}) => (
   </View>
 );
 
+const PAYOUT_PROVIDERS = {
+  stripe: {
+    brandTitle: 'Stripe payouts',
+    brandText: 'Receive client payments securely to your bank account.',
+    button: 'Connect Stripe account',
+    icon: 'credit-card',
+    incompleteButton: 'Continue Stripe setup',
+    manageButton: 'Manage Stripe account',
+    name: 'Stripe',
+    notice: 'Connect Stripe to get paid for completed sessions.',
+    security:
+      'Your financial details are entered directly with Stripe and are not stored by Notarizr. After Stripe finishes, return here and refresh your status.',
+    statusDescription:
+      'You cannot receive payouts until Stripe is connected and verified. Any completed earnings will stay pending.',
+    successDescription:
+      'Your Stripe account is ready to receive Notarizr payouts.',
+    requirements: [
+      'Government-issued identification',
+      'Bank account details for deposits',
+      'Basic business or individual tax information',
+    ],
+  },
+  paypal: {
+    brandTitle: 'PayPal payouts',
+    brandText: 'Receive client payments through your PayPal business account.',
+    button: 'Connect PayPal account',
+    icon: 'send',
+    incompleteButton: 'Continue PayPal setup',
+    manageButton: 'Manage PayPal account',
+    name: 'PayPal',
+    notice: 'Connect PayPal to get paid for completed sessions.',
+    security:
+      'Your PayPal details are entered directly with PayPal and are not stored by Notarizr. Use the same business email you want for payouts.',
+    statusDescription:
+      'You cannot receive payouts until PayPal is connected and verified. Any completed earnings will stay pending.',
+    successDescription:
+      'Your PayPal account is ready to receive Notarizr payouts.',
+    requirements: [
+      'PayPal business account',
+      'Confirmed PayPal email address',
+      'Bank account or debit card for withdrawals',
+    ],
+  },
+};
+
 export default function PaymentUpdateScreen({navigation}) {
   const {handleStripeCreation, handleOnboardingLink, checkUserStipeAccount} =
     useStripeApi();
   const checkStripeRef = useRef(checkUserStipeAccount);
   const returningFromStripeRef = useRef(false);
+  const [selectedProvider, setSelectedProvider] = useState('stripe');
   const [stripeStatus, setStripeStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -103,9 +149,44 @@ export default function PaymentUpdateScreen({navigation}) {
     }
   };
 
+  const openPayPal = async () => {
+    setActionLoading(true);
+    try {
+      const link = 'https://www.paypal.com/business';
+      const supported = await Linking.canOpenURL(link);
+      if (!supported) {
+        throw new Error('PayPal link unsupported');
+      }
+      await Linking.openURL(link);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'PayPal setup could not open',
+        text2: 'Please try again in a moment.',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openSelectedProvider = () => {
+    if (selectedProvider === 'paypal') {
+      openPayPal();
+      return;
+    }
+    openStripe();
+  };
+
   const connected =
-    stripeStatus?.has_stripe_account && stripeStatus?.has_details_submitted;
-  const started = stripeStatus?.has_stripe_account && !connected;
+    selectedProvider === 'stripe' &&
+    stripeStatus?.has_stripe_account &&
+    stripeStatus?.has_details_submitted;
+  const started =
+    selectedProvider === 'stripe' &&
+    stripeStatus?.has_stripe_account &&
+    !connected;
+  const provider = PAYOUT_PROVIDERS[selectedProvider];
+  const checkingStatus = selectedProvider === 'stripe' && statusLoading;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -117,15 +198,61 @@ export default function PaymentUpdateScreen({navigation}) {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
+        <View style={styles.providerPicker}>
+          {Object.entries(PAYOUT_PROVIDERS).map(([key, item]) => {
+            const selected = selectedProvider === key;
+            return (
+              <TouchableOpacity
+                activeOpacity={0.82}
+                key={key}
+                onPress={() => setSelectedProvider(key)}
+                style={[
+                  styles.providerOption,
+                  key === 'stripe' && styles.providerOptionFirst,
+                  selected && styles.providerOptionSelected,
+                ]}>
+                <View
+                  style={[
+                    styles.providerOptionIcon,
+                    selected && styles.providerOptionIconSelected,
+                  ]}>
+                  <Feather
+                    name={item.icon}
+                    size={17}
+                    color={selected ? AppColors.primary : AppColors.textMuted}
+                  />
+                </View>
+                <View style={styles.providerOptionCopy}>
+                  <Text
+                    style={[
+                      styles.providerOptionTitle,
+                      selected && styles.providerOptionTitleSelected,
+                    ]}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.providerOptionText}>
+                    {key === 'stripe' ? 'Bank payouts' : 'PayPal payouts'}
+                  </Text>
+                </View>
+                {selected ? (
+                  <Feather
+                    name="check-circle"
+                    size={18}
+                    color={AppColors.primary}
+                  />
+                ) : null}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         <View style={styles.stripeBrand}>
           <View style={styles.stripeIcon}>
-            <Feather name="credit-card" size={23} color={AppColors.primary} />
+            <Feather name={provider.icon} size={23} color={AppColors.primary} />
           </View>
           <View style={styles.brandCopy}>
-            <Text style={styles.brandTitle}>Stripe payouts</Text>
-            <Text style={styles.brandText}>
-              Receive client payments securely to your bank account.
-            </Text>
+            <Text style={styles.brandTitle}>{provider.brandTitle}</Text>
+            <Text style={styles.brandText}>{provider.brandText}</Text>
           </View>
         </View>
 
@@ -137,7 +264,7 @@ export default function PaymentUpdateScreen({navigation}) {
                 connected && styles.connectedIcon,
                 started && styles.startedIcon,
               ]}>
-              {statusLoading ? (
+              {checkingStatus ? (
                 <ActivityIndicator
                   color={AppColors.textSecondary}
                   size="small"
@@ -159,7 +286,7 @@ export default function PaymentUpdateScreen({navigation}) {
             <View style={styles.statusCopy}>
               <Text style={styles.statusLabel}>Account status</Text>
               <Text style={styles.statusTitle}>
-                {statusLoading
+                {checkingStatus
                   ? 'Checking your account'
                   : connected
                   ? 'Payouts connected'
@@ -171,56 +298,50 @@ export default function PaymentUpdateScreen({navigation}) {
           </View>
           <Text style={styles.statusDescription}>
             {connected
-              ? 'Your Stripe account is ready to receive Notarizr payouts.'
-              : 'You cannot receive payouts until Stripe is connected and verified. Any completed earnings will stay pending.'}
+              ? provider.successDescription
+              : provider.statusDescription}
           </Text>
           {!connected ? (
             <View style={styles.blockedPayoutNotice}>
               <Feather name="alert-circle" size={16} color="#C44242" />
-              <Text style={styles.blockedPayoutText}>
-                Connect Stripe to get paid for completed sessions.
-              </Text>
+              <Text style={styles.blockedPayoutText}>{provider.notice}</Text>
             </View>
           ) : null}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            disabled={statusLoading}
-            onPress={loadStripeStatus}
-            style={styles.refreshButton}>
-            <Feather name="refresh-cw" size={14} color={AppColors.primary} />
-            <Text style={styles.refreshText}>Refresh Stripe status</Text>
-          </TouchableOpacity>
+          {selectedProvider === 'stripe' ? (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              disabled={statusLoading}
+              onPress={loadStripeStatus}
+              style={styles.refreshButton}>
+              <Feather name="refresh-cw" size={14} color={AppColors.primary} />
+              <Text style={styles.refreshText}>Refresh Stripe status</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <View style={styles.requirementsSection}>
           <Text style={styles.sectionTitle}>What you will need</Text>
-          <Requirement>Government-issued identification</Requirement>
-          <Requirement>Bank account details for deposits</Requirement>
-          <Requirement>
-            Basic business or individual tax information
-          </Requirement>
+          {provider.requirements.map(item => (
+            <Requirement key={item}>{item}</Requirement>
+          ))}
         </View>
 
         <View style={styles.securityNote}>
           <Feather name="shield" size={18} color={AppColors.info} />
-          <Text style={styles.securityText}>
-            Your financial details are entered directly with Stripe and are not
-            stored by Notarizr. After Stripe finishes, return here and refresh
-            your status.
-          </Text>
+          <Text style={styles.securityText}>{provider.security}</Text>
         </View>
 
         <AuthPrimaryButton
           icon="arrow-right"
           loading={actionLoading}
-          onPress={openStripe}
+          onPress={openSelectedProvider}
           style={styles.primaryButton}
           title={
             connected
-              ? 'Manage Stripe account'
+              ? provider.manageButton
               : started
-              ? 'Continue Stripe setup'
-              : 'Connect Stripe account'
+              ? provider.incompleteButton
+              : provider.button
           }
         />
       </ScrollView>
@@ -234,6 +355,48 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 34,
     backgroundColor: AppColors.background,
+  },
+  providerPicker: {
+    flexDirection: 'row',
+    marginBottom: 14,
+  },
+  providerOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 74,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    backgroundColor: AppColors.white,
+  },
+  providerOptionFirst: {marginRight: 10},
+  providerOptionSelected: {
+    borderColor: AppColors.primary,
+    backgroundColor: AppColors.primarySoft,
+  },
+  providerOptionIcon: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.background,
+  },
+  providerOptionIconSelected: {backgroundColor: AppColors.white},
+  providerOptionCopy: {flex: 1, minWidth: 0, marginLeft: 9},
+  providerOptionTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  providerOptionTitleSelected: {color: AppColors.primary},
+  providerOptionText: {
+    marginTop: 2,
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 9,
   },
   stripeBrand: {
     flexDirection: 'row',
