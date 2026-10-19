@@ -35,7 +35,9 @@ export default function ToBePaidScreen({route, navigation}) {
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
   const [isDataInitialized, setIsDataInitialized] = useState(false);
+  const [paymentSetupError, setPaymentSetupError] = useState('');
   const autoPaymentStarted = useRef(false);
+  const paymentInProgress = useRef(false);
   const DocumentPrice = bookingData?.document_type?.price;
 
   const init = async () => {
@@ -78,41 +80,67 @@ export default function ToBePaidScreen({route, navigation}) {
 
   const initializePaymentSheet = async () => {
     setLoading(true);
-    let TotalPayment;
-    if (bookingData?.__typename === 'Booking') {
-      TotalPayment = bookingData.totalPrice;
-    } else if (bookingData?.__typename === 'Session') {
-      TotalPayment = bookingData.price;
+    setIsDataInitialized(false);
+    setPaymentSetupError('');
+    try {
+      const totalPayment =
+        bookingData?.__typename === 'Booking'
+          ? bookingData.totalPrice
+          : bookingData?.price;
+      if (!bookingData?._id || !Number(totalPayment)) {
+        throw new Error('Booking payment details are missing.');
+      }
+      const response = await fetchPaymentSheetParams(
+        Math.round(Number(totalPayment) * 100),
+        bookingData._id,
+        bookingData.__typename === 'Session',
+      );
+      const payload = response?.data?.createPaymentIntentR;
+      if (
+        payload?.status !== '201' ||
+        !payload?.customer_id ||
+        !payload?.ephemeralKey ||
+        !payload?.paymentIntent ||
+        String(payload.paymentIntent).startsWith('local_payment_intent_')
+      ) {
+        throw new Error(
+          payload?.message || 'Secure payment could not be initialized.',
+        );
+      }
+      const {error} = await initPaymentSheet({
+        merchantDisplayName: 'Notarizr',
+        customerId: payload.customer_id,
+        customerEphemeralKeySecret: payload.ephemeralKey,
+        paymentIntentClientSecret: payload.paymentIntent,
+        defaultBillingDetails: {
+          name: [
+            bookingData?.booked_by?.first_name,
+            bookingData?.booked_by?.last_name,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        },
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      setIsDataInitialized(true);
+      return true;
+    } catch (error) {
+      const message =
+        error?.message || 'Secure payment could not be initialized.';
+      setPaymentSetupError(message);
+      Alert.alert('Payment unavailable', message);
+      return false;
+    } finally {
+      setLoading(false);
     }
-    const response = await fetchPaymentSheetParams(
-      TotalPayment * 100,
-      bookingData._id,
-      bookingData.__typename === 'Session' ? true : false,
-    );
-    console.log('bookingrocvdfddf,', response);
-    const {customer_id, ephemeralKey, paymentIntent} =
-      response?.data?.createPaymentIntentR;
-
-    const {error} = await initPaymentSheet({
-      merchantDisplayName: 'The Opal Group',
-      customerId: customer_id,
-      customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
-      defaultBillingDetails: {
-        name:
-          bookingData?.booked_by?.first_name +
-          ' ' +
-          bookingData?.booked_by?.last_name,
-      },
-    });
-
-    console.log('error', error);
-    if (!error) {
-      setLoading(true);
-    }
-    setLoading(false);
   };
-  const openPaymentSheet = async () => {
+  const openPaymentSheet = async (sheetReady = isDataInitialized) => {
+    if (!sheetReady || paymentInProgress.current) {
+      return;
+    }
+    paymentInProgress.current = true;
     setLoading(true);
     try {
       const {error} = await presentPaymentSheet();
@@ -130,15 +158,22 @@ export default function ToBePaidScreen({route, navigation}) {
         'There was a problem processing your payment. Please try again.',
       );
     } finally {
+      paymentInProgress.current = false;
       setLoading(false);
     }
   };
+  const retryAutomaticPayment = async () => {
+    const ready = await initializePaymentSheet();
+    if (ready) {
+      autoPaymentStarted.current = true;
+      await openPaymentSheet(true);
+    }
+  };
   useEffect(() => {
-    initializePaymentSheet().then(() => {
-      setIsDataInitialized(true);
-      if (autoPay && !autoPaymentStarted.current) {
+    initializePaymentSheet().then(ready => {
+      if (ready && autoPay && !autoPaymentStarted.current) {
         autoPaymentStarted.current = true;
-        openPaymentSheet();
+        openPaymentSheet(true);
       }
     });
     // Payment initialization is intentionally tied to the active booking screen.
@@ -148,11 +183,27 @@ export default function ToBePaidScreen({route, navigation}) {
   if (autoPay) {
     return (
       <SafeAreaView style={styles.processingContainer}>
-        <ActivityIndicator color={Colors.Orange} size="large" />
-        <Text style={styles.processingTitle}>Confirming payment</Text>
-        <Text style={styles.processingText}>
-          Please wait while we confirm your booking.
-        </Text>
+        {paymentSetupError ? (
+          <>
+            <Text style={styles.processingTitle}>Payment could not start</Text>
+            <Text style={styles.processingText}>{paymentSetupError}</Text>
+            <GradientButton
+              Title="Try again"
+              loading={loading}
+              isDisabled={loading}
+              onPress={retryAutomaticPayment}
+              colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
+            />
+          </>
+        ) : (
+          <>
+            <ActivityIndicator color={Colors.Orange} size="large" />
+            <Text style={styles.processingTitle}>Confirming payment</Text>
+            <Text style={styles.processingText}>
+              Please wait while we confirm your booking.
+            </Text>
+          </>
+        )}
       </SafeAreaView>
     );
   }
@@ -196,10 +247,12 @@ export default function ToBePaidScreen({route, navigation}) {
         </View>
         <View style={{marginVertical: widthToDp(5)}}>
           <GradientButton
-            Title="Proceed to Pay"
-            loading={false}
-            isDisabled={false}
-            onPress={() => openPaymentSheet()}
+            Title={paymentSetupError ? 'Retry payment setup' : 'Proceed to Pay'}
+            loading={loading}
+            isDisabled={loading}
+            onPress={() =>
+              isDataInitialized ? openPaymentSheet() : initializePaymentSheet()
+            }
             colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
           />
         </View>

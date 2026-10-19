@@ -127,6 +127,17 @@ const normalizeFilePath = uri => {
   return decodeURIComponent(value);
 };
 
+const readUploadError = async response => {
+  try {
+    const body = await response.text();
+    const message = body.match(/<Message>([^<]+)<\/Message>/i)?.[1];
+    const code = body.match(/<Code>([^<]+)<\/Code>/i)?.[1];
+    return [code, message].filter(Boolean).join(': ');
+  } catch (_) {
+    return '';
+  }
+};
+
 const uploadLocalUriToSpaces = async ({
   uri,
   fileName,
@@ -137,17 +148,19 @@ const uploadLocalUriToSpaces = async ({
   const response = await ReactNativeBlobUtil.fetch(
     'PUT',
     upload.uploadUrl,
-    {
-      'Content-Type': contentType,
-      'x-amz-acl': 'public-read',
-    },
+    {'Content-Type': contentType},
     ReactNativeBlobUtil.wrap(normalizeFilePath(uri)),
   );
   const status = response.info().status;
-  if (status < 200 || status >= 300) {
-    throw new Error(`DigitalOcean upload failed (${status}).`);
+  if (status >= 200 && status < 300) {
+    return upload.publicUrl;
   }
-  return upload.publicUrl;
+
+  const detail = await readUploadError(response);
+
+  throw new Error(
+    `DigitalOcean upload failed (${status})${detail ? `: ${detail}` : '.'}`,
+  );
 };
 
 const uploadBase64ToSpaces = async ({

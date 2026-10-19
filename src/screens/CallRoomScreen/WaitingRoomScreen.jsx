@@ -118,8 +118,10 @@ function DetailRow({icon, title, description}) {
 }
 
 export default function WaitingRoomScreen({route, navigation}) {
-  const {uid, channel, token, time, date} = route.params || {};
+  const {uid, channel, token, time, date, sessionMode} = route.params || {};
   const bookingDetail = useSelector(state => state.booking.booking);
+  const isInPersonSession =
+    sessionMode === 'in_person' || bookingDetail?.session_mode === 'in_person';
   const user = useSelector(state => state.user.user);
   const [selectedTab, setSelectedTab] = useState('waiting');
   const [refreshing, setRefreshing] = useState(false);
@@ -168,8 +170,9 @@ export default function WaitingRoomScreen({route, navigation}) {
     bookingDetail?.service_type || bookingDetail?.service?.service_type || '',
   ).toLowerCase();
   const isRemoteSession =
-    bookingDetail?.__typename === 'Session' ||
-    ['ron', 'remote_online_notary'].includes(serviceType);
+    !isInPersonSession &&
+    (bookingDetail?.__typename === 'Session' ||
+      ['ron', 'remote_online_notary'].includes(serviceType));
   const agent = bookingDetail?.agent || (isAgent ? user : null);
   const client =
     bookingDetail?.booked_by ||
@@ -405,6 +408,8 @@ export default function WaitingRoomScreen({route, navigation}) {
         token,
         date: scheduledDate,
         time: scheduledTime,
+        sessionMode:
+          sessionMode || bookingDetail?.session_mode || 'remote_online',
         routeFrom: isAgent ? 'agent' : 'client',
       });
     }
@@ -658,10 +663,16 @@ export default function WaitingRoomScreen({route, navigation}) {
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
-                <Feather name="video" size={19} color="#FFFFFF" />
+                <Feather
+                  name={isInPersonSession ? 'edit-3' : 'video'}
+                  size={19}
+                  color="#FFFFFF"
+                />
                 <Text style={styles.joinButtonText}>
                   {sessionStarted
-                    ? 'Join secure session'
+                    ? isInPersonSession
+                      ? 'Open signing session'
+                      : 'Join secure session'
                     : sessionAvailability.actionLabel}
                 </Text>
                 <Feather name="arrow-right" size={19} color="#FFFFFF" />

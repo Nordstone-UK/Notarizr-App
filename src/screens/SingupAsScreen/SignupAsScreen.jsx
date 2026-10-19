@@ -53,7 +53,7 @@ export default function SignupAsScreen({navigation}) {
   const selectedBenefit = BENEFITS[selectedType];
 
   useEffect(() => {
-    const totalFields = selectedType === 'client' ? 8 : 12;
+    const totalFields = 8;
     dispatch(setFilledCount(1));
     dispatch(setProgress(1 / totalFields));
   }, [dispatch, selectedType]);

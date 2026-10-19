@@ -220,6 +220,9 @@ export default function AgentVerificationScreen({navigation, route}) {
   const [commissionCity, setCommissionCity] = useState(
     onboardingCommission?.city || user?.location || '',
   );
+  const [commissionZipCode, setCommissionZipCode] = useState(
+    onboardingCommission?.zipCode || user?.zipCode || '',
+  );
   const [commissionNumber, setCommissionNumber] = useState(
     onboardingCommission?.number || '',
   );
@@ -360,6 +363,7 @@ export default function AgentVerificationScreen({navigation, route}) {
       state: commissionState,
       county: commissionCounty.trim(),
       city: commissionCity.trim(),
+      zipCode: commissionZipCode.trim(),
       number: commissionNumber.trim(),
       issueDate: commissionIssueDate.trim(),
       expirationDate: commissionExpirationDate.trim(),
@@ -382,6 +386,7 @@ export default function AgentVerificationScreen({navigation, route}) {
       !commissionState ||
       !commissionCounty.trim() ||
       !commissionCity.trim() ||
+      !commissionZipCode.trim() ||
       !commissionNumber.trim() ||
       !commissionIssueDate.trim() ||
       !commissionExpirationDate.trim() ||
@@ -563,6 +568,17 @@ export default function AgentVerificationScreen({navigation, route}) {
             value={commissionCity}
             onChangeText={setCommissionCity}
             error={submitted && !commissionCity.trim() ? 'Enter city' : ''}
+          />
+          <AuthTextField
+            label="ZIP code"
+            icon="map-pin"
+            placeholder="ZIP code"
+            keyboardType="number-pad"
+            value={commissionZipCode}
+            onChangeText={setCommissionZipCode}
+            error={
+              submitted && !commissionZipCode.trim() ? 'Enter ZIP code' : ''
+            }
           />
           <AuthTextField
             label="Commission number"

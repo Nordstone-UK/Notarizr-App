@@ -16,7 +16,37 @@ const STATUS_STYLES = {
     color: BookingColors.success,
     label: 'Accepted',
   },
+  ongoing: {
+    background: BookingColors.successSoft,
+    color: BookingColors.success,
+    label: 'Accepted',
+  },
+  paid: {
+    background: BookingColors.successSoft,
+    color: BookingColors.success,
+    label: 'Accepted',
+  },
+  payment_confirmed: {
+    background: BookingColors.successSoft,
+    color: BookingColors.success,
+    label: 'Accepted',
+  },
   pending: {
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
+    label: 'Pending',
+  },
+  payment_pending: {
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
+    label: 'Pending',
+  },
+  to_be_paid: {
+    background: BookingColors.warningSoft,
+    color: BookingColors.warning,
+    label: 'Pending',
+  },
+  unpaid: {
     background: BookingColors.warningSoft,
     color: BookingColors.warning,
     label: 'Pending',
@@ -43,7 +73,8 @@ const formatService = value =>
 
 export default function BookingCard({booking, onPress}) {
   const [avatarFailed, setAvatarFailed] = useState(false);
-  const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending;
+  const normalizedStatus = String(booking.status || '').toLowerCase();
+  const status = STATUS_STYLES[normalizedStatus] || STATUS_STYLES.pending;
   const agent = booking.agent || {};
   const name =
     booking.agentName ||

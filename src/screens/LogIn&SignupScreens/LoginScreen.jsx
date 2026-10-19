@@ -1,7 +1,7 @@
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {
   Image,
-  ImageBackground,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,31 +9,37 @@ import {
   PermissionsAndroid,
   Platform,
   StatusBar,
+  TextInput,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {heightToDp, widthToDp} from '../../utils/Responsive';
-import Colors from '../../themes/Colors';
+import AppColors from '../../themes/AppColors';
 import {useDispatch} from 'react-redux';
 import {GET_PHONE_OTP} from '../../../request/queries/getPhoneOTP.query';
 import {useLazyQuery} from '@apollo/client';
 import {phoneSet} from '../../features/register/registerSlice';
 import Toast from 'react-native-toast-message';
-import Svg, {Path} from 'react-native-svg';
 import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import {normalizePhoneNumber} from '../../utils/CountryCode';
+import {GET_EMAIL_OTP} from '../../../request/queries/getEmailOTP.query';
 
-const LOGIN_BACKGROUND = Colors.white;
-const HERO_ORANGE_END = '#FD6D1F';
+const LOGIN_BACKGROUND = '#F8F1F8';
 
 export default function LoginScreen({navigation}) {
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [agentLogin, setAgentLogin] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('phone');
   const [getPhoneOtp, {loading}] = useLazyQuery(GET_PHONE_OTP, {
+    fetchPolicy: 'no-cache',
+  });
+  const [getEmailOtp, {loading: emailLoading}] = useLazyQuery(GET_EMAIL_OTP, {
     fetchPolicy: 'no-cache',
   });
   const dispatch = useDispatch();
 
-  const handleGetPhoneOtp = () => {
+  const handleGetPhoneOtp = async () => {
     // if (!emailRegex.test(email)) {
     //   Toast.show({
     //     type: 'error',
@@ -46,58 +52,96 @@ export default function LoginScreen({navigation}) {
     dispatch(phoneSet(normalizedPhone));
 
     try {
-      getPhoneOtp({
+      const response = await getPhoneOtp({
         variables: {phone: normalizedPhone},
-      }).then(response => {
-        console.log('responsessss', response);
-        if (response?.data?.getPhoneOTP?.status === '403') {
-          Toast.show({
-            type: 'error',
-            text1: 'We are Sorry!',
-            text2: 'This User is Blocked',
-          });
-        } else if (response?.data?.getPhoneOTP?.status === '401') {
-          Toast.show({
-            type: 'error',
-            text1: 'Account does not exist!',
-            text2: 'Please sign up for a new account',
-          });
-        } else if (response?.data?.getPhoneOTP?.status !== '200') {
-          // Alert.alert(
-          //   'Location service is disabled!',
-          //   'Please enable location to allow Agents to serve you better',
-          //   [
-          //     {
-          //       text: 'Cancel',
-          //       style: 'cancel',
-          //     },
-          //     {
-          //       text: 'Settings',
-          //       onPress: () => Linking.openSettings(), // Open app settings
-          //     },
-          //   ],
-          //   {cancelable: false},
-          // );
-          Toast.show({
-            type: 'error',
-            text1: 'error',
-            text2: 'Failed to send OTP',
-          });
-        } else {
-          Toast.show({
-            type: 'success',
-            text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
-            text2: '',
-          });
-          navigation.navigate('PhoneVerification', {
-            message: response.data.getPhoneOTP.phoneNumber,
-          });
-        }
       });
+      console.log('responsessss', response);
+      if (response?.data?.getPhoneOTP?.status === '403') {
+        Toast.show({
+          type: 'error',
+          text1: 'We are Sorry!',
+          text2: 'This User is Blocked',
+        });
+      } else if (response?.data?.getPhoneOTP?.status === '401') {
+        Toast.show({
+          type: 'error',
+          text1: 'Account does not exist!',
+          text2: 'Please sign up for a new account',
+        });
+      } else if (response?.data?.getPhoneOTP?.status !== '200') {
+        // Alert.alert(
+        //   'Location service is disabled!',
+        //   'Please enable location to allow Agents to serve you better',
+        //   [
+        //     {
+        //       text: 'Cancel',
+        //       style: 'cancel',
+        //     },
+        //     {
+        //       text: 'Settings',
+        //       onPress: () => Linking.openSettings(), // Open app settings
+        //     },
+        //   ],
+        //   {cancelable: false},
+        // );
+        Toast.show({
+          type: 'error',
+          text1: 'error',
+          text2: 'Failed to send OTP',
+        });
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: `OTP Sent on ${response.data.getPhoneOTP.phoneNumber}`,
+          text2: '',
+        });
+        navigation.navigate('PhoneVerification', {
+          message: response.data.getPhoneOTP.phoneNumber,
+          isAgentLogin: agentLogin,
+        });
+      }
     } catch (error) {
       console.log('#######', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Could not send OTP',
+        text2: 'Please try again.',
+      });
     }
     // }
+  };
+
+  const handleGetEmailOtp = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      Toast.show({type: 'error', text1: 'Enter a valid email address'});
+      return;
+    }
+    try {
+      const response = await getEmailOtp({
+        variables: {email: normalizedEmail, newUser: false},
+      });
+      const result = response?.data?.getEmailOTP;
+      if (result?.status !== '200') {
+        Toast.show({
+          type: 'error',
+          text1: 'Could not send OTP',
+          text2: result?.message || 'Check the email and try again.',
+        });
+        return;
+      }
+      navigation.navigate('EmailVerification', {
+        email: normalizedEmail,
+        isAgentLogin: agentLogin,
+      });
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Could not send OTP',
+        text2: 'Please try again.',
+      });
+    }
   };
 
   useEffect(() => {
@@ -184,61 +228,116 @@ export default function LoginScreen({navigation}) {
     }
   };
   return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent
-      />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={LOGIN_BACKGROUND} />
       <KeyboardAwareScrollView
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={26}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-        <ImageBackground
-          source={require('../../../assets/loginBackground.png')}
-          style={styles.heroImage}
-          resizeMode="stretch">
-          <View style={styles.logoLockup}>
+        <View style={styles.page}>
+          <View style={styles.hero}>
             <Image
-              source={require('../../../assets/notarizrLogo1.png')}
-              style={styles.logo}
+              source={require('../../../assets/loginLockTransparent.png')}
+              style={styles.heroImage}
               resizeMode="contain"
             />
           </View>
-          <Svg
-            style={styles.waveOverlay}
-            viewBox="0 0 400 90"
-            preserveAspectRatio="none">
-            <Path
-              d="M0 42 C58 74 120 8 190 36 C262 66 326 20 400 48 L400 90 L0 90 Z"
-              fill={Colors.white}
+
+          <View style={styles.content}>
+            <Text style={styles.title}>
+              {agentLogin ? 'Agent sign in' : 'Verify Phone Number'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {agentLogin
+                ? 'Sign in with your registered phone number or email.'
+                : 'Enter your phone number and we’ll send a secure one-time code.'}
+            </Text>
+
+            {agentLogin && (
+              <View style={styles.methodSwitch}>
+                {['phone', 'email'].map(method => (
+                  <TouchableOpacity
+                    key={method}
+                    onPress={() => setLoginMethod(method)}
+                    style={[
+                      styles.methodButton,
+                      loginMethod === method && styles.methodButtonSelected,
+                    ]}>
+                    <Text
+                      style={[
+                        styles.methodText,
+                        loginMethod === method && styles.methodTextSelected,
+                      ]}>
+                      {method === 'phone' ? 'Phone' : 'Email'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {agentLogin && loginMethod === 'email' ? (
+              <View style={styles.emailInputShell}>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Email address"
+                  placeholderTextColor={AppColors.textMuted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                  style={styles.emailInput}
+                />
+              </View>
+            ) : (
+              <AuthPhoneField
+                label={null}
+                value={phone}
+                onChangeText={setPhone}
+              />
+            )}
+
+            <AuthPrimaryButton
+              title="Send OTP"
+              icon="arrow-right"
+              loading={loading || emailLoading}
+              onPress={
+                agentLogin && loginMethod === 'email'
+                  ? handleGetEmailOtp
+                  : handleGetPhoneOtp
+              }
+              style={styles.loginButton}
             />
-          </Svg>
-        </ImageBackground>
 
-        <View style={styles.formSection}>
-          <Text style={styles.headerText}>Login</Text>
-          <AuthPhoneField value={phone} onChangeText={setPhone} />
-
-          <AuthPrimaryButton
-            title="Login"
-            loading={loading}
-            onPress={handleGetPhoneOtp}
-            style={styles.loginButton}
-          />
+            <Text style={styles.helperText}>
+              We’ll text you a code. Standard message rates may apply.
+            </Text>
+          </View>
 
           <View style={styles.signupRow}>
             <Text style={styles.signupPrompt}>Don’t have an account? </Text>
             <TouchableOpacity
+              activeOpacity={0.75}
               onPress={() => navigation.navigate('SignupAsScreen')}>
               <Text style={styles.signupLink}>Sign up</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            style={styles.agentLoginButton}
+            activeOpacity={0.75}
+            onPress={() => {
+              setAgentLogin(value => !value);
+              setLoginMethod('phone');
+            }}>
+            <Text style={styles.agentLoginText}>
+              {agentLogin ? 'Sign in as a client' : 'Login as agent'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -249,63 +348,115 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: heightToDp(6),
     backgroundColor: LOGIN_BACKGROUND,
   },
-  logoLockup: {
-    // backgroundColor: 'red',
-    // position: 'absolute',
-    // left: 0,
-    // right: 0,
-    // top: '50%',
-    // height: heightToDp(15),
+  page: {
+    flex: 1,
+    minHeight: heightToDp(100),
+    paddingHorizontal: widthToDp(5),
+    paddingTop: heightToDp(1),
+    paddingBottom: heightToDp(4),
+    backgroundColor: LOGIN_BACKGROUND,
+  },
+  hero: {
     alignItems: 'center',
     justifyContent: 'center',
-    // transform: [{translateY: -heightToDp(7.5)}],
-  },
-  logo: {
-    width: widthToDp(60),
-    height: '100%',
+    flex: 1.45,
+    paddingTop: heightToDp(1),
   },
   heroImage: {
-    width: '100%',
-    height: heightToDp(128),
+    width: widthToDp(164),
+    height: heightToDp(66),
   },
-  waveOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: -1,
-    width: '100%',
-    height: heightToDp(10),
+  content: {
+    flex: 0.78,
+    justifyContent: 'flex-end',
+    paddingBottom: heightToDp(4),
   },
-  formSection: {
-    width: '100%',
-    paddingHorizontal: widthToDp(7),
-    paddingTop: heightToDp(4.5),
-  },
-  headerText: {
+  title: {
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
-    fontSize: 30,
-    color: Colors.TextColor,
-    marginBottom: 24,
+    fontSize: 29,
+    lineHeight: 37,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  subtitle: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: heightToDp(4),
+    paddingHorizontal: widthToDp(4),
+    textAlign: 'center',
   },
   loginButton: {
-    marginBottom: 22,
+    marginTop: 18,
+    borderRadius: 999,
+  },
+  helperText: {
+    marginTop: 16,
+    color: AppColors.textMuted,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   signupRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: heightToDp(0.8),
+    flexWrap: 'wrap',
+    minHeight: 28,
   },
   signupPrompt: {
-    color: Colors.DullTextColor,
+    color: AppColors.textSecondary,
     fontFamily: 'Manrope-Regular',
     fontSize: 14,
   },
   signupLink: {
-    color: HERO_ORANGE_END,
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  methodSwitch: {
+    flexDirection: 'row',
+    padding: 4,
+    marginBottom: 14,
+    borderRadius: 14,
+    backgroundColor: '#F4EDF4',
+  },
+  methodButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 11,
+  },
+  methodButtonSelected: {backgroundColor: AppColors.white},
+  methodText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  methodTextSelected: {color: AppColors.primary},
+  emailInputShell: {
+    height: 58,
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    backgroundColor: '#F4EDF4',
+  },
+  emailInput: {
+    padding: 0,
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 16,
+  },
+  agentLoginButton: {alignSelf: 'center', marginTop: 12, padding: 8},
+  agentLoginText: {
+    color: AppColors.primary,
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
   },

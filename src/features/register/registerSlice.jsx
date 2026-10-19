@@ -10,6 +10,7 @@ const initialState = {
   photoId: 'none',
   accountType: 'client',
   location: 'none',
+  zipCode: '',
   progress: 0,
   filledCount: 0,
 };
@@ -33,6 +34,7 @@ export const registerSlice = createSlice({
       state.phoneNumber = action.payload.phoneNumber;
       state.gender = action.payload.gender;
       state.location = action.payload.location;
+      state.zipCode = action.payload.zipCode;
       state.dateOfBirth = action.payload.date;
       state.description = action.payload.description;
       // console.log('Redux ', state);

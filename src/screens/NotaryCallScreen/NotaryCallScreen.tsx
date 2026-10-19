@@ -48,7 +48,10 @@ import { uploadSignedDocumentToSpaces } from '../../utils/spacesHelper';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
-import { useSession } from '../../hooks/useSession';
+import {
+  COMPLETE_BOOKING_NOTARIZATION,
+  COMPLETE_SESSION_NOTARIZATION,
+} from '../../../request/mutations/completeNotarization.mutation';
 import useBookingStatus from '../../hooks/useBookingStatus';
 import { GET_SESSION_BY_ID } from '../../../request/queries/getSessionByID.query';
 import { GET_BOOKING_BY_ID } from '../../../request/queries/getBookingByID.query';
@@ -61,6 +64,7 @@ import { UPDATE_OR_CREATE_SESSION_CLIENT_DOCS } from '../../../request/mutations
 import DrawSignTypeModal, { ActiveSignerPresence } from './Signature';
 import { getSessionAvailability } from '../../utils/sessionAvailability';
 import {getObserverPhone} from '../../utils/observerPhone';
+import LiveKitSessionVideo from '../../components/LiveKitSessionVideo/LiveKitSessionVideo';
 
 const resolveDocumentUri = (document: any): string | null => {
   if (typeof document === 'string') {
@@ -160,13 +164,17 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   );
   const dispatch = useDispatch();
   const [UpdateDocumentsByDocId] = useMutation(SIGN_DOCS);
-  const { updateSession } = useSession();
   const {
-    handleUpdateBookingStatus,
     handlegetBookingStatus,
     handleSessionStatus,
   } = useBookingStatus();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
+  const [completeBookingNotarization] = useMutation(
+    COMPLETE_BOOKING_NOTARIZATION,
+  );
+  const [completeSessionNotarization] = useMutation(
+    COMPLETE_SESSION_NOTARIZATION,
+  );
   const [getSession] = useLazyQuery(GET_SESSION_BY_ID);
   const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID, {
     fetchPolicy: 'network-only',
@@ -225,6 +233,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const bookingData =
     useSelector((state: any) => state?.booking?.booking) || {};
+  const sessionIdentityProof = bookingData?.live_session?.identity_proof;
+  const sessionIdentityProofUrl = resolveDocumentUri(sessionIdentityProof);
+  const sessionIdentityProofName = documentFileName(
+    sessionIdentityProof,
+    'Client identity proof',
+  );
   const isObserver = useMemo(() => {
     if (isAgent) {
       return false;
@@ -248,6 +262,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       ? 'Observer'
       : 'Client';
   const bookingRoomId = routeUid || bookingData?._id;
+  const isInPersonMode =
+    route?.params?.sessionMode === 'in_person' ||
+    bookingData?.session_mode === 'in_person';
+  const useLiveKit = Boolean(bookingRoomId) && !isInPersonMode;
   const scheduledDate =
     routeDate || bookingData?.date_of_booking || bookingData?.date_time_session;
   const scheduledTime =
@@ -1016,6 +1034,91 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
   };
 
+  const buildCompletionPackage = notarizedDocs => {
+    const assets = User?.notaryOnboarding?.assets || {};
+    const signatureUrl =
+      assets.signature ||
+      (Array.isArray(User?.notarysigns) ? User.notarysigns[0]?.signUrl : '') ||
+      '';
+    const esealUrl = assets.eSeal || User?.notarySeal || '';
+    const digitalCertificateUrl = assets.digitalCertificate || '';
+    const finalPdfUrl = Array.isArray(notarizedDocs) ? notarizedDocs[0] || '' : '';
+
+    return {
+      certificate_wording:
+        'Completed remote online notarization by the commissioned notary.',
+      signature_url: signatureUrl,
+      eseal_url: esealUrl,
+      digital_certificate_url: digitalCertificateUrl,
+      certificate_forms_url: assets.certificateForms || '',
+      final_pdf_url: finalPdfUrl,
+      final_pdf_urls: Array.isArray(notarizedDocs) ? notarizedDocs : [],
+    };
+  };
+
+  const buildJournalEntry = notarizedDocs => ({
+    service_type: bookingData?.service_type || bookingData?.session_type || '',
+    client:
+      getPersonName(bookingData?.booked_by) ||
+      bookingData?.client_email ||
+      bookingData?.booked_for?.email ||
+      '',
+    notary: getPersonName(User),
+    document_count: Array.isArray(notarizedDocs) ? notarizedDocs.length : 0,
+    notarized_docs: Array.isArray(notarizedDocs) ? notarizedDocs : [],
+    completed_at: new Date().toISOString(),
+  });
+
+  const normalizeFinalPdfUrls = notarizedDocs =>
+    Array.from(
+      new Set(
+        (Array.isArray(notarizedDocs) ? notarizedDocs : [])
+          .map(resolveDocumentUri)
+          .filter(url => /^https?:\/\//i.test(String(url || ''))),
+      ),
+    );
+
+  const completeNotarizationRecord = async (recordId, notarizedDocs) => {
+    const finalPdfUrls = normalizeFinalPdfUrls(notarizedDocs);
+    if (!finalPdfUrls.length) {
+      throw new Error('Upload at least one final notarized PDF before completing.');
+    }
+
+    const completionPackage = buildCompletionPackage(finalPdfUrls);
+    const journalEntry = buildJournalEntry(finalPdfUrls);
+    const isSessionRecord = bookingData?.__typename === 'Session';
+
+    if (isSessionRecord) {
+      const {data} = await completeSessionNotarization({
+        variables: {
+          sessionId: recordId,
+          completionPackage,
+          journalEntry,
+          notarizedDocs: finalPdfUrls,
+        },
+      });
+      const response = data?.completeSessionNotarizationR;
+      if (response?.status !== '200') {
+        throw new Error(response?.message || 'The server did not complete the session.');
+      }
+      return response?.session;
+    }
+
+    const {data} = await completeBookingNotarization({
+      variables: {
+        bookingId: recordId,
+        completionPackage,
+        journalEntry,
+        notarizedDocs: finalPdfUrls,
+      },
+    });
+    const response = data?.completeBookingNotarizationR;
+    if (response?.status !== '200') {
+      throw new Error(response?.message || 'The server did not complete the booking.');
+    }
+    return response?.booking;
+  };
+
   /////////////////////////////////////
   ///////////////////////////////
 
@@ -1171,6 +1274,15 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   }, []);
 
   useEffect(() => {
+    if (isInPersonMode) {
+      setCallStatus('connected');
+      setCallError('');
+      return undefined;
+    }
+    if (useLiveKit) {
+      return undefined;
+    }
+
     let active = true;
     let eventHandler: any;
 
@@ -1295,7 +1407,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       engine?.release();
       agoraEngineRef.current = undefined;
     };
-  }, [getPermission, join]);
+  }, [getPermission, isInPersonMode, join, useLiveKit]);
 
   const readSigningImage = async (uri: string): Promise<string> => {
     if (!uri) {
@@ -1475,14 +1587,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         throw new Error('The booking could not be identified.');
       }
 
-      const isSessionRecord = bookingData?.__typename === 'Session';
-      const completedRecord = isSessionRecord
-        ? await updateSession('completed', recordId)
-        : await handleUpdateBookingStatus('completed', recordId, {
-          navigate: false,
-          throwOnError: true,
-          verifyPersistedStatus: true,
-        });
+      const completedRecord = await completeNotarizationRecord(
+        recordId,
+        savedNotarizedUrls.length > 0
+          ? savedNotarizedUrls
+          : bookingData?.notarized_docs || [],
+      );
 
       if (String(completedRecord?.status).toLowerCase() !== 'completed') {
         throw new Error('The server did not confirm the completed status.');
@@ -1938,7 +2048,40 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     ? participantInfoForUid(primaryRemoteUid, 0)
     : null;
 
-  const renderFullVideoPanel = () => (
+  const renderFullVideoPanel = () => {
+    if (isInPersonMode) {
+      return (
+        <View style={styles.videoPanel}>
+          <View style={styles.videoStage}>
+            <View style={styles.inPersonSessionState}>
+              <View style={styles.inPersonSessionIcon}>
+                <Feather name="edit-3" size={25} color={BookingColors.primary} />
+              </View>
+              <RNText style={styles.inPersonSessionTitle}>
+                In-person signing session
+              </RNText>
+              <RNText style={styles.inPersonSessionDescription}>
+                You and the notary are together. Open the shared document below
+                to review and sign electronically.
+              </RNText>
+            </View>
+          </View>
+        </View>
+      );
+    }
+    if (useLiveKit) {
+      return (
+        <LiveKitSessionVideo
+          canJoin={sessionAvailability.canJoin}
+          isClient={isClient}
+          onComplete={isClient ? undefined : completeCall}
+          recordId={bookingRoomId}
+          unavailableMessage={sessionAvailability.message}
+        />
+      );
+    }
+
+    return (
     <View style={styles.videoPanel}>
       <View style={styles.videoStage}>
         {primaryRemoteUid && !isRemoteVideoMuted(primaryRemoteUid) ? (
@@ -2101,7 +2244,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         )}
       </View>
     </View>
-  );
+    );
+  };
 
   const renderParticipantPips = () => (
     <ScrollView
@@ -2496,7 +2640,9 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <RNText style={styles.headerTitle}>Notary Session</RNText>
+          <RNText style={styles.headerTitle}>
+            {isInPersonMode ? 'In-Person Signing' : 'Notary Session'}
+          </RNText>
           <View style={styles.sessionBadge}>
             <Feather name="hash" size={9} color={BookingColors.primary} />
             <RNText style={styles.sessionBadgeText} numberOfLines={1}>
@@ -2551,8 +2697,45 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         )}
       </View>
 
+      {isAgent && sessionIdentityProofUrl && (
+        <TouchableOpacity
+          accessibilityLabel="Open client identity proof"
+          onPress={() => Linking.openURL(sessionIdentityProofUrl)}
+          style={styles.identityProofRow}>
+          <View style={styles.identityProofIcon}>
+            <Feather name="shield" size={16} color={BookingColors.primary} />
+          </View>
+          <View style={styles.identityProofCopy}>
+            <RNText style={styles.identityProofTitle}>Client identity proof</RNText>
+            <RNText numberOfLines={1} style={styles.identityProofName}>
+              {sessionIdentityProofName}
+            </RNText>
+          </View>
+          <Feather name="external-link" size={17} color={BookingColors.primary} />
+        </TouchableOpacity>
+      )}
+
       {isDocumentCollaborationActive ? (
         /* Compact call chrome keeps the shared document as the primary canvas. */
+        isInPersonMode ? (
+          <View style={styles.sessionControlBar}>
+            <View style={styles.compactCallStatus}>
+              <View style={[styles.callStatusDot, styles.callStatusDotConnected]} />
+              <RNText numberOfLines={1} style={styles.compactCallStatusText}>
+                In-person signing workspace
+              </RNText>
+            </View>
+          </View>
+        ) : useLiveKit && !clientDocModalVisible ? (
+          <LiveKitSessionVideo
+            canJoin={sessionAvailability.canJoin}
+            compact
+            isClient={isClient}
+            onComplete={isClient ? undefined : completeCall}
+            recordId={bookingRoomId}
+            unavailableMessage={sessionAvailability.message}
+          />
+        ) : (
         <View style={styles.sessionControlBar}>
           <View style={styles.compactCallStatus}>
             <View
@@ -2616,11 +2799,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
             </TouchableOpacity>
           </View>
         </View>
+        )
       ) : (
         renderFullVideoPanel()
       )}
 
-      {(callStatus === 'error' || callStatus === 'permissions') && (
+      {!useLiveKit && !isInPersonMode && (callStatus === 'error' || callStatus === 'permissions') && (
         <View style={styles.callErrorBanner}>
           <View style={styles.callErrorIcon}>
             <Feather name="alert-circle" size={18} color={BookingColors.error} />
@@ -2796,8 +2980,22 @@ export default function NotaryCallScreen({ route, navigation }: any) {
           ]}>
           <View style={styles.Maincontainer}>
             <View style={styles.documentCallBar}>
+              {useLiveKit && (
+                <LiveKitSessionVideo
+                  canJoin={sessionAvailability.canJoin}
+                  compact
+                  isClient={isClient}
+                  onComplete={isClient ? undefined : completeCall}
+                  recordId={bookingRoomId}
+                  unavailableMessage={sessionAvailability.message}
+                />
+              )}
               {renderParticipantPips()}
-              <View style={styles.documentCallControls}>
+              {isInPersonMode ? (
+                <RNText style={styles.documentCallModeLabel}>
+                  In-person signing
+                </RNText>
+              ) : !useLiveKit && <View style={styles.documentCallControls}>
                 <TouchableOpacity
                   accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
                   style={styles.documentCallControl}
@@ -2858,7 +3056,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                     )}
                   </TouchableOpacity>
                 )}
-              </View>
+              </View>}
             </View>
             <View style={styles.header}>
               <RNText numberOfLines={1} style={[styles.headerTitle, { flex: 1 }]}>
@@ -3380,6 +3578,42 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  identityProofRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 10,
+    backgroundColor: BookingColors.surface,
+    gap: 10,
+  },
+  identityProofIcon: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  identityProofCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  identityProofTitle: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  identityProofName: {
+    marginTop: 1,
+    color: BookingColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+  },
   documentHeaderActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -3475,6 +3709,41 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#090D14',
+  },
+  inPersonSessionState: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+  },
+  inPersonSessionIcon: {
+    alignItems: 'center',
+    backgroundColor: '#FFF0E7',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 60,
+  },
+  inPersonSessionTitle: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 17,
+    textAlign: 'center',
+  },
+  inPersonSessionDescription: {
+    color: '#AEB4BF',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 8,
+    maxWidth: 300,
+    textAlign: 'center',
+  },
+  documentCallModeLabel: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
   },
   mainVideoView: {
     ...StyleSheet.absoluteFillObject,

@@ -6,6 +6,7 @@ export const EDIT_USER_ADDRESS = gql`
     $tag: String!
     $lat: String
     $lng: String
+    $zipCode: String
     $addressId: String!
   ) {
     updateUserAddressR(
@@ -13,6 +14,7 @@ export const EDIT_USER_ADDRESS = gql`
       tag: $tag
       lat: $lat
       lng: $lng
+      zipCode: $zipCode
       addressId: $addressId
     ) {
       status

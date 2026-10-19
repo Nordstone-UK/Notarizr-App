@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useMutation, useQuery} from '@apollo/client';
+import {useLazyQuery, useMutation, useQuery} from '@apollo/client';
 import Feather from 'react-native-vector-icons/Feather';
 import {useDispatch, useSelector} from 'react-redux';
 import NotificationHeader from '../../components/Notifications/NotificationHeader';
@@ -25,6 +25,7 @@ import {
   normalizePushNotification,
 } from '../../utils/notificationCenter';
 import {GET_ALL_CHATS} from '../../../request/queries/getAllChats.query';
+import {GET_SESSION_BY_ID} from '../../../request/queries/getSessionByID.query';
 import {
   GET_NOTIFICATIONS_BY_ID,
   MARK_ALL_NOTIFICATIONS_READ,
@@ -106,6 +107,7 @@ export default function NotificationScreen({navigation}) {
   const [readIds, setReadIds] = useState([]);
   const [markNotificationRead] = useMutation(MARK_NOTIFICATION_READ);
   const [markAllNotificationsRead] = useMutation(MARK_ALL_NOTIFICATIONS_READ);
+  const [fetchSessionByID] = useLazyQuery(GET_SESSION_BY_ID);
 
   const {data, loading, refetch} = useQuery(GET_NOTIFICATIONS_BY_ID, {
     variables: {page: 1, limit: 300},
@@ -258,8 +260,11 @@ export default function NotificationScreen({navigation}) {
 
   const routeToMessages = () =>
     navigation.navigate('HomeScreen', {screen: 'ChatContactScreen'});
-  const routeToBookings = () =>
-    navigation.navigate('HomeScreen', {screen: 'AllBookingScreen'});
+  const routeToBookings = params =>
+    navigation.navigate('HomeScreen', {
+      screen: 'AllBookingScreen',
+      params,
+    });
 
   const openNotification = async item => {
     markRead(item).catch(() => {});
@@ -279,31 +284,60 @@ export default function NotificationScreen({navigation}) {
       return;
     }
 
-    if (item.type === 'session') {
-      let booking = item.booking;
-      const bookingId = bookingIdFromNotification(item);
-      if (!booking && bookingId) {
-        const response = await bookingApiRef.current.fetchBookingByID(
-          bookingId,
-        );
-        booking = response?.getBookingById?.booking;
+    if (item.type === 'session' || item.type === 'session_created') {
+      let session = item.booking;
+      const sessionId = bookingIdFromNotification(item);
+      if (sessionId) {
+        const response = await fetchSessionByID({
+          variables: {sessionId},
+          fetchPolicy: 'network-only',
+        });
+        session = response?.data?.getSession?.session || session;
       }
 
-      if (booking) {
-        dispatch(setBookingInfoState(booking));
+      if (session) {
+        const sessionStatus = String(session.status || '').toLowerCase();
+        if (
+          !isAgent &&
+          ['pending', 'invited', 'created'].includes(sessionStatus)
+        ) {
+          navigation.navigate('SessionInvitationScreen', {
+            sessionId: session._id,
+            recordType: 'session',
+          });
+          return;
+        }
+        const sessionMode = session.session_mode || 'remote_online';
+        dispatch(setBookingInfoState(session));
         navigation.navigate('WaitingRoomScreen', {
-          uid: booking._id,
-          channel: booking.agora_channel_name,
-          token: booking.agora_channel_token,
-          date: booking.date_of_booking,
-          time: booking.time_of_booking,
+          uid: session._id,
+          channel: session.agora_channel_name,
+          token: session.agora_channel_token,
+          date: session.date_time_session,
+          time: session.date_time_session,
+          sessionMode,
         });
         return;
       }
     }
 
-    if (['booking', 'payment', 'document', 'session'].includes(item.type)) {
-      routeToBookings();
+    if (
+      ['booking', 'payment', 'document', 'session', 'session_created'].includes(
+        item.type,
+      )
+    ) {
+      const status = String(item.metadata?.status || '').toLowerCase();
+      const isPendingRequest =
+        isAgent &&
+        item.type === 'booking' &&
+        (status === 'pending' ||
+          /new booking|nearby|requested|request/i.test(
+            `${item.title || ''} ${item.description || ''}`,
+          ));
+
+      routeToBookings(
+        isPendingRequest ? {initialStatus: 'pending'} : undefined,
+      );
     }
   };
 

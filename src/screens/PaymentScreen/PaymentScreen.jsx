@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
 import Colors from '../../themes/Colors';
 
@@ -26,6 +26,9 @@ export default function PaymentScreen({navigation}) {
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {fetchPaymentSheetParams} = useStripeApi();
   const [loading, setLoading] = useState(false);
+  const [paymentSheetReady, setPaymentSheetReady] = useState(false);
+  const [paymentSetupError, setPaymentSetupError] = useState(false);
+  const paymentInProgress = useRef(false);
   const breakdown = bookingDetail?.price_breakdown;
   const documentItems = Array.isArray(bookingDetail?.document_type)
     ? bookingDetail.document_type
@@ -55,49 +58,86 @@ export default function PaymentScreen({navigation}) {
 
   const initializePaymentSheet = async () => {
     setLoading(true);
-    const response = await fetchPaymentSheetParams(
-      Math.round(totalAmount * 100),
-      bookingDetail._id,
-      isSessionPayment,
-    );
-    const {customer_id, ephemeralKey, paymentIntent} =
-      response?.data?.createPaymentIntentR;
-    console.log(
-      'Payment Intent response',
-      customer_id,
-      ephemeralKey,
-      paymentIntent,
-    );
-    const {error} = await initPaymentSheet({
-      merchantDisplayName: 'The Opal Group',
-      customerId: customer_id,
-      customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
-      defaultBillingDetails: {
-        name:
-          bookingDetail?.booked_by?.first_name +
-          ' ' +
-          bookingDetail?.booked_by?.last_name,
-      },
-    });
-    if (!error) {
-      setLoading(true);
-      // console.log('error', error);
+    setPaymentSheetReady(false);
+    setPaymentSetupError(false);
+    try {
+      if (!bookingDetail?._id) {
+        throw new Error(
+          'The booking details are missing. Please reopen the booking.',
+        );
+      }
+      const response = await fetchPaymentSheetParams(
+        Math.round(totalAmount * 100),
+        bookingDetail._id,
+        isSessionPayment,
+      );
+      const payload = response?.data?.createPaymentIntentR;
+      if (
+        payload?.status !== '201' ||
+        !payload?.customer_id ||
+        !payload?.ephemeralKey ||
+        !payload?.paymentIntent ||
+        String(payload.paymentIntent).startsWith('local_payment_intent_')
+      ) {
+        throw new Error(
+          payload?.message ||
+            'Secure payment could not be initialized. Please try again.',
+        );
+      }
+      const {error} = await initPaymentSheet({
+        merchantDisplayName: 'The Opal Group',
+        customerId: payload.customer_id,
+        customerEphemeralKeySecret: payload.ephemeralKey,
+        paymentIntentClientSecret: payload.paymentIntent,
+        defaultBillingDetails: {
+          name: [
+            bookingDetail?.booked_by?.first_name,
+            bookingDetail?.booked_by?.last_name,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        },
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      setPaymentSheetReady(true);
+    } catch (error) {
+      setPaymentSetupError(true);
+      Alert.alert(
+        'Payment unavailable',
+        error?.message ||
+          'Secure payment could not be initialized. Please try again.',
+      );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   const openPaymentSheet = async () => {
-    setLoading(true);
-    const {error} = await presentPaymentSheet();
-
-    if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('error.message', error.message);
-    } else {
-      // Alert.alert('Payment Completed!');
-      navigation.navigate('CompletePayment');
+    if (!paymentSheetReady || paymentInProgress.current) {
+      return;
     }
-    setLoading(false);
+    paymentInProgress.current = true;
+    setLoading(true);
+    try {
+      const {error} = await presentPaymentSheet();
+      if (error) {
+        if (error.code !== 'Canceled') {
+          Alert.alert('Payment failed', error.message);
+        }
+        return;
+      }
+      navigation.navigate('CompletePayment');
+    } catch (error) {
+      Alert.alert(
+        'Payment failed',
+        error?.message ||
+          'The payment sheet could not be opened. Please try again.',
+      );
+    } finally {
+      paymentInProgress.current = false;
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -155,10 +195,17 @@ export default function PaymentScreen({navigation}) {
               marginVertical: heightToDp(10),
             }}>
             <GradientButton
-              Title="Complete Payment"
+              Title={
+                paymentSetupError ? 'Retry payment setup' : 'Complete Payment'
+              }
               colors={[Colors.OrangeGradientStart, Colors.OrangeGradientEnd]}
-              onPress={() => openPaymentSheet()}
+              onPress={() =>
+                paymentSheetReady
+                  ? openPaymentSheet()
+                  : initializePaymentSheet()
+              }
               loading={loading}
+              isDisabled={loading}
             />
           </View>
         </ScrollView>

@@ -4,9 +4,10 @@
 buildscript {
     ext {
         buildToolsVersion = "33.0.0"
-        minSdkVersion = 23
+        minSdkVersion = 24
         compileSdkVersion = 34
         targetSdkVersion = 34
+        kotlinVersion = "1.9.25"
 
         // We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
         ndkVersion = "23.1.7779620"
@@ -18,5 +19,13 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin:0.72.4")
+    }
+}
+
+subprojects {
+    tasks.configureEach { task ->
+        if (task.name.startsWith("compile") && task.name.endsWith("Kotlin")) {
+            task.kotlinOptions.jvmTarget = "11"
+        }
     }
 }

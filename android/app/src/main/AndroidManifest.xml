@@ -39,13 +39,6 @@
     <meta-data
       android:name="com.google.android.maps.v2.API_KEY"
       android:value="AIzaSyByRmpkjQp2maG_7cDdqK4ZQtsFEjEbyKo" />
-    <meta-data
-      android:name="onesignal_app_id"
-      android:value="dc4e3a66-402e-41d7-832d-25b70c16fdea" />
-
-    <meta-data android:name="com.onesignal.suppressLaunchURLs"
-      android:value="true" />
-
     <activity
       android:name=".MainActivity"
       android:label="@string/app_name"

@@ -58,6 +58,7 @@ const init = () => {
   const client = new ApolloClient({
     link: hLink,
     cache: new InMemoryCache(),
+    connectToDevTools: false,
     defaultOptions: defaultOptions,
   });
   return client;

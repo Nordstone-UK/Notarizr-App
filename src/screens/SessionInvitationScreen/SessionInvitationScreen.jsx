@@ -13,6 +13,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import moment from 'moment-timezone';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLazyQuery} from '@apollo/client';
+import useBookingStatus from '../../hooks/useBookingStatus';
 import Toast from 'react-native-toast-message';
 
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
@@ -83,15 +84,8 @@ const getRoleLabel = ({session, invite, user}) => {
   return 'Invited participant';
 };
 
-const getIdentityRequirement = method => {
-  if (method === 'user_passport') {
-    return 'Passport photo page';
-  }
-  if (method === 'user_id') {
-    return 'Government ID front and back';
-  }
-  return 'Government ID or passport';
-};
+const getIdentityRequirement = () =>
+  'A clear identity-proof document requested by your notary';
 
 function DetailRow({icon, label, value}) {
   return (
@@ -121,7 +115,8 @@ function PrepItem({children}) {
 export default function SessionInvitationScreen({navigation, route}) {
   const dispatch = useDispatch();
   const user = useSelector(state => state.user.user);
-  const {getSessionByID} = useSession();
+  const {getSessionByID, updateSession} = useSession();
+  const {handleUpdateBookingStatus} = useBookingStatus();
   const [getBookingById] = useLazyQuery(GET_BOOKING_BY_ID);
   const getSessionByIDRef = useRef(getSessionByID);
   const getBookingByIdRef = useRef(getBookingById);
@@ -130,6 +125,7 @@ export default function SessionInvitationScreen({navigation, route}) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [inviteHydrated, setInviteHydrated] = useState(false);
+  const [responding, setResponding] = useState(false);
 
   const routeInvite = useMemo(
     () => normalizeSessionInviteParams(route?.params || {}),
@@ -245,14 +241,35 @@ export default function SessionInvitationScreen({navigation, route}) {
   const statusLabel = session?.status
     ? String(session.status).replace(/_/g, ' ')
     : 'Invitation pending';
+  const normalizedStatus = String(session?.status || '').toLowerCase();
+  const invitationPending = ![
+    'accepted',
+    'confirmed',
+    'paid',
+    'payment_confirmed',
+    'ongoing',
+    'completed',
+    'rejected',
+    'declined',
+    'cancelled',
+    'canceled',
+  ].includes(normalizedStatus);
+  const expectedClientId =
+    invite?.recordType === 'booking'
+      ? session?.booked_by?._id || session?.booked_by
+      : session?.client?._id || session?.client;
+  const isInvitationClient =
+    user?.account_type === 'client' &&
+    Boolean(user?._id) &&
+    String(user._id) === String(expectedClientId || '');
 
-  const continueToSession = async () => {
+  const continueToSession = async (acceptedSession = session) => {
     if (!user) {
       navigation.navigate('LoginScreen', {pendingInvite: invite});
       return;
     }
 
-    if (!session) {
+    if (!acceptedSession) {
       Toast.show({
         type: 'info',
         text1: 'Invite saved',
@@ -261,13 +278,65 @@ export default function SessionInvitationScreen({navigation, route}) {
       return;
     }
 
-    dispatch(setBookingInfoState(session));
+    dispatch(setBookingInfoState(acceptedSession));
     dispatch(
-      setCoordinates(session?.agent?.current_location?.coordinates || []),
+      setCoordinates(
+        acceptedSession?.agent?.current_location?.coordinates || [],
+      ),
     );
-    dispatch(setUser(session?.agent || []));
+    dispatch(setUser(acceptedSession?.agent || []));
     await clearPendingSessionInvite();
     navigation.navigate('MedicalBookingScreen');
+  };
+
+  const respondToInvitation = async accepted => {
+    if (!session?._id || !user || responding) {
+      return;
+    }
+    setResponding(true);
+    try {
+      const nextStatus = accepted ? 'accepted' : 'rejected';
+      if (invite?.recordType === 'booking') {
+        const result = await handleUpdateBookingStatus(
+          nextStatus,
+          session._id,
+          {
+            navigate: false,
+            throwOnError: true,
+          },
+        );
+        if (!result) {
+          throw new Error('The booking response was not saved.');
+        }
+        const updatedSession = {...session, ...result, status: nextStatus};
+        setSession(updatedSession);
+        if (accepted) {
+          await continueToSession(updatedSession);
+          return;
+        }
+      } else {
+        const result = await updateSession(nextStatus, session._id);
+        const updatedSession = {...session, ...result, status: nextStatus};
+        setSession(updatedSession);
+        if (accepted) {
+          await continueToSession(updatedSession);
+          return;
+        }
+      }
+      await clearPendingSessionInvite();
+      Toast.show({type: 'success', text1: 'Invitation declined'});
+      navigation.navigate('HomeScreen');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: accepted
+          ? 'Could not accept invitation'
+          : 'Could not decline invitation',
+        text2: error?.message || 'Please try again.',
+      });
+    } finally {
+      setResponding(false);
+    }
   };
 
   const startSignup = () => {
@@ -357,12 +426,39 @@ export default function SessionInvitationScreen({navigation, route}) {
           <PrepItem>Plan for about 15 to 30 minutes</PrepItem>
         </View>
 
-        <AuthPrimaryButton
-          title={user ? 'Continue to session' : 'Sign in to continue'}
-          icon="arrow-right"
-          onPress={continueToSession}
-          style={styles.primaryButton}
-        />
+        {user && session && invitationPending && isInvitationClient ? (
+          <>
+            <AuthPrimaryButton
+              title="Accept invitation"
+              icon="check"
+              loading={responding}
+              onPress={() => respondToInvitation(true)}
+              style={styles.primaryButton}
+            />
+            <TouchableOpacity
+              activeOpacity={0.75}
+              disabled={responding}
+              onPress={() => respondToInvitation(false)}
+              style={styles.secondaryButton}>
+              <Text style={styles.declineText}>Decline invitation</Text>
+            </TouchableOpacity>
+          </>
+        ) : user && session && invitationPending ? (
+          <View style={styles.notice}>
+            <Feather name="clock" size={18} color={AppColors.warning} />
+            <Text style={styles.noticeText}>
+              This invitation was sent to the client. They must accept it
+              before the session can begin.
+            </Text>
+          </View>
+        ) : (
+          <AuthPrimaryButton
+            title={user ? 'Continue to session' : 'Sign in to continue'}
+            icon="arrow-right"
+            onPress={continueToSession}
+            style={styles.primaryButton}
+          />
+        )}
 
         {!user ? (
           <TouchableOpacity
@@ -533,6 +629,11 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+  },
+  declineText: {
+    color: AppColors.error,
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
   },

@@ -65,6 +65,10 @@ import Loading from '../../../components/LiveBlocksComponents/loading';
 import SessionPricingSheet from '../../../components/RequestPayment/SessionPricingSheet';
 import usePricingApi from '../../../hooks/usePricingApi';
 import {isAgentPro} from '../../../utils/agentPlan';
+import {
+  getAgentCredentialBlockMessage,
+  getAgentCredentialStatus,
+} from '../../../utils/agentCredentials';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {CheckCircle, CheckCircleSolid, Xmark} from 'iconoir-react-native';
 import useFetchUser from '../../../hooks/useFetchUser';
@@ -242,6 +246,9 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
   const [showObserverSearchView, setShowObserverSearchView] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [activeFieldIndex, setActiveFieldIndex] = useState(null);
+  const agentCredentialStatus = getAgentCredentialStatus(currentAgent);
+  const agentCredentialBlockMessage =
+    getAgentCredentialBlockMessage(currentAgent);
 
   useEffect(() => {
     if (!storedClientDetail && routeClientDetail?._id) {
@@ -461,6 +468,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     },
   });
   const handleAllocationAccept = async allocationId => {
+    if (!agentCredentialStatus.readyForBookings) {
+      Toast.show({
+        type: 'info',
+        text1: agentCredentialBlockMessage?.title || 'Credentials required',
+        text2:
+          agentCredentialBlockMessage?.body ||
+          'Complete agent documents before accepting bookings.',
+      });
+      navigation.navigate('AgentManageScreen');
+      return;
+    }
     acceptAllocation({
       variables: {allocationId},
     });
@@ -511,6 +529,17 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     }
   };
   const handleStatusChange = async (string: string) => {
+    if (string === 'to_be_paid' && !agentCredentialStatus.readyForBookings) {
+      Toast.show({
+        type: 'info',
+        text1: agentCredentialBlockMessage?.title || 'Credentials required',
+        text2:
+          agentCredentialBlockMessage?.body ||
+          'Complete agent documents before accepting bookings.',
+      });
+      navigation.navigate('AgentManageScreen');
+      return;
+    }
     if (string === 'to_be_paid') {
       setLoadingAccept(true);
     } else {
@@ -694,12 +723,15 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
     bottomSheetModalRef.current?.close();
   }, []);
   React.useEffect(() => {
-    enterRoom('test-room');
+    if (!clientDetail?._id) {
+      return undefined;
+    }
+    enterRoom(`notary-session-${clientDetail._id}`);
 
     return () => {
       leaveRoom();
     };
-  }, [enterRoom, leaveRoom]);
+  }, [clientDetail?._id, enterRoom, leaveRoom]);
 
   // console.log('lietder', clientDetail);
   const SearchUser = async query => {

@@ -12,7 +12,7 @@ export default function PhoneVerification({route, navigation}) {
   // const email = useSelector(state => state.register.email);
   const phone = useSelector(state => state.register.phoneNumber);
 
-  const {message} = route.params || {};
+  const {message, isAgentLogin = false} = route.params || {};
   const [otp, setOTPcode] = useState('');
   const {handleOtpVerification, handleResendOtp} = useLogin();
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function PhoneVerification({route, navigation}) {
 
     setLoading(true);
     try {
-      await handleOtpVerification(phone, otp);
+      await handleOtpVerification(phone, otp, isAgentLogin);
     } finally {
       setLoading(false);
     }

@@ -370,7 +370,7 @@ export default function ChatScreen({route, navigation}: any) {
       const channelToken =
         invite?.token || activeBooking?.agora_channel_token || voiceToken;
 
-      if (!channelName || !channelToken) {
+      if (!invite?.bookingId && !activeBooking?._id) {
         Toast.show({
           type: 'error',
           text1: 'Session is unavailable',

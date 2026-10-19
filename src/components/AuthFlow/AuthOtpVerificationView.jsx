@@ -12,6 +12,7 @@ import AuthPrimaryButton from './AuthPrimaryButton';
 
 export default function AuthOtpVerificationView({
   phoneNumber,
+  channel = 'phone',
   otp,
   onChangeOtp,
   onResend,
@@ -32,7 +33,9 @@ export default function AuthOtpVerificationView({
         />
       </View>
 
-      <Text style={styles.heading}>Verify your phone</Text>
+      <Text style={styles.heading}>
+        Verify your {channel === 'email' ? 'email' : 'phone'}
+      </Text>
       <Text style={styles.subheading}>
         Enter the verification code sent to{'\n'}
         <Text style={styles.phoneNumber}>{phoneNumber}</Text>

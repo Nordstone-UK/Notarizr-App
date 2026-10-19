@@ -50,6 +50,33 @@ const getRegisteredNotaryType = (user: any) => {
   );
 };
 
+const getClientVerificationStatus = (verification: any) => {
+  if (verification?.status === 'verified') {
+    return {
+      title: 'Verification completed',
+      description: 'You can book a notary',
+      tone: 'green',
+    };
+  }
+
+  if (
+    verification?.status === 'submitted' ||
+    verification?.status === 'processing'
+  ) {
+    return {
+      title: 'Verification pending',
+      description: 'Complete or refresh your secure identity check',
+      tone: 'orange',
+    };
+  }
+
+  return {
+    title: 'Verification pending',
+    description: 'Required before booking a notary',
+    tone: 'orange',
+  };
+};
+
 function PreferenceRow({description, icon, last, onChange, title, value}: any) {
   return (
     <View style={[styles.preferenceRow, last && styles.lastPreferenceRow]}>
@@ -198,22 +225,6 @@ export default function ProfileInfoScreen({navigation}: any) {
       return;
     }
 
-    const registeredFor = Array.isArray(user?.registered_for)
-      ? user.registered_for
-      : [];
-
-    if (
-      newAccountType === 'individual-agent' &&
-      !user?.isHomePreview &&
-      !registeredFor.includes(newAccountType)
-    ) {
-      navigation.navigate('AgentVerificationScreen', {
-        user,
-        onComplete: () => handleAccountTypeUpdate(newAccountType),
-      });
-      return;
-    }
-
     confirmAccountSwitch(newAccountType);
   };
 
@@ -277,6 +288,9 @@ export default function ProfileInfoScreen({navigation}: any) {
 
   const isClient = accountType === 'client';
   const notaryAccountType = getRegisteredNotaryType(user);
+  const clientVerificationStatus = getClientVerificationStatus(
+    user?.clientVerification,
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -293,6 +307,15 @@ export default function ProfileInfoScreen({navigation}: any) {
             description="Service and billing locations"
             onPress={() => navigation.navigate('AddressDetails')}
           />
+          {isClient && (
+            <ProfileMenuItem
+              icon="shield"
+              title={clientVerificationStatus.title}
+              description={clientVerificationStatus.description}
+              tone={clientVerificationStatus.tone}
+              onPress={() => navigation.navigate('ClientVerificationScreen')}
+            />
+          )}
           <ProfileMenuItem
             icon={isClient ? 'credit-card' : 'dollar-sign'}
             title={isClient ? 'Payment method' : 'Payout setup'}

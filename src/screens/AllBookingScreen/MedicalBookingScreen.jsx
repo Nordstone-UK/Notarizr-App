@@ -123,7 +123,6 @@ function LiveMedicalBookingScreen({route, navigation}) {
   const [review, setReview] = useState('');
   const [uploadingDocs, setUploadingDocs] = useState();
   const [updatedDocs, setUpdatedDocs] = useState();
-  let statusUpdate;
   const enterRoom = useLiveblocks(state => state.liveblocks.enterRoom);
   const leaveRoom = useLiveblocks(state => state.liveblocks.leaveRoom);
   const [uploadShow, setUploadShow] = useState(true);
@@ -227,7 +226,9 @@ function LiveMedicalBookingScreen({route, navigation}) {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        enterRoom('test-room');
+        if (bookingDetail?._id) {
+          enterRoom(`notary-session-${bookingDetail._id}`);
+        }
         const request = {
           variables: {
             sessionId: bookingDetail?._id,
@@ -246,7 +247,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
     return () => {
       leaveRoom();
     };
-  }, [enterRoom, leaveRoom, dispatch]);
+  }, [enterRoom, leaveRoom, dispatch, bookingDetail?._id]);
 
   const handleStarPress = selectedRating => {
     setRating(selectedRating);
@@ -263,6 +264,24 @@ function LiveMedicalBookingScreen({route, navigation}) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
   console.log('sssssstattussdfd');
+  const getBookingStatus = React.useCallback(async () => {
+    try {
+      let statusUpdate;
+      if (bookingDetail?.__typename === 'Session') {
+        statusUpdate = await handleSessionStatus(bookingDetail?._id);
+      } else {
+        statusUpdate = await handlegetBookingStatus(bookingDetail?._id);
+      }
+      setStatus(capitalizeFirstLetter(statusUpdate));
+    } catch (error) {
+      console.error('Error retrieving booking status:', error);
+    }
+  }, [
+    bookingDetail?._id,
+    bookingDetail?.__typename,
+    handleSessionStatus,
+    handlegetBookingStatus,
+  ]);
   const handleStatusChange = async StatusPassed => {
     console.log('sssssssss', StatusPassed);
     setLoading(true);
@@ -278,18 +297,6 @@ function LiveMedicalBookingScreen({route, navigation}) {
     }
     setLoading(false);
   };
-  const getBookingStatus = async () => {
-    try {
-      if (bookingDetail?.__typename === 'Session') {
-        statusUpdate = await handleSessionStatus(bookingDetail?._id);
-      } else {
-        statusUpdate = await handlegetBookingStatus(bookingDetail?._id);
-      }
-      setStatus(capitalizeFirstLetter(statusUpdate));
-    } catch (error) {
-      console.error('Error retrieving booking status:', error);
-    }
-  };
   useFocusEffect(
     React.useCallback(() => {
       if (
@@ -300,7 +307,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
         bottomSheetModalRef.current?.present();
         // setIsVisible(true);
       }
-    }, [status]),
+    }, [status, bookingDetail.review, bookingDetail.rating]),
   );
   useEffect(() => {
     // bottomSheetModalRef.current?.present();
@@ -309,7 +316,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       getBookingStatus();
     });
     return unsubscribe;
-  }, [status]);
+  }, [status, navigation, getBookingStatus]);
   const handleReduxPayment = async () => {
     // setIsVisible(false);
     bottomSheetModalRef.current?.close();
@@ -459,16 +466,8 @@ function LiveMedicalBookingScreen({route, navigation}) {
     return namesString;
   }
 
-  if (!bookingDetail) {
-    return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <ActivityIndicator size="large" color={Colors.Orange} />
-      </View>
-    );
-  }
-
   const highestPriceDocument =
-    Array.isArray(bookingDetail.document_type) &&
+    Array.isArray(bookingDetail?.document_type) &&
     bookingDetail.document_type.length > 0
       ? bookingDetail.document_type.reduce(
           (maxDoc, doc) => (doc.price > maxDoc.price ? doc : maxDoc),
@@ -479,7 +478,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
   // console.log(highestPriceDocument);
 
   const additionalSignatureCharges =
-    bookingDetail.total_signatures_required * 10;
+    (bookingDetail?.total_signatures_required || 0) * 10;
 
   const handleMakePayment = () => {
     const payableAmount = Number(
@@ -508,7 +507,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       autoPay: true,
     });
   };
-  const handleDocumentPress = (documentUri: string) => {
+  const handleDocumentPress = documentUri => {
     console.log('documentur', documentUri);
     navigation.navigate('NotaryDocumentDownloadScreen', {
       document: documentUri,
@@ -531,6 +530,15 @@ function LiveMedicalBookingScreen({route, navigation}) {
       setPrice(bookingDetail?.price);
     }
   }, [bookingDetail]);
+
+  if (!bookingDetail) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color={Colors.Orange} />
+      </View>
+    );
+  }
+
   const handleAddressPress = coordinates => {
     if (!coordinates || coordinates.length === 0) {
       // Use fallbackCoordinates if coordinates are empty or undefined
@@ -769,6 +777,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       token: bookingDetail?.agora_channel_token,
       time: bookingDetail?.time_of_booking || bookingDetail?.date_time_session,
       date: bookingDetail?.date_of_booking || bookingDetail?.date_time_session,
+      sessionMode: bookingDetail?.session_mode || 'remote_online',
       routeFrom: 'client',
     });
   };
@@ -1603,14 +1612,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
                 scale={1.0}
                 spacing={0}
                 fitPolicy={0}
-                onLoadComplete={({numberOfPages, filePath, width, height}) => {
-                  setPageWidth(width);
-                  setPageHeight(height);
-                }}
                 onPageChanged={(page, numberOfPages) => {}}
-                onPageSingleTap={(page, x, y) => {
-                  handleSingleTap(page, x, y);
-                }}
                 onError={error => console.error(error)}
               />
             </>
@@ -1750,6 +1752,8 @@ function LiveMedicalBookingScreen({route, navigation}) {
                       date:
                         bookingDetail?.date_of_booking ||
                         bookingDetail?.date_time_session,
+                      sessionMode:
+                        bookingDetail?.session_mode || 'remote_online',
                     });
                   }}
                   fontSize={widthToDp(4)}
@@ -1829,10 +1833,12 @@ function LiveMedicalBookingScreen({route, navigation}) {
                   fontSize={widthToDp(3.5)}
                 />
               )}
-            {bookingDetail.__typename === 'Booking' &&
-              status == 'To_be_paid' && (
+            {(bookingDetail.__typename === 'Booking' ||
+              (bookingDetail.__typename === 'Session' &&
+                bookingDetail.payment_type !== 'on_agent')) &&
+              status === 'To_be_paid' && (
                 <GradientButton
-                  Title={'Make payments'}
+                  Title={'Make payment'}
                   colors={[
                     Colors.OrangeGradientStart,
                     Colors.OrangeGradientEnd,
@@ -1846,11 +1852,11 @@ function LiveMedicalBookingScreen({route, navigation}) {
                     padding: widthToDp(0),
                     fontSize: widthToDp(4),
                   }}
-                  onPress={() => {
+                  onPress={() =>
                     navigation.navigate('ToBePaidScreen', {
                       bookingData: bookingDetail,
-                    });
-                  }}
+                    })
+                  }
                   fontSize={widthToDp(3.5)}
                 />
               )}
@@ -1939,7 +1945,6 @@ const styles = StyleSheet.create({
   preference: {
     marginLeft: widthToDp(2),
     fontSize: widthToDp(4.5),
-    color: Colors.TextColor,
     color: Colors.DullTextColor,
   },
   detail: {

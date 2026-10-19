@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
+  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -13,6 +14,14 @@ import Toast from 'react-native-toast-message';
 import {useSelector} from 'react-redux';
 import AppColors from '../../themes/AppColors';
 import {agentPlanId, agentPlanLabel} from '../../utils/agentPlan';
+import {
+  findRevenueCatPackageForPlan,
+  getActiveRevenueCatEntitlement,
+  getRevenueCatCustomerInfo,
+  getRevenueCatOfferings,
+  purchaseRevenueCatPackage,
+  restoreRevenueCatPurchases,
+} from '../../utils/revenueCat';
 
 const PLANS = [
   {
@@ -32,9 +41,9 @@ const PLANS = [
   {
     id: 'pro_monthly',
     name: 'Agent Pro',
-    price: '$27',
+    price: '$19.99',
     priceSuffix: '/month',
-    priceHint: '$25–$29/mo',
+    priceHint: '$19.99/mo',
     purpose: 'Open Calls, custom pricing, templates, branding and invoicing',
     features: [
       'Open Call bookings when your profile is approved and online',
@@ -49,13 +58,13 @@ const PLANS = [
   {
     id: 'pro_annual',
     name: 'Agent Pro Annual',
-    price: '$259',
+    price: '$199.99',
     priceSuffix: '/year',
-    priceHint: '$249–$279/yr',
-    purpose: 'Retention and upfront cash flow',
+    priceHint: '$199.99/yr',
+    purpose: 'Annual billing with savings versus monthly',
     features: [
       'Everything in Agent Pro',
-      'Two months free versus paying monthly',
+      'Save $39.89 compared with monthly billing',
       'One upfront payment, locked-in rate for the year',
     ],
     badge: 'BEST VALUE',
@@ -74,8 +83,10 @@ function FeatureRow({last, text}) {
   );
 }
 
-function PlanCard({onSelect, plan}) {
+function PlanCard({loadingPlanId, onSelect, plan}) {
   const isCurrent = Boolean(plan.current);
+  const isDisabled = isCurrent || Boolean(plan.disabled);
+  const isLoading = loadingPlanId === plan.id;
 
   return (
     <View style={[styles.planCard, isCurrent && styles.planCardCurrent]}>
@@ -124,22 +135,30 @@ function PlanCard({onSelect, plan}) {
       </View>
 
       <TouchableOpacity
-        activeOpacity={isCurrent ? 1 : 0.78}
-        disabled={isCurrent}
+        activeOpacity={isDisabled ? 1 : 0.78}
+        disabled={isDisabled || isLoading}
         onPress={() => onSelect(plan)}
         style={[
           styles.planButton,
-          isCurrent && styles.planButtonDisabled,
+          isDisabled && styles.planButtonDisabled,
           plan.badge === 'BEST VALUE' && styles.planButtonOutline,
         ]}>
-        <Text
-          style={[
-            styles.planButtonText,
-            isCurrent && styles.planButtonTextDisabled,
-            plan.badge === 'BEST VALUE' && styles.planButtonOutlineText,
-          ]}>
-          {isCurrent ? 'Your current plan' : plan.cta}
-        </Text>
+        {isLoading ? (
+          <ActivityIndicator
+            color={
+              plan.badge === 'BEST VALUE' ? AppColors.success : AppColors.white
+            }
+          />
+        ) : (
+          <Text
+            style={[
+              styles.planButtonText,
+              isDisabled && styles.planButtonTextDisabled,
+              plan.badge === 'BEST VALUE' && styles.planButtonOutlineText,
+            ]}>
+            {isCurrent ? 'Your current plan' : plan.cta}
+          </Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -148,13 +167,141 @@ function PlanCard({onSelect, plan}) {
 export default function SubscriptionScreen({navigation}) {
   const user = useSelector(state => state.user.user);
   const currentPlanId = agentPlanId(user);
+  const [customerInfo, setCustomerInfo] = useState(null);
+  const [loadingPlanId, setLoadingPlanId] = useState(null);
+  const [offering, setOffering] = useState(null);
+  const [plansLoading, setPlansLoading] = useState(true);
 
-  const selectPlan = plan => {
-    Toast.show({
-      type: 'info',
-      text1: `${plan.name} selected`,
-      text2: 'Plan changes are managed securely through your Notarizr account.',
+  const revenueCatUserId = user?._id || user?.id || user?.email;
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadRevenueCatPlans = async () => {
+      setPlansLoading(true);
+      try {
+        const [offerings, info] = await Promise.all([
+          getRevenueCatOfferings(revenueCatUserId),
+          getRevenueCatCustomerInfo(revenueCatUserId),
+        ]);
+        if (!mounted) {
+          return;
+        }
+        setOffering(offerings?.current || null);
+        setCustomerInfo(info);
+      } catch (error) {
+        if (!mounted) {
+          return;
+        }
+        Toast.show({
+          type: 'error',
+          text1: 'Plans could not load',
+          text2: 'Please check the store setup and try again.',
+        });
+      } finally {
+        if (mounted) {
+          setPlansLoading(false);
+        }
+      }
+    };
+
+    loadRevenueCatPlans();
+
+    return () => {
+      mounted = false;
+    };
+  }, [revenueCatUserId]);
+
+  const plans = useMemo(() => {
+    const activeEntitlement = getActiveRevenueCatEntitlement(customerInfo);
+
+    return PLANS.map(plan => {
+      const purchasesPackage = findRevenueCatPackageForPlan(offering, plan.id);
+      const product = purchasesPackage?.product;
+      const isRevenueCatCurrent =
+        plan.id !== 'free' &&
+        Boolean(activeEntitlement?.isActive) &&
+        (!activeEntitlement?.productIdentifier ||
+          activeEntitlement.productIdentifier === product?.identifier);
+
+      return {
+        ...plan,
+        current:
+          plan.id === currentPlanId ||
+          (plan.id !== 'free' && isRevenueCatCurrent),
+        disabled: plan.id !== 'free' && plansLoading,
+        price: product?.priceString || plan.price,
+        priceSuffix: product?.subscriptionPeriod
+          ? plan.priceSuffix
+          : plan.priceSuffix,
+        priceHint:
+          product?.description ||
+          product?.title ||
+          plan.priceHint ||
+          'Billed through your app store account',
+        purchasesPackage,
+      };
     });
+  }, [customerInfo, currentPlanId, offering, plansLoading]);
+
+  const selectPlan = async plan => {
+    if (plan.id === 'free') {
+      return;
+    }
+
+    if (!plan.purchasesPackage) {
+      Toast.show({
+        type: 'error',
+        text1: 'Plan is not available',
+        text2: 'Add this product to the RevenueCat default offering first.',
+      });
+      return;
+    }
+
+    setLoadingPlanId(plan.id);
+    try {
+      const result = await purchaseRevenueCatPackage(
+        plan.purchasesPackage,
+        revenueCatUserId,
+      );
+      setCustomerInfo(result?.customerInfo || null);
+      Toast.show({
+        type: 'success',
+        text1: 'Subscription active',
+        text2: `${plan.name} is ready on this account.`,
+      });
+    } catch (error) {
+      if (!error?.userCancelled) {
+        Toast.show({
+          type: 'error',
+          text1: 'Purchase could not complete',
+          text2: error?.message || 'Please try again.',
+        });
+      }
+    } finally {
+      setLoadingPlanId(null);
+    }
+  };
+
+  const restorePurchases = async () => {
+    setLoadingPlanId('restore');
+    try {
+      const info = await restoreRevenueCatPurchases(revenueCatUserId);
+      setCustomerInfo(info);
+      Toast.show({
+        type: 'success',
+        text1: 'Purchases restored',
+        text2: 'Your subscription status has been refreshed.',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Restore failed',
+        text2: error?.message || 'Please try again.',
+      });
+    } finally {
+      setLoadingPlanId(null);
+    }
   };
 
   return (
@@ -188,14 +335,12 @@ export default function SubscriptionScreen({navigation}) {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-        {PLANS.map(plan => (
+        {plans.map(plan => (
           <PlanCard
             key={plan.id}
+            loadingPlanId={loadingPlanId}
             onSelect={selectPlan}
-            plan={{
-              ...plan,
-              current: plan.id === currentPlanId,
-            }}
+            plan={plan}
           />
         ))}
 
@@ -206,6 +351,17 @@ export default function SubscriptionScreen({navigation}) {
             and promotion. Taxes may apply.
           </Text>
         </View>
+        <TouchableOpacity
+          activeOpacity={0.75}
+          disabled={loadingPlanId === 'restore'}
+          onPress={restorePurchases}
+          style={styles.restoreButton}>
+          {loadingPlanId === 'restore' ? (
+            <ActivityIndicator color={AppColors.primary} />
+          ) : (
+            <Text style={styles.restoreButtonText}>Restore purchases</Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -411,6 +567,19 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 28,
+  },
+  restoreButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    minHeight: 36,
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingHorizontal: 14,
+  },
+  restoreButtonText: {
+    color: AppColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
   safeArea: {backgroundColor: AppColors.textPrimary, flex: 1},
   sectionEyebrow: {

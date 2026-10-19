@@ -6,8 +6,15 @@ export const UPDATE_USER_ADDRESS = gql`
     $tag: String!
     $lat: String
     $lng: String
+    $zipCode: String
   ) {
-    updateUserAddresses(location: $location, tag: $tag, lat: $lat, lng: $lng) {
+    updateUserAddresses(
+      location: $location
+      tag: $tag
+      lat: $lat
+      lng: $lng
+      zipCode: $zipCode
+    ) {
       message
       status
     }

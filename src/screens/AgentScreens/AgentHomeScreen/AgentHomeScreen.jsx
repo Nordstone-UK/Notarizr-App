@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StatusBar,
@@ -12,24 +11,21 @@ import {
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
 import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
-import OneSignal from 'react-native-onesignal';
 import Toast from 'react-native-toast-message';
 import AgentHomeHeader from '../../../components/AgentHomeHeader/AgentHomeHeader';
 import AgentMetricCard from '../../../components/AgentHome/AgentMetricCard';
-import AgentRequestCard from '../../../components/AgentHome/AgentRequestCard';
 import AgentServiceAction from '../../../components/AgentHome/AgentServiceAction';
-import {
-  setBookingInfoState,
-  setCoordinates,
-  setUser,
-} from '../../../features/booking/bookingSlice';
 import useAgentService from '../../../hooks/useAgentService';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import useStripeApi from '../../../hooks/useStripeApi';
 import {PREVIEW_AGENT_BOOKINGS} from '../../../data/previewBookings';
-import {agentPlanFeatures, agentPlanLabel} from '../../../utils/agentPlan';
+import {agentPlanLabel} from '../../../utils/agentPlan';
+import {
+  getAgentCredentialBlockMessage,
+  getAgentCredentialStatus,
+} from '../../../utils/agentCredentials';
 
 const renderAccountBackdrop = props => (
   <BottomSheetBackdrop
@@ -42,14 +38,6 @@ const renderAccountBackdrop = props => (
 );
 
 const WORKBENCH_ACTIONS = [
-  {
-    title: 'Open calls',
-    description:
-      'Review live client requests and accept before the window closes.',
-    icon: 'radio',
-    proOnly: true,
-    route: 'AgentNewRequestsScreen',
-  },
   {
     title: 'Scheduled sessions',
     description: 'See accepted sessions, upcoming calls and client details.',
@@ -74,30 +62,22 @@ const WORKBENCH_ACTIONS = [
 
 export default function AgentHomeScreen({navigation}) {
   const user = useSelector(state => state.user.user);
-  const dispatch = useDispatch();
   const {dispatchMobile, dispatchRON} = useAgentService();
   const {fetchAgentBookingInfo, handleAgentSessions} = useFetchBooking();
   const {checkUserStipeAccount} = useStripeApi();
   const fetchBookingsRef = useRef(fetchAgentBookingInfo);
   const fetchSessionsRef = useRef(handleAgentSessions);
   const checkStripeRef = useRef(checkUserStipeAccount);
-  const hasRequestsRef = useRef(false);
   const bottomSheetRef = useRef(null);
-  const [requests, setRequests] = useState([]);
   const [completedCount, setCompletedCount] = useState(0);
   const [earnings, setEarnings] = useState(0);
-  const [loading, setLoading] = useState(!user?.isHomePreview);
   const [refreshing, setRefreshing] = useState(false);
   const [activeService, setActiveService] = useState(null);
   const [payoutConnected, setPayoutConnected] = useState(null);
   const previewMode = Boolean(user?.isHomePreview);
-  const previewRequests = PREVIEW_AGENT_BOOKINGS.filter(
-    booking => booking.status === 'pending',
-  );
   const previewCompleted = PREVIEW_AGENT_BOOKINGS.filter(
     booking => booking.status === 'completed',
   );
-  const visibleRequests = previewMode ? previewRequests : requests;
   const visibleCompletedCount = previewMode
     ? previewCompleted.length
     : completedCount;
@@ -107,8 +87,15 @@ export default function AgentHomeScreen({navigation}) {
         0,
       )
     : earnings;
-  const planFeatures = agentPlanFeatures(user);
   const planLabel = agentPlanLabel(user);
+  const credentialStatus = useMemo(
+    () => getAgentCredentialStatus(user),
+    [user],
+  );
+  const credentialBlockMessage = useMemo(
+    () => getAgentCredentialBlockMessage(user),
+    [user],
+  );
   const isOnline =
     user?.online_status === 'online' ||
     user?.availability_status === 'online' ||
@@ -117,28 +104,24 @@ export default function AgentHomeScreen({navigation}) {
   fetchBookingsRef.current = fetchAgentBookingInfo;
   fetchSessionsRef.current = handleAgentSessions;
   checkStripeRef.current = checkUserStipeAccount;
-  hasRequestsRef.current = requests.length > 0;
 
   const loadDashboard = useCallback(
     async (isRefresh = false) => {
       if (previewMode) {
-        setLoading(false);
         setRefreshing(false);
         return;
       }
 
-      isRefresh
-        ? setRefreshing(true)
-        : !hasRequestsRef.current && setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      }
       try {
-        const [pending, completedBookings, completedSessions, stripeData] =
+        const [completedBookings, completedSessions, stripeData] =
           await Promise.all([
-            fetchBookingsRef.current('pending', isRefresh),
             fetchBookingsRef.current('completed', isRefresh),
             fetchSessionsRef.current('completed', isRefresh),
             checkStripeRef.current(),
           ]);
-        const safePending = Array.isArray(pending) ? pending : [];
         const safeBookings = Array.isArray(completedBookings)
           ? completedBookings
           : [];
@@ -146,7 +129,6 @@ export default function AgentHomeScreen({navigation}) {
           ? completedSessions
           : [];
 
-        setRequests(safePending);
         setCompletedCount(safeBookings.length + safeSessions.length);
         const stripeAccount = stripeData?.isUserStripeOnboard;
         setPayoutConnected(
@@ -168,7 +150,6 @@ export default function AgentHomeScreen({navigation}) {
           text2: 'Check your connection and try again.',
         });
       } finally {
-        setLoading(false);
         setRefreshing(false);
       }
     },
@@ -178,22 +159,19 @@ export default function AgentHomeScreen({navigation}) {
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
-      if (user?._id) {
-        OneSignal.setExternalUserId(user._id);
-      }
     }, [loadDashboard, user?._id]),
   );
 
-  const openRequest = request => {
-    navigation.navigate('ClientDetailsScreen', {clientDetail: request});
-    dispatch(setBookingInfoState(request));
-    dispatch(setUser(request?.booked_by));
-    dispatch(
-      setCoordinates(request?.booked_by?.current_location?.coordinates || []),
-    );
-  };
-
   const openService = async service => {
+    if (!credentialStatus.documentsComplete) {
+      Toast.show({
+        type: 'info',
+        text1: 'Credentials required',
+        text2: 'Upload required agent documents before opening bookings.',
+      });
+      navigation.navigate('AgentManageScreen');
+      return;
+    }
     setActiveService(service);
     try {
       if (previewMode) {
@@ -234,35 +212,27 @@ export default function AgentHomeScreen({navigation}) {
   };
 
   const openWorkbenchAction = item => {
-    if (item.proOnly && !planFeatures.openCalls) {
-      Toast.show({
-        type: 'info',
-        text1: 'Open Calls are Pro',
-        text2: 'Upgrade to Agent Pro when RevenueCat billing is connected.',
-      });
-      navigation.navigate('SubscriptionScreen');
-      return;
-    }
     navigation.navigate(item.route, item.params);
   };
 
   const accountMessage = useMemo(() => {
-    if (user?.isBlocked) {
+    if (credentialBlockMessage) {
       return {
-        icon: 'slash',
-        title: 'Account access paused',
-        body: 'Please contact Notarizr support for help with your account.',
-      };
-    }
-    if (!user?.isVerified) {
-      return {
-        icon: 'clock',
-        title: 'Profile under review',
-        body: 'We will notify you as soon as your notary profile is approved.',
+        icon: user?.isBlocked
+          ? 'slash'
+          : credentialStatus.documentsComplete
+          ? 'clock'
+          : 'shield',
+        title: credentialBlockMessage.title,
+        body: credentialBlockMessage.body,
       };
     }
     return null;
-  }, [user?.isBlocked, user?.isVerified]);
+  }, [
+    credentialBlockMessage,
+    credentialStatus.documentsComplete,
+    user?.isBlocked,
+  ]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -283,7 +253,7 @@ export default function AgentHomeScreen({navigation}) {
         <View style={styles.intro}>
           <Text style={styles.title}>Overview</Text>
           <Text style={styles.subtitle}>
-            Track your work and respond to new notary requests.
+            Manage your schedule, sessions, and client work.
           </Text>
         </View>
 
@@ -329,8 +299,8 @@ export default function AgentHomeScreen({navigation}) {
               </Text>
               <Text style={styles.availabilityText}>
                 {isOnline
-                  ? 'You can receive open-call alerts and scheduled session updates.'
-                  : 'Go online when you are ready to receive eligible call alerts.'}
+                  ? 'You can receive scheduled session updates.'
+                  : 'Go online when you are ready for scheduled sessions.'}
               </Text>
             </View>
             <View
@@ -356,20 +326,10 @@ export default function AgentHomeScreen({navigation}) {
                 activeOpacity={0.74}
                 key={item.title}
                 onPress={() => openWorkbenchAction(item)}
-                style={[
-                  styles.workbenchTile,
-                  item.proOnly &&
-                    !planFeatures.openCalls &&
-                    styles.workbenchTileLocked,
-                ]}>
+                style={styles.workbenchTile}>
                 <View style={styles.workbenchIcon}>
                   <Feather name={item.icon} size={18} color="#D65322" />
                 </View>
-                {item.proOnly && !planFeatures.openCalls ? (
-                  <View style={styles.proPill}>
-                    <Text style={styles.proPillText}>PRO</Text>
-                  </View>
-                ) : null}
                 <Text style={styles.workbenchTitle}>{item.title}</Text>
                 <Text style={styles.workbenchText}>{item.description}</Text>
               </TouchableOpacity>
@@ -448,66 +408,6 @@ export default function AgentHomeScreen({navigation}) {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeadingRow}>
-            <View style={styles.sectionHeadingCopy}>
-              <View style={styles.requestTitleRow}>
-                <Text style={styles.sectionTitle}>New requests</Text>
-                {visibleRequests.length > 0 && (
-                  <View style={styles.countBadge}>
-                    <Text style={styles.countText}>
-                      {visibleRequests.length}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.sectionSubtitle}>
-                Review requests before they expire.
-              </Text>
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() =>
-                openWorkbenchAction({
-                  route: 'AgentNewRequestsScreen',
-                  proOnly: true,
-                })
-              }
-              style={styles.viewAllButton}>
-              <Text style={styles.viewAllText}>View all</Text>
-              <Feather name="arrow-right" size={14} color="#D65322" />
-            </TouchableOpacity>
-          </View>
-
-          {loading && !previewMode ? (
-            <View style={styles.loadingState}>
-              <ActivityIndicator color="#D65322" />
-              <Text style={styles.loadingText}>Loading requests...</Text>
-            </View>
-          ) : visibleRequests.length > 0 ? (
-            visibleRequests
-              .slice(0, 2)
-              .map(request => (
-                <AgentRequestCard
-                  booking={request}
-                  key={request._id}
-                  onPress={() => openRequest(request)}
-                />
-              ))
-          ) : (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Feather name="inbox" size={22} color="#7B8490" />
-              </View>
-              <View style={styles.emptyCopy}>
-                <Text style={styles.emptyTitle}>No new requests</Text>
-                <Text style={styles.emptyText}>
-                  New client requests will appear here.
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
       </ScrollView>
 
       {accountMessage && (
@@ -710,24 +610,8 @@ const styles = StyleSheet.create({
   statusBadgeTextOnline: {
     color: '#168A52',
   },
-  proPill: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
-    backgroundColor: '#EAF2FC',
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  proPillText: {
-    color: '#2878A9',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 8,
-  },
   workbenchGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     marginTop: 10,
   },
   workbenchIcon: {
@@ -746,17 +630,14 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
   workbenchTile: {
-    width: '48.5%',
-    minHeight: 132,
+    width: '100%',
+    minHeight: 124,
     marginTop: 10,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#E4E7EB',
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
-  },
-  workbenchTileLocked: {
-    backgroundColor: '#F8FAFC',
   },
   workbenchTitle: {
     marginTop: 10,
@@ -769,96 +650,6 @@ const styles = StyleSheet.create({
   },
   serviceGap: {
     height: 10,
-  },
-  sectionHeadingRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  sectionHeadingCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  requestTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  countBadge: {
-    minWidth: 22,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-    paddingHorizontal: 6,
-    borderRadius: 8,
-    backgroundColor: '#FFE4D5',
-  },
-  countText: {
-    color: '#C94D1C',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-  },
-  viewAllButton: {
-    height: 32,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 12,
-    paddingHorizontal: 8,
-  },
-  viewAllText: {
-    marginRight: 4,
-    color: '#D65322',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 10,
-  },
-  loadingState: {
-    height: 108,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#E4E7EB',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  loadingText: {
-    marginTop: 8,
-    color: '#858C97',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 10,
-  },
-  emptyState: {
-    minHeight: 94,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E4E7EB',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  emptyIcon: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: '#EEF1F4',
-  },
-  emptyCopy: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  emptyTitle: {
-    color: '#242B36',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
-  },
-  emptyText: {
-    marginTop: 3,
-    color: '#858C97',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 10,
   },
   accountState: {
     flex: 1,

@@ -64,6 +64,21 @@ const SESSION_TYPES = [
   },
 ];
 
+const SESSION_MODES = [
+  {
+    label: 'Remote Online Notarization',
+    value: 'remote_online',
+    description: 'Meet securely by live video and sign from anywhere.',
+    icon: 'video',
+  },
+  {
+    label: 'In Person Notarization (IPEN)',
+    value: 'in_person',
+    description: 'Meet in person and complete the session electronically.',
+    icon: 'users',
+  },
+];
+
 const getName = person =>
   [person?.first_name, person?.last_name].filter(Boolean).join(' ') ||
   'Notarizr client';
@@ -266,6 +281,8 @@ export default function AgentSessionInviteScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('on_notarizr');
   const [sessionType, setSessionType] = useState('general_notary');
+  const [sessionMode, setSessionMode] = useState('remote_online');
+  const [sessionSchedule, setSessionSchedule] = useState('schedule_later');
   const [priceQuote, setPriceQuote] = useState(null);
   const [priceQuoteLoading, setPriceQuoteLoading] = useState(false);
   const [successVisible, setSuccessVisible] = useState(false);
@@ -314,6 +331,15 @@ export default function AgentSessionInviteScreen({navigation}) {
       setPaymentMethod('on_notarizr');
     }
   }, [isProAgent, paymentMethod]);
+
+  useEffect(() => {
+    if (
+      sessionMode === 'in_person' &&
+      !['general_notary', 'closing'].includes(sessionType)
+    ) {
+      setSessionType('general_notary');
+    }
+  }, [sessionMode, sessionType]);
 
   useEffect(() => {
     let active = true;
@@ -432,41 +458,8 @@ export default function AgentSessionInviteScreen({navigation}) {
       : response
       ? [response]
       : [];
-    const pdfFiles = selectedFiles.filter(file => {
-      const isUriString = typeof file === 'string';
-      const name = String(
-        isUriString
-          ? file
-          : file?.name ||
-              file?.fileName ||
-              file?.uri ||
-              file?.url ||
-              file?.fileCopyUri ||
-              '',
-      ).toLowerCase();
-      const type = String(
-        isUriString ? '' : file?.type || file?.mimeType || '',
-      ).toLowerCase();
-
-      return (
-        type === 'application/pdf' ||
-        type === 'com.adobe.pdf' ||
-        type === 'com.apple.pdf' ||
-        name.endsWith('.pdf') ||
-        decodeURIComponent(name).endsWith('.pdf')
-      );
-    });
-
-    if (selectedFiles.length !== pdfFiles.length) {
-      Toast.show({
-        type: 'error',
-        text1: 'PDF files only',
-        text2: 'Please upload PDF only.',
-      });
-    }
-
-    if (pdfFiles.length) {
-      setFileResponse(pdfFiles);
+    if (selectedFiles.length) {
+      setFileResponse(selectedFiles);
     }
   };
 
@@ -478,11 +471,12 @@ export default function AgentSessionInviteScreen({navigation}) {
   };
 
   const submitInvitation = async () => {
-    if (!fileResponse.length || !selectedClient || !observers.length) {
+    if (!fileResponse.length || !selectedClient) {
       Toast.show({
         type: 'error',
         text1: 'Complete the invitation',
-        text2: 'Add a client, observer and document before continuing.',
+        text2:
+          'Add a client and at least one session document before continuing.',
       });
       return;
     }
@@ -519,7 +513,7 @@ export default function AgentSessionInviteScreen({navigation}) {
       const response = await handleSessionCreation(
         uploadedUrls,
         selectedClient,
-        'schedule_later',
+        sessionSchedule,
         date,
         selectedIdentity,
         observerPhones,
@@ -527,6 +521,8 @@ export default function AgentSessionInviteScreen({navigation}) {
         [],
         paymentType,
         {
+          sessionMode,
+          sessionType,
           useStandardPricing: true,
           agentTier: currentAgentTier,
           billingMode,
@@ -565,21 +561,75 @@ export default function AgentSessionInviteScreen({navigation}) {
             <Feather name="send" size={23} color={AppColors.primary} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroTitle}>Create a remote session</Text>
+            <Text style={styles.heroTitle}>Create a notary session</Text>
             <Text style={styles.heroDescription}>
-              Add everyone involved, choose verification and schedule the call.
+              Prepare documents, participants and identity checks for your
+              appointment.
             </Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <SectionHeader
-            eyebrow="PRIVATE SESSION"
+            eyebrow="NOTARIZATION TYPE"
+            title="How will you meet?"
+            description="Choose remote video or an in-person electronic session."
+          />
+          <View style={styles.modeGrid}>
+            {SESSION_MODES.map(item => {
+              const selected = sessionMode === item.value;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="radio"
+                  accessibilityState={{selected}}
+                  activeOpacity={0.75}
+                  key={item.value}
+                  onPress={() => setSessionMode(item.value)}
+                  style={[styles.modeCard, selected && styles.modeCardActive]}>
+                  <View
+                    style={[
+                      styles.modeIcon,
+                      selected && styles.modeIconActive,
+                    ]}>
+                    <Feather
+                      name={item.icon}
+                      size={20}
+                      color={
+                        selected ? AppColors.primary : AppColors.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.modeCopy}>
+                    <Text style={styles.modeTitle}>{item.label}</Text>
+                    <Text style={styles.modeDescription}>
+                      {item.description}
+                    </Text>
+                  </View>
+                  <View style={[styles.radio, selected && styles.radioActive]}>
+                    {selected ? <View style={styles.radioDot} /> : null}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader
+            eyebrow="SESSION TYPE"
             title="Session type"
-            description="Choose how this invite-only session should be prepared."
+            description={
+              sessionMode === 'in_person'
+                ? 'Choose the in-person notarial service for this appointment.'
+                : 'Choose the remote notarial service for this appointment.'
+            }
           />
           <View style={styles.sessionTypeGrid}>
-            {SESSION_TYPES.map(item => {
+            {SESSION_TYPES.filter(
+              item =>
+                sessionMode !== 'in_person' ||
+                ['general_notary', 'closing'].includes(item.value),
+            ).map(item => {
               const isSelected = sessionType === item.value;
               return (
                 <TouchableOpacity
@@ -741,7 +791,9 @@ export default function AgentSessionInviteScreen({navigation}) {
           />
           <View style={styles.uploadHint}>
             <Feather name="info" size={13} color={AppColors.textSecondary} />
-            <Text style={styles.uploadHintText}>PDF files only</Text>
+            <Text style={styles.uploadHintText}>
+              PDF, Word, and image files
+            </Text>
           </View>
           <TouchableOpacity
             activeOpacity={0.75}
@@ -774,7 +826,7 @@ export default function AgentSessionInviteScreen({navigation}) {
               <Text style={styles.uploadDescription}>
                 {fileResponse.length
                   ? 'Tap to replace the selected files'
-                  : 'Please upload PDF only'}
+                  : 'Choose documents for review and signing'}
               </Text>
             </View>
             <Text style={styles.uploadAction}>
@@ -812,8 +864,41 @@ export default function AgentSessionInviteScreen({navigation}) {
           </View>
 
           <Text style={styles.fieldTitle}>Date and time</Text>
+          <View style={styles.scheduleChoices}>
+            {[
+              {label: 'Notarize now', value: 'notarize_now'},
+              {label: 'Schedule for later', value: 'schedule_later'},
+            ].map(option => {
+              const selected = sessionSchedule === option.value;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="radio"
+                  accessibilityState={{selected}}
+                  key={option.value}
+                  onPress={() => {
+                    setSessionSchedule(option.value);
+                    if (option.value === 'notarize_now') {
+                      setDate(new Date());
+                    }
+                  }}
+                  style={[
+                    styles.scheduleChoice,
+                    selected && styles.scheduleChoiceActive,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.scheduleChoiceText,
+                      selected && styles.scheduleChoiceTextActive,
+                    ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
           <TouchableOpacity
             activeOpacity={0.75}
+            disabled={sessionSchedule === 'notarize_now'}
             onPress={() => setDatePickerOpen(true)}
             style={styles.scheduleRow}>
             <View style={styles.fieldIcon}>
@@ -827,7 +912,9 @@ export default function AgentSessionInviteScreen({navigation}) {
                 {moment(date).format('YYYY [at] h:mm A')}
               </Text>
             </View>
-            <Text style={styles.changeText}>Change</Text>
+            <Text style={styles.changeText}>
+              {sessionSchedule === 'notarize_now' ? 'Now' : 'Change'}
+            </Text>
           </TouchableOpacity>
           <DatePicker
             date={date}
@@ -1161,6 +1248,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 22,
   },
+  modeCard: {
+    alignItems: 'center',
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginBottom: 10,
+    minHeight: 82,
+    padding: 12,
+  },
+  modeCardActive: {
+    backgroundColor: '#FFF9F4',
+    borderColor: '#FFC9A8',
+  },
+  modeCopy: {flex: 1, marginHorizontal: 12, minWidth: 0},
+  modeDescription: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  modeGrid: {width: '100%'},
+  modeIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderRadius: 7,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  modeIconActive: {backgroundColor: AppColors.primarySoft},
+  modeTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
   heroCopy: {flex: 1, marginLeft: 14},
   heroDescription: {
     color: '#AEB4BF',
@@ -1341,6 +1466,32 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   scheduleCopy: {flex: 1, marginHorizontal: 12},
+  scheduleChoice: {
+    alignItems: 'center',
+    borderColor: AppColors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 10,
+  },
+  scheduleChoiceActive: {
+    backgroundColor: AppColors.primarySoft,
+    borderColor: AppColors.primary,
+  },
+  scheduleChoiceText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  scheduleChoiceTextActive: {color: AppColors.primary},
+  scheduleChoices: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
   scheduleDate: {
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-SemiBold',

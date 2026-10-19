@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {useQuery} from '@apollo/client';
 import {
   ActivityIndicator,
   Image,
@@ -23,6 +24,7 @@ import {
 } from '../../utils/bookingPresentation';
 import {getSessionAvailability} from '../../utils/sessionAvailability';
 import PricingBreakdown from '../BookingFlow/PricingBreakdown';
+import {GET_PAYMENT_CARDS} from '../../../request/queries/getPaymentCards.query';
 
 const STATUS_CONFIG = {
   accepted: {
@@ -499,6 +501,7 @@ export default function ClientBookingDetailsView({
   onHelp,
   onJoin,
   onMessage,
+  onAddCard,
   onPay,
   onRefresh,
   onTrack,
@@ -508,9 +511,19 @@ export default function ClientBookingDetailsView({
 }) {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const statusKey = normalizeStatus(statusValue || booking?.status);
+  const {data: paymentCardsData, loading: paymentCardsLoading} = useQuery(
+    GET_PAYMENT_CARDS,
+    {skip: statusKey !== 'to_be_paid', fetchPolicy: 'network-only'},
+  );
+  const savedCards = paymentCardsData?.getPaymentCardsR?.cards || [];
   const status = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
   const isMobile = booking?.service_type === 'mobile_notary';
-  const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
+  const isInPersonSession = booking?.session_mode === 'in_person';
+  const serviceName = isMobile
+    ? 'Mobile notary'
+    : isInPersonSession
+    ? 'In-person notarization'
+    : 'Remote online notary';
   const agent = booking?.agent;
   const agentName = getName(agent) || 'Notary assignment in progress';
   const avatarUri =
@@ -696,10 +709,12 @@ export default function ClientBookingDetailsView({
       return (
         <ActionButton
           disabled={loading || !canJoinSession}
-          icon="video"
+          icon={isInPersonSession ? 'edit-3' : 'video'}
           label={
             canJoinSession
-              ? 'Join secure session'
+              ? isInPersonSession
+                ? 'Open signing session'
+                : 'Join secure session'
               : sessionAvailability.actionLabel
           }
           onPress={onJoin}
@@ -1094,7 +1109,7 @@ export default function ClientBookingDetailsView({
               <View style={styles.sheetTitleCopy}>
                 <Text style={styles.sheetTitle}>Choose payment method</Text>
                 <Text style={styles.sheetSubtitle}>
-                  Continue to Stripe to enter or choose your card securely.
+                  Your saved card will be available in Stripe’s secure checkout.
                 </Text>
               </View>
               <TouchableOpacity
@@ -1110,19 +1125,65 @@ export default function ClientBookingDetailsView({
               </TouchableOpacity>
             </View>
 
-            <View style={styles.emptyCardState}>
-              <View style={styles.emptyCardIcon}>
-                <Feather
-                  color={BookingColors.primary}
-                  name="credit-card"
-                  size={22}
-                />
-              </View>
-              <Text style={styles.emptyCardTitle}>Secure Stripe checkout</Text>
-              <Text style={styles.emptyCardText}>
-                Stripe will collect or confirm your card details before this
-                booking is paid.
-              </Text>
+            <View style={styles.paymentMethodsList}>
+              {paymentCardsLoading ? (
+                <ActivityIndicator color={BookingColors.primary} />
+              ) : savedCards.length ? (
+                savedCards.map(card => (
+                  <View key={card.id} style={styles.savedCardRow}>
+                    <View style={styles.savedCardIcon}>
+                      <Feather
+                        color={BookingColors.primary}
+                        name="credit-card"
+                        size={22}
+                      />
+                    </View>
+                    <View style={styles.savedCardCopy}>
+                      <Text style={styles.emptyCardTitle}>
+                        {`${String(card.brand || 'Card')
+                          .charAt(0)
+                          .toUpperCase()}${String(card.brand || 'Card').slice(
+                          1,
+                        )} ending in ${card.last4 || '••••'}`}
+                      </Text>
+                      <Text style={styles.emptyCardText}>
+                        {card.exp_month && card.exp_year
+                          ? `Expires ${String(card.exp_month).padStart(
+                              2,
+                              '0',
+                            )}/${String(card.exp_year).slice(-2)}`
+                          : 'Saved securely with Stripe'}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.emptyCardState}>
+                  <View style={styles.emptyCardIcon}>
+                    <Feather
+                      color={BookingColors.primary}
+                      name="credit-card"
+                      size={22}
+                    />
+                  </View>
+                  <Text style={styles.emptyCardTitle}>
+                    Secure Stripe checkout
+                  </Text>
+                  <Text style={styles.emptyCardText}>
+                    Add or enter a card in Stripe’s secure checkout to pay.
+                  </Text>
+                  {onAddCard ? (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setPaymentModalVisible(false);
+                        onAddCard();
+                      }}>
+                      <Text style={styles.addCardLink}>Add a card</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              )}
             </View>
 
             <TouchableOpacity
@@ -1131,7 +1192,7 @@ export default function ClientBookingDetailsView({
               onPress={handleContinuePayment}
               style={styles.sheetPrimaryButton}>
               <Text style={styles.sheetPrimaryButtonText}>
-                Continue to secure checkout
+                Continue to payment
               </Text>
               <Feather
                 color={BookingColors.white}
@@ -1610,6 +1671,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
     fontSize: 11,
     textAlign: 'center',
+  },
+  addCardLink: {
+    marginTop: 12,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
   sheetPrimaryButton: {
     height: 50,

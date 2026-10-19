@@ -17,9 +17,9 @@ import {polyfill as polyfillFetch} from 'react-native-polyfill-globals/src/fetch
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {initializeOneSignal} from './src/utils/oneSignal';
 import Wrapper from './src/routes/Root';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
+import {configureRevenueCat} from './src/utils/revenueCat';
 
 polyfillReadableStream();
 polyfillEncoding();
@@ -27,7 +27,9 @@ polyfillFetch();
 
 const client = init();
 
-initializeOneSignal();
+configureRevenueCat().catch(error => {
+  console.warn('RevenueCat initialization failed', error);
+});
 
 // const initializePushNotification = () => {
 //   if (PushNotification) {
@@ -106,37 +108,9 @@ initializeOneSignal();
 //   }
 // };
 // initializePushNotification();
-// const OneSignalHandler = () => {
-// const dispatch = useDispatch();
-
-// useEffect(() => {
-
-// const listener = EventRegister.addEventListener('notification', notification => {
-//   dispatch(setNotification(notification));
-// });
-
-// return () => {
-//   EventRegister.removeEventListener(listener);
-// };
-// }, [dispatch]);
-
-//   return null;
-// }
 function App(): JSX.Element {
   const publishableKey =
     'pk_test_51PsnpQCHDRBYmq9QyDySZJkHpbqD1nwE0fjruhwbwYhUDOlDdbIvnQhtau4Kuu8VtE9R5JYnpnvQLaC6i8WdInC800LuU8ArnZ';
-  // useEffect(() => {
-  //   initializeOneSignal();
-
-  //   const listener = EventRegister.addEventListener('notification', notification => {
-  //     store.dispatch(setNotification(notification));
-  //   });
-
-  //   return () => {
-  //     EventRegister.removeEventListener(listener);
-  //   };
-  // }, []);
-
   return (
     <ApolloProvider client={client}>
       <Provider store={store}>

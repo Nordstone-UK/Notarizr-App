@@ -21,12 +21,15 @@ const useFetchUser = () => {
   const dispatch = useDispatch();
   let info;
   const fetchUserInfo = async () => {
-    // const re = await user();
-    // console.log('sssssssssssddddddddddddddd', re);
-    await user().then(response => {
-      info = response.data.user;
-      dispatch(saveUserInfo(info));
-    });
+    const response = await user({fetchPolicy: 'network-only'});
+    info = response?.data?.user;
+
+    if (!info) {
+      const graphQLError = response?.errors?.[0]?.message;
+      throw new Error(graphQLError || 'Unable to load user profile.');
+    }
+
+    dispatch(saveUserInfo(info));
     return info;
   };
   const fetchDocumentTypes = async (page, limit, State, Search) => {

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BookingCard from '../../components/Bookings/BookingCard';
 import BookingEmptyState from '../../components/Bookings/BookingEmptyState';
 import BookingHeader from '../../components/Bookings/BookingHeader';
@@ -25,11 +26,32 @@ import {PREVIEW_BOOKINGS} from '../../data/previewBookings';
 import useFetchBooking from '../../hooks/useFetchBooking';
 
 const getBookingStatus = booking => {
-  if (booking.status === 'cancelled' || booking.status === 'expired') {
+  const status = String(booking?.status || '').toLowerCase();
+  const paymentStatus = String(booking?.payment_status || '').toLowerCase();
+
+  if (['cancelled', 'canceled', 'expired', 'rejected'].includes(status)) {
     return 'rejected';
   }
-  return booking.status;
+  if (['completed', 'complete'].includes(status)) {
+    return 'completed';
+  }
+  if (['pending', 'to_be_paid', 'unpaid', 'payment_pending'].includes(status)) {
+    return 'pending';
+  }
+  if (['paid', 'succeeded'].includes(paymentStatus)) {
+    return 'accepted';
+  }
+  if (['accepted', 'ongoing', 'payment_confirmed', 'paid'].includes(status)) {
+    return 'accepted';
+  }
+  return status;
 };
+
+const BOOKING_STATUSES = ['accepted', 'pending', 'completed', 'rejected'];
+const getSeenSignature = item =>
+  `${item?._id}:${String(item?.status || '').toLowerCase()}:${
+    item?.updatedAt || item?.createdAt || ''
+  }`;
 
 export default function AllBookingScreen({navigation, route}) {
   const user = useSelector(state => state.user.user);
@@ -45,6 +67,8 @@ export default function AllBookingScreen({navigation, route}) {
     route.params?.initialStatus || 'accepted',
   );
   const [bookings, setBookings] = useState([]);
+  const [statusBookings, setStatusBookings] = useState({});
+  const [unseenCounts, setUnseenCounts] = useState({});
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -57,7 +81,9 @@ export default function AllBookingScreen({navigation, route}) {
   const previewBookings = PREVIEW_BOOKINGS.filter(
     booking => getBookingStatus(booking) === activeStatus,
   );
-  const visibleBookings = previewMode ? previewBookings : bookings;
+  const visibleBookings = (previewMode ? previewBookings : bookings).filter(
+    booking => getBookingStatus(booking) === activeStatus,
+  );
 
   const loadBookings = useCallback(
     async (status, refreshingRequest = false) => {
@@ -70,15 +96,63 @@ export default function AllBookingScreen({navigation, route}) {
         : !hasBookingsRef.current && setLoading(true);
       setLoadError(false);
       try {
-        const [bookingDetails, sessionDetails] = await Promise.all([
-          fetchBookingInfoRef.current(status, refreshingRequest),
-          handleClientSessionsRef.current(status, refreshingRequest),
-        ]);
-        const merged = [
-          ...(Array.isArray(bookingDetails) ? bookingDetails : []),
-          ...(Array.isArray(sessionDetails) ? sessionDetails : []),
-        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setBookings(merged);
+        const results = await Promise.allSettled(
+          BOOKING_STATUSES.map(async tabStatus => {
+            const [bookingDetails, sessionDetails] = await Promise.all([
+              fetchBookingInfoRef.current(tabStatus, refreshingRequest),
+              handleClientSessionsRef.current(tabStatus, refreshingRequest),
+            ]);
+            return [
+              ...new Map(
+                [...(bookingDetails || []), ...(sessionDetails || [])]
+                  .filter(item => getBookingStatus(item) === tabStatus)
+                  .map(item => [String(item._id), item]),
+              ).values(),
+            ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          }),
+        );
+        const nextStatusBookings = {};
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            nextStatusBookings[BOOKING_STATUSES[index]] = result.value;
+          }
+        });
+        if (!nextStatusBookings[status]) {
+          throw results.find(result => result.status === 'rejected')?.reason;
+        }
+        const activeBookings = nextStatusBookings[status];
+        setBookings(activeBookings);
+        setStatusBookings(nextStatusBookings);
+
+        const seenKey = `@notarizr/client-booking-seen:${
+          user?._id || 'unknown'
+        }`;
+        const stored = await AsyncStorage.getItem(seenKey);
+        const currentSignatures = Object.fromEntries(
+          BOOKING_STATUSES.map(tabStatus => [
+            tabStatus,
+            (nextStatusBookings[tabStatus] || []).map(getSeenSignature),
+          ]),
+        );
+        if (stored === null) {
+          await AsyncStorage.setItem(
+            seenKey,
+            JSON.stringify(currentSignatures),
+          );
+          setUnseenCounts({});
+        } else {
+          const seen = JSON.parse(stored);
+          setUnseenCounts(
+            Object.fromEntries(
+              BOOKING_STATUSES.map(tabStatus => [
+                tabStatus,
+                currentSignatures[tabStatus].filter(
+                  signature => !(seen[tabStatus] || []).includes(signature),
+                ).length,
+              ]),
+            ),
+          );
+        }
       } catch (error) {
         console.error('Failed to load bookings:', error);
         setLoadError(true);
@@ -87,7 +161,7 @@ export default function AllBookingScreen({navigation, route}) {
         setRefreshing(false);
       }
     },
-    [previewMode],
+    [previewMode, user?._id],
   );
 
   useFocusEffect(
@@ -108,6 +182,22 @@ export default function AllBookingScreen({navigation, route}) {
     );
     dispatch(setUser(booking?.agent || []));
     navigation.navigate('MedicalBookingScreen');
+  };
+
+  const changeStatus = async nextStatus => {
+    const seenKey = `@notarizr/client-booking-seen:${user?._id || 'unknown'}`;
+    try {
+      const stored = await AsyncStorage.getItem(seenKey);
+      const seen = stored ? JSON.parse(stored) : {};
+      seen[nextStatus] = (statusBookings[nextStatus] || []).map(
+        getSeenSignature,
+      );
+      await AsyncStorage.setItem(seenKey, JSON.stringify(seen));
+    } catch (error) {
+      console.warn('Could not save viewed booking updates:', error);
+    }
+    setUnseenCounts(current => ({...current, [nextStatus]: 0}));
+    setActiveStatus(nextStatus);
   };
 
   const renderContent = () => {
@@ -167,7 +257,29 @@ export default function AllBookingScreen({navigation, route}) {
       <BookingHeader
         activeStatus={activeStatus}
         count={visibleBookings.length}
-        onChangeStatus={setActiveStatus}
+        onChangeStatus={changeStatus}
+        tabs={[
+          {
+            label: 'Accepted',
+            value: 'accepted',
+            unreadCount: unseenCounts.accepted,
+          },
+          {
+            label: 'Pending',
+            value: 'pending',
+            unreadCount: unseenCounts.pending,
+          },
+          {
+            label: 'Completed',
+            value: 'completed',
+            unreadCount: unseenCounts.completed,
+          },
+          {
+            label: 'Cancelled',
+            value: 'rejected',
+            unreadCount: unseenCounts.rejected,
+          },
+        ]}
       />
       <View style={styles.content}>{renderContent()}</View>
     </SafeAreaView>

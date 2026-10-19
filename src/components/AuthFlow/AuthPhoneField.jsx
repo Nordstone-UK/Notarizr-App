@@ -1,11 +1,9 @@
 import React, {useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import PhoneInput from 'react-native-phone-number-input';
 import AppColors from '../../themes/AppColors';
 import Feather from 'react-native-vector-icons/Feather';
 import {removeCountryCode} from '../../utils/CountryCode';
-
-const ORANGE = AppColors.primary;
 
 export default function AuthPhoneField({
   value = '',
@@ -15,6 +13,7 @@ export default function AuthPhoneField({
   editable = true,
 }) {
   const [focused, setFocused] = useState(false);
+  const [clearKey, setClearKey] = useState(0);
   const [initialPhone] = useState(() => {
     const parsed = removeCountryCode(value || '');
     return {
@@ -22,10 +21,16 @@ export default function AuthPhoneField({
       nationalNumber: parsed.phoneNumberWithoutCode.replace(/[^\d]/g, ''),
     };
   });
+  const hasValue = value?.replace(/[^\d]/g, '').length > 0;
+
+  const handleClear = () => {
+    onChangeText?.('');
+    setClearKey(key => key + 1);
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      {label ? <Text style={styles.label}>{label}</Text> : null}
       <View
         style={[
           styles.inputShell,
@@ -34,10 +39,11 @@ export default function AuthPhoneField({
           !editable && styles.disabledShell,
         ]}>
         <PhoneInput
+          key={`${initialPhone.countryCode}-${clearKey}`}
           defaultCode={initialPhone.countryCode}
           defaultValue={initialPhone.nationalNumber}
           disabled={!editable}
-          layout="first"
+          layout="second"
           onChangeFormattedText={onChangeText}
           containerStyle={styles.phoneContainer}
           textContainerStyle={styles.textContainer}
@@ -68,6 +74,15 @@ export default function AuthPhoneField({
           }}
           placeholder="Phone number"
         />
+        {hasValue && editable ? (
+          <TouchableOpacity
+            accessibilityLabel="Clear phone number"
+            activeOpacity={0.75}
+            onPress={handleClear}
+            style={styles.clearButton}>
+            <Feather name="x" size={14} color={AppColors.white} />
+          </TouchableOpacity>
+        ) : null}
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
@@ -88,44 +103,50 @@ const styles = StyleSheet.create({
     height: 58,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    borderRadius: 8,
-    backgroundColor: AppColors.backgroundSubtle,
-    overflow: 'hidden',
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
   focusedShell: {
-    borderColor: ORANGE,
-    backgroundColor: AppColors.white,
+    borderColor: 'transparent',
   },
   errorShell: {
-    borderColor: AppColors.error,
+    borderColor: 'transparent',
   },
   disabledShell: {
     opacity: 0.72,
   },
   phoneContainer: {
     flex: 1,
-    height: 56,
+    height: 58,
+    columnGap: 10,
     backgroundColor: 'transparent',
   },
   countryButton: {
-    width: 52,
-    height: 56,
-    marginLeft: 4,
+    width: 108,
+    height: 58,
+    paddingHorizontal: 16,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    backgroundColor: '#F4EDF4',
   },
   flagButton: {
-    width: 52,
+    width: 108,
   },
   textContainer: {
-    height: 56,
-    paddingHorizontal: 0,
+    flex: 1,
+    height: 58,
+    paddingLeft: 20,
+    paddingRight: 44,
     paddingVertical: 0,
-    backgroundColor: 'transparent',
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    backgroundColor: '#F4EDF4',
   },
   countryCode: {
-    marginRight: 9,
+    marginLeft: 6,
+    marginRight: 8,
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
     fontSize: 15,
@@ -138,6 +159,16 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontFamily: 'Manrope-Regular',
     fontSize: 15,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 17,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#B9B2BD',
   },
   errorText: {
     marginTop: 6,

@@ -9,6 +9,7 @@ export const CREATE_BOOKING = gql`
     $appointmentTimezone: String
     $documentType: [DocsTypeInput!]!
     $address: String
+    $bookingZip: String
     $dateOfBooking: Date
     $timeOfBooking: Date
     $notes: String
@@ -39,6 +40,7 @@ export const CREATE_BOOKING = gql`
       appointment_timezone: $appointmentTimezone
       document_type: $documentType
       address: $address
+      booking_zip: $bookingZip
       date_of_booking: $dateOfBooking
       time_of_booking: $timeOfBooking
       notes: $notes
@@ -89,9 +91,11 @@ export const CREATE_BOOKING = gql`
           }
           description
           state
+          zipCode
           addresses {
             tag
             location
+            zipCode
           }
         }
         service_type
@@ -141,9 +145,11 @@ export const CREATE_BOOKING = gql`
           }
           description
           state
+          zipCode
           addresses {
             tag
             location
+            zipCode
           }
         }
         preference_analysis

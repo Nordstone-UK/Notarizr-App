@@ -128,13 +128,9 @@ const COMPLETENESS_ITEMS = [
     subtitle: 'The notary can confirm any pre-signed sections if needed.',
   },
 ];
-const IDENTITY_METHODS = {
-  signer: 'Government ID, selfie match and knowledge check',
-  witness: 'Government ID and selfie match',
-  observer: 'Email verification',
-  recipient: 'Email verification',
-};
-const VERIFIED_IDENTITY_STATUSES = ['verified', 'manual_review', 'alternate'];
+const isClientIdentityVerified = user =>
+  user?.clientVerification?.status === 'verified' ||
+  user?.clientVerification?.providerStatus === 'verified';
 const getMinimumBookingDate = () => {
   const date = new Date();
   date.setHours(0, 0, 0, 0);
@@ -387,64 +383,6 @@ const getParticipantStatus = participant => {
     icon: 'clock',
     label: 'Ready to invite',
     tone: 'pending',
-  };
-};
-
-const getParticipantIdentityMethod = participant =>
-  IDENTITY_METHODS[participant.role] || IDENTITY_METHODS.signer;
-
-const createIdentityCheck = participant => ({
-  method: getParticipantIdentityMethod(participant),
-  retriesRemaining: participant.role === 'signer' ? 2 : 1,
-  status: 'not_started',
-});
-
-const getIdentityStatus = check => {
-  if (check?.status === 'verified') {
-    return {
-      color: '#168A52',
-      icon: 'check-circle',
-      label: 'Verified',
-      message: 'Identity check passed.',
-    };
-  }
-  if (check?.status === 'captured') {
-    return {
-      color: '#A86900',
-      icon: 'clock',
-      label: 'Capture complete',
-      message: 'Waiting for verification result.',
-    };
-  }
-  if (check?.status === 'manual_review') {
-    return {
-      color: '#A86900',
-      icon: 'alert-circle',
-      label: 'Manual review',
-      message: 'Support will review this signer before the session.',
-    };
-  }
-  if (check?.status === 'alternate') {
-    return {
-      color: '#2378C3',
-      icon: 'shuffle',
-      label: 'Alternate method',
-      message: 'Alternate verification path selected.',
-    };
-  }
-  if (check?.status === 'failed') {
-    return {
-      color: '#B33B3B',
-      icon: 'x-circle',
-      label: 'Retry needed',
-      message: 'Capture failed. Retry or choose another path.',
-    };
-  }
-  return {
-    color: '#8C929C',
-    icon: 'shield',
-    label: 'Not started',
-    message: 'ID capture has not started yet.',
   };
 };
 
@@ -1637,122 +1575,6 @@ function UploadAndPrintStep({
   );
 }
 
-function IdentityVerificationStep({
-  identityChecks,
-  onCaptureId,
-  onChooseAlternate,
-  onManualReview,
-  onRetryIdentity,
-  participants,
-}) {
-  const signerParticipants = useMemo(
-    () => participants.filter(participant => participant.role === 'signer'),
-    [participants],
-  );
-
-  return (
-    <BookingFlowSection
-      subtitle="Complete or route identity checks for every signer before review."
-      title="Identity verification">
-      <View style={styles.identityList}>
-        {signerParticipants.map((participant, index) => {
-          const check =
-            identityChecks[participant.id] || createIdentityCheck(participant);
-          const status = getIdentityStatus(check);
-          const canRetry =
-            check.status === 'failed' && Number(check.retriesRemaining) > 0;
-
-          return (
-            <View key={participant.id} style={styles.identityCard}>
-              <View style={styles.identityHeader}>
-                <View style={styles.identityAvatar}>
-                  <Feather name="user-check" size={19} color="#FD6D1F" />
-                </View>
-                <View style={styles.identityHeadingCopy}>
-                  <Text style={styles.identityName}>
-                    {participant.fullName || `Signer ${index + 1}`}
-                  </Text>
-                  <Text style={styles.identityMethod}>{check.method}</Text>
-                </View>
-              </View>
-
-              <View style={styles.identityStatusBox}>
-                <Feather name={status.icon} size={16} color={status.color} />
-                <View style={styles.identityStatusCopy}>
-                  <Text
-                    style={[styles.identityStatusTitle, {color: status.color}]}>
-                    {status.label}
-                  </Text>
-                  <Text style={styles.identityStatusText}>
-                    {status.message}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.identityMetaRow}>
-                <Text style={styles.identityMetaLabel}>Permitted retries</Text>
-                <Text style={styles.identityMetaValue}>
-                  {check.retriesRemaining} remaining
-                </Text>
-              </View>
-
-              <View style={styles.identityActions}>
-                <TouchableOpacity
-                  activeOpacity={0.72}
-                  onPress={() => onCaptureId(participant.id)}
-                  style={styles.identityPrimaryAction}>
-                  <Feather name="camera" size={15} color="#FFFFFF" />
-                  <Text style={styles.identityPrimaryText}>Capture ID</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.72}
-                  disabled={!canRetry}
-                  onPress={() => onRetryIdentity(participant.id)}
-                  style={[
-                    styles.identitySecondaryAction,
-                    !canRetry && styles.disabledIdentityAction,
-                  ]}>
-                  <Feather
-                    name="rotate-ccw"
-                    size={15}
-                    color={canRetry ? '#D65322' : '#AEB4BC'}
-                  />
-                  <Text
-                    style={[
-                      styles.identitySecondaryText,
-                      !canRetry && styles.disabledIdentityText,
-                    ]}>
-                    Retry
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.identityRouteActions}>
-                <TouchableOpacity
-                  activeOpacity={0.72}
-                  onPress={() => onManualReview(participant.id)}
-                  style={styles.identityRouteButton}>
-                  <Feather name="user-check" size={14} color="#A86900" />
-                  <Text style={styles.identityManualText}>Manual review</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.72}
-                  onPress={() => onChooseAlternate(participant.id)}
-                  style={styles.identityRouteButton}>
-                  <Feather name="shuffle" size={14} color="#2378C3" />
-                  <Text style={styles.identityAlternateText}>
-                    Alternate method
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    </BookingFlowSection>
-  );
-}
-
 function SummaryRow({icon, label, last, onEdit, value}) {
   return (
     <View style={[styles.summaryRow, last && styles.lastSummaryRow]}>
@@ -1785,13 +1607,11 @@ function ReviewStep({
   documentPrepSummary,
   documentType,
   eligibilitySummary,
-  identitySummary,
   isMobile,
   location,
   onEditAppointment,
   onEditDocuments,
   onEditEligibility,
-  onEditIdentity,
   onEditParticipants,
   otherName,
   participants,
@@ -1864,12 +1684,6 @@ function ReviewStep({
             value={`${participants.length} ${
               participants.length === 1 ? 'person' : 'people'
             } added`}
-          />
-          <SummaryRow
-            icon="shield"
-            label="Identity checks"
-            onEdit={onEditIdentity}
-            value={identitySummary}
           />
           {isMobile ? (
             <SummaryRow
@@ -2277,12 +2091,12 @@ export default function BookingFlowScreen({navigation, route}) {
         : 5
       : previewStep === 'review' || previewStep === 'fullReview'
       ? isMobile
-        ? 5
-        : 6
+        ? 4
+        : 5
       : previewStep === 'payment' || previewStep === 'full'
       ? isMobile
-        ? 6
-        : 7
+        ? 5
+        : 6
       : 1;
   const scrollRef = useRef(null);
   const appliedPreviewStepRef = useRef('');
@@ -2354,24 +2168,6 @@ export default function BookingFlowScreen({navigation, route}) {
   });
   const [participants, setParticipants] = useState(() =>
     createDefaultParticipants(user),
-  );
-  const [identityChecks, setIdentityChecks] = useState(() =>
-    createDefaultParticipants(user).reduce(
-      (checks, participant) => ({
-        ...checks,
-        [participant.id]:
-          previewStep === 'identity' ||
-          previewStep === 'review' ||
-          previewStep === 'payment'
-            ? {
-                ...createIdentityCheck(participant),
-                retriesRemaining: 2,
-                status: 'verified',
-              }
-            : createIdentityCheck(participant),
-      }),
-      {},
-    ),
   );
   const [paymentAuthorization, setPaymentAuthorization] = useState({
     status: 'idle',
@@ -2459,19 +2255,6 @@ export default function BookingFlowScreen({navigation, route}) {
   }, [user?.email, user?.first_name, user?.last_name, user?.phone_number]);
 
   useEffect(() => {
-    setIdentityChecks(current =>
-      participants.reduce(
-        (checks, participant) => ({
-          ...checks,
-          [participant.id]:
-            current[participant.id] || createIdentityCheck(participant),
-        }),
-        {},
-      ),
-    );
-  }, [participants]);
-
-  useEffect(() => {
     setDeadlineDate(current => current || selectedDate);
   }, [selectedDate]);
 
@@ -2539,26 +2322,12 @@ export default function BookingFlowScreen({navigation, route}) {
     }),
     [completionChecks, deadlineDate, notarialAct],
   );
-  const signerParticipants = useMemo(
-    () => participants.filter(participant => participant.role === 'signer'),
-    [participants],
-  );
-  const identitySummary = useMemo(() => {
-    const verifiedCount = signerParticipants.filter(participant =>
-      VERIFIED_IDENTITY_STATUSES.includes(
-        identityChecks[participant.id]?.status,
-      ),
-    ).length;
-    return `${verifiedCount}/${signerParticipants.length} signer ${
-      signerParticipants.length === 1 ? 'check' : 'checks'
-    } complete`;
-  }, [identityChecks, signerParticipants]);
   const printingCharge =
     isMobile && wantsPrint ? printCopies * PRINT_COPY_PRICE : 0;
   // Printing is a separate Notarizr add-on, not part of the seal/signer/witness pricing model
   // (see priceQuote below), so it's added on top of whatever the engine quotes.
   const price = (priceQuote?.customerTotal || 0) + printingCharge;
-  const totalSteps = isMobile ? 6 : 7;
+  const totalSteps = isMobile ? 5 : 6;
 
   // Live server-computed quote (Open Call pricing — the platform sets this price, the agent
   // never does) for whatever seal/signer/witness counts the client has chosen so far.
@@ -2598,8 +2367,7 @@ export default function BookingFlowScreen({navigation, route}) {
   const appointmentStep = isMobile ? 1 : 2;
   const participantStep = isMobile ? 2 : 3;
   const documentStep = isMobile ? 3 : 4;
-  const identityStep = isMobile ? 4 : 5;
-  const reviewStep = isMobile ? 5 : 6;
+  const reviewStep = isMobile ? 4 : 5;
   const paymentStep = totalSteps;
   const stepOneValid =
     Boolean(
@@ -2618,13 +2386,6 @@ export default function BookingFlowScreen({navigation, route}) {
   const documentPrepValid =
     Boolean(notarialAct && deadlineDate) &&
     COMPLETENESS_ITEMS.every(item => completionChecks[item.key]);
-  const identityValid =
-    signerParticipants.length > 0 &&
-    signerParticipants.every(participant =>
-      VERIFIED_IDENTITY_STATUSES.includes(
-        identityChecks[participant.id]?.status,
-      ),
-    );
   const stepTwoValid = isMobile
     ? !wantsPrint || uploadedDocuments.length > 0
     : uploadedDocuments.length > 0;
@@ -2637,8 +2398,6 @@ export default function BookingFlowScreen({navigation, route}) {
       ? !participantsValid
       : step === documentStep
       ? !stepTwoValid || !documentPrepValid
-      : step === identityStep
-      ? !identityValid
       : step === paymentStep
       ? priceQuoteLoading || submitting
       : false;
@@ -2674,22 +2433,6 @@ export default function BookingFlowScreen({navigation, route}) {
         current =>
           current ||
           'Please confirm every signer, witness, observer and recipient before the session.',
-      );
-      setIdentityChecks(current =>
-        nextParticipants
-          .filter(participant => participant.role === 'signer')
-          .reduce(
-            (checks, participant) => ({
-              ...checks,
-              [participant.id]: {
-                ...(current[participant.id] ||
-                  createIdentityCheck(participant)),
-                retriesRemaining: 2,
-                status: 'verified',
-              },
-            }),
-            current,
-          ),
       );
       setStep(
         previewStep === 'fullParticipants'
@@ -2736,41 +2479,17 @@ export default function BookingFlowScreen({navigation, route}) {
         complete: true,
         unsigned: true,
       });
-      setIdentityChecks(current =>
-        signerParticipants
-          .filter(participant => participant.role === 'signer')
-          .reduce(
-            (checks, participant) => ({
-              ...checks,
-              [participant.id]: {
-                ...(current[participant.id] ||
-                  createIdentityCheck(participant)),
-                retriesRemaining: 2,
-                status: 'verified',
-              },
-            }),
-            current,
-          ),
-      );
-      setStep(
-        previewStep === 'payment'
-          ? paymentStep
-          : previewStep === 'review'
-          ? reviewStep
-          : identityStep,
-      );
+      setStep(previewStep === 'payment' ? paymentStep : reviewStep);
     }
   }, [
     documentStep,
     fullPreview,
-    identityStep,
     appointmentStep,
     participantStep,
     paymentStep,
     previewStep,
     reviewStep,
     serviceType,
-    signerParticipants,
     user,
   ]);
 
@@ -2941,6 +2660,16 @@ export default function BookingFlowScreen({navigation, route}) {
       return;
     }
 
+    if (!isClientIdentityVerified(user)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Verification pending',
+        text2: 'Complete identity verification before booking a notary.',
+      });
+      navigation.navigate('ClientVerificationScreen');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const matchedAgentResponse = isMobile
@@ -3008,15 +2737,17 @@ export default function BookingFlowScreen({navigation, route}) {
         }),
       ].join('\n');
       const identityNote = [
-        'Identity verification:',
-        ...signerParticipants.map(participant => {
-          const check =
-            identityChecks[participant.id] || createIdentityCheck(participant);
-          return `- ${participant.fullName}: ${check.method}; ${
-            getIdentityStatus(check).label
-          }; ${check.retriesRemaining} retries remaining`;
-        }),
-      ].join('\n');
+        'Client identity verification:',
+        `Status: ${user?.clientVerification?.status || 'verified'}`,
+        user?.clientVerification?.provider
+          ? `Provider: ${user.clientVerification.provider}`
+          : '',
+        user?.clientVerification?.verifiedAt
+          ? `Verified at: ${user.clientVerification.verifiedAt}`
+          : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
       const eligibilityNote = !isMobile
         ? [
             'RON eligibility:',
@@ -3074,20 +2805,12 @@ export default function BookingFlowScreen({navigation, route}) {
         invitationStatus: participant.inviteStatus,
       }));
       const identityVerification = {
-        signers: signerParticipants.map(participant => {
-          const check =
-            identityChecks[participant.id] || createIdentityCheck(participant);
-          const status = getIdentityStatus(check);
-          return {
-            participantId: participant.id,
-            fullName: participant.fullName,
-            email: participant.email,
-            method: check.method,
-            status: check.status,
-            statusLabel: status.label,
-            retriesRemaining: check.retriesRemaining,
-          };
-        }),
+        accountVerification: {
+          status: user?.clientVerification?.status || 'verified',
+          providerStatus: user?.clientVerification?.providerStatus || '',
+          provider: user?.clientVerification?.provider || '',
+          verifiedAt: user?.clientVerification?.verifiedAt || '',
+        },
       };
       const ronEligibility = isMobile
         ? null
@@ -3120,6 +2843,9 @@ export default function BookingFlowScreen({navigation, route}) {
           address: isMobile
             ? selectedAddress?._id || selectedAddress?.location
             : null,
+          bookingZip: isMobile
+            ? selectedAddress?.zipCode || selectedAddress?.zip || ''
+            : user?.zipCode || '',
           dateOfBooking: appointment,
           timeOfBooking: appointment,
           notes: fullBookingNotes || null,
@@ -3223,20 +2949,6 @@ export default function BookingFlowScreen({navigation, route}) {
           : participant,
       ),
     );
-    if (patch.role) {
-      const currentParticipant = participants.find(
-        participant => participant.id === participantId,
-      );
-      if (currentParticipant) {
-        setIdentityChecks(current => ({
-          ...current,
-          [participantId]: createIdentityCheck({
-            ...currentParticipant,
-            role: patch.role,
-          }),
-        }));
-      }
-    }
   };
 
   const changeScheduleMode = mode => {
@@ -3313,52 +3025,6 @@ export default function BookingFlowScreen({navigation, route}) {
       text1: 'Invitations queued',
       text2: 'They will be sent after this booking is created.',
     });
-  };
-
-  const updateIdentityCheck = (participantId, patch) => {
-    const participant = participants.find(item => item.id === participantId);
-    setIdentityChecks(current => ({
-      ...current,
-      [participantId]: {
-        ...(current[participantId] ||
-          createIdentityCheck(participant || {role: 'signer'})),
-        ...patch,
-      },
-    }));
-  };
-
-  const captureIdentity = participantId => {
-    updateIdentityCheck(participantId, {status: 'verified'});
-    Toast.show({
-      type: 'success',
-      text1: 'Identity verified',
-      text2: 'The signer is ready for review.',
-    });
-  };
-
-  const retryIdentity = participantId => {
-    const currentCheck =
-      identityChecks[participantId] ||
-      createIdentityCheck(
-        participants.find(participant => participant.id === participantId) || {
-          role: 'signer',
-        },
-      );
-    if (currentCheck.retriesRemaining <= 0) {
-      return;
-    }
-    updateIdentityCheck(participantId, {
-      retriesRemaining: currentCheck.retriesRemaining - 1,
-      status: 'captured',
-    });
-  };
-
-  const requestManualReview = participantId => {
-    updateIdentityCheck(participantId, {status: 'manual_review'});
-  };
-
-  const chooseAlternateIdentityMethod = participantId => {
-    updateIdentityCheck(participantId, {status: 'alternate'});
   };
 
   const chooseDocuments = async () => {
@@ -3551,15 +3217,6 @@ export default function BookingFlowScreen({navigation, route}) {
               uploadedDocuments={uploadedDocuments}
               wantsPrint={wantsPrint}
             />
-          ) : step === identityStep ? (
-            <IdentityVerificationStep
-              identityChecks={identityChecks}
-              onCaptureId={captureIdentity}
-              onChooseAlternate={chooseAlternateIdentityMethod}
-              onManualReview={requestManualReview}
-              onRetryIdentity={retryIdentity}
-              participants={participants}
-            />
           ) : step === reviewStep ? (
             <ReviewStep
               additionalSeals={additionalSeals}
@@ -3570,13 +3227,11 @@ export default function BookingFlowScreen({navigation, route}) {
               documentPrepSummary={documentPrepSummary}
               documentType={isMobile ? '' : eligibilitySummary.documentCategory}
               eligibilitySummary={eligibilitySummary}
-              identitySummary={identitySummary}
               isMobile={isMobile}
               location={location}
               onEditAppointment={() => setStep(appointmentStep)}
               onEditDocuments={() => setStep(documentStep)}
               onEditEligibility={() => setStep(1)}
-              onEditIdentity={() => setStep(identityStep)}
               onEditParticipants={() => setStep(participantStep)}
               otherName={otherName}
               participants={participants}
@@ -4368,160 +4023,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Manrope-Bold',
     fontSize: 10,
-  },
-  identityList: {
-    paddingHorizontal: 20,
-  },
-  identityCard: {
-    marginBottom: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#E0E3E7',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  identityHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  identityAvatar: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: '#FFF0E7',
-  },
-  identityHeadingCopy: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 11,
-  },
-  identityName: {
-    color: '#202632',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
-  },
-  identityMethod: {
-    marginTop: 3,
-    color: '#858C97',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 9,
-    lineHeight: 13,
-  },
-  identityStatusBox: {
-    minHeight: 54,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    padding: 11,
-    borderRadius: 8,
-    backgroundColor: '#F8F9FA',
-  },
-  identityStatusCopy: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 8,
-  },
-  identityStatusTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 11,
-  },
-  identityStatusText: {
-    marginTop: 2,
-    color: '#858C97',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 8,
-    lineHeight: 12,
-  },
-  identityMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  identityMetaLabel: {
-    color: '#858C97',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 9,
-  },
-  identityMetaValue: {
-    color: '#202632',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-  },
-  identityActions: {
-    flexDirection: 'row',
-    marginTop: 12,
-  },
-  identityPrimaryAction: {
-    height: 40,
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: '#FD6D1F',
-  },
-  identityPrimaryText: {
-    marginLeft: 7,
-    color: '#FFFFFF',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 10,
-  },
-  identitySecondaryAction: {
-    height: 40,
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: '#F3B18D',
-    borderRadius: 8,
-    backgroundColor: '#FFF9F5',
-  },
-  disabledIdentityAction: {
-    borderColor: '#E0E3E7',
-    backgroundColor: '#F4F5F7',
-  },
-  identitySecondaryText: {
-    marginLeft: 7,
-    color: '#D65322',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 10,
-  },
-  disabledIdentityText: {
-    color: '#AEB4BC',
-  },
-  identityRouteActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  identityRouteButton: {
-    minHeight: 34,
-    flexGrow: 1,
-    flexBasis: '31%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 6,
-    marginBottom: 6,
-    borderRadius: 8,
-    backgroundColor: '#F8F9FA',
-  },
-  identityManualText: {
-    marginLeft: 6,
-    color: '#A86900',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-  },
-  identityAlternateText: {
-    marginLeft: 6,
-    color: '#2378C3',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
   },
   quoteLoadingText: {
     marginTop: 6,

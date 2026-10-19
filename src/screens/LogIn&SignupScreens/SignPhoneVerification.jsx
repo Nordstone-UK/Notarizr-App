@@ -21,6 +21,7 @@ export default function SignPhoneVerification({route, navigation}) {
     firstName,
     lastName,
     location,
+    zipCode,
     gender,
     phoneNumber,
     date,
@@ -36,7 +37,7 @@ export default function SignPhoneVerification({route, navigation}) {
   );
   const dispatch = useDispatch();
   const registerData = useSelector(state => state.register);
-  const totalFields = registerData.accountType === 'client' ? 8 : 12;
+  const totalFields = 8;
 
   const handleOtpVerification = async () => {
     const isCompleteOtp = otp.length === 4 || otp.length === 6;
@@ -67,6 +68,7 @@ export default function SignPhoneVerification({route, navigation}) {
           firstName,
           lastName,
           location,
+          zipCode,
           gender,
           email,
           phoneNumber,

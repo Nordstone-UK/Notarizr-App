@@ -60,6 +60,11 @@ const Root: FC = (): JSX.Element => {
           return;
         }
 
+        if (/^notarizr:\/\/identity\/return/i.test(url || '')) {
+          navigation.navigate('ClientVerificationScreen');
+          return;
+        }
+
         const bookingDetailId =
           (url || '').match(/^notarizr:\/\/booking-detail\/([^?]+)/i)?.[1] ||
           (url || '').match(/[?&]bookingId=([^&]+)/)?.[1];

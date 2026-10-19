@@ -1,6 +1,8 @@
 import {useLazyQuery} from '@apollo/client';
 import {GET_PHONE_OTP} from '../../request/queries/getPhoneOTP.query';
 import {VERIFY_PHONE_OTP} from '../../request/queries/verifyPhoneOTP.query';
+import {GET_EMAIL_OTP} from '../../request/queries/getEmailOTP.query';
+import {VERIFY_EMAIL_OTP} from '../../request/queries/verifyEmailOTP.query';
 import {useNavigation} from '@react-navigation/native';
 import useFetchUser from './useFetchUser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,11 +16,15 @@ const useLogin = () => {
   const [getPhoneOTP] = useLazyQuery(GET_PHONE_OTP, {
     fetchPolicy: 'no-cache',
   });
+  const [verifyEmailOTP] = useLazyQuery(VERIFY_EMAIL_OTP, {
+    fetchPolicy: 'no-cache',
+  });
+  const [getEmailOTP] = useLazyQuery(GET_EMAIL_OTP, {fetchPolicy: 'no-cache'});
   const {fetchUserInfo} = useFetchUser();
   const navigation = useNavigation();
 
   // const user = useSelector(state => state.user.user);
-  const handleOtpVerification = async (phone, otp) => {
+  const handleOtpVerification = async (phone, otp, isAgentLogin = false) => {
     try {
       const response = await verifYOTP({variables: {phone, otp}});
       const verification = response?.data?.verifyPhoneOTP;
@@ -35,7 +41,7 @@ const useLogin = () => {
       // The user query reads this token from AsyncStorage. Await the write so it
       // cannot accidentally fetch the previously signed-in account.
       await saveAccessTokenToStorage(verification.accessToken);
-      await resetStack('login');
+      await resetStack('login', isAgentLogin);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -45,7 +51,34 @@ const useLogin = () => {
       });
     }
   };
-  const resetStack = async login => {
+  const handleEmailOtpVerification = async (
+    email,
+    otp,
+    isAgentLogin = false,
+  ) => {
+    try {
+      const response = await verifyEmailOTP({variables: {email, otp}});
+      const verification = response?.data?.verifyEmailOTP;
+      if (verification?.status !== '200' || !verification?.access_token) {
+        Toast.show({
+          type: 'error',
+          text1: 'Verification failed',
+          text2: verification?.message || 'Check the code and try again.',
+        });
+        return;
+      }
+      await saveAccessTokenToStorage(verification.access_token);
+      await resetStack('login', isAgentLogin);
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Verification failed',
+        text2: 'Please try again.',
+      });
+    }
+  };
+  const resetStack = async (login, isAgentLogin = false) => {
     if (login === 'login') {
       Toast.show({
         type: 'success',
@@ -62,6 +95,19 @@ const useLogin = () => {
 
       if (!userInfo) {
         throw new Error('Unable to load the signed-in account.');
+      }
+
+      if (
+        isAgentLogin &&
+        !String(userInfo.account_type || '').includes('agent')
+      ) {
+        await AsyncStorage.removeItem('token');
+        Toast.show({
+          type: 'error',
+          text1: 'Agent account required',
+          text2: 'This account is not registered as an agent.',
+        });
+        return;
       }
 
       const pendingInvite = await getPendingSessionInvite();
@@ -93,6 +139,31 @@ const useLogin = () => {
       }
     } catch (error) {
       console.error('Error occurred:', error);
+    }
+  };
+  const handleResendEmailOtp = async email => {
+    try {
+      const response = await getEmailOTP({variables: {email, newUser: false}});
+      if (response?.data?.getEmailOTP?.status !== '200') {
+        Toast.show({
+          type: 'error',
+          text1: 'OTP not sent!',
+          text2: response?.data?.getEmailOTP?.message || 'Please try again.',
+        });
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: 'OTP sent!',
+          text2: 'Check your email for the verification code.',
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: 'error',
+        text1: 'OTP not sent!',
+        text2: 'Please try again.',
+      });
     }
   };
   const handleResendOtp = async phone => {
@@ -133,7 +204,9 @@ const useLogin = () => {
   };
   return {
     handleOtpVerification,
+    handleEmailOtpVerification,
     handleResendOtp,
+    handleResendEmailOtp,
     saveAccessTokenToStorage,
     resetStack,
   };

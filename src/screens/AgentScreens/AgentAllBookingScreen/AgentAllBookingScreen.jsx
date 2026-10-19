@@ -27,7 +27,6 @@ import useFetchBooking from '../../../hooks/useFetchBooking';
 import BookingColors from '../../../themes/BookingColors';
 import {
   getBookingClient,
-  getBookingServiceType,
   normalizeAgentBooking,
 } from '../../../utils/agentBookingPresentation';
 import {getBookingDisplayId} from '../../../utils/bookingPresentation';
@@ -343,14 +342,6 @@ export default function AgentAllBookingScreen({navigation, route}) {
     dispatch(setBookingInfoState(item));
     dispatch(setUser(client));
     dispatch(setCoordinates(client?.current_location?.coordinates || []));
-
-    if (
-      item?.status === 'accepted' &&
-      getBookingServiceType(item) === 'mobile_notary'
-    ) {
-      navigation.navigate('MapArrivalScreen');
-      return;
-    }
 
     navigation.navigate('ClientDetailsScreen', {clientDetail: item});
   };

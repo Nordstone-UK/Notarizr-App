@@ -1,7 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {
   Alert,
-  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -10,211 +9,103 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {useMutation} from '@apollo/client';
+import DocumentPicker from 'react-native-document-picker';
 import Feather from 'react-native-vector-icons/Feather';
-import ImageResizer from 'react-native-image-resizer';
-import {launchImageLibrary} from 'react-native-image-picker';
-import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
-import useAuthenticate from '../../hooks/useAuthenticate';
 import useCustomerSuport from '../../hooks/useCustomerSupport';
+import {SUBMIT_SESSION_IDENTITY_PROOF} from '../../../request/mutations/submitSessionIdentityProof.mutation';
 import AppColors from '../../themes/AppColors';
-import {convertURIToBase64} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
+import {uploadDocumentToSpaces} from '../../utils/spacesHelper';
 
-const DOCUMENT_TYPE = {
-  ID: 'ID Card',
-  PASSPORT: 'Passport',
-};
-
-const IDENTITY_IMAGE_MAX_DIMENSION = 1400;
-const IDENTITY_IMAGE_QUALITY = 72;
-const SUPPORTED_ID_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
-
-const prepareIdentityImage = async uri => {
-  const resizedImage = await ImageResizer.createResizedImage(
-    uri,
-    IDENTITY_IMAGE_MAX_DIMENSION,
-    IDENTITY_IMAGE_MAX_DIMENSION,
-    'JPEG',
-    IDENTITY_IMAGE_QUALITY,
-    0,
-    undefined,
-    false,
-    {mode: 'contain', onlyScaleDown: true},
-  );
-
-  return convertURIToBase64(resizedImage.uri);
-};
-
-function DocumentTypeOption({active, icon, title, subtitle, onPress}) {
-  return (
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityState={{selected: active}}
-      activeOpacity={0.78}
-      onPress={onPress}
-      style={[styles.typeOption, active && styles.typeOptionActive]}>
-      <View style={[styles.typeIcon, active && styles.typeIconActive]}>
-        <Feather
-          name={icon}
-          size={20}
-          color={active ? AppColors.white : AppColors.textSecondary}
-        />
-      </View>
-      <View style={styles.typeCopy}>
-        <Text style={styles.typeTitle}>{title}</Text>
-        <Text style={styles.typeSubtitle}>{subtitle}</Text>
-      </View>
-      <View style={[styles.radio, active && styles.radioActive]}>
-        {active && <View style={styles.radioDot} />}
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function UploadSlot({label, description, uri, onSelect, onRemove}) {
-  const confirmRemoval = () => {
-    Alert.alert(`Remove ${label.toLowerCase()}?`, 'You can upload it again.', [
-      {text: 'Keep', style: 'cancel'},
-      {text: 'Remove', style: 'destructive', onPress: onRemove},
-    ]);
-  };
-
-  if (uri) {
+function ProofFileCard({file, onPick, onRemove}) {
+  if (!file) {
     return (
-      <View style={styles.previewCard}>
-        <Image source={{uri}} resizeMode="cover" style={styles.previewImage} />
-        <View style={styles.previewOverlay} />
-        <View style={styles.previewTopRow}>
-          <View style={styles.readyBadge}>
-            <Feather name="check" size={13} color={AppColors.success} />
-            <Text style={styles.readyText}>Ready</Text>
-          </View>
-          <TouchableOpacity
-            accessibilityLabel={`Remove ${label}`}
-            onPress={confirmRemoval}
-            style={styles.removeButton}>
-            <Feather name="trash-2" size={17} color={AppColors.error} />
-          </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        activeOpacity={0.78}
+        onPress={onPick}
+        style={styles.uploadSlot}>
+        <View style={styles.uploadIcon}>
+          <Feather name="upload-cloud" size={22} color={AppColors.primary} />
         </View>
-        <View style={styles.previewBottomRow}>
-          <View style={styles.previewCopy}>
-            <Text style={styles.previewLabel}>{label}</Text>
-            <Text style={styles.previewDescription}>Image selected</Text>
-          </View>
-          <TouchableOpacity onPress={onSelect} style={styles.replaceButton}>
-            <Feather name="refresh-cw" size={14} color={AppColors.primary} />
-            <Text style={styles.replaceText}>Replace</Text>
-          </TouchableOpacity>
+        <View style={styles.uploadCopy}>
+          <Text style={styles.uploadLabel}>Choose identity proof</Text>
+          <Text style={styles.uploadDescription}>
+            Select a clear file from your device.
+          </Text>
         </View>
-      </View>
+        <View style={styles.addButton}>
+          <Feather name="plus" size={19} color={AppColors.primary} />
+        </View>
+      </TouchableOpacity>
     );
   }
 
   return (
-    <TouchableOpacity
-      accessibilityRole="button"
-      activeOpacity={0.76}
-      onPress={onSelect}
-      style={styles.uploadSlot}>
-      <View style={styles.uploadIcon}>
-        <Feather name="camera" size={22} color={AppColors.primary} />
+    <View style={styles.fileCard}>
+      <View style={styles.fileIcon}>
+        <Feather name="file-text" size={22} color={AppColors.primary} />
       </View>
-      <View style={styles.uploadCopy}>
-        <Text style={styles.uploadLabel}>{label}</Text>
-        <Text style={styles.uploadDescription}>{description}</Text>
+      <View style={styles.fileCopy}>
+        <Text numberOfLines={1} style={styles.fileName}>
+          {file.name}
+        </Text>
+        <Text style={styles.fileReady}>Ready to share securely</Text>
       </View>
-      <View style={styles.addButton}>
-        <Feather name="plus" size={19} color={AppColors.primary} />
-      </View>
-    </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityLabel="Replace identity proof"
+        onPress={onPick}
+        style={styles.iconButton}>
+        <Feather name="refresh-cw" size={17} color={AppColors.primary} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityLabel="Remove identity proof"
+        onPress={() =>
+          Alert.alert('Remove this file?', 'You can choose another one.', [
+            {text: 'Keep', style: 'cancel'},
+            {text: 'Remove', style: 'destructive', onPress: onRemove},
+          ])
+        }
+        style={styles.iconButton}>
+        <Feather name="trash-2" size={17} color={AppColors.error} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 export default function AuthenticationScreen({route, navigation}) {
-  const {uid, channel, token, time, date, routeFrom} = route?.params || {};
-  const bookingDetail = useSelector(state => state.booking.booking);
-  const userData = useSelector(state => state.user.user);
-  const authenticationMethod =
-    bookingDetail?.identity_authentication || 'client_choose';
-  const canChooseType = authenticationMethod === 'client_choose';
-  const initialType =
-    authenticationMethod === 'user_passport'
-      ? DOCUMENT_TYPE.PASSPORT
-      : DOCUMENT_TYPE.ID;
-
-  const [documentType, setDocumentType] = useState(initialType);
-  const [loading, setLoading] = useState(false);
-  const [idFront, setIdFront] = useState(null);
-  const [idBack, setIdBack] = useState(null);
-  const [passport, setPassport] = useState(null);
-  // Authenticating.com's legacy document scan endpoint uses 0 for US.
-  const country = 0;
-  const {uploadUserPassport, uploadUserID, testAuth} = useAuthenticate();
+  const {uid, channel, token, time, date, routeFrom, sessionMode} =
+    route?.params || {};
   const {handleCallSupport} = useCustomerSuport();
+  const [proofFile, setProofFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [submitIdentityProof] = useMutation(SUBMIT_SESSION_IDENTITY_PROOF);
 
-  useEffect(() => {
-    setDocumentType(initialType);
-  }, [initialType]);
-
-  const requiredDocuments = documentType === DOCUMENT_TYPE.ID ? 2 : 1;
-  const uploadedDocuments =
-    documentType === DOCUMENT_TYPE.ID
-      ? [idFront, idBack].filter(Boolean).length
-      : passport
-      ? 1
-      : 0;
-  const isReady = uploadedDocuments === requiredDocuments;
-  const progressLabel = `${uploadedDocuments} of ${requiredDocuments} uploaded`;
-
-  const privacyCopy = useMemo(
-    () =>
-      documentType === DOCUMENT_TYPE.ID
-        ? 'Use a valid government-issued ID. Make sure all four corners and every detail are visible.'
-        : 'Open the passport to the photo page and make sure every detail is readable.',
-    [documentType],
-  );
-
-  const selectDocument = async setter => {
+  const chooseProofFile = async () => {
     try {
-      const response = await launchImageLibrary({
-        mediaType: 'photo',
-        selectionLimit: 1,
-        includeBase64: false,
+      const files = await DocumentPicker.pick({
+        allowMultiSelection: false,
+        copyTo: 'cachesDirectory',
+        type: [DocumentPicker.types.allFiles],
       });
-
-      if (response.didCancel) {
-        return;
+      const selected = files?.[0];
+      if (!selected?.uri && !selected?.fileCopyUri) {
+        throw new Error('The selected file could not be opened.');
       }
-      if (response.errorCode) {
-        throw new Error(
-          response.errorMessage || 'Unable to open photo library',
-        );
-      }
-
-      const image = response.assets?.[0];
-      const fileName = String(image?.fileName || '').toLowerCase();
-      const isSupportedType = SUPPORTED_ID_IMAGE_TYPES.includes(
-        String(image?.type || '').toLowerCase(),
-      );
-      const hasSupportedExtension = /\.(jpe?g|png)$/.test(fileName);
-
-      if (!image?.uri) {
-        throw new Error('The selected image could not be opened.');
-      }
-      if (!isSupportedType && !hasSupportedExtension) {
-        throw new Error('Please select a JPG or PNG image.');
-      }
-
-      setter(image.uri);
+      setProofFile({
+        name: selected.name || 'Identity proof',
+        type: selected.type || 'application/octet-stream',
+        uri: selected.fileCopyUri || selected.uri,
+      });
     } catch (error) {
-      const message = String(error?.message || error || '').toLowerCase();
-      if (!message.includes('cancel')) {
+      if (!DocumentPicker.isCancel(error)) {
         Toast.show({
           type: 'error',
-          text1: 'Unable to open this file',
-          text2: error?.message || 'Choose a JPG or PNG image and try again.',
+          text1: 'Unable to select this file',
+          text2: error?.message || 'Choose another file and try again.',
         });
       }
     }
@@ -227,87 +118,63 @@ export default function AuthenticationScreen({route, navigation}) {
       token,
       time,
       date,
+      sessionMode,
       routeFrom: routeFrom || 'client',
     });
   };
 
-  const verifyIdentity = async () => {
-    if (!isReady || loading) {
+  const submitProofAndJoin = async () => {
+    if (!proofFile || loading) {
       Toast.show({
         type: 'warning',
-        text1: 'Documents required',
-        text2:
-          documentType === DOCUMENT_TYPE.ID
-            ? 'Upload the front and back of your ID.'
-            : 'Upload your passport photo page.',
+        text1: 'Identity proof required',
+        text2: 'Choose a file before joining the secure session.',
+      });
+      return;
+    }
+    if (!uid) {
+      Toast.show({
+        type: 'error',
+        text1: 'Session unavailable',
+        text2: 'Return to your booking and try joining again.',
       });
       return;
     }
 
     setLoading(true);
     try {
-      // Authenticating.com is not configured in the local backend yet. Keep
-      // production verification enforced while allowing local app development.
-      if (__DEV__) {
-        Toast.show({
-          type: 'success',
-          text1: 'Development verification bypassed',
-          text2: 'Opening the local notary session.',
-        });
-        continueToCall();
-        return;
-      }
-
-      if (documentType === DOCUMENT_TYPE.ID) {
-        const [front, back] = await Promise.all([
-          prepareIdentityImage(idFront),
-          prepareIdentityImage(idBack),
-        ]);
-        const uploadResponse = await uploadUserID(
-          userData?.userAccessCode,
-          front,
-          back,
-          country,
-        );
-        if (String(uploadResponse?.status) !== '204') {
-          throw new Error(
-            uploadResponse?.message ||
-              'The identity provider could not scan this ID.',
-          );
-        }
-      } else {
-        const passportBase64 = await prepareIdentityImage(passport);
-        const uploadResponse = await uploadUserPassport(
-          userData?.userAccessCode,
-          passportBase64,
-          country,
-        );
-        if (String(uploadResponse?.status) !== '204') {
-          throw new Error(
-            uploadResponse?.message ||
-              'The identity provider could not scan this passport.',
-          );
-        }
-      }
-
-      const response = await testAuth();
-      if (String(response) !== '204') {
-        throw new Error('Identity verification was not completed');
+      const url = await uploadDocumentToSpaces({
+        file: proofFile.uri,
+        fileName: proofFile.name,
+        contentType: proofFile.type,
+      });
+      const {data} = await submitIdentityProof({
+        variables: {
+          recordId: uid,
+          identityProof: {
+            url,
+            file_name: proofFile.name,
+            content_type: proofFile.type,
+          },
+        },
+      });
+      const result = data?.submitSessionIdentityProofR;
+      if (String(result?.status) !== '200') {
+        throw new Error(result?.message || 'Unable to save identity proof.');
       }
 
       Toast.show({
         type: 'success',
-        text1: 'Identity verified',
-        text2: 'You can now join the secure notary session.',
+        text1: 'Identity proof shared',
+        text2: 'Your notary can review it in the secure session.',
       });
       continueToCall();
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Verification unsuccessful',
+        text1: 'Unable to join the session',
         text2:
-          error?.message ||
-          'Check that your document is clear, then try again.',
+          error?.message || 'Check your connection and upload the file again.',
       });
     } finally {
       setLoading(false);
@@ -317,7 +184,6 @@ export default function AuthenticationScreen({route, navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
-
       <View style={styles.header}>
         <TouchableOpacity
           accessibilityLabel="Go back"
@@ -326,7 +192,7 @@ export default function AuthenticationScreen({route, navigation}) {
           <Feather name="arrow-left" size={22} color={AppColors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>Identity verification</Text>
+          <Text style={styles.headerTitle}>Identity proof</Text>
           <Text style={styles.headerSubtitle}>Secure notary session</Text>
         </View>
         <TouchableOpacity
@@ -346,85 +212,26 @@ export default function AuthenticationScreen({route, navigation}) {
             <Feather name="shield" size={28} color={AppColors.white} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroEyebrow}>ONE-TIME CHECK</Text>
-            <Text style={styles.heroTitle}>Verify your identity</Text>
+            <Text style={styles.heroEyebrow}>BEFORE YOU JOIN</Text>
+            <Text style={styles.heroTitle}>Share identity proof</Text>
             <Text style={styles.heroDescription}>
-              Required before entering the online notary room.
+              Your notary will review this during the live session.
             </Text>
           </View>
         </View>
 
-        {canChooseType && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Choose a document</Text>
-            <Text style={styles.sectionDescription}>
-              Select the document you have available.
-            </Text>
-            <View style={styles.typeList}>
-              <DocumentTypeOption
-                active={documentType === DOCUMENT_TYPE.ID}
-                icon="credit-card"
-                title="Government ID"
-                subtitle="Driver's licence or identity card"
-                onPress={() => setDocumentType(DOCUMENT_TYPE.ID)}
-              />
-              <DocumentTypeOption
-                active={documentType === DOCUMENT_TYPE.PASSPORT}
-                icon="book-open"
-                title="Passport"
-                subtitle="Photo and personal details page"
-                onPress={() => setDocumentType(DOCUMENT_TYPE.PASSPORT)}
-              />
-            </View>
-          </View>
-        )}
-
         <View style={styles.section}>
-          <View style={styles.sectionHeadingRow}>
-            <View style={styles.sectionHeadingCopy}>
-              <Text style={styles.sectionTitle}>
-                {documentType === DOCUMENT_TYPE.ID
-                  ? 'Upload both sides'
-                  : 'Upload your passport'}
-              </Text>
-              <Text style={styles.sectionDescription}>{privacyCopy}</Text>
-            </View>
-            <View
-              style={[styles.countBadge, isReady && styles.countBadgeReady]}>
-              <Text
-                style={[styles.countText, isReady && styles.countTextReady]}>
-                {progressLabel}
-              </Text>
-            </View>
-          </View>
-
+          <Text style={styles.sectionTitle}>Upload a document</Text>
+          <Text style={styles.sectionDescription}>
+            You can select any clear identity-proof file. It is stored with this
+            session only and is not added to the notarized document.
+          </Text>
           <View style={styles.uploadList}>
-            {documentType === DOCUMENT_TYPE.ID ? (
-              <>
-                <UploadSlot
-                  label="Front of ID"
-                  description="Upload the side with your photo"
-                  uri={idFront}
-                  onSelect={() => selectDocument(setIdFront)}
-                  onRemove={() => setIdFront(null)}
-                />
-                <UploadSlot
-                  label="Back of ID"
-                  description="Upload the reverse side of the card"
-                  uri={idBack}
-                  onSelect={() => selectDocument(setIdBack)}
-                  onRemove={() => setIdBack(null)}
-                />
-              </>
-            ) : (
-              <UploadSlot
-                label="Passport photo page"
-                description="Upload the page with your portrait"
-                uri={passport}
-                onSelect={() => selectDocument(setPassport)}
-                onRemove={() => setPassport(null)}
-              />
-            )}
+            <ProofFileCard
+              file={proofFile}
+              onPick={chooseProofFile}
+              onRemove={() => setProofFile(null)}
+            />
           </View>
         </View>
 
@@ -433,9 +240,10 @@ export default function AuthenticationScreen({route, navigation}) {
             <Feather name="lock" size={17} color={AppColors.success} />
           </View>
           <View style={styles.securityCopy}>
-            <Text style={styles.securityTitle}>Your document is protected</Text>
+            <Text style={styles.securityTitle}>Private to this session</Text>
             <Text style={styles.securityDescription}>
-              It is transmitted securely and used only for this verification.
+              This proof is available to the session participants and is kept
+              separate from your final notarized PDF.
             </Text>
           </View>
         </View>
@@ -444,25 +252,25 @@ export default function AuthenticationScreen({route, navigation}) {
       <View style={styles.footer}>
         <View style={styles.footerStatus}>
           <Feather
-            name={isReady ? 'check-circle' : 'info'}
+            name={proofFile ? 'check-circle' : 'info'}
             size={16}
-            color={isReady ? AppColors.success : AppColors.textSecondary}
+            color={proofFile ? AppColors.success : AppColors.textSecondary}
           />
           <Text
             style={[
               styles.footerStatusText,
-              isReady && styles.footerStatusTextReady,
+              proofFile && styles.footerStatusTextReady,
             ]}>
-            {isReady ? 'Ready to verify' : progressLabel}
+            {proofFile ? 'Ready to join' : 'Choose one proof file'}
           </Text>
         </View>
         <AuthPrimaryButton
-          disabled={!isReady}
+          disabled={!proofFile}
           icon="arrow-right"
           loading={loading}
-          onPress={verifyIdentity}
+          onPress={submitProofAndJoin}
           style={styles.verifyButton}
-          title="Verify identity"
+          title="Submit and join"
         />
       </View>
     </SafeAreaView>
@@ -519,11 +327,7 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.primary,
   },
   heroCopy: {flex: 1, marginLeft: 15},
-  heroEyebrow: {
-    color: '#FFB184',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-  },
+  heroEyebrow: {color: '#FFB184', fontFamily: 'Manrope-Bold', fontSize: 9},
   heroTitle: {
     marginTop: 3,
     color: AppColors.white,
@@ -557,75 +361,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
-  typeList: {marginTop: 14, gap: 10},
-  typeOption: {
-    minHeight: 72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    borderRadius: 8,
-    backgroundColor: AppColors.surface,
-  },
-  typeOptionActive: {
-    borderColor: AppColors.primary,
-    backgroundColor: AppColors.primarySoft,
-  },
-  typeIcon: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: AppColors.backgroundSubtle,
-  },
-  typeIconActive: {backgroundColor: AppColors.primary},
-  typeCopy: {flex: 1, marginHorizontal: 12},
-  typeTitle: {
-    color: AppColors.textPrimary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
-  },
-  typeSubtitle: {
-    marginTop: 3,
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 11,
-  },
-  radio: {
-    width: 21,
-    height: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: AppColors.borderStrong,
-    borderRadius: 11,
-  },
-  radioActive: {borderColor: AppColors.primary},
-  radioDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: AppColors.primary,
-  },
-  sectionHeadingRow: {flexDirection: 'row', alignItems: 'flex-start'},
-  sectionHeadingCopy: {flex: 1, paddingRight: 8},
-  countBadge: {
-    marginTop: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
-    backgroundColor: AppColors.backgroundSubtle,
-  },
-  countBadgeReady: {backgroundColor: AppColors.successSoft},
-  countText: {
-    color: AppColors.textSecondary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 9,
-  },
-  countTextReady: {color: AppColors.success},
-  uploadList: {marginTop: 15, gap: 10},
+  uploadList: {marginTop: 15},
   uploadSlot: {
     minHeight: 84,
     flexDirection: 'row',
@@ -665,82 +401,44 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: AppColors.primarySoft,
   },
-  previewCard: {
-    height: 142,
-    overflow: 'hidden',
+  fileCard: {
+    minHeight: 82,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 13,
     borderWidth: 1,
     borderColor: '#A8DDBF',
     borderRadius: 8,
-    backgroundColor: AppColors.textPrimary,
-  },
-  previewImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  previewOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(18,24,38,0.36)',
-  },
-  previewTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-  },
-  readyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
     backgroundColor: AppColors.successSoft,
   },
-  readyText: {
-    marginLeft: 4,
-    color: AppColors.success,
+  fileIcon: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: AppColors.surface,
+  },
+  fileCopy: {flex: 1, marginHorizontal: 11},
+  fileName: {
+    color: AppColors.textPrimary,
     fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  fileReady: {
+    marginTop: 3,
+    color: AppColors.success,
+    fontFamily: 'Manrope-SemiBold',
     fontSize: 10,
   },
-  removeButton: {
+  iconButton: {
     width: 34,
     height: 34,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 7,
-    backgroundColor: AppColors.errorSoft,
-  },
-  previewBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginTop: 'auto',
-    padding: 10,
-  },
-  previewCopy: {flex: 1},
-  previewLabel: {
-    color: AppColors.white,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
-  },
-  previewDescription: {
-    marginTop: 2,
-    color: '#E1E5EB',
-    fontFamily: 'Manrope-Regular',
-    fontSize: 10,
-  },
-  replaceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 9,
-    paddingVertical: 7,
-    borderRadius: 6,
-    backgroundColor: AppColors.white,
-  },
-  replaceText: {
-    marginLeft: 5,
-    color: AppColors.primary,
-    fontFamily: 'Manrope-Bold',
-    fontSize: 10,
+    backgroundColor: AppColors.surface,
+    marginLeft: 6,
   },
   securityNote: {
     flexDirection: 'row',
@@ -756,7 +454,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 7,
-    backgroundColor: AppColors.white,
+    backgroundColor: AppColors.surface,
   },
   securityCopy: {flex: 1, marginLeft: 11},
   securityTitle: {

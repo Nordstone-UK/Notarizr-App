@@ -15,6 +15,10 @@ import {useSelector} from 'react-redux';
 import AppColors from '../../themes/AppColors';
 import useFetchUser from '../../hooks/useFetchUser';
 import useRegister from '../../hooks/useRegister';
+import {
+  REQUIRED_AGENT_DOCUMENTS,
+  getAgentCredentialStatus,
+} from '../../utils/agentCredentials';
 
 const PRO_FEATURES = [
   {
@@ -136,6 +140,7 @@ function DetailRow({label, value, last}) {
 function VerificationSummary({onboarding, user}) {
   const commission = onboarding?.commission || {};
   const credentials = onboarding?.credentials || {};
+  const credentialStatus = getAgentCredentialStatus(user);
   const agentName =
     [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
     user?.full_name ||
@@ -148,8 +153,7 @@ function VerificationSummary({onboarding, user}) {
     credentials.insurance,
     credentials.training,
   ].filter(Boolean).length;
-  const approved =
-    onboarding?.approvalStatus === 'approved' || user?.isVerified;
+  const approved = credentialStatus.approved;
   const status = approved
     ? 'Approved'
     : titleize(onboarding?.approvalStatus || 'Under review');
@@ -220,6 +224,119 @@ function VerificationSummary({onboarding, user}) {
           <Text style={styles.reviewNoteText}>{onboarding.reviewNotes}</Text>
         </View>
       ) : null}
+    </Section>
+  );
+}
+
+function RequiredCredentialRow({complete, title}) {
+  return (
+    <View style={styles.requiredRow}>
+      <View
+        style={[styles.requiredIcon, complete && styles.requiredIconComplete]}>
+        <Feather
+          name={complete ? 'check' : 'alert-circle'}
+          size={15}
+          color={complete ? AppColors.success : AppColors.warning}
+        />
+      </View>
+      <Text
+        style={[
+          styles.requiredTitle,
+          complete && styles.requiredTitleComplete,
+        ]}>
+        {title}
+      </Text>
+    </View>
+  );
+}
+
+function RequiredCredentials({navigation, user, onRefresh}) {
+  const status = getAgentCredentialStatus(user);
+  const credentials = user?.notaryOnboarding?.credentials || {};
+  const documentComplete = key => {
+    if (key === 'photoId') {
+      return Boolean(credentials.photoId || user?.photoId);
+    }
+    if (key === 'commissionCertificate') {
+      return Boolean(
+        credentials.commissionCertificate || user?.certificate_url,
+      );
+    }
+    return Boolean(credentials[key]);
+  };
+
+  return (
+    <Section
+      subtitle="These are compulsory before an agent can accept bookings."
+      title="Required credentials">
+      <View
+        style={[
+          styles.requiredBanner,
+          status.readyForBookings && styles.requiredBannerReady,
+        ]}>
+        <View
+          style={[
+            styles.requiredBannerIcon,
+            status.readyForBookings && styles.requiredBannerIconReady,
+          ]}>
+          <Feather
+            name={status.readyForBookings ? 'check-circle' : 'shield'}
+            size={18}
+            color={
+              status.readyForBookings ? AppColors.success : AppColors.primary
+            }
+          />
+        </View>
+        <View style={styles.requiredBannerCopy}>
+          <Text style={styles.requiredBannerTitle}>
+            {status.readyForBookings
+              ? 'Ready to accept bookings'
+              : status.documentsComplete
+              ? 'Waiting for approval'
+              : 'Documents required'}
+          </Text>
+          <Text style={styles.requiredBannerText}>
+            {status.readyForBookings
+              ? 'Your agent account is approved and ready for client work.'
+              : status.documentsComplete
+              ? 'Your files are saved. Admin approval unlocks bookings.'
+              : 'Upload all required documents and commission details to unlock bookings.'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.requiredGrid}>
+        {REQUIRED_AGENT_DOCUMENTS.map(document => (
+          <RequiredCredentialRow
+            complete={documentComplete(document.key)}
+            key={document.key}
+            title={document.title}
+          />
+        ))}
+        <RequiredCredentialRow
+          complete={status.missingCommission.length === 0}
+          title="Commission details"
+        />
+        <RequiredCredentialRow
+          complete={status.approved}
+          title="Admin approval"
+        />
+      </View>
+
+      <TouchableOpacity
+        activeOpacity={0.76}
+        onPress={() =>
+          navigation.navigate('AgentVerificationScreen', {
+            user,
+            onComplete: onRefresh,
+          })
+        }
+        style={styles.credentialsButton}>
+        <Text style={styles.credentialsButtonText}>
+          {status.documentsComplete ? 'Update documents' : 'Upload documents'}
+        </Text>
+        <Feather name="arrow-right" size={16} color={AppColors.white} />
+      </TouchableOpacity>
     </Section>
   );
 }
@@ -324,6 +441,11 @@ export default function AgentManageScreen({navigation}) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <VerificationSummary onboarding={onboarding} user={user} />
+        <RequiredCredentials
+          navigation={navigation}
+          onRefresh={fetchUserInfo}
+          user={user}
+        />
 
         <Section
           subtitle="These apply across sessions and should not be collected during signup."
@@ -566,6 +688,104 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     marginTop: 4,
+  },
+  credentialsButton: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primary,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 14,
+    marginTop: 14,
+    minHeight: 48,
+  },
+  credentialsButtonText: {
+    color: AppColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    marginRight: 8,
+  },
+  requiredBanner: {
+    alignItems: 'center',
+    backgroundColor: AppColors.primarySoft,
+    borderColor: 'rgba(253,109,31,0.22)',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginTop: 10,
+    padding: 12,
+  },
+  requiredBannerReady: {
+    backgroundColor: AppColors.successSoft,
+    borderColor: 'rgba(22,138,82,0.22)',
+  },
+  requiredBannerCopy: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  requiredBannerIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.white,
+    borderRadius: 8,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  requiredBannerIconReady: {
+    backgroundColor: AppColors.white,
+  },
+  requiredBannerText: {
+    color: AppColors.textSecondary,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 3,
+  },
+  requiredBannerTitle: {
+    color: AppColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+  },
+  requiredGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+    marginTop: 12,
+  },
+  requiredIcon: {
+    alignItems: 'center',
+    backgroundColor: AppColors.warningSoft,
+    borderRadius: 7,
+    height: 24,
+    justifyContent: 'center',
+    marginRight: 7,
+    width: 24,
+  },
+  requiredIconComplete: {
+    backgroundColor: AppColors.successSoft,
+  },
+  requiredRow: {
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundSubtle,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginBottom: 8,
+    marginHorizontal: 4,
+    minHeight: 40,
+    paddingHorizontal: 9,
+    width: '47.5%',
+  },
+  requiredTitle: {
+    color: AppColors.textSecondary,
+    flex: 1,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 10,
+    lineHeight: 14,
+  },
+  requiredTitleComplete: {
+    color: AppColors.textPrimary,
   },
   statusPill: {
     backgroundColor: AppColors.backgroundSubtle,

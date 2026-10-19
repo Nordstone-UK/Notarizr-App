@@ -20,6 +20,7 @@ import AuthPhoneField from '../../components/AuthFlow/AuthPhoneField';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import AuthTextField from '../../components/AuthFlow/AuthTextField';
 import ProfileDateField from '../../components/Profile/ProfileDateField';
+import ProfileImageCropModal from '../../components/Profile/ProfileImageCropModal';
 import ProfileScreenHeader from '../../components/Profile/ProfileScreenHeader';
 import {saveUserInfo} from '../../features/user/userSlice';
 import useFetchUser from '../../hooks/useFetchUser';
@@ -54,6 +55,8 @@ export default function ProfileDetailEditScreen({navigation, route}) {
   const [image, setImage] = useState(user?.profile_picture || '');
   const [imageFailed, setImageFailed] = useState(false);
   const [imageChanged, setImageChanged] = useState(false);
+  const [cropImageUri, setCropImageUri] = useState('');
+  const [cropVisible, setCropVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const {fetchUserInfo} = useFetchUser();
@@ -82,9 +85,8 @@ export default function ProfileDetailEditScreen({navigation, route}) {
     try {
       const uri = await picker('photo');
       if (uri) {
-        setImage(uri);
-        setImageFailed(false);
-        setImageChanged(true);
+        setCropImageUri(uri);
+        setCropVisible(true);
       }
     } catch (error) {
       if (!String(error).toLowerCase().includes('cancel')) {
@@ -95,6 +97,19 @@ export default function ProfileDetailEditScreen({navigation, route}) {
         });
       }
     }
+  };
+
+  const handleCropComplete = croppedUri => {
+    setCropVisible(false);
+    setCropImageUri('');
+    setImage(croppedUri);
+    setImageFailed(false);
+    setImageChanged(true);
+  };
+
+  const handleCropCancel = () => {
+    setCropVisible(false);
+    setCropImageUri('');
   };
 
   const showPhotoOptions = () => {
@@ -216,6 +231,12 @@ export default function ProfileDetailEditScreen({navigation, route}) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.surface} />
+      <ProfileImageCropModal
+        imageUri={cropImageUri}
+        onCancel={handleCropCancel}
+        onComplete={handleCropComplete}
+        visible={cropVisible}
+      />
       <ProfileScreenHeader
         title={profileEdit ? 'Edit profile' : 'Personal details'}
         actionLabel={profileEdit ? undefined : 'Edit'}

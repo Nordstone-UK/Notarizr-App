@@ -31,10 +31,12 @@ export const GET_AGENT_BOOKING = gql`
           }
           description
           state
+          zipCode
           addresses {
             _id
             tag
             location
+            zipCode
             location_coordinates
           }
           userAccessCode
@@ -88,6 +90,7 @@ export const GET_AGENT_BOOKING = gql`
           online_status
           description
           state
+          zipCode
           userAccessCode
         }
         preference_analysis

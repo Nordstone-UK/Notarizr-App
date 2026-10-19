@@ -49,6 +49,31 @@ const getRegisteredNotaryType = user => {
   );
 };
 
+const getClientVerificationStatus = verification => {
+  if (verification?.status === 'verified') {
+    return {
+      title: 'Verification completed',
+      description: 'You can book a notary',
+      tone: 'green',
+    };
+  }
+  if (
+    verification?.status === 'submitted' ||
+    verification?.status === 'processing'
+  ) {
+    return {
+      title: 'Verification pending',
+      description: 'Complete or refresh your secure identity check',
+      tone: 'orange',
+    };
+  }
+  return {
+    title: 'Verification pending',
+    description: 'Required before booking a notary',
+    tone: 'orange',
+  };
+};
+
 function PreferenceRow({description, icon, last, onChange, title, value}) {
   return (
     <View style={[styles.preferenceRow, last && styles.lastPreferenceRow]}>
@@ -86,6 +111,9 @@ export default function SettingScreen({navigation}) {
   const [updateAccountType] = useMutation(UPDATE_ACCOUNT_TYPE);
   const [deleteAccount] = useMutation(DELETE_ACCOUNT);
   const currentAgentPlan = agentPlanLabel(user);
+  const clientVerificationStatus = getClientVerificationStatus(
+    user?.clientVerification,
+  );
 
   useEffect(() => {
     AsyncStorage.getItem(SERVICE_SETTINGS_KEY)
@@ -177,22 +205,6 @@ export default function SettingScreen({navigation}) {
 
   const selectAccountType = newAccountType => {
     if (updatingRole || accountType === newAccountType) {
-      return;
-    }
-
-    const registeredFor = Array.isArray(user?.registered_for)
-      ? user.registered_for
-      : [];
-
-    if (
-      newAccountType === 'individual-agent' &&
-      !user?.isHomePreview &&
-      !registeredFor.includes(newAccountType)
-    ) {
-      navigation.navigate('AgentVerificationScreen', {
-        user,
-        onComplete: () => handleAccountTypeUpdate(newAccountType),
-      });
       return;
     }
 
@@ -399,6 +411,17 @@ export default function SettingScreen({navigation}) {
                 />
               </View>
             </View>
+
+            <ProfileSection title="Verification">
+              <ProfileMenuItem
+                icon="shield"
+                title={clientVerificationStatus.title}
+                description={clientVerificationStatus.description}
+                tone={clientVerificationStatus.tone}
+                last
+                onPress={() => navigation.navigate('ClientVerificationScreen')}
+              />
+            </ProfileSection>
           </>
         ) : (
           <>

@@ -37,7 +37,15 @@ import {
   normalizeAgentBooking,
 } from '../../../utils/agentBookingPresentation';
 import {getSessionAvailability} from '../../../utils/sessionAvailability';
-import {getBookingDisplayId} from '../../../utils/bookingPresentation';
+import {
+  formatBookingDate,
+  formatBookingTime,
+  getBookingDisplayId,
+} from '../../../utils/bookingPresentation';
+import {
+  getAgentCredentialBlockMessage,
+  getAgentCredentialStatus,
+} from '../../../utils/agentCredentials';
 import {
   ACCEPT_ALLOCATION_REQUEST,
   REJECT_ALLOCATION_REQUEST,
@@ -485,6 +493,25 @@ function normalizeDocuments(value) {
     );
 }
 
+function normalizeCompletionUrls(...values) {
+  return Array.from(
+    new Set(
+      values
+        .flatMap(value => {
+          if (Array.isArray(value)) {
+            return value;
+          }
+          return value ? [value] : [];
+        })
+        .map(item => {
+          const document = toDocument(item);
+          return document.url || (typeof item === 'string' ? item : '');
+        })
+        .filter(url => /^https?:\/\//i.test(String(url || ''))),
+    ),
+  );
+}
+
 function DocumentActionRow({
   url,
   name,
@@ -541,6 +568,7 @@ function DocumentActionRow({
     </View>
   );
 }
+
 const requestStoragePermission = async () => {
   if (Platform.OS !== 'android') {
     return true;
@@ -578,6 +606,9 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const dispatch = useDispatch();
   const storedBooking = useSelector(state => state.booking.booking);
   const authenticatedAgent = useSelector(state => state.user.user);
+  const agentCredentialStatus = getAgentCredentialStatus(authenticatedAgent);
+  const agentCredentialBlockMessage =
+    getAgentCredentialBlockMessage(authenticatedAgent);
   const incomingBooking = route.params?.clientDetail || storedBooking;
   const fromCompletedSession = Boolean(route.params?.fromCompletedSession);
   const [liveBooking, setLiveBooking] = useState(incomingBooking);
@@ -626,9 +657,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const isAllocation = booking?.__typename === 'Allocation';
   const isSession = booking?.__typename === 'Session';
   const pending = status === 'pending';
-  // Backend records have used `ron`, `remote_online_notary`, and legacy
-  // remote labels. Mobile is the only distinct in-person booking type.
-  const isRemoteBooking = normalized.service_type !== 'mobile_notary';
+  const isInPersonSession = booking?.session_mode === 'in_person';
   const paymentConfirmed =
     JOINABLE_REMOTE_STATUSES.includes(status) ||
     ['paid', 'succeeded'].includes(
@@ -636,7 +665,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     ) ||
     booking?.is_paid === true;
   const canJoinRemoteSession =
-    isRemoteBooking &&
+    (isInPersonSession || normalized.service_type !== 'mobile_notary') &&
     paymentConfirmed &&
     !['pending', 'rejected', 'cancelled', 'completed'].includes(status);
   const sessionAvailability = useMemo(
@@ -802,6 +831,26 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const displayedDocuments =
     notarizedDocuments.length > 0 ? notarizedDocuments : allDocuments;
   const showingNotarizedDocuments = notarizedDocuments.length > 0;
+  const completionPackage = booking?.completion_package || {};
+  const journalEntry = booking?.journal_entry || {};
+  const finalPdfUrls = useMemo(
+    () =>
+      normalizeCompletionUrls(
+        booking?.notarized_docs,
+        completionPackage.final_pdf_urls,
+        completionPackage.final_pdf_url,
+      ),
+    [
+      booking?.notarized_docs,
+      completionPackage.final_pdf_url,
+      completionPackage.final_pdf_urls,
+    ],
+  );
+  const completedAt =
+    completionPackage.completed_at ||
+    journalEntry.completed_at ||
+    booking?.updatedAt ||
+    booking?.date_time_session;
 
   const downloadDocument = async (url, fileName) => {
     setDownloadingDocs(prev => ({...prev, [url]: true}));
@@ -864,6 +913,20 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   };
 
   const updateStatus = async nextStatus => {
+    if (
+      nextStatus === 'to_be_paid' &&
+      !agentCredentialStatus.readyForBookings
+    ) {
+      Toast.show({
+        type: 'info',
+        text1: agentCredentialBlockMessage?.title || 'Credentials required',
+        text2:
+          agentCredentialBlockMessage?.body ||
+          'Complete agent documents before accepting bookings.',
+      });
+      navigation.navigate('AgentManageScreen');
+      return;
+    }
     setActiveAction(nextStatus);
     try {
       if (isAllocation) {
@@ -899,11 +962,20 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       Toast.show({
         type: nextStatus === 'rejected' ? 'info' : 'success',
         text1:
-          nextStatus === 'rejected' ? 'Request declined' : 'Request accepted',
+          nextStatus === 'rejected'
+            ? 'Request declined'
+            : nextStatus === 'travelling'
+            ? 'Navigation started'
+            : nextStatus === 'ongoing'
+            ? 'Notary started'
+            : nextStatus === 'completed'
+            ? 'Notary completed'
+            : 'Request accepted',
       });
       if (nextStatus === 'rejected') {
         navigation.goBack();
       }
+      return true;
     } catch (error) {
       console.log(error, 'error');
       Toast.show({
@@ -911,6 +983,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         text1: 'Booking not updated',
         text2: 'Please try again in a moment.',
       });
+      return false;
     } finally {
       setActiveAction(null);
     }
@@ -922,6 +995,40 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
   const openManageBooking = () =>
     navigation.navigate('AgentManageBookingScreen', {clientDetail: booking});
 
+  const openCompletedRecord = () =>
+    navigation.navigate('AgentCompletedRecordScreen', {clientDetail: booking});
+
+  const handleMobileNotaryNavigate = async () => {
+    const destination = String(normalized.location || '').trim();
+    if (!destination) {
+      Toast.show({
+        type: 'info',
+        text1: 'Location unavailable',
+        text2: 'This booking does not have an address to navigate to.',
+      });
+      return;
+    }
+
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+      destination,
+    )}`;
+    try {
+      await Linking.openURL(mapsUrl);
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Could not open Google Maps',
+        text2: 'Please check that a maps app or browser is available.',
+      });
+    }
+  };
+
+  const handleMobileNotaryStart = async () => {
+    if (!(await updateStatus('ongoing'))) {
+      return;
+    }
+  };
+
   const openRemoteSession = () =>
     navigation.navigate('WaitingRoomScreen', {
       uid: booking?._id,
@@ -929,6 +1036,7 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       token: booking?.agora_channel_token,
       time: booking?.time_of_booking || booking?.date_time_session,
       date: booking?.date_of_booking || booking?.date_time_session,
+      sessionMode: booking?.session_mode || 'remote_online',
     });
 
   const handleJoinSession = () => {
@@ -952,6 +1060,10 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
       updateStatus('to_be_paid');
       return;
     }
+    if (status === 'completed') {
+      openCompletedRecord();
+      return;
+    }
     openManageBooking();
   };
 
@@ -962,6 +1074,9 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
     : status === 'completed'
     ? 'View completed record'
     : 'Manage booking';
+  const isActionableMobileNotary =
+    normalized.service_type === 'mobile_notary' &&
+    !['pending', 'rejected', 'cancelled', 'completed'].includes(status);
   const progressIndex = [
     'pending',
     'to_be_paid',
@@ -1031,6 +1146,8 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           <Text style={styles.serviceTitle}>
             {normalized.service_type === 'mobile_notary'
               ? 'Mobile notary'
+              : isInPersonSession
+              ? 'In-person notarization'
               : 'Remote online notary'}
           </Text>
           <Text style={styles.serviceText}>
@@ -1172,11 +1289,17 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
           <DetailRow icon="clock" label="Time" value={normalized.displayTime} />
           <DetailRow
             icon={
-              normalized.service_type === 'mobile_notary' ? 'map-pin' : 'video'
+              normalized.service_type === 'mobile_notary'
+                ? 'map-pin'
+                : isInPersonSession
+                ? 'edit-3'
+                : 'video'
             }
             label={
               normalized.service_type === 'mobile_notary'
                 ? 'Location'
+                : isInPersonSession
+                ? 'Session'
                 : 'Meeting'
             }
             last
@@ -1195,6 +1318,45 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         {/* <AvailabilitySchedule
           schedule={booking?.service?.availability?.schedule}
         /> */}
+
+        {status === 'completed' ? (
+          <Section title="Completion summary">
+            <DetailRow
+              icon={finalPdfUrls.length > 0 ? 'check-circle' : 'alert-circle'}
+              label="Final package"
+              value={
+                finalPdfUrls.length > 0
+                  ? `${finalPdfUrls.length} notarized PDF${
+                      finalPdfUrls.length === 1 ? '' : 's'
+                    } ready`
+                  : 'Final PDF not saved yet'
+              }
+            />
+            <DetailRow
+              icon="shield"
+              label="Seal and certificate"
+              value={`${
+                completionPackage.eseal_url ? 'eSeal saved' : 'eSeal missing'
+              } • ${
+                completionPackage.digital_certificate_url
+                  ? 'Certificate saved'
+                  : 'Certificate missing'
+              }`}
+            />
+            <DetailRow
+              icon="clock"
+              label="Completed at"
+              last
+              value={
+                completedAt
+                  ? `${formatBookingDate(completedAt)} at ${formatBookingTime(
+                      completedAt,
+                    )}`
+                  : `${normalized.displayDate} at ${normalized.displayTime}`
+              }
+            />
+          </Section>
+        ) : null}
 
         <Section title="Notary Request">
           {displayedDocuments.length > 0 ? (
@@ -1377,10 +1539,12 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
         {canJoinRemoteSession && (
           <BookingActionButton
             disabled={Boolean(activeAction) || !sessionAvailability.canJoin}
-            icon="video"
+            icon={isInPersonSession ? 'edit-3' : 'video'}
             label={
               sessionAvailability.canJoin
-                ? 'Join session'
+                ? isInPersonSession
+                  ? 'Open signing session'
+                  : 'Join session'
                 : sessionAvailability.actionLabel
             }
             onPress={handleJoinSession}
@@ -1397,18 +1561,48 @@ export default function AgentBookingOverviewScreen({navigation, route}) {
             variant="danger"
           />
         )}
-        <BookingActionButton
-          disabled={Boolean(activeAction)}
-          icon="arrow-right"
-          label={primaryLabel}
-          loading={Boolean(activeAction && activeAction !== 'rejected')}
-          onPress={handlePrimary}
-          style={[
-            styles.primaryButton,
-            canJoinRemoteSession && styles.manageButton,
-          ]}
-          variant={canJoinRemoteSession ? 'secondary' : 'primary'}
-        />
+        {isActionableMobileNotary ? (
+          <View style={styles.mobileNotaryActions}>
+            <BookingActionButton
+              icon="navigation"
+              label="Navigate"
+              onPress={handleMobileNotaryNavigate}
+              style={styles.mobileNotaryActionButton}
+              variant="secondary"
+            />
+            <BookingActionButton
+              disabled={Boolean(activeAction)}
+              icon="play"
+              label="Start"
+              loading={activeAction === 'ongoing'}
+              onPress={handleMobileNotaryStart}
+              style={styles.mobileNotaryActionButton}
+              variant="secondary"
+            />
+            <BookingActionButton
+              disabled={Boolean(activeAction)}
+              icon="check"
+              label="Complete"
+              loading={activeAction === 'completed'}
+              onPress={() => updateStatus('completed')}
+              style={styles.mobileNotaryActionButton}
+              variant="primary"
+            />
+          </View>
+        ) : (
+          <BookingActionButton
+            disabled={Boolean(activeAction)}
+            icon="arrow-right"
+            label={primaryLabel}
+            loading={Boolean(activeAction && activeAction !== 'rejected')}
+            onPress={handlePrimary}
+            style={[
+              styles.primaryButton,
+              canJoinRemoteSession && styles.manageButton,
+            ]}
+            variant={canJoinRemoteSession ? 'secondary' : 'primary'}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -1650,6 +1844,17 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'stretch',
     gap: 8,
+  },
+  mobileNotaryActions: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mobileNotaryActionButton: {
+    flex: 1,
+    height: 48,
+    paddingHorizontal: 5,
   },
   sessionButton: {
     width: '100%',

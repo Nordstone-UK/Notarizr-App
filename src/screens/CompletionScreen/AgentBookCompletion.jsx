@@ -21,8 +21,13 @@ export default function AgentBookCompletion({navigation, route}) {
   const paymentSuccessful = Boolean(route?.params?.paymentSuccessful);
   const [actionsReady, setActionsReady] = useState(!paymentSuccessful);
   const isMobile = booking?.service_type === 'mobile_notary';
+  const isInPersonSession = booking?.session_mode === 'in_person';
   const reference = getBookingDisplayId(booking);
-  const serviceName = isMobile ? 'Mobile notary' : 'Remote online notary';
+  const serviceName = isMobile
+    ? 'Mobile notary'
+    : isInPersonSession
+    ? 'In-person notarization'
+    : 'Remote online notary';
 
   const viewBooking = () => {
     navigation.reset({

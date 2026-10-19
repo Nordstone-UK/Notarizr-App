@@ -8,6 +8,8 @@ export const GET_AGENT_SESSION = gql`
       sessions {
         _id
         payment_type
+        session_mode
+        session_type
         agent {
           _id
           first_name

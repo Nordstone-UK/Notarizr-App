@@ -44,6 +44,7 @@ export default function SignUpDetailScreen({navigation}) {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [location, setLocation] = useState('');
+  const [zipCode, setZipCode] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [description, setDescription] = useState('');
   const [emailTaken, setEmailTaken] = useState(false);
@@ -64,7 +65,7 @@ export default function SignUpDetailScreen({navigation}) {
   const registerData = useSelector(state => state.register);
   const accountType = registerData.accountType;
   const isClient = accountType === 'client';
-  const totalFields = isClient ? 8 : 12;
+  const totalFields = 8;
   const date = '22-05-2010';
 
   useEffect(() => {
@@ -84,6 +85,9 @@ export default function SignUpDetailScreen({navigation}) {
     if (location.trim()) {
       filledFields += 1;
     }
+    if (zipCode.trim()) {
+      filledFields += 1;
+    }
     if (!isClient && description.trim()) {
       filledFields += 1;
     }
@@ -100,6 +104,7 @@ export default function SignUpDetailScreen({navigation}) {
     location,
     phoneNumber,
     totalFields,
+    zipCode,
   ]);
 
   const handleGetPhoneOtp = async (normalizedPhone, normalizedEmail) => {
@@ -136,6 +141,7 @@ export default function SignUpDetailScreen({navigation}) {
           firstName,
           lastName,
           location,
+          zipCode: zipCode.trim(),
           email: normalizedEmail,
           phoneNumber: normalizedPhone,
           description,
@@ -162,6 +168,7 @@ export default function SignUpDetailScreen({navigation}) {
       !normalizedEmail ||
       !normalizedPhone ||
       !location.trim() ||
+      !zipCode.trim() ||
       (!isClient && !description.trim());
 
     if (missingRequiredField) {
@@ -337,6 +344,15 @@ export default function SignUpDetailScreen({navigation}) {
               error={submitted && !location.trim() ? 'City is required' : ''}
             />
             <AuthTextField
+              label="ZIP code"
+              icon="map-pin"
+              value={zipCode}
+              onChangeText={setZipCode}
+              placeholder="Enter your ZIP code"
+              keyboardType="number-pad"
+              error={submitted && !zipCode.trim() ? 'ZIP code is required' : ''}
+            />
+            <AuthTextField
               label="Professional bio"
               icon="align-left"
               value={description}
@@ -352,6 +368,18 @@ export default function SignUpDetailScreen({navigation}) {
             />
           </>
         )}
+
+        {isClient ? (
+          <AuthTextField
+            label="ZIP code"
+            icon="map-pin"
+            value={zipCode}
+            onChangeText={setZipCode}
+            placeholder="Enter your ZIP code"
+            keyboardType="number-pad"
+            error={submitted && !zipCode.trim() ? 'ZIP code is required' : ''}
+          />
+        ) : null}
 
         <AuthPrimaryButton
           title="Continue"

@@ -16,8 +16,8 @@ import Toast from 'react-native-toast-message';
 import AuthPrimaryButton from '../../components/AuthFlow/AuthPrimaryButton';
 import AuthProgressHeader from '../../components/AuthFlow/AuthProgressHeader';
 import AuthUploadCard from '../../components/AuthFlow/AuthUploadCard';
+import ProfileImageCropModal from '../../components/Profile/ProfileImageCropModal';
 import {
-  profilePictureSet,
   setFilledCount,
   setProgress,
 } from '../../features/register/registerSlice';
@@ -31,10 +31,12 @@ import {useMutation} from '@apollo/client';
 
 export default function ProfilePictureScreen({navigation}) {
   const [image, setImage] = useState('');
+  const [cropImageUri, setCropImageUri] = useState('');
+  const [cropVisible, setCropVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const registerData = useSelector(state => state.register);
   const isClient = registerData.accountType === 'client';
-  const totalFields = isClient ? 8 : 12;
+  const totalFields = 8;
   const dispatch = useDispatch();
   const {handleCompression, uploadMedia, handleRegister} = useRegister();
   const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
@@ -55,7 +57,8 @@ export default function ProfilePictureScreen({navigation}) {
         onPress: async () => {
           const uri = await chooseFile('photo');
           if (uri) {
-            setImage(uri);
+            setCropImageUri(uri);
+            setCropVisible(true);
           }
         },
       },
@@ -64,17 +67,32 @@ export default function ProfilePictureScreen({navigation}) {
         onPress: async () => {
           const uri = await captureImage('photo');
           if (uri) {
-            setImage(uri);
+            setCropImageUri(uri);
+            setCropVisible(true);
           }
         },
       },
     ]);
   };
 
-  const finishClientRegistration = async localProfilePicture => {
+  const handleCropComplete = croppedUri => {
+    setCropVisible(false);
+    setCropImageUri('');
+    setImage(croppedUri);
+  };
+
+  const handleCropCancel = () => {
+    setCropVisible(false);
+    setCropImageUri('');
+  };
+
+  const finishRegistration = async localProfilePicture => {
     const isRegistered = await handleRegister({
       ...registerData,
       profilePicture: '',
+      certificateUrl: '',
+      photoId: '',
+      notarySeal: '',
     });
     if (!isRegistered) {
       return false;
@@ -99,14 +117,6 @@ export default function ProfilePictureScreen({navigation}) {
     return true;
   };
 
-  const continueNotaryRegistration = profilePicture => {
-    if (profilePicture) {
-      dispatch(profilePictureSet(profilePicture));
-    }
-    updateProgress();
-    navigation.navigate('AgentVerificationScreen');
-  };
-
   const handleContinue = async () => {
     if (!image) {
       Toast.show({
@@ -120,14 +130,15 @@ export default function ProfilePictureScreen({navigation}) {
     setLoading(true);
     try {
       if (isClient) {
-        const completed = await finishClientRegistration(image);
+        const completed = await finishRegistration(image);
         if (!completed) {
           throw new Error('Registration failed');
         }
       } else {
-        // The authenticated Spaces upload runs after the notary account is
-        // created on the verification step.
-        continueNotaryRegistration(image);
+        const completed = await finishRegistration(image);
+        if (!completed) {
+          throw new Error('Registration failed');
+        }
       }
     } catch (error) {
       Toast.show({
@@ -144,13 +155,15 @@ export default function ProfilePictureScreen({navigation}) {
     setLoading(true);
     try {
       if (isClient) {
-        const completed = await finishClientRegistration('');
+        const completed = await finishRegistration('');
         if (!completed) {
           throw new Error('Registration failed');
         }
       } else {
-        dispatch(profilePictureSet(''));
-        continueNotaryRegistration('');
+        const completed = await finishRegistration('');
+        if (!completed) {
+          throw new Error('Registration failed');
+        }
       }
     } catch (error) {
       Toast.show({
@@ -166,6 +179,12 @@ export default function ProfilePictureScreen({navigation}) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <ProfileImageCropModal
+        imageUri={cropImageUri}
+        onCancel={handleCropCancel}
+        onComplete={handleCropComplete}
+        visible={cropVisible}
+      />
       <AuthProgressHeader
         title="Profile photo"
         progress={registerData.progress}

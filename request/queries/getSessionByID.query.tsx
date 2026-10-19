@@ -95,6 +95,9 @@ export const GET_SESSION_BY_ID = gql`
         createdAt
         updatedAt
         payment_type
+        session_mode
+        session_type
+        live_session
       }
       message
       status

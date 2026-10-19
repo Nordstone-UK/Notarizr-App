@@ -2,11 +2,13 @@
 #import <GoogleMaps/GoogleMaps.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
+#import "LivekitReactNative.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [LivekitReactNative setup];
   [GMSServices provideAPIKey:@"AIzaSyBsbK6vyTfQd9fuLJkU9a_t5TEEm2QsNpA"]; 
 
 

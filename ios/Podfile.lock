@@ -72,21 +72,20 @@ PODS:
     - hermes-engine/Pre-built (= 0.72.5)
   - hermes-engine/Pre-built (0.72.5)
   - libevent (2.1.12)
+  - livekit-react-native (2.11.1):
+    - livekit-react-native-webrtc
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
+  - livekit-react-native-webrtc (144.1.1):
+    - React-Core
+    - WebRTC-SDK (= 144.7559.10)
   - lottie-ios (4.5.0)
   - lottie-react-native (7.1.0):
     - lottie-ios (= 4.5.0)
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - OneSignalXCFramework (3.12.6):
-    - OneSignalXCFramework/OneSignalCore (= 3.12.6)
-    - OneSignalXCFramework/OneSignalExtension (= 3.12.6)
-    - OneSignalXCFramework/OneSignalOutcomes (= 3.12.6)
-  - OneSignalXCFramework/OneSignalCore (3.12.6)
-  - OneSignalXCFramework/OneSignalExtension (3.12.6):
-    - OneSignalXCFramework/OneSignalCore
-    - OneSignalXCFramework/OneSignalOutcomes
-  - OneSignalXCFramework/OneSignalOutcomes (3.12.6):
-    - OneSignalXCFramework/OneSignalCore
+  - PurchasesHybridCommon (14.3.0):
+    - RevenueCat (= 5.32.0)
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -418,9 +417,6 @@ PODS:
     - React-Core
   - react-native-netinfo (9.4.1):
     - React-Core
-  - react-native-onesignal (4.5.2):
-    - OneSignalXCFramework (= 3.12.6)
-    - React (< 1.0.0, >= 0.13.0)
   - react-native-pdf (6.7.4):
     - React-Core
   - react-native-safe-area-context (4.7.2):
@@ -542,6 +538,7 @@ PODS:
     - React-jsi (= 0.72.5)
     - React-logger (= 0.72.5)
     - React-perflogger (= 0.72.5)
+  - RevenueCat (5.32.0)
   - RNCAsyncStorage (1.19.3):
     - React-Core
   - RNCCheckbox (0.5.16):
@@ -557,6 +554,9 @@ PODS:
     - React-Core
   - RNGestureHandler (2.13.4):
     - RCT-Folly (= 2021.07.22.00)
+    - React-Core
+  - RNPurchases (8.12.0):
+    - PurchasesHybridCommon (= 14.3.0)
     - React-Core
   - RNReanimated (3.6.1):
     - RCT-Folly (= 2021.07.22.00)
@@ -581,42 +581,43 @@ PODS:
   - RNVectorIcons (10.0.0):
     - React-Core
   - SocketRocket (0.6.1)
-  - Stripe (23.16.0):
-    - StripeApplePay (= 23.16.0)
-    - StripeCore (= 23.16.0)
-    - StripePayments (= 23.16.0)
-    - StripePaymentsUI (= 23.16.0)
-    - StripeUICore (= 23.16.0)
-  - stripe-react-native (0.33.0):
+  - Stripe (24.2.0):
+    - StripeApplePay (= 24.2.0)
+    - StripeCore (= 24.2.0)
+    - StripePayments (= 24.2.0)
+    - StripePaymentsUI (= 24.2.0)
+    - StripeUICore (= 24.2.0)
+  - stripe-react-native (0.41.0):
     - React-Core
-    - Stripe (~> 23.16.0)
-    - StripeApplePay (~> 23.16.0)
-    - StripeFinancialConnections (~> 23.16.0)
-    - StripePayments (~> 23.16.0)
-    - StripePaymentSheet (~> 23.16.0)
-    - StripePaymentsUI (~> 23.16.0)
-  - StripeApplePay (23.16.0):
-    - StripeCore (= 23.16.0)
-  - StripeCore (23.16.0)
-  - StripeFinancialConnections (23.16.0):
-    - StripeCore (= 23.16.0)
-    - StripeUICore (= 23.16.0)
-  - StripePayments (23.16.0):
-    - StripeCore (= 23.16.0)
-    - StripePayments/Stripe3DS2 (= 23.16.0)
-  - StripePayments/Stripe3DS2 (23.16.0):
-    - StripeCore (= 23.16.0)
-  - StripePaymentSheet (23.16.0):
-    - StripeApplePay (= 23.16.0)
-    - StripeCore (= 23.16.0)
-    - StripePayments (= 23.16.0)
-    - StripePaymentsUI (= 23.16.0)
-  - StripePaymentsUI (23.16.0):
-    - StripeCore (= 23.16.0)
-    - StripePayments (= 23.16.0)
-    - StripeUICore (= 23.16.0)
-  - StripeUICore (23.16.0):
-    - StripeCore (= 23.16.0)
+    - Stripe (~> 24.2.0)
+    - StripeApplePay (~> 24.2.0)
+    - StripeFinancialConnections (~> 24.2.0)
+    - StripePayments (~> 24.2.0)
+    - StripePaymentSheet (~> 24.2.0)
+    - StripePaymentsUI (~> 24.2.0)
+  - StripeApplePay (24.2.0):
+    - StripeCore (= 24.2.0)
+  - StripeCore (24.2.0)
+  - StripeFinancialConnections (24.2.0):
+    - StripeCore (= 24.2.0)
+    - StripeUICore (= 24.2.0)
+  - StripePayments (24.2.0):
+    - StripeCore (= 24.2.0)
+    - StripePayments/Stripe3DS2 (= 24.2.0)
+  - StripePayments/Stripe3DS2 (24.2.0):
+    - StripeCore (= 24.2.0)
+  - StripePaymentSheet (24.2.0):
+    - StripeApplePay (= 24.2.0)
+    - StripeCore (= 24.2.0)
+    - StripePayments (= 24.2.0)
+    - StripePaymentsUI (= 24.2.0)
+  - StripePaymentsUI (24.2.0):
+    - StripeCore (= 24.2.0)
+    - StripePayments (= 24.2.0)
+    - StripeUICore (= 24.2.0)
+  - StripeUICore (24.2.0):
+    - StripeCore (= 24.2.0)
+  - WebRTC-SDK (144.7559.10)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -629,8 +630,9 @@ DEPENDENCIES:
   - GoogleMaps
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
+  - "livekit-react-native (from `../node_modules/@livekit/react-native`)"
+  - "livekit-react-native-webrtc (from `../node_modules/@livekit/react-native-webrtc`)"
   - lottie-react-native (from `../node_modules/lottie-react-native`)
-  - OneSignalXCFramework (< 4.0, >= 3.0)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -660,7 +662,6 @@ DEPENDENCIES:
   - react-native-immediate-phone-call (from `../node_modules/react-native-immediate-phone-call`)
   - react-native-maps (from `../node_modules/react-native-maps`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
-  - react-native-onesignal (from `../node_modules/react-native-onesignal`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
@@ -690,6 +691,7 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShare (from `../node_modules/react-native-share`)
@@ -711,7 +713,8 @@ SPEC REPOS:
     - GoogleMaps
     - libevent
     - lottie-ios
-    - OneSignalXCFramework
+    - PurchasesHybridCommon
+    - RevenueCat
     - SocketRocket
     - Stripe
     - StripeApplePay
@@ -721,6 +724,7 @@ SPEC REPOS:
     - StripePaymentSheet
     - StripePaymentsUI
     - StripeUICore
+    - WebRTC-SDK
 
 EXTERNAL SOURCES:
   boost:
@@ -738,6 +742,10 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2023-08-07-RNv0.72.4-813b2def12bc9df02654b3e3653ae4a68d0572e0
+  livekit-react-native:
+    :path: "../node_modules/@livekit/react-native"
+  livekit-react-native-webrtc:
+    :path: "../node_modules/@livekit/react-native-webrtc"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   RCT-Folly:
@@ -796,8 +804,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-maps"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
-  react-native-onesignal:
-    :path: "../node_modules/react-native-onesignal"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
   react-native-safe-area-context:
@@ -856,6 +862,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNPurchases:
+    :path: "../node_modules/react-native-purchases"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -892,9 +900,11 @@ SPEC CHECKSUMS:
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: f6cf92a471053245614d9d8097736f6337d5b86c
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
+  livekit-react-native: ccd1dc3a3a7ba5cb83e04488b7b1f56c1317e60b
+  livekit-react-native-webrtc: 9f52dbcc5edee327cdc8c9b458b6d6fd8ece1561
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
   lottie-react-native: 19149851c48d272fbc6cf6f2ea8f8150374ab42d
-  OneSignalXCFramework: ff1c970b7aeb4ac0fe48fb35393eb5d8bf378135
+  PurchasesHybridCommon: 7f0944cc5411bdcd1ea5d69affa6a6f9aaf87b13
   RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
   RCTRequired: df81ab637d35fac9e6eb94611cfd20f0feb05455
   RCTTypeSafety: 4636e4a36c7c2df332bda6d59b19b41c443d4287
@@ -923,7 +933,6 @@ SPEC CHECKSUMS:
   react-native-immediate-phone-call: 31642355bfc4c20fb262ea0bdc50b575daa52335
   react-native-maps: c578fc7f95580480e3e6bf132b144414a082d672
   react-native-netinfo: 58a62fc2fc7245875718b99ac9914c307e1523ca
-  react-native-onesignal: ab800900cffeca4d9db70a05244013fc8a36ceb8
   react-native-pdf: c089a365d5d3b9614cce4a1cca429a71eb037a55
   react-native-safe-area-context: 9fdf214647353ab717139d164c9e1f163045eb1c
   react-native-splash-screen: 95994222cc95c236bd3cdc59fe45ed5f27969594
@@ -946,6 +955,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: ab7903607aad767fa6cd95feb910fb11501f9946
   React-utils: 5b4df8692e966fd50e2d75c0f9659e176a292384
   ReactCommon: 82a84765046cde44e4086a762a16a1ec5c3386ca
+  RevenueCat: 7e1d0768fb287c9983173c9b28e39ccbeeb828a9
   RNCAsyncStorage: b934e5ab140257f25f5d67ded2464646731e4349
   RNCCheckbox: 3d6503c301824dbb13a88a4eecaa8000afe2fb72
   RNCClipboard: b0541df1bb88935d40bdc93b41b7d8e3334c998a
@@ -953,6 +963,7 @@ SPEC CHECKSUMS:
   RNCPicker: 7d6904dbc66524ecaf2053aa9e14ee99431768c9
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: f3902a2694346e4836112a2ef5524b3dcf408678
+  RNPurchases: 6070b60f5d8f525a58905df50773f7a3252f0cfa
   RNReanimated: 49a1e0d191bdaefe1b394eb258bc52a42bcf704c
   RNScreens: c04e015e917ce64d0983974d8efb8fa1dc1ddc56
   RNShare: 694e19d7f74ac4c04de3a8af0649e9ccc03bd8b1
@@ -962,17 +973,18 @@ SPEC CHECKSUMS:
   RNSVG: 4cab00c621b328a4a2fedaaedc15d8822216723e
   RNVectorIcons: fab5ba3ec74be0cdd3952ca28416214a921722a2
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  Stripe: fcab417424a45d995aa1e62a39bc942233b61ba3
-  stripe-react-native: cb47fbba53c87c476025553b88a3bf593e6c435c
-  StripeApplePay: 81de266a964b3ad02fb25e8b22fd8c235d2916a8
-  StripeCore: ac141047bca25f5ae945a1cbdd00a90b0d08c616
-  StripeFinancialConnections: d7a452e4bed1195d8978ee4f6c0ba2f82c89fdf4
-  StripePayments: 5804cb9b02cca488042e5cf8cf57a86a5080006b
-  StripePaymentSheet: 06ea6bbf49be869769c46bf31be4fbc3e23b5b19
-  StripePaymentsUI: 24a0349ae8c7e8c7402086703720fe06c52ddea0
-  StripeUICore: ce85e040a22bf0335061d14973d37757528b3d2d
+  Stripe: be805dc0e80a7299de7b10ecbe01ce81412654c8
+  stripe-react-native: ea35620843771fae59248c88f16c2ffcf0a3dc70
+  StripeApplePay: 5233ecff535bb0772785d2d18d02b39ec24ecb71
+  StripeCore: e2f70fcaa82e5a9d44d18fe4534358384cdf4821
+  StripeFinancialConnections: 8c8e2273552d4567ec381ee2b0ff1745b8e11ab6
+  StripePayments: beb97f8061066532744ceaa03e59009c9716332e
+  StripePaymentSheet: 0d8ed5270037b1da3eb107c9876cec67b8b1fe43
+  StripePaymentsUI: 6486d8b86bf49b8932506807a8692ce16e9f109d
+  StripeUICore: b59aa9c9e202b6a03a556c3519eff578274f7598
+  WebRTC-SDK: 1d7fc2ae91da6edd63e25f3882ff24f86a8d9d8b
   Yoga: 86fed2e4d425ee4c6eab3813ba1791101ee153c6
 
-PODFILE CHECKSUM: 046fbc8e51c2ef87d6eee72683cbfb5a3bc97919
+PODFILE CHECKSUM: 112adb7f8b0a853bb42cd8fb68f361ecb2786241
 
 COCOAPODS: 1.16.2

@@ -8,6 +8,7 @@ import {
   FlatList,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import BottomSheetStyle from '../../components/BotttonSheetStyle/BottomSheetStyle';
@@ -71,7 +72,7 @@ export default function ServiceDetailScreen({route, navigation}) {
       fetchUserInfo();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, fetchUserInfo]);
   const changeServiceFor = string => {
     if (string === 'self') {
       setfirstName(null);

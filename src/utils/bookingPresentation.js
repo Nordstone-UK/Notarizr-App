@@ -89,6 +89,9 @@ export const getBookingServiceType = booking =>
 
 export const getBookingLocation = booking => {
   const serviceType = getBookingServiceType(booking);
+  if (booking?.session_mode === 'in_person') {
+    return 'In-person electronic notarization';
+  }
   if (serviceType !== 'mobile_notary') {
     return 'Secure video appointment';
   }

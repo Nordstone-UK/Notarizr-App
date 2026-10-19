@@ -26,6 +26,7 @@ export const FETCH_USER_INFO = gql`
           state
           county
           city
+          zipCode
           number
           issueDate
           expirationDate
@@ -45,6 +46,19 @@ export const FETCH_USER_INFO = gql`
           digitalCertificate
           certificateForms
         }
+      }
+      clientVerification {
+        status
+        provider
+        providerStatus
+        providerReference
+        documentType
+        documentFrontUrl
+        documentBackUrl
+        faceImageUrl
+        submittedAt
+        verifiedAt
+        failureReason
       }
       agentPlan {
         tier
@@ -67,10 +81,12 @@ export const FETCH_USER_INFO = gql`
       }
       description
       state
+      zipCode
       addresses {
         _id
         tag
         location
+        zipCode
         location_coordinates
       }
       registered_for

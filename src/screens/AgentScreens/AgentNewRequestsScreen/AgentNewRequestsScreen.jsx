@@ -13,6 +13,7 @@ import {
 import {useFocusEffect} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
 import AgentRequestCard from '../../../components/AgentHome/AgentRequestCard';
 import BookingColors from '../../../themes/BookingColors';
 import {
@@ -22,6 +23,10 @@ import {
 } from '../../../features/booking/bookingSlice';
 import useFetchBooking from '../../../hooks/useFetchBooking';
 import {PREVIEW_AGENT_BOOKINGS} from '../../../data/previewBookings';
+import {
+  getAgentCredentialBlockMessage,
+  getAgentCredentialStatus,
+} from '../../../utils/agentCredentials';
 
 const ACCEPT_WINDOW_SECONDS = 90;
 
@@ -74,6 +79,8 @@ export default function AgentNewRequestsScreen({navigation}) {
     booking => booking.status === 'pending',
   );
   const visibleRequests = previewMode ? previewRequests : requests;
+  const credentialStatus = getAgentCredentialStatus(user);
+  const credentialBlockMessage = getAgentCredentialBlockMessage(user);
 
   const loadRequests = useCallback(
     async (isRefresh = false) => {
@@ -112,6 +119,17 @@ export default function AgentNewRequestsScreen({navigation}) {
   }, []);
 
   const openRequest = request => {
+    if (!credentialStatus.readyForBookings) {
+      Toast.show({
+        type: 'info',
+        text1: credentialBlockMessage?.title || 'Credentials required',
+        text2:
+          credentialBlockMessage?.body ||
+          'Complete agent documents before accepting bookings.',
+      });
+      navigation.navigate('AgentManageScreen');
+      return;
+    }
     dispatch(setBookingInfoState(request));
     dispatch(setUser(request?.booked_by));
     dispatch(

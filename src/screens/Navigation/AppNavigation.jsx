@@ -80,12 +80,14 @@ import StampAndSignatureScreen from '../StampAndSignatureScreen/StampAndSignatur
 import AgentBookingWorkspace from '../AgentScreens/ClientDetailsScreen/ClientDetailsScreen';
 import AgentBookingOverviewScreen from '../AgentScreens/AgentBookingOverviewScreen/AgentBookingOverviewScreen';
 import AgentManageBookingScreen from '../AgentScreens/AgentManageBookingScreen/AgentManageBookingScreen';
+import AgentCompletedRecordScreen from '../AgentScreens/AgentCompletedRecordScreen/AgentCompletedRecordScreen';
 import AgentRONLocationScreen from '../AgentScreens/AgentAvailabilityScreen/AgentRONLocationScreen';
 import AgentLocalClientReviewScreen from '../AgentScreens/AgentLocalClientReviewScreen/AgentLocalClientReviewScreen';
 import AgentBookingClientDetail from '../AgentScreens/MainBookingClientDetail/MainBookingClientDetail';
 import MapArrivalScreen from '../MapArrivalScreen/MapArrivalScreen';
 import SignPhoneVerification from '../LogIn&SignupScreens/SignPhoneVerification';
 import PhoneVerification from '../LogIn&SignupScreens/PhoneVerification';
+import EmailVerification from '../LogIn&SignupScreens/EmailVerification';
 import AgentVerfiedScreen from '../CompletionScreen/AgentVerifiedScreen';
 import CustomToast from '../../components/CustomToast/CustomToast';
 import AgentSignupScreen from '../SingupAsScreen/AgentSignupScreen';
@@ -104,12 +106,12 @@ import TransactionScreen from '../TransactionScreen/TransactionScreen';
 import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
 import SessionCreation from '../CompletionScreen/SessionCreation';
 import AuthenticationScreen from '../AuthenticationScreen.jsx/AuthenticationScreen';
+import ClientVerificationScreen from '../ClientVerificationScreen/ClientVerificationScreen';
 import AgentCallFinishing from '../CompletionScreen/AgentCompletecall';
 import NotaryDocumentDownloadScreen from '../AgentScreens/NotaryDocumentDownloadScreen/NotaryDocumentDownloadScreen';
 import CurrentLocationScreen from '../NewAddressScreen/CurrentLocation';
 import AgentMapArrivalScreen from '../MapArrivalScreen/AgentMapArraivalScreen';
 import BookingLocationPreviewScreen from '../MapArrivalScreen/BookingLocationPreviewScreen';
-import AgentNewRequestsScreen from '../AgentScreens/AgentNewRequestsScreen/AgentNewRequestsScreen';
 import ChooseLocation from '../MapArrivalScreen/src/Screens/ChooseLocation';
 import BookingFlowScreen from '../BookingFlowScreen/BookingFlowScreen';
 import PreviewChatScreen from '../PreviewChatScreen/PreviewChatScreen';
@@ -191,6 +193,7 @@ export default function AppNavigation() {
           component={SignPhoneVerification}
         />
         <Stack.Screen name="PhoneVerification" component={PhoneVerification} />
+        <Stack.Screen name="EmailVerification" component={EmailVerification} />
         <Stack.Screen name="AddNewAddress" component={AddNewAddress} />
         <Stack.Screen
           name="CurrentLocationScreen"
@@ -280,10 +283,6 @@ export default function AppNavigation() {
           name="BookingLocationPreviewScreen"
           component={BookingLocationPreviewScreen}
         />
-        <Stack.Screen
-          name="AgentNewRequestsScreen"
-          component={AgentNewRequestsScreen}
-        />
         <Stack.Screen name="chooseLocation" component={ChooseLocation} />
         <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} />
         <Stack.Screen
@@ -315,6 +314,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AuthenticationScreen"
           component={AuthenticationScreen}
+        />
+        <Stack.Screen
+          name="ClientVerificationScreen"
+          component={ClientVerificationScreen}
         />
         <Stack.Screen name="AddressDetails" component={AddressDetails} />
         <Stack.Screen name="SettingScreen" component={SettingScreen} />
@@ -467,6 +470,10 @@ export default function AppNavigation() {
         <Stack.Screen
           name="AgentManageBookingScreen"
           component={AgentManageBookingScreen}
+        />
+        <Stack.Screen
+          name="AgentCompletedRecordScreen"
+          component={AgentCompletedRecordScreen}
         />
       </Stack.Navigator>
       <CustomToast />

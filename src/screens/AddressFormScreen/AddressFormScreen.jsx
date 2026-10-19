@@ -40,7 +40,9 @@ export default function AddressFormScreen({navigation, route}) {
   const [state, setState] = useState(
     existing?.state || (previewMode ? 'CA' : ''),
   );
-  const [zip, setZip] = useState(existing?.zip || (previewMode ? '94105' : ''));
+  const [zip, setZip] = useState(
+    existing?.zipCode || existing?.zip || (previewMode ? '94105' : ''),
+  );
   const [saving, setSaving] = useState(false);
 
   const saveAddress = async () => {
@@ -62,6 +64,7 @@ export default function AddressFormScreen({navigation, route}) {
       city: city.trim(),
       state: state.trim(),
       zip: zip.trim(),
+      zipCode: zip.trim(),
       primary: existing?.primary || false,
       location: [
         street.trim(),
@@ -90,6 +93,7 @@ export default function AddressFormScreen({navigation, route}) {
       const params = {
         location: address.location,
         tag: address.label.toLowerCase(),
+        zipCode: address.zipCode,
         lat: coordinates[0] != null ? String(coordinates[0]) : null,
         lng: coordinates[1] != null ? String(coordinates[1]) : null,
       };

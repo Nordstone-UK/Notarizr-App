@@ -11,6 +11,8 @@ export const CREATE_SESSION = gql`
     $price: Float!
     $documentType: [documentTypeInput!]!
     $paymentType: String
+    $sessionMode: String
+    $sessionType: String
     $useStandardPricing: Boolean
     $agentTier: AgentTier
     $billingMode: InvitationBillingMode
@@ -32,6 +34,8 @@ export const CREATE_SESSION = gql`
       price: $price
       document_type: $documentType
       payment_type: $paymentType
+      session_mode: $sessionMode
+      session_type: $sessionType
       useStandardPricing: $useStandardPricing
       agentTier: $agentTier
       billingMode: $billingMode
@@ -71,6 +75,8 @@ export const CREATE_SESSION = gql`
         agora_channel_token
         identity_authentication
         payment_type
+        session_mode
+        session_type
       }
       message
       status

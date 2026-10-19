@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
 import {useFocusEffect} from '@react-navigation/native';
-import OneSignal from 'react-native-onesignal';
 import {useDispatch, useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import BookingCard from '../../components/Bookings/BookingCard';
@@ -87,12 +86,6 @@ export default function HomeScreen({navigation}) {
     },
     [previewMode, user],
   );
-
-  useEffect(() => {
-    if (!previewMode && user?._id) {
-      OneSignal.setExternalUserId(user._id);
-    }
-  }, [previewMode, user]);
 
   useFocusEffect(
     useCallback(() => {

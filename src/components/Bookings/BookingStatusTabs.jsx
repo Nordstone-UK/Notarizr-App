@@ -44,6 +44,24 @@ export default function BookingStatusTabs({
             <Text style={[styles.label, active && styles.activeLabel]}>
               {tab.label}
             </Text>
+            {tab.unreadCount > 0 ? (
+              <View
+                accessibilityLabel={`${
+                  tab.unreadCount
+                } new ${tab.label.toLowerCase()} bookings`}
+                style={[
+                  styles.unreadBadge,
+                  active && styles.activeUnreadBadge,
+                ]}>
+                <Text
+                  style={[
+                    styles.unreadBadgeText,
+                    active && styles.activeUnreadBadgeText,
+                  ]}>
+                  {tab.unreadCount > 99 ? '99+' : tab.unreadCount}
+                </Text>
+              </View>
+            ) : null}
           </Pressable>
         );
       })}
@@ -80,6 +98,23 @@ const styles = StyleSheet.create({
     color: BookingColors.white,
     fontFamily: 'Manrope-Bold',
   },
+  unreadBadge: {
+    minWidth: 16,
+    height: 16,
+    marginLeft: 4,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#D92D20',
+  },
+  activeUnreadBadge: {backgroundColor: BookingColors.white},
+  unreadBadgeText: {
+    color: BookingColors.white,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 9,
+  },
+  activeUnreadBadgeText: {color: BookingColors.primary},
   icon: {
     marginRight: 5,
   },

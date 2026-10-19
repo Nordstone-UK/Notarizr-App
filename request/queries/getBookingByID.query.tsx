@@ -33,6 +33,7 @@ export const GET_BOOKING_BY_ID = gql`
             _id
             tag
             location
+            zipCode
             location_coordinates
           }
         }
@@ -140,6 +141,7 @@ export const GET_BOOKING_BY_ID = gql`
         document_preparation
         participants
         identity_verification
+        live_session
       }
     }
   }

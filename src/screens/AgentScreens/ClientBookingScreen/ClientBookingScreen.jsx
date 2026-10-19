@@ -32,7 +32,7 @@ export default function ClientBookingScreen() {
           <ClientServiceCard
             image={require('../../../../assets/agentLocation.png')}
             calendarImage={require('../../../../assets/calenderIcon.png')}
-            servicetype={item.service_type}
+            servicetype="mobile_notary"
             source={require('../../../../assets/maleAgentPic.png')}
             bottomLeftText="$400"
             agentName={'Bunny Joel'}

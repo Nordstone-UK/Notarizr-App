@@ -41,12 +41,20 @@ export const useSession = () => {
         price: totalPrice,
         documentType: documentObjects,
         paymentType: payment_type,
+        sessionMode: pricingOptions.sessionMode,
+        sessionType: pricingOptions.sessionType,
         ...pricingOptions,
       },
     };
     console.log('requestssss', request);
     const response = await createSession(request);
-    console.log('Session Response', response.data.createSessionR.session);
+    const createdSession = response?.data?.createSessionR?.session;
+    console.log('Session Response', createdSession);
+    if (createdSession?._id) {
+      // Agent-created sessions are invitations; the client must accept before
+      // the session is treated as accepted or can be joined.
+      await updateSession('pending', createdSession._id);
+    }
     return response.data.createSessionR.status;
   };
 
