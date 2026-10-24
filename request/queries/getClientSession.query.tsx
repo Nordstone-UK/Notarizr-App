@@ -38,7 +38,6 @@ export const GET_CLIENT_SESSION = gql`
             tag
             location
           }
-          userAccessCode
         }
         client {
           _id
@@ -60,7 +59,6 @@ export const GET_CLIENT_SESSION = gql`
           online_status
           description
           state
-          userAccessCode
         }
         rating
         review
@@ -95,8 +93,6 @@ export const GET_CLIENT_SESSION = gql`
         date_time_session
         agent_document
         notarized_docs
-        agora_channel_name
-        agora_channel_token
         signature_request_id
         signatures {
           signatureId

@@ -21,8 +21,6 @@ import {
   setFilledCount,
   setProgress,
 } from '../../features/register/registerSlice';
-import useAuthenticate from '../../hooks/useAuthenticate';
-import useFetchUser from '../../hooks/useFetchUser';
 import useRegister from '../../hooks/useRegister';
 import {captureImage, chooseFile} from '../../utils/ImagePicker';
 import {goBackOrNavigate} from '../../utils/navigationHelpers';
@@ -40,8 +38,6 @@ export default function ProfilePictureScreen({navigation}) {
   const dispatch = useDispatch();
   const {handleCompression, uploadMedia, handleRegister} = useRegister();
   const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
-  const {registerAuthUser, consentAuth} = useAuthenticate();
-  const {fetchUserInfo} = useFetchUser();
 
   const updateProgress = () => {
     const filledCount = Math.min(registerData.filledCount + 1, totalFields);
@@ -104,14 +100,6 @@ export default function ProfilePictureScreen({navigation}) {
       await updateProfilePicture({variables: {profilePicture}});
     }
 
-    await registerAuthUser();
-    const user = await fetchUserInfo();
-    if (user?.userAccessCode) {
-      await consentAuth(
-        `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
-        user.userAccessCode,
-      );
-    }
     updateProgress();
     navigation.navigate('RegisterCompletionScreen');
     return true;

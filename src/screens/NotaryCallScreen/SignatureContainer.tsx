@@ -3,27 +3,24 @@ import {StyleSheet, View} from 'react-native';
 import DraggableSignature from './DragabbleSignature';
 import {useLiveblocks} from '../../store/liveblocks';
 
-export default function SignatureContainer({onSignatureChange, locked = false}) {
+type SignatureContainerProps = {
+  onSignatureChange: (signatureInfo: any) => void;
+  locked?: boolean;
+  page?: number;
+  signatureData?: any;
+};
+
+export default function SignatureContainer({
+  onSignatureChange,
+  locked = false,
+  page = 1,
+}: SignatureContainerProps) {
   const objects = useLiveblocks(state => state.objects);
   const deleteObject = useLiveblocks(state => state.deleteObject);
   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
-  const currentPage = useLiveblocks(state => state.currentPage);
-  const setSigningActivity = useLiveblocks(state => state.setSigningActivity);
-  // console.log("pdflivepathfile", pdfFilePath)
-  // console.log('Signatures:', signatures.length);
-  const handleSignatureChange = signatureInfo => {
+  const handleSignatureChange = (signatureInfo: any) => {
     onSignatureChange(signatureInfo);
   };
-
-  useEffect(() => {
-    if (Object.keys(objects).length === 0) {
-      setSigningActivity({
-        status: 'idle',
-        label: '',
-        page: currentPage,
-      });
-    }
-  }, [currentPage, objects, setSigningActivity]);
 
   // Remove the legacy placeholder that was persisted in existing Liveblocks
   // rooms by an earlier test build. Exclude it from rendering immediately so
@@ -34,7 +31,7 @@ export default function SignatureContainer({onSignatureChange, locked = false}) 
       typeof object.text === 'string' &&
       object.text.trim().toLowerCase() === 'test';
 
-    return !isLegacyTestBadge;
+    return !isLegacyTestBadge && (object.page || 1) === page;
   });
 
   useEffect(() => {

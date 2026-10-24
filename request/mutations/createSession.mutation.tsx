@@ -71,8 +71,6 @@ export const CREATE_SESSION = gql`
         status
         client_email
         observers
-        agora_channel_name
-        agora_channel_token
         identity_authentication
         payment_type
         session_mode

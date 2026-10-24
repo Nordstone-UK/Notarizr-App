@@ -94,7 +94,6 @@ export const UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS = gql`
           online_status
           description
           state
-          userAccessCode
           isSubscribed
         }
         agent_document
@@ -135,7 +134,6 @@ export const UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS = gql`
             online_status
             description
             state
-            userAccessCode
             isSubscribed
             current_location {
               type
@@ -181,8 +179,6 @@ export const UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS = gql`
           first_name
           email
         }
-        agora_channel_token
-        agora_channel_name
         agent {
           _id
           first_name
@@ -205,7 +201,6 @@ export const UPDATE_OR_CREATE_BOOKING_CLIENT_DOCS = gql`
           description
           state
 
-          userAccessCode
           isSubscribed
         }
         address

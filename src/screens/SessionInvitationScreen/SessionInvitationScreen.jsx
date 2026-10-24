@@ -247,6 +247,7 @@ export default function SessionInvitationScreen({navigation, route}) {
     'confirmed',
     'paid',
     'payment_confirmed',
+    'to_be_paid',
     'ongoing',
     'completed',
     'rejected',
@@ -262,6 +263,9 @@ export default function SessionInvitationScreen({navigation, route}) {
     user?.account_type === 'client' &&
     Boolean(user?._id) &&
     String(user._id) === String(expectedClientId || '');
+  const requiresOnlinePayment =
+    invite?.recordType !== 'booking' && session?.payment_type !== 'on_agent';
+  const sessionPrice = Number(session?.totalPrice ?? session?.price ?? 0);
 
   const continueToSession = async (acceptedSession = session) => {
     if (!user) {
@@ -289,13 +293,42 @@ export default function SessionInvitationScreen({navigation, route}) {
     navigation.navigate('MedicalBookingScreen');
   };
 
+  const continueToPayment = async acceptedSession => {
+    dispatch(setBookingInfoState({...acceptedSession, __typename: 'Session'}));
+    dispatch(
+      setCoordinates(
+        acceptedSession?.agent?.current_location?.coordinates || [],
+      ),
+    );
+    dispatch(setUser(acceptedSession?.agent || []));
+    await clearPendingSessionInvite();
+    navigation.navigate('ToBePaidScreen', {
+      bookingData: {...acceptedSession, __typename: 'Session'},
+    });
+  };
+
   const respondToInvitation = async accepted => {
     if (!session?._id || !user || responding) {
       return;
     }
     setResponding(true);
     try {
-      const nextStatus = accepted ? 'accepted' : 'rejected';
+      if (
+        accepted &&
+        invite?.recordType !== 'booking' &&
+        requiresOnlinePayment &&
+        sessionPrice <= 0
+      ) {
+        throw new Error(
+          'This session has no payable amount yet. Please ask your notary to update the price.',
+        );
+      }
+
+      const nextStatus = accepted
+        ? invite?.recordType !== 'booking' && requiresOnlinePayment
+          ? 'to_be_paid'
+          : 'accepted'
+        : 'rejected';
       if (invite?.recordType === 'booking') {
         const result = await handleUpdateBookingStatus(
           nextStatus,
@@ -319,7 +352,11 @@ export default function SessionInvitationScreen({navigation, route}) {
         const updatedSession = {...session, ...result, status: nextStatus};
         setSession(updatedSession);
         if (accepted) {
-          await continueToSession(updatedSession);
+          if (requiresOnlinePayment) {
+            await continueToPayment(updatedSession);
+          } else {
+            await continueToSession(updatedSession);
+          }
           return;
         }
       }
@@ -429,12 +466,22 @@ export default function SessionInvitationScreen({navigation, route}) {
         {user && session && invitationPending && isInvitationClient ? (
           <>
             <AuthPrimaryButton
-              title="Accept invitation"
+              title={
+                requiresOnlinePayment
+                  ? 'Accept & continue to payment'
+                  : 'Accept invitation'
+              }
               icon="check"
               loading={responding}
               onPress={() => respondToInvitation(true)}
               style={styles.primaryButton}
             />
+            {requiresOnlinePayment ? (
+              <Text style={styles.paymentNote}>
+                Accepting this invitation will take you to secure checkout
+                {sessionPrice > 0 ? ` for $${sessionPrice.toFixed(2)}` : ''}.
+              </Text>
+            ) : null}
             <TouchableOpacity
               activeOpacity={0.75}
               disabled={responding}
@@ -447,8 +494,8 @@ export default function SessionInvitationScreen({navigation, route}) {
           <View style={styles.notice}>
             <Feather name="clock" size={18} color={AppColors.warning} />
             <Text style={styles.noticeText}>
-              This invitation was sent to the client. They must accept it
-              before the session can begin.
+              This invitation was sent to the client. They must accept it before
+              the session can begin.
             </Text>
           </View>
         ) : (
@@ -620,6 +667,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginTop: 24,
+  },
+  paymentNote: {
+    color: AppColors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 10,
+    textAlign: 'center',
   },
   secondaryButton: {
     alignItems: 'center',

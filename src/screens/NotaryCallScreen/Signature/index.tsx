@@ -205,12 +205,20 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
   const [savedStamps, setSavedStamps] = useState<SavedStamp[]>([]);
   const [stampImageUri, setStampImageUri] = useState<string | null>(null);
   const [stampImageName, setStampImageName] = useState('notary-stamp.png');
+  const [stampImageMime, setStampImageMime] = useState('image/png');
   const viewShotRef = useRef<ViewShot>(null);
   const signatureCanvasRef = useRef<any>(null);
+  const isAgent = Boolean(signs && signs.account_type !== 'client');
 
   useEffect(() => {
     if (isVisible) {
-      setSelectedOption(signs?.notarysigns?.length ? 'saved' : 'draw');
+      setSelectedOption(
+        isAgent
+          ? 'stamp'
+          : signs?.notarysigns?.length
+            ? 'saved'
+            : 'draw',
+      );
       setErrorMessage('');
       setUploadedImageUri(null);
       setUploadedImageMime('image/jpeg');
@@ -223,6 +231,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
         )}-${String(now.getDate()).padStart(2, '0')}`,
       );
       setStampImageUri(null);
+      setStampImageMime('image/png');
       getSavedStamps(signs?._id).then(setSavedStamps);
       setSigningActivity({
         status: 'choosing',
@@ -232,13 +241,13 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
     }
   }, [
     isVisible,
+    isAgent,
     page,
     setSigningActivity,
     signs?._id,
     signs?.notarysigns?.length,
   ]);
 
-  const isAgent = signs?.account_type !== 'client';
   const visibleOptions = options.filter(
     option => option.key !== 'stamp' || isAgent,
   );
@@ -431,15 +440,25 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       if (!asset?.uri) {
         throw new Error('No stamp image was selected.');
       }
-      const fileName = asset.fileName || `notary-stamp-${Date.now()}.png`;
-      if (
-        asset.type !== 'image/png' &&
-        !fileName.toLowerCase().endsWith('.png')
-      ) {
-        throw new Error('Notary stamps must be PNG images.');
+      const selectedType = asset.type?.toLowerCase();
+      const selectedName = asset.fileName?.toLowerCase() || '';
+      const mime =
+        selectedType === 'image/png' || selectedName.endsWith('.png')
+          ? 'image/png'
+          : selectedType === 'image/jpeg' ||
+              selectedName.endsWith('.jpg') ||
+              selectedName.endsWith('.jpeg')
+            ? 'image/jpeg'
+            : null;
+      if (!mime) {
+        throw new Error('Choose a PNG or JPEG stamp image.');
       }
+      const extension = mime === 'image/png' ? 'png' : 'jpg';
+      const fileName =
+        asset.fileName || `notary-stamp-${Date.now()}.${extension}`;
       setStampImageUri(asset.uri);
       setStampImageName(fileName);
+      setStampImageMime(mime);
     } catch (error: any) {
       setErrorMessage(
         error?.message || 'The stamp image could not be selected.',
@@ -449,7 +468,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
 
   const uploadAndSaveStamp = useCallback(async () => {
     if (!stampImageUri) {
-      setErrorMessage('Choose a PNG stamp first.');
+      setErrorMessage('Choose a PNG or JPEG stamp first.');
       return;
     }
     if (savedStamps.length >= 2) {
@@ -462,7 +481,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
       const url = await uploadDocumentToSpaces({
         file: stampImageUri,
         fileName: stampImageName,
-        contentType: 'image/png',
+        contentType: stampImageMime,
       });
       if (!url) {
         throw new Error('The stamp upload returned no file.');
@@ -478,7 +497,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [savedStamps, signs?._id, stampImageName, stampImageUri]);
+  }, [savedStamps, signs?._id, stampImageMime, stampImageName, stampImageUri]);
 
   const selectSavedStamp = useCallback(
     (sourceUrl: string) => {
@@ -883,8 +902,7 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
               <View>
                 <Text style={styles.sectionTitle}>Notary stamp</Text>
                 <Text style={styles.sectionDescription}>
-                  Choose a saved stamp or upload a PNG. Up to two stamps can be
-                  saved.
+                  Choose a saved stamp or upload a PNG or JPEG. Up to two stamps can be saved.
                 </Text>
                 {savedStamps.length > 0 && (
                   <View style={styles.stampGrid}>
@@ -935,10 +953,10 @@ const DrawSignTypeModal: React.FC<DrawSignComponentProps> = ({
                             />
                           </View>
                           <Text style={styles.uploadTitle}>
-                            Choose stamp PNG
+                            Choose stamp image
                           </Text>
                           <Text style={styles.uploadDescription}>
-                            Transparent PNG recommended
+                            PNG or JPEG · transparent PNG recommended
                           </Text>
                         </>
                       )}

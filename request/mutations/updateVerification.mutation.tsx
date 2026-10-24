@@ -32,7 +32,6 @@ export const UPDATE_VERIFICATION = gql`
       online_status
       description
       state
-      userAccessCode
       isSubscribed
       registered_for
     }

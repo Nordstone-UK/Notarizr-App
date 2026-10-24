@@ -39,8 +39,6 @@ export default function AgentBookCompletion({navigation, route}) {
   const joinSession = () => {
     navigation.replace('AuthenticationScreen', {
       uid: booking?._id,
-      channel: booking?.agora_channel_name,
-      token: booking?.agora_channel_token,
       time: booking?.time_of_booking,
       date: booking?.date_of_booking,
       routeFrom: 'client',

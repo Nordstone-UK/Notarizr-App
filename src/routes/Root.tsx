@@ -15,7 +15,6 @@ import {
   setUser,
 } from '../features/booking/bookingSlice';
 import {useSession} from '../hooks/useSession';
-import IncomingCallManager from '../components/Calls/IncomingCallManager';
 import {
   normalizeSessionInviteParams,
   savePendingSessionInvite,
@@ -136,7 +135,6 @@ const Root: FC = (): JSX.Element => {
   return (
     <>
       <AppNavigation />
-      <IncomingCallManager navigation={navigation} />
     </>
   );
 };

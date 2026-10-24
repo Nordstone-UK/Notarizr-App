@@ -297,6 +297,15 @@ function LiveMedicalBookingScreen({route, navigation}) {
     }
     setLoading(false);
   };
+  const handleClientRequestResponse = async response => {
+    const nextStatus =
+      bookingDetail?.__typename === 'Session'
+        ? response
+        : response === 'accepted'
+        ? 'to_be_paid'
+        : 'rejected';
+    await handleStatusChange(nextStatus);
+  };
   useFocusEffect(
     React.useCallback(() => {
       if (
@@ -773,8 +782,6 @@ function LiveMedicalBookingScreen({route, navigation}) {
     }
     navigation.navigate('AuthenticationScreen', {
       uid: bookingDetail?._id,
-      channel: bookingDetail?.agora_channel_name,
-      token: bookingDetail?.agora_channel_token,
       time: bookingDetail?.time_of_booking || bookingDetail?.date_time_session,
       date: bookingDetail?.date_of_booking || bookingDetail?.date_time_session,
       sessionMode: bookingDetail?.session_mode || 'remote_online',
@@ -920,6 +927,7 @@ function LiveMedicalBookingScreen({route, navigation}) {
       onAddCard={() => navigation.navigate('AddCardScreen')}
       onPay={handleMakePayment}
       onRefresh={refreshBookingDetails}
+      onRespondToInvitation={handleClientRequestResponse}
       onTrack={() => handleAddressPress(bookedByAddress?.location_coordinates)}
       onUpload={selectDocuments}
       onViewDocument={handleDocumentPress}
@@ -941,8 +949,6 @@ function LiveMedicalBookingScreen({route, navigation}) {
             sender: bookingDetail?.booked_by || bookingDetail?.client,
             receiver: bookingDetail?.agent,
             chat: bookingDetail?._id,
-            channel: bookingDetail?.agora_channel_name,
-            voiceToken: bookingDetail?.agora_channel_token,
           })
         }
         midImg={require('../../../assets/supportIcon.png')}
@@ -1744,8 +1750,6 @@ function LiveMedicalBookingScreen({route, navigation}) {
                   onPress={() => {
                     navigation.navigate('WaitingRoomScreen', {
                       uid: bookingDetail?._id,
-                      channel: bookingDetail?.agora_channel_name,
-                      token: bookingDetail?.agora_channel_token,
                       time:
                         bookingDetail?.time_of_booking ||
                         bookingDetail?.date_time_session,

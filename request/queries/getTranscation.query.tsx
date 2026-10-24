@@ -36,7 +36,6 @@ export const GET_PAYMENT_INTENTS = gql`
           online_status
           description
           state
-          userAccessCode
           isSubscribed
         }
       }

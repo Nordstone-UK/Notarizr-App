@@ -1,34 +1,4 @@
 PODS:
-  - AgoraIrisRTC_iOS (4.2.6-build.3)
-  - AgoraRtcEngine_iOS (4.2.6):
-    - AgoraRtcEngine_iOS/AIAEC (= 4.2.6)
-    - AgoraRtcEngine_iOS/AINS (= 4.2.6)
-    - AgoraRtcEngine_iOS/AudioBeauty (= 4.2.6)
-    - AgoraRtcEngine_iOS/ClearVision (= 4.2.6)
-    - AgoraRtcEngine_iOS/ContentInspect (= 4.2.6)
-    - AgoraRtcEngine_iOS/DRM (= 4.2.6)
-    - AgoraRtcEngine_iOS/FaceDetection (= 4.2.6)
-    - AgoraRtcEngine_iOS/ReplayKit (= 4.2.6)
-    - AgoraRtcEngine_iOS/RtcBasic (= 4.2.6)
-    - AgoraRtcEngine_iOS/SpatialAudio (= 4.2.6)
-    - AgoraRtcEngine_iOS/VideoCodecDec (= 4.2.6)
-    - AgoraRtcEngine_iOS/VideoCodecEnc (= 4.2.6)
-    - AgoraRtcEngine_iOS/VirtualBackground (= 4.2.6)
-    - AgoraRtcEngine_iOS/VQA (= 4.2.6)
-  - AgoraRtcEngine_iOS/AIAEC (4.2.6)
-  - AgoraRtcEngine_iOS/AINS (4.2.6)
-  - AgoraRtcEngine_iOS/AudioBeauty (4.2.6)
-  - AgoraRtcEngine_iOS/ClearVision (4.2.6)
-  - AgoraRtcEngine_iOS/ContentInspect (4.2.6)
-  - AgoraRtcEngine_iOS/DRM (4.2.6)
-  - AgoraRtcEngine_iOS/FaceDetection (4.2.6)
-  - AgoraRtcEngine_iOS/ReplayKit (4.2.6)
-  - AgoraRtcEngine_iOS/RtcBasic (4.2.6)
-  - AgoraRtcEngine_iOS/SpatialAudio (4.2.6)
-  - AgoraRtcEngine_iOS/VideoCodecDec (4.2.6)
-  - AgoraRtcEngine_iOS/VideoCodecEnc (4.2.6)
-  - AgoraRtcEngine_iOS/VirtualBackground (4.2.6)
-  - AgoraRtcEngine_iOS/VQA (4.2.6)
   - BEMCheckBox (1.4.1)
   - boost (1.76.0)
   - BVLinearGradient (2.8.3):
@@ -386,11 +356,6 @@ PODS:
   - React-jsinspector (0.72.5)
   - React-logger (0.72.5):
     - glog
-  - react-native-agora (4.2.6):
-    - AgoraIrisRTC_iOS (= 4.2.6-build.3)
-    - AgoraRtcEngine_iOS (= 4.2.6)
-    - RCT-Folly (= 2021.07.22.00)
-    - React-Core
   - react-native-blob-util (0.19.9):
     - React-Core
   - react-native-date-picker (4.3.3):
@@ -649,7 +614,6 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
-  - react-native-agora (from `../node_modules/react-native-agora`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
@@ -705,8 +669,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - AgoraIrisRTC_iOS
-    - AgoraRtcEngine_iOS
     - BEMCheckBox
     - fmt
     - Google-Maps-iOS-Utils
@@ -778,8 +740,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
-  react-native-agora:
-    :path: "../node_modules/react-native-agora"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
   react-native-date-picker:
@@ -886,8 +846,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AgoraIrisRTC_iOS: 8346499b82968a4967e3d0bec2cf14bf7c0c3f76
-  AgoraRtcEngine_iOS: ac647332ad8f86d79cf810601c9e62b28c3a4de0
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
@@ -920,7 +878,6 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 7b950ed139738f2a446a9c0691ef0d07df3fb89e
   React-jsinspector: aef73cbd43b70675f572214d10fa438c89bf11ba
   React-logger: 984811296d6ce8fb1c1619cc8752c1029916d917
-  react-native-agora: f0f15f4989e7ed09bee76cb575bd81b011cba26a
   react-native-blob-util: 6560d6fc4b940ec140f9c3ebe21c8669b1df789b
   react-native-date-picker: 867635d29cb2b9b21db129a638fc368269ae7f51
   react-native-document-picker: 10fce9a283ba4b74533d8378e76b3c38a66347d6

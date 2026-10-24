@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useLazyQuery} from '@apollo/client';
 import {
   ActivityIndicator,
   Platform,
@@ -7,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useLazyQuery} from '@apollo/client';
 import Feather from 'react-native-vector-icons/Feather';
 import {
   AudioSession,
@@ -16,9 +16,10 @@ import {
   useConnectionState,
   useLocalParticipant,
   useParticipants,
+  useRoomContext,
   useTracks,
 } from '@livekit/react-native';
-import {Track} from 'livekit-client';
+import {ConnectionState, RoomEvent, Track} from 'livekit-client';
 
 import {GET_LIVEKIT_ROOM_TOKEN} from '../../../request/queries/getLiveKitRoomToken.query';
 import BookingColors from '../../themes/BookingColors';
@@ -35,6 +36,8 @@ type Props = {
   compact?: boolean;
   isClient?: boolean;
   onComplete?: () => void;
+  onLeave?: () => void;
+  onClientIdentityVerifiedChange?: (verified: boolean) => void;
 };
 
 const participantName = (track: any) =>
@@ -50,17 +53,57 @@ const participantInitials = (name: string) => {
     : `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 };
 
+function CompactParticipantTile({name, track, cameraEnabled, mirror}: any) {
+  return (
+    <View style={styles.compactPersonTile}>
+      {cameraEnabled && track ? (
+        <VideoTrack trackRef={track} style={styles.video} mirror={mirror} />
+      ) : (
+        <View style={styles.compactPersonAvatar}>
+          <Text style={styles.compactAvatarInitials}>
+            {participantInitials(name)}
+          </Text>
+        </View>
+      )}
+      <Text numberOfLines={1} style={styles.compactPersonName}>
+        {name}
+      </Text>
+    </View>
+  );
+}
+
 function RoomView({
   compact,
   isClient,
   onComplete,
-}: Omit<Props, 'recordId' | 'canJoin' | 'unavailableMessage'>) {
+  onLeave,
+  onClientIdentityVerifiedChange,
+}: Omit<Props, 'canJoin' | 'unavailableMessage'>) {
+  const room = useRoomContext();
   const connectionState = useConnectionState();
   const {localParticipant, isMicrophoneEnabled, isCameraEnabled} =
     useLocalParticipant();
   const participants = useParticipants();
   const tracks = useTracks([Track.Source.Camera]) as any[];
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
+  const [mediaError, setMediaError] = useState('');
+
+  useEffect(() => {
+    const stateHandler = (payload: Uint8Array) => {
+      try {
+        const event = JSON.parse(String.fromCharCode(...payload));
+        if (event.type === 'client_identity_verified') {
+          onClientIdentityVerifiedChange?.(Boolean(event.verified));
+        }
+      } catch {
+        // Ignore unrelated room data packets.
+      }
+    };
+    room.on(RoomEvent.DataReceived, stateHandler);
+    return () => {
+      room.off(RoomEvent.DataReceived, stateHandler);
+    };
+  }, [onClientIdentityVerifiedChange, room]);
 
   const localTrack = useMemo(
     () => tracks.find(track => track?.participant?.isLocal),
@@ -73,6 +116,10 @@ function RoomView({
   const remoteParticipants = participants.filter(
     participant => !participant.isLocal,
   );
+  const remoteParticipant = remoteParticipants[0];
+  const remoteCameraTrack = remoteTracks.find(
+    track => track?.participant?.identity === remoteParticipant?.identity,
+  );
   const primaryParticipant = remoteParticipants[0] || localParticipant;
   const primaryTrack = tracks.find(
     track => track?.participant?.identity === primaryParticipant?.identity,
@@ -80,16 +127,51 @@ function RoomView({
   const primaryName =
     primaryParticipant?.name || primaryParticipant?.identity || 'Participant';
   const primaryCameraEnabled = Boolean(primaryParticipant?.isCameraEnabled);
-  const isConnected = connectionState === 'connected';
+  const isConnected =
+    connectionState === ConnectionState.Connected &&
+    room.state === ConnectionState.Connected;
   const status = isConnected
     ? remoteParticipants.length
       ? 'Participant connected'
       : 'Waiting for participant'
     : 'Connecting securely';
 
+  const setLocalMediaEnabled = useCallback(
+    async (kind: 'microphone' | 'camera', enabled: boolean) => {
+      // The hook can briefly report the previous state while LiveKit is
+      // reconnecting. Check the room immediately before publishing as well.
+      if (
+        !isConnected ||
+        room.state !== ConnectionState.Connected ||
+        !localParticipant
+      ) {
+        return;
+      }
+      setMediaError('');
+      try {
+        if (kind === 'microphone') {
+          await localParticipant.setMicrophoneEnabled(enabled);
+        } else {
+          await localParticipant.setCameraEnabled(enabled);
+        }
+      } catch (publishError: any) {
+        // A disconnect may race the state check; don't show a scary warning
+        // for that transient case. Controls re-enable when LiveKit reconnects.
+        if (room.state === ConnectionState.Connected) {
+          setMediaError(
+            publishError?.message ||
+              'Media could not be started. Please try again.',
+          );
+        }
+      }
+    },
+    [isConnected, localParticipant, room],
+  );
+
   const toggleSpeaker = useCallback(async () => {
     const next = !speakerEnabled;
-    await AudioSession.selectAudioOutput(
+    try {
+      await AudioSession.selectAudioOutput(
       next
         ? Platform.OS === 'ios'
           ? 'force_speaker'
@@ -98,7 +180,11 @@ function RoomView({
         ? 'default'
         : 'earpiece',
     );
-    setSpeakerEnabled(next);
+      setSpeakerEnabled(next);
+      setMediaError('');
+    } catch {
+      setMediaError('Could not change audio output. Please try again.');
+    }
   }, [speakerEnabled]);
 
   const controls = (
@@ -108,9 +194,7 @@ function RoomView({
           isMicrophoneEnabled ? 'Mute microphone' : 'Unmute microphone'
         }
         disabled={!isConnected}
-        onPress={() =>
-          localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled)
-        }
+        onPress={() => setLocalMediaEnabled('microphone', !isMicrophoneEnabled)}
         style={styles.control}>
         <Feather
           name={isMicrophoneEnabled ? 'mic' : 'mic-off'}
@@ -126,7 +210,7 @@ function RoomView({
       <TouchableOpacity
         accessibilityLabel={isCameraEnabled ? 'Stop video' : 'Start video'}
         disabled={!isConnected}
-        onPress={() => localParticipant.setCameraEnabled(!isCameraEnabled)}
+        onPress={() => setLocalMediaEnabled('camera', !isCameraEnabled)}
         style={styles.control}>
         <Feather
           name={isCameraEnabled ? 'video' : 'video-off'}
@@ -171,36 +255,43 @@ function RoomView({
           <Text style={styles.controlLabel}>Complete</Text>
         </TouchableOpacity>
       )}
+      {onLeave && (
+        <TouchableOpacity accessibilityLabel="End call" onPress={onLeave}
+          style={[styles.control, styles.leaveControl]}>
+          <Feather name="phone-off" size={compact ? 17 : 19} color="#FFFFFF" />
+          {!compact && <Text style={styles.controlLabel}>End call</Text>}
+        </TouchableOpacity>
+      )}
     </View>
   );
 
   if (compact) {
     return (
-      <View style={styles.compactBar}>
-        <View style={styles.statusRow}>
-          <View
-            style={[styles.statusDot, isConnected && styles.statusDotConnected]}
-          />
-          <Text style={styles.compactStatus}>{status}</Text>
+      <View>
+        <View style={styles.compactBar}>
+          <View style={styles.compactPeople}>
+            <CompactParticipantTile
+              cameraEnabled={Boolean(remoteParticipant?.isCameraEnabled)}
+              mirror={false}
+              name={remoteParticipant?.name || 'Participant'}
+              track={remoteCameraTrack}
+            />
+            <CompactParticipantTile
+              cameraEnabled={isCameraEnabled}
+              mirror
+              name={
+                localParticipant?.name || localParticipant?.identity || 'You'
+              }
+              track={localTrack}
+            />
+          </View>
+          {controls}
         </View>
-        {isCameraEnabled && localTrack ? (
-          <View style={styles.compactVideoTile}>
-            <VideoTrack trackRef={localTrack} style={styles.video} mirror />
-          </View>
-        ) : (
-          <View
-            accessibilityLabel={`${participantInitials(
-              localParticipant?.name || localParticipant?.identity || 'You',
-            )} avatar`}
-            style={styles.compactAvatar}>
-            <Text style={styles.compactAvatarInitials}>
-              {participantInitials(
-                localParticipant?.name || localParticipant?.identity || 'You',
-              )}
-            </Text>
-          </View>
-        )}
-        {controls}
+        {mediaError ? (
+          <Text numberOfLines={2} style={styles.mediaErrorText}>
+            {mediaError}
+          </Text>
+        ) : null}
       </View>
     );
   }
@@ -266,6 +357,11 @@ function RoomView({
         )}
       </View>
       {controls}
+      {mediaError ? (
+        <Text numberOfLines={2} style={styles.mediaErrorText}>
+          {mediaError}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -274,13 +370,17 @@ export default function LiveKitSessionVideo({
   recordId,
   canJoin,
   unavailableMessage,
+  onClientIdentityVerifiedChange,
   ...roomProps
 }: Props) {
   const [getCredentials, {loading}] = useLazyQuery(GET_LIVEKIT_ROOM_TOKEN, {
     fetchPolicy: 'network-only',
   });
   const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const [audioSessionReady, setAudioSessionReady] = useState(false);
   const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const [connectionError, setConnectionError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -297,7 +397,6 @@ export default function LiveKitSessionVideo({
     const connect = async () => {
       try {
         setError('');
-        await AudioSession.startAudioSession();
         const response = await getCredentials({variables: {recordId}});
         const next = response?.data?.getLiveKitRoomToken;
         if (!next?.serverUrl || !next?.token) {
@@ -318,39 +417,84 @@ export default function LiveKitSessionVideo({
     connect();
     return () => {
       active = false;
+    };
+  }, [canJoin, getCredentials, recordId, unavailableMessage, retry]);
+
+  useEffect(() => {
+    if (!canJoin) {
+      setAudioSessionReady(false);
+      return undefined;
+    }
+
+    let active = true;
+    setAudioSessionReady(false);
+    AudioSession.startAudioSession()
+      .then(() => {
+        if (active) {
+          setAudioSessionReady(true);
+        }
+      })
+      .catch((audioError: any) => {
+        if (active) {
+          setError(
+            audioError?.message ||
+              'Unable to start session audio. Please retry.',
+          );
+        }
+      });
+
+    return () => {
+      active = false;
       AudioSession.stopAudioSession().catch(() => undefined);
     };
-  }, [canJoin, getCredentials, recordId, unavailableMessage]);
+  }, [canJoin]);
 
   if (error) {
     return (
       <View style={styles.errorPanel}>
         <Feather name="alert-circle" size={20} color={BookingColors.error} />
         <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity accessibilityLabel="Retry connection" onPress={() => {setError(''); setRetry(value => value + 1);}} style={styles.control}>
+          <Text style={styles.loadingText}>Retry connection</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-  if (!credentials || loading) {
+  if (!credentials || loading || !audioSessionReady) {
     return (
       <View
         style={roomProps.compact ? styles.compactLoading : styles.loadingPanel}>
         <ActivityIndicator color={BookingColors.primary} />
-        <Text style={styles.loadingText}>Preparing secure meeting…</Text>
+        {!roomProps.compact ? (
+          <Text style={styles.loadingText}>Preparing secure meeting…</Text>
+        ) : null}
       </View>
     );
   }
 
   return (
     <LiveKitRoom
+      style={roomProps.compact ? undefined : styles.videoPanel}
       serverUrl={credentials.serverUrl}
       token={credentials.token}
       connect
       audio={false}
       video={false}
       options={{adaptiveStream: {pixelDensity: 'screen'}}}
-      onError={connectionError => setError(connectionError.message)}>
-      <RoomView {...roomProps} />
+      onConnected={() => setConnectionError('')}
+      onDisconnected={() => undefined}
+      onError={connectionError =>
+        setConnectionError(
+          connectionError?.message ||
+            'The secure meeting disconnected. Please try joining again.',
+        )
+      }>
+      <RoomView
+        {...roomProps}
+        onClientIdentityVerifiedChange={onClientIdentityVerifiedChange}
+      />
+      {connectionError ? <Text style={styles.mediaErrorText}>{connectionError}</Text> : null}
     </LiveKitRoom>
   );
 }
@@ -471,6 +615,7 @@ const styles = StyleSheet.create({
     minWidth: 54,
     minHeight: 44,
   },
+  leaveControl: {backgroundColor: '#C53D48', borderRadius: 8},
   completeControl: {backgroundColor: BookingColors.primary, borderRadius: 8},
   compactCompleteControl: {
     minWidth: 38,
@@ -492,37 +637,45 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: '#121826',
   },
-  compactAvatar: {
-    width: 36,
-    height: 36,
-    marginHorizontal: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    backgroundColor: '#334155',
-  },
-  compactVideoTile: {
-    width: 40,
-    height: 40,
-    marginHorizontal: 6,
+  compactPeople: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  compactPersonTile: {
+    width: 70,
+    height: 58,
     overflow: 'hidden',
-    borderRadius: 8,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.35)',
     backgroundColor: '#334155',
+  },
+  compactPersonAvatar: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactPersonName: {
+    position: 'absolute',
+    right: 3,
+    bottom: 2,
+    left: 3,
+    color: BookingColors.white,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 9,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowRadius: 3,
+  },
+  mediaErrorText: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    backgroundColor: '#121826',
+    color: '#FCA5A5',
+    fontFamily: 'Manrope-Regular',
+    fontSize: 10,
   },
   compactAvatarInitials: {
     color: BookingColors.white,
     fontFamily: 'Manrope-Bold',
     fontSize: 12,
-  },
-  statusRow: {flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1},
-  compactStatus: {
-    color: BookingColors.white,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 11,
   },
   loadingPanel: {
     height: 280,
@@ -535,7 +688,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 8,
     backgroundColor: '#121826',
   },
   loadingText: {color: '#BBC4D4', fontFamily: 'Manrope-Regular', fontSize: 12},

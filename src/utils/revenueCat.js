@@ -1,4 +1,4 @@
-export const REVENUECAT_PUBLIC_API_KEY = 'test_DLIbOOqDQcObKkMHrGEEbhoncmJ';
+export const REVENUECAT_PUBLIC_API_KEY = 'appl_bZxcIDzxlmAERQhAXQYlMGxEOZp';
 export const REVENUECAT_PRO_ENTITLEMENT = 'test_pro';
 
 let configured = false;

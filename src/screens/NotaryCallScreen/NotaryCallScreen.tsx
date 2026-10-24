@@ -24,13 +24,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import Colors from '../../themes/Colors';
 import { widthToDp } from '../../utils/Responsive';
-import {
-  ClientRoleType,
-  createAgoraRtcEngine,
-  IRtcEngine,
-  RtcSurfaceView,
-  ChannelProfileType,
-} from 'react-native-agora';
 
 import Toast from 'react-native-toast-message';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -39,7 +32,6 @@ import PdfView from 'react-native-pdf';
 import RNPickerSelect from 'react-native-picker-select';
 import { CommonActions } from '@react-navigation/native';
 import { useLiveblocks } from '../../store/liveblocks';
-const appId = 'f64e76f674b646bc965dc3e257b4e108';
 
 import Pdf from 'react-native-pdf';
 import { encode as btoa } from 'base-64';
@@ -48,6 +40,7 @@ import { uploadSignedDocumentToSpaces } from '../../utils/spacesHelper';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { SIGN_DOCS } from '../../../request/mutations/signDocument';
 import { ADD_NOTARIZED_DOCS } from '../../../request/mutations/addNotarizedDocs';
+import { SESSION_ADD_NOTARIZED_DOCS } from '../../../request/mutations/sessionAddNotarizedDocs.mutation';
 import {
   COMPLETE_BOOKING_NOTARIZATION,
   COMPLETE_SESSION_NOTARIZATION,
@@ -65,6 +58,8 @@ import DrawSignTypeModal, { ActiveSignerPresence } from './Signature';
 import { getSessionAvailability } from '../../utils/sessionAvailability';
 import {getObserverPhone} from '../../utils/observerPhone';
 import LiveKitSessionVideo from '../../components/LiveKitSessionVideo/LiveKitSessionVideo';
+import RemoteRonCallScreen from './RemoteRonCallScreen';
+import { VERIFY_SESSION_CLIENT_IDENTITY } from '../../../request/mutations/verifySessionClientIdentity.mutation';
 
 const resolveDocumentUri = (document: any): string | null => {
   if (typeof document === 'string') {
@@ -121,38 +116,20 @@ const localFilePath = (uri: string): string => {
   }
 };
 
-const getDisplayInitials = (name: string): string =>
-  String(name || '')
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'P';
-
 const getPersonName = (person: any, fallback = ''): string =>
   [person?.first_name, person?.last_name].filter(Boolean).join(' ') ||
   fallback;
 
-const getParticipantIdentityKey = (participant: {
-  userId?: string | null;
-  name?: string;
-  role?: string;
-} | null | undefined): string => {
-  if (participant?.userId) {
-    return `id:${participant.userId}`;
-  }
-  const name = String(participant?.name || '').trim().toLowerCase();
-  const role = String(participant?.role || '').trim().toLowerCase();
-  if (name || role) {
-    return `profile:${role}:${name}`;
-  }
-  return '';
-};
-
 export default function NotaryCallScreen({ route, navigation }: any) {
+  const booking = useSelector((state: any) => state?.booking?.booking);
+  const inPerson = route?.params?.sessionMode === 'in_person' || booking?.session_mode === 'in_person';
+  return inPerson
+    ? <InPersonCallScreen route={route} navigation={navigation} />
+    : <RemoteRonCallScreen route={route} navigation={navigation} />;
+}
+
+function InPersonCallScreen({ route, navigation }: any) {
   const {
-    channel,
-    token: CutomToken,
     routeFrom,
     date: routeDate,
     time: routeTime,
@@ -169,6 +146,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     handleSessionStatus,
   } = useBookingStatus();
   const [AddSignedDocs] = useMutation(ADD_NOTARIZED_DOCS);
+  const [addSessionNotarizedDocs] = useMutation(SESSION_ADD_NOTARIZED_DOCS);
   const [completeBookingNotarization] = useMutation(
     COMPLETE_BOOKING_NOTARIZATION,
   );
@@ -179,30 +157,23 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const [getBookingByID] = useLazyQuery(GET_BOOKING_BY_ID, {
     fetchPolicy: 'network-only',
   });
+  const [verifyClientIdentity, {loading: verifyingClientIdentity}] = useMutation(
+    VERIFY_SESSION_CLIENT_IDENTITY,
+  );
   const User = useSelector(state => state?.user?.user);
   const isAgent = String(User?.account_type || '').includes('agent');
   const isClient = !isAgent && User?.account_type === 'client';
   const insets = useSafeAreaInsets();
   const sharedDocument = useLiveblocks(state => state.sharedDocument);
-  const isDocumentPreviewOpen = useLiveblocks(
-    state => state.isDocumentPreviewOpen,
-  );
   const isDocumentCollaborationActive = Boolean(
-    resolveDocumentUri(sharedDocument) && isDocumentPreviewOpen,
+    resolveDocumentUri(sharedDocument),
   );
   const setSharedDocument = useLiveblocks(state => state.setSharedDocument);
-  const clearSharedDocument = useLiveblocks(
-    state => state.clearSharedDocument,
-  );
   const setDocumentPreviewOpen = useLiveblocks(
     state => state.setDocumentPreviewOpen,
   );
-  const isSignatureModalOpen = useLiveblocks(
-    state => state.isSignatureModalOpen,
-  );
-  const setSignatureModalOpen = useLiveblocks(
-    state => state.setSignatureModalOpen,
-  );
+  const [isSignatureModalOpen, setSignatureModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const isSessionCompleted = useLiveblocks(state => state.isSessionCompleted);
   const sessionCompletedAt = useLiveblocks(state => state.sessionCompletedAt);
   const setSessionCompleted = useLiveblocks(state => state.setSessionCompleted);
@@ -221,7 +192,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   );
   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
   const signingObjects = useLiveblocks(state => state.objects);
-  const setSharedCurrentPage = useLiveblocks(state => state.setCurrentPage);
   const sessionParticipant = useLiveblocks(state => state.sessionParticipant);
   const signingActivity = useLiveblocks(state => state.signingActivity);
   const setSessionParticipant = useLiveblocks(
@@ -239,6 +209,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     sessionIdentityProof,
     'Client identity proof',
   );
+  const [identityVerifiedOverride, setIdentityVerifiedOverride] = useState<boolean | null>(null);
+  const clientIdentityVerified = identityVerifiedOverride ?? Boolean(bookingData?.live_session?.client_identity_verified);
   const isObserver = useMemo(() => {
     if (isAgent) {
       return false;
@@ -262,6 +234,20 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       ? 'Observer'
       : 'Client';
   const bookingRoomId = routeUid || bookingData?._id;
+  const markClientIdentityVerified = useCallback(async () => {
+    if (!bookingRoomId || !sessionIdentityProofUrl || !isAgent) return;
+    try {
+      const result = await verifyClientIdentity({
+        variables: {recordId: String(bookingRoomId), verified: !clientIdentityVerified},
+      });
+      const response = result?.data?.verifySessionClientIdentityR;
+      if (response?.status !== '200') throw new Error(response?.message || 'Could not update client verification.');
+      setIdentityVerifiedOverride(!clientIdentityVerified);
+      Toast.show({type: 'success', text1: response.message});
+    } catch (error: any) {
+      Toast.show({type: 'error', text1: error?.message || 'Could not update client verification.'});
+    }
+  }, [bookingRoomId, clientIdentityVerified, isAgent, sessionIdentityProofUrl, verifyClientIdentity]);
   const isInPersonMode =
     route?.params?.sessionMode === 'in_person' ||
     bookingData?.session_mode === 'in_person';
@@ -304,22 +290,26 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   );
 
   // Create state for sourceKey and sourceUrl
-  const [sourceKey, setSourceKey] = useState(initialSourceKey);
-  const [sourceUrl, setSourceUrl] = useState(initialSourceUrl);
-  const [pickerItems, setPickerItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [sourceKey, setSourceKey] = useState<string | null>(initialSourceKey);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(initialSourceUrl);
+  const [pickerItems, setPickerItems] = useState<
+    Array<{label: string; value: string; documentKey: string}>
+  >([]);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [updatedDocumentsession] = useMutation(
     UPDATE_OR_CREATE_SESSION_UPDATED_DOCS,
   );
   const [fileDownloaded, setFileDownloaded] = useState(false);
+  const [documentLoadError, setDocumentLoadError] = useState('');
+  const [documentLoadAttempt, setDocumentLoadAttempt] = useState(0);
   const [pdfEditMode, setPdfEditMode] = useState(false);
   const [signatureArrayBuffer, setSignatureArrayBuffer] = useState(null);
-  const [pdfBase64, setPdfBase64] = useState(null);
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [newPdfSaved, setNewPdfSaved] = useState(false);
   const [newPdfPath, setNewPdfPath] = useState(null);
   const [pageWidth, setPageWidth] = useState(0);
   const [pageHeight, setPageHeight] = useState(0);
-  const [filePath, setFilePath] = useState(
+  const [filePath, setFilePath] = useState<string | null>(
     `${RNFS.DocumentDirectoryPath}/react-native.pdf`,
   );
   const [isInteractionBlocked, setIsInteractionBlocked] = useState(false);
@@ -453,16 +443,12 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     });
     navigation.replace('WaitingRoomScreen', {
       uid: bookingRoomId,
-      channel,
-      token: CutomToken,
       time: scheduledTime,
       date: scheduledDate,
       routeFrom,
     });
   }, [
-    CutomToken,
     bookingRoomId,
-    channel,
     navigation,
     routeFrom,
     scheduledDate,
@@ -472,24 +458,16 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   ]);
 
   useEffect(() => {
-    const sharedDocumentUri = resolveDocumentUri(sharedDocument);
-    if (!sharedDocumentUri) {
-      setClientDocModalVisible(false);
-      setSelectedLocalDocument(null);
-      setSelectedItem(null);
-      setSourceKey(null);
-      setSourceUrl(null);
-      setFileDownloaded(false);
-      setPdfBase64(null);
-      setNewPdfSaved(false);
-      setNewPdfPath(null);
+    const documentSnapshot = sharedDocument;
+    const sharedDocumentUri = resolveDocumentUri(documentSnapshot);
+    if (!documentSnapshot || !sharedDocumentUri) {
       return;
     }
 
     const document = {
-      name: sharedDocument.name || 'Shared document.pdf',
+      name: documentSnapshot.name || 'Shared document.pdf',
       uri: sharedDocumentUri,
-      type: sharedDocument.type || 'application/pdf',
+      type: documentSnapshot.type || 'application/pdf',
     };
     setSelectedLocalDocument(document);
     setOpenedDocumentUris(currentUris =>
@@ -500,6 +478,8 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setSourceKey('client_document');
     setSourceUrl(sharedDocumentUri);
     setSelectedItem(sharedDocumentUri);
+    setClientDocModalVisible(true);
+    setDocumentPreviewOpen(true);
     setNewPdfSaved(false);
     setNewPdfPath(null);
     setPickerItems(currentItems => [
@@ -511,12 +491,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       },
     ]);
   }, [sharedDocument]);
-
-  useEffect(() => {
-    setClientDocModalVisible(
-      Boolean(resolveDocumentUri(sharedDocument) && isDocumentPreviewOpen),
-    );
-  }, [isDocumentPreviewOpen, sharedDocument]);
 
   useEffect(() => {
     if (!isSessionCompleted) {
@@ -726,8 +700,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
       setFileDownloaded(false);
       setPdfBase64(null);
+      setDocumentLoadError('');
 
       if (!requestedDocument) {
+        setDocumentLoadError('No document is available in this session yet.');
         return;
       }
 
@@ -765,6 +741,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
 
         setFilePath(readablePath);
         setPdfBase64(contents);
+        setDocumentLoadError('');
         setFileDownloaded(true);
       } catch (error: any) {
         if (cancelled || loadId !== documentLoadIdRef.current) {
@@ -773,11 +750,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         console.warn('Unable to prepare selected document:', error);
         setFileDownloaded(false);
         setPdfBase64(null);
-        Toast.show({
-          type: 'error',
-          text1: 'Document unavailable',
-          text2: error?.message || 'Choose the document again and retry.',
-        });
+        setDocumentLoadError(
+          error?.message ||
+            'The document could not be downloaded. Check your connection and retry.',
+        );
       }
     };
 
@@ -785,7 +761,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     return () => {
       cancelled = true;
     };
-  }, [bookingRoomId, newPdfPath, newPdfSaved, sourceUrl]);
+  }, [bookingRoomId, documentLoadAttempt, newPdfPath, newPdfSaved, sourceUrl]);
   ////////////// live bolcks ////////////////
   const insertObject = useLiveblocks(state => state.insertObject);
   const setPdfFilePath = useLiveblocks(state => state.setPdfFilePath);
@@ -947,7 +923,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     setNewPdfSaved(false);
     setNewPdfPath(null);
     setPdfBase64(null);
-    setSharedCurrentPage(1);
+    setCurrentPage(1);
     setSharedDocument({
       name: sharedSelection.name,
       url: documentUri,
@@ -988,50 +964,61 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   };
   // console.log('boolkingdaree', bookingData);
   const addSignedDocFunc = async docs => {
-    try {
-      const urls = docs.map(resolveDocumentUri).filter(Boolean);
-      if (!bookingData?._id || urls.length === 0) {
-        return urls;
-      }
-      const isSessionRecord = bookingData?.__typename === 'Session';
-      const request = {
-        variables: {
-          bookingId: bookingData?._id,
-          notarizedDocs: urls,
-          bookingType: isSessionRecord ? 'session' : 'booking',
-        },
-      };
-      const response = await AddSignedDocs(request);
-      if (response?.data?.bookingAddNotarizedDocs?.status === '200') {
-        let nextRecord = null;
-        if (isSessionRecord) {
-          const sessionResponse = await getSession({
-            variables: { sessionId: bookingData._id },
-            fetchPolicy: 'network-only',
-          });
-          nextRecord = sessionResponse?.data?.getSession?.session;
-        } else {
-          const bookingResponse = await getBookingByID({
-            variables: { bookingId: bookingData._id },
-            fetchPolicy: 'network-only',
-          });
-          nextRecord = bookingResponse?.data?.getBookingById?.booking;
-        }
-        dispatch(
-          setBookingInfoState({
-            ...(nextRecord || bookingData),
-            notarized_docs:
-              nextRecord?.notarized_docs?.length > 0
-                ? nextRecord.notarized_docs
-                : urls,
-          }),
-        );
-      }
+    const urls = docs.map(resolveDocumentUri).filter(Boolean);
+    if (!bookingData?._id || urls.length === 0) {
       return urls;
-    } catch (error) {
-      console.warn('Unable to attach signed documents:', error);
-      return [];
     }
+
+    const isSessionRecord = bookingData?.__typename === 'Session';
+    const response = isSessionRecord
+      ? await addSessionNotarizedDocs({
+          variables: {sessionId: bookingData._id, notarizedDocs: urls},
+        })
+      : await AddSignedDocs({
+          variables: {
+            bookingId: bookingData._id,
+            notarizedDocs: urls,
+            bookingType: 'booking',
+          },
+        });
+    const result = isSessionRecord
+      ? response?.data?.sessionAddNotarizedDocs
+      : response?.data?.bookingAddNotarizedDocs;
+    if (result?.status !== '200') {
+      throw new Error(result?.message || 'The server could not save the notarized document.');
+    }
+
+    let updatedRecord = isSessionRecord
+      ? result?.session
+      : response?.data?.bookingAddNotarizedDocs?.booking;
+    try {
+      const refreshed = isSessionRecord
+        ? await getSession({
+            variables: {sessionId: bookingData._id},
+            fetchPolicy: 'network-only',
+          })
+        : await getBookingByID({
+            variables: {bookingId: bookingData._id},
+            fetchPolicy: 'network-only',
+          });
+      updatedRecord = isSessionRecord
+        ? refreshed?.data?.getSession?.session || updatedRecord
+        : refreshed?.data?.getBookingById?.booking || updatedRecord;
+    } catch (refreshError) {
+      console.warn(
+        'Saved notarized document; refresh will retry later.',
+        refreshError,
+      );
+    }
+    dispatch(
+      setBookingInfoState({
+        ...(updatedRecord || bookingData),
+        notarized_docs: updatedRecord?.notarized_docs?.length
+          ? updatedRecord.notarized_docs
+          : urls,
+      }),
+    );
+    return urls;
   };
 
   const buildCompletionPackage = notarizedDocs => {
@@ -1122,73 +1109,25 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   /////////////////////////////////////
   ///////////////////////////////
 
-  const uid = 0;
-  const channelName = channel;
-  const token = CutomToken;
-  const [isMuted, setIsMuted] = useState(false);
-  const [remoteUids, setRemoteUids] = useState<any[]>([]);
-  const remoteUidsRef = useRef<any[]>([]);
-  remoteUidsRef.current = remoteUids;
-  const agoraEngineRef = useRef<IRtcEngine>();
-  const [isJoined, setIsJoined] = useState(false);
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
-  const [remoteVideoMutedByUid, setRemoteVideoMutedByUid] = useState<
-    Record<string, boolean>
-  >({});
-  const [localAgoraUid, setLocalAgoraUid] = useState<number | null>(null);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
-  const [callStatus, setCallStatus] = useState<
-    'connecting' | 'waiting' | 'connected' | 'error' | 'permissions'
-  >('connecting');
-  const [callError, setCallError] = useState('');
-  const remoteCurrentPage = useLiveblocks(state => state.currentPage);
   const pdfRef = React.useRef<Pdf>(null);
-  const displayedPageRef = React.useRef(1);
-  const pendingProgrammaticPageRef = React.useRef<number | null>(null);
-  const lastPublishedPageRef = React.useRef<number | null>(null);
   const [totalPages, setTotalPages] = React.useState<number>(0);
-  const [currentPage, setCurrentPage] =
-    React.useState<number>(remoteCurrentPage);
-  useEffect(() => {
-    if (!remoteCurrentPage) {
-      return;
-    }
-
-    if (lastPublishedPageRef.current === remoteCurrentPage) {
-      lastPublishedPageRef.current = null;
-      return;
-    }
-
-    if (displayedPageRef.current === remoteCurrentPage) {
-      return;
-    }
-
-    pendingProgrammaticPageRef.current = remoteCurrentPage;
-    setCurrentPage(remoteCurrentPage);
-    pdfRef.current?.setPage(remoteCurrentPage);
-  }, [remoteCurrentPage]);
 
   const handleSharedPageChanged = useCallback(
     (page: number) => {
-      displayedPageRef.current = page;
       setCurrentPage(page);
+    },
+    [],
+  );
 
-      // A page change caused by following the other participant must not be
-      // published back into the room. Otherwise two viewers can continuously
-      // bounce a multi-page document between their previous pages.
-      if (pendingProgrammaticPageRef.current !== null) {
-        if (page === pendingProgrammaticPageRef.current) {
-          pendingProgrammaticPageRef.current = null;
-        }
-        return;
-      }
-
-      if (page !== remoteCurrentPage) {
-        lastPublishedPageRef.current = page;
-        setSharedCurrentPage(page);
+  const navigatePdfPage = useCallback(
+    (page: number) => {
+      const nextPage = Math.max(1, Math.min(page, totalPages || 1));
+      if (nextPage !== currentPage) {
+        pdfRef.current?.setPage(nextPage);
+        setCurrentPage(nextPage);
       }
     },
-    [remoteCurrentPage, setSharedCurrentPage],
+    [currentPage, totalPages],
   );
   const handleBackButton = () => {
     if (routeFrom === 'agent') {
@@ -1198,8 +1137,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       // Otherwise, navigate to WaitingRoomScreen
       navigation.navigate('WaitingRoomScreen', {
         uid: bookingData?._id,
-        channel: bookingData?.agora_channel_name,
-        token: bookingData?.agora_channel_token,
         time: bookingData?.time_of_booking,
         date: bookingData?.date_of_booking,
       });
@@ -1212,203 +1149,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
     };
   }, []);
-  const join = useCallback(
-    async (engine = agoraEngineRef.current) => {
-      if (!sessionAvailability.canJoin) {
-        setCallStatus('error');
-        setCallError(sessionAvailability.message);
-        return;
-      }
-      if (!engine) {
-        setCallStatus('error');
-        setCallError('The call engine is not ready. Please retry.');
-        return;
-      }
-      if (!channelName || !token) {
-        setCallStatus('error');
-        setCallError('The secure video room details are missing.');
-        return;
-      }
-      try {
-        setCallError('');
-        setCallStatus('connecting');
-        engine.startPreview();
-        const result = engine.joinChannel(token, channelName, uid, {
-          clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-          publishCameraTrack: true,
-          publishMicrophoneTrack: true,
-          autoSubscribeAudio: true,
-          autoSubscribeVideo: true,
-        });
-        if (typeof result === 'number' && result < 0) {
-          throw new Error(`Unable to join the call (${result}).`);
-        }
-      } catch (error: any) {
-        console.warn('Unable to join video session:', error?.message || error);
-        setCallStatus('error');
-        setCallError(error?.message || 'The video room could not be opened.');
-      }
-    },
-    [
-      channelName,
-      sessionAvailability.canJoin,
-      sessionAvailability.message,
-      token,
-    ],
-  );
-
-  const getPermission = useCallback(async () => {
-    if (Platform.OS !== 'android') {
-      return true;
-    }
-    const permissions = await PermissionsAndroid.requestMultiple([
-      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    ]);
-    return (
-      permissions[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO] ===
-      PermissionsAndroid.RESULTS.GRANTED &&
-      permissions[PermissionsAndroid.PERMISSIONS.CAMERA] ===
-      PermissionsAndroid.RESULTS.GRANTED
-    );
-  }, []);
-
-  useEffect(() => {
-    if (isInPersonMode) {
-      setCallStatus('connected');
-      setCallError('');
-      return undefined;
-    }
-    if (useLiveKit) {
-      return undefined;
-    }
-
-    let active = true;
-    let eventHandler: any;
-
-    const setupVideoSDKEngine = async () => {
-      try {
-        const permissionGranted = await getPermission();
-        if (!permissionGranted) {
-          if (active) {
-            setCallStatus('permissions');
-            setCallError(
-              'Camera and microphone access are required for this session.',
-            );
-          }
-          return;
-        }
-
-        const agoraEngine = createAgoraRtcEngine();
-        agoraEngineRef.current = agoraEngine;
-        eventHandler = {
-          onJoinChannelSuccess: connection => {
-            if (!active) {
-              return;
-            }
-            const joinedUid = Number(connection?.localUid);
-            if (Number.isFinite(joinedUid) && joinedUid > 0) {
-              setLocalAgoraUid(joinedUid);
-            }
-            setIsJoined(true);
-            setCallStatus('waiting');
-            setCallError('');
-          },
-          onUserJoined: (_connection, remoteUid) => {
-            if (!active) {
-              return;
-            }
-            if (Number(remoteUid) === Number(localAgoraUid)) {
-              return;
-            }
-            setRemoteUids(prevUids =>
-              prevUids.includes(remoteUid)
-                ? prevUids
-                : [...prevUids, remoteUid],
-            );
-            setCallStatus('connected');
-          },
-          onUserOffline: (_connection, remoteUid) => {
-            if (!active) {
-              return;
-            }
-            setRemoteUids(prevUids => {
-              const nextUids = prevUids.filter(
-                previousUid => previousUid !== remoteUid,
-              );
-              setCallStatus(nextUids.length ? 'connected' : 'waiting');
-              return nextUids;
-            });
-            setRemoteVideoMutedByUid(current => {
-              const next = {...current};
-              delete next[String(remoteUid)];
-              return next;
-            });
-          },
-          onUserMuteVideo: (_connection, remoteUid, muted) => {
-            if (active) {
-              setRemoteVideoMutedByUid(current => ({
-                ...current,
-                [String(remoteUid)]: muted,
-              }));
-            }
-          },
-          onError: (errorCode, message) => {
-            if (!active) {
-              return;
-            }
-            console.warn('Agora call error:', errorCode, message);
-            setCallStatus('error');
-            setCallError(
-              message || `The video connection failed (${errorCode}).`,
-            );
-          },
-          onConnectionLost: () => {
-            if (active) {
-              setCallStatus('error');
-              setCallError('The call connection was lost. Tap retry.');
-            }
-          },
-        };
-
-        agoraEngine.registerEventHandler(eventHandler);
-        agoraEngine.initialize({
-          appId,
-          channelProfile: ChannelProfileType.ChannelProfileCommunication,
-        });
-        agoraEngine.enableAudio();
-        agoraEngine.enableVideo();
-        agoraEngine.enableLocalVideo(true);
-        agoraEngine.setDefaultAudioRouteToSpeakerphone(true);
-        await join(agoraEngine);
-      } catch (error: any) {
-        console.warn(
-          'Unable to initialize video session:',
-          error?.message || error,
-        );
-        if (active) {
-          setCallStatus('error');
-          setCallError(
-            error?.message || 'Camera and microphone could not be started.',
-          );
-        }
-      }
-    };
-
-    setupVideoSDKEngine();
-    return () => {
-      active = false;
-      const engine = agoraEngineRef.current;
-      if (engine && eventHandler) {
-        engine.unregisterEventHandler(eventHandler);
-      }
-      engine?.stopPreview();
-      engine?.leaveChannel();
-      engine?.release();
-      agoraEngineRef.current = undefined;
-    };
-  }, [getPermission, isInPersonMode, join, useLiveKit]);
-
   const readSigningImage = async (uri: string): Promise<string> => {
     if (!uri) {
       throw new Error('A signature or stamp image is missing.');
@@ -1694,9 +1434,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
     completionNavigationRef.current = true;
 
-    agoraEngineRef.current?.leaveChannel();
-    setRemoteUids([]);
-    setIsJoined(false);
     leaveRoom();
 
     if (isClient) {
@@ -1740,537 +1477,45 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       text1: msg,
     });
   }
-  const mute = () => {
-    if (agoraEngineRef.current) {
-      const nextMuted = !isMuted;
-      agoraEngineRef.current.muteLocalAudioStream(nextMuted);
-      setIsMuted(nextMuted);
-    }
-  };
-  const toggleVideoMute = () => {
-    if (agoraEngineRef.current) {
-      const nextMuted = !isVideoMuted;
-      agoraEngineRef.current.muteLocalVideoStream(nextMuted);
-      if (nextMuted) {
-        agoraEngineRef.current.stopPreview();
-      } else {
-        agoraEngineRef.current.startPreview();
-      }
-      setIsVideoMuted(nextMuted);
-    }
-  };
-  const switchCamera = () => agoraEngineRef.current?.switchCamera();
-  const toggleSpeaker = () => {
-    if (agoraEngineRef.current) {
-      const nextSpeakerState = !isSpeakerOn;
-      agoraEngineRef.current.setEnableSpeakerphone(nextSpeakerState);
-      setIsSpeakerOn(nextSpeakerState);
-    }
-  };
-  const retryCall = async () => {
-    const engine = agoraEngineRef.current;
-    if (!engine) {
-      setCallError('Reopen this session to restart the camera and microphone.');
-      return;
-    }
-    engine.leaveChannel();
-    setIsJoined(false);
-    setRemoteUids([]);
-    setRemoteVideoMutedByUid({});
-    uidIdentityRef.current.clear();
-    await join(engine);
-  };
   const userDisplayName =
     [User?.first_name, User?.last_name].filter(Boolean).join(' ') || 'You';
-  const userInitials = getDisplayInitials(userDisplayName);
+
   useEffect(() => {
     setSessionParticipant({
       name: userDisplayName,
       role: participantRole,
-      agoraUid: localAgoraUid,
       userId: User?._id ? String(User._id) : null,
     });
-  }, [
-    User?._id,
-    localAgoraUid,
-    participantRole,
-    setSessionParticipant,
-    userDisplayName,
-  ]);
+  }, [User?._id, participantRole, setSessionParticipant, userDisplayName]);
 
-  useEffect(() => {
-    const latestUidByIdentity = new Map<string, number>();
-    roomOthers.forEach(other => {
-      const participant = other?.presence?.sessionParticipant as
-        | {userId?: string; name?: string; role?: string; agoraUid?: number}
-        | undefined;
-      const identity = getParticipantIdentityKey(participant);
-      const uid = Number(participant?.agoraUid);
-      if (!identity || !Number.isFinite(uid) || uid <= 0) {
-        return;
-      }
-      uidIdentityRef.current.set(uid, identity);
-      const existingUid = latestUidByIdentity.get(identity);
-      if (existingUid == null) {
-        latestUidByIdentity.set(identity, uid);
-        return;
-      }
-      const currentUids = remoteUidsRef.current;
-      if (currentUids.indexOf(uid) >= currentUids.indexOf(existingUid)) {
-        latestUidByIdentity.set(identity, uid);
-      }
-    });
-
-    if (latestUidByIdentity.size === 0) {
-      return;
-    }
-
-    setRemoteUids(prevUids => {
-      const nextUids = prevUids.filter(uid => {
-        const identity = uidIdentityRef.current.get(uid);
-        const latestUid = identity
-          ? latestUidByIdentity.get(identity)
-          : undefined;
-        return !latestUid || latestUid === uid;
-      });
-      return nextUids.length === prevUids.length ? prevUids : nextUids;
-    });
-    setRemoteVideoMutedByUid(current => {
-      let changed = false;
-      const next = {...current};
-      Object.keys(next).forEach(uidKey => {
-        const uid = Number(uidKey);
-        const identity = uidIdentityRef.current.get(uid);
-        const latestUid = identity
-          ? latestUidByIdentity.get(identity)
-          : undefined;
-        if (latestUid && latestUid !== uid) {
-          delete next[uidKey];
-          changed = true;
-        }
-      });
-      return changed ? next : current;
-    });
-  }, [roomOthers]);
-
-  const visibleRemoteUids = useMemo(() => {
-    const latestUidByIdentity = new Map<string, number>();
-    roomOthers.forEach(other => {
-      const participant = other?.presence?.sessionParticipant as
-        | {userId?: string; name?: string; role?: string; agoraUid?: number}
-        | undefined;
-      const identity = getParticipantIdentityKey(participant);
-      const uid = Number(participant?.agoraUid);
-      if (!identity || !Number.isFinite(uid) || uid <= 0) {
-        return;
-      }
-      const existingUid = latestUidByIdentity.get(identity);
-      if (
-        existingUid == null ||
-        remoteUids.indexOf(uid) >= remoteUids.indexOf(existingUid)
-      ) {
-        latestUidByIdentity.set(identity, uid);
-      }
-    });
-
-    const seenIdentities = new Set<string>();
-    const deduped: number[] = [];
-
-    remoteUids.forEach(uid => {
-      if (uid === localAgoraUid) {
-        return;
-      }
-      const identity =
-        uidIdentityRef.current.get(uid) ||
-        [...latestUidByIdentity.entries()].find(
-          ([, latestUid]) => latestUid === uid,
-        )?.[0];
-      if (identity) {
-        if (seenIdentities.has(identity)) {
-          return;
-        }
-        const latestUid = latestUidByIdentity.get(identity);
-        if (latestUid && latestUid !== uid) {
-          return;
-        }
-        seenIdentities.add(identity);
-      }
-      deduped.push(uid);
-    });
-
-    return deduped;
-  }, [localAgoraUid, remoteUids, roomOthers]);
-  const connectedCount = visibleRemoteUids.length + (isJoined ? 1 : 0);
-  const callStatusLabel =
-    callStatus === 'connected'
-      ? connectedCount > 2
-        ? `${connectedCount} participants connected`
-        : 'Participant connected'
-      : callStatus === 'waiting'
-        ? 'Waiting for participant'
-        : callStatus === 'connecting'
-          ? 'Connecting securely'
-          : callStatus === 'permissions'
-            ? 'Permissions required'
-            : 'Connection issue';
-
-  const rosterParticipants = useMemo(() => {
-    const observers = (
-      Array.isArray(bookingData?.observers) ? bookingData.observers : []
-    ).map((observer: any) =>
-      typeof observer === 'string'
-        ? {phone_number: observer, first_name: observer, role: 'Observer'}
-        : {
-            ...observer,
-            role: 'Observer',
-            first_name:
-              observer?.first_name || observer?.phone_number || 'Observer',
-          },
-    );
-    return [
-      bookingData?.agent
-        ? {...bookingData.agent, role: 'Notary'}
-        : null,
-      bookingData?.booked_by || bookingData?.client || bookingData?.booked_for
-        ? {
-            ...(bookingData.booked_by ||
-              bookingData.client ||
-              bookingData.booked_for),
-            role: 'Client',
-          }
-        : null,
-      ...observers,
-    ]
-      .filter(Boolean)
-      .map((person: any) => ({
-        name: getPersonName(
-          person,
-          person.role === 'Observer' ? 'Observer' : person.role,
-        ),
-        role: person.role,
-        id: String(person._id || ''),
-      }))
-      .filter(
-        (person, index, list) =>
-          person.name &&
-          person.name !== userDisplayName &&
-          list.findIndex(item => item.name === person.name) === index,
-      );
-  }, [
-    bookingData?.agent,
-    bookingData?.booked_by,
-    bookingData?.booked_for,
-    bookingData?.client,
-    bookingData?.observers,
-    userDisplayName,
-  ]);
-
-  const participantInfoForUid = (remoteUid: number, index: number) => {
-    const matchedPresence = roomOthers.find(
-      other =>
-        Number(other?.presence?.sessionParticipant?.agoraUid) ===
-        Number(remoteUid),
-    )?.presence?.sessionParticipant as
-      | {name?: string; role?: string}
-      | undefined;
-    if (matchedPresence?.name) {
-      return {
-        name: matchedPresence.name,
-        role: matchedPresence.role || 'Participant',
-        initials: getDisplayInitials(matchedPresence.name),
-      };
-    }
-
-    const claimedNames = new Set(
-      visibleRemoteUids.slice(0, index).map((uid, claimedIndex) => {
-        const presenceName = roomOthers.find(
-          other =>
-            Number(other?.presence?.sessionParticipant?.agoraUid) ===
-            Number(uid),
-        )?.presence?.sessionParticipant?.name;
-        return (
-          presenceName ||
-          rosterParticipants[claimedIndex]?.name ||
-          `Participant ${claimedIndex + 1}`
-        );
-      }),
-    );
-    const leftover = rosterParticipants.find(
-      person => !claimedNames.has(person.name),
-    );
-    const fallbackName =
-      leftover?.name ||
-      roomOthers[index]?.presence?.sessionParticipant?.name ||
-      `Participant ${index + 1}`;
-    return {
-      name: fallbackName,
-      role:
-        leftover?.role ||
-        roomOthers[index]?.presence?.sessionParticipant?.role ||
-        'Participant',
-      initials: getDisplayInitials(fallbackName),
-    };
-  };
-
-  const isRemoteVideoMuted = (remoteUid: number) =>
-    Boolean(remoteVideoMutedByUid[String(remoteUid)]);
-
-  const renderRemotePip = (remoteUid: number, index: number, extraStyle?: object) => {
-    const info = participantInfoForUid(remoteUid, index);
-    return (
-      <View
-        key={remoteUid}
-        pointerEvents="none"
-        style={[styles.participantPip, extraStyle]}>
-        {isRemoteVideoMuted(remoteUid) ? (
-          <View style={styles.pipPlaceholder}>
-            <RNText style={styles.pipInitials}>{info.initials}</RNText>
-          </View>
-        ) : (
-          <RtcSurfaceView
-            canvas={{uid: remoteUid}}
-            style={styles.pipVideoView}
-          />
-        )}
-        <View style={styles.pipLabel}>
-          <View style={styles.pipOnlineDot} />
-          <RNText numberOfLines={1} style={styles.pipLabelText}>
-            {info.name}
-          </RNText>
-        </View>
-      </View>
-    );
-  };
-
-  const primaryRemoteUid = visibleRemoteUids[0];
-  const extraRemoteUids = visibleRemoteUids.slice(1);
-  const primaryRemoteInfo = primaryRemoteUid
-    ? participantInfoForUid(primaryRemoteUid, 0)
-    : null;
-
-  const renderFullVideoPanel = () => {
-    if (isInPersonMode) {
-      return (
-        <View style={styles.videoPanel}>
-          <View style={styles.videoStage}>
-            <View style={styles.inPersonSessionState}>
-              <View style={styles.inPersonSessionIcon}>
-                <Feather name="edit-3" size={25} color={BookingColors.primary} />
-              </View>
-              <RNText style={styles.inPersonSessionTitle}>
-                In-person signing session
-              </RNText>
-              <RNText style={styles.inPersonSessionDescription}>
-                You and the notary are together. Open the shared document below
-                to review and sign electronically.
-              </RNText>
+  const renderFullVideoPanel = () =>
+    isInPersonMode ? (
+      <View style={styles.videoPanel}>
+        <View style={styles.videoStage}>
+          <View style={styles.inPersonSessionState}>
+            <View style={styles.inPersonSessionIcon}>
+              <Feather name="edit-3" size={25} color={BookingColors.primary} />
             </View>
-          </View>
-        </View>
-      );
-    }
-    if (useLiveKit) {
-      return (
-        <LiveKitSessionVideo
-          canJoin={sessionAvailability.canJoin}
-          isClient={isClient}
-          onComplete={isClient ? undefined : completeCall}
-          recordId={bookingRoomId}
-          unavailableMessage={sessionAvailability.message}
-        />
-      );
-    }
-
-    return (
-    <View style={styles.videoPanel}>
-      <View style={styles.videoStage}>
-        {primaryRemoteUid && !isRemoteVideoMuted(primaryRemoteUid) ? (
-          <RtcSurfaceView
-            canvas={{ uid: primaryRemoteUid }}
-            style={styles.mainVideoView}
-          />
-        ) : primaryRemoteUid && isRemoteVideoMuted(primaryRemoteUid) ? (
-          <View style={styles.videoPlaceholder}>
-            <View style={styles.initialsAvatar}>
-              <RNText style={styles.initialsText}>
-                {primaryRemoteInfo?.initials}
-              </RNText>
-            </View>
-            <RNText style={styles.placeholderName}>
-              {primaryRemoteInfo?.name}
+            <RNText style={styles.inPersonSessionTitle}>
+              In-person signing session
             </RNText>
-            <RNText style={styles.placeholderCaption}>Camera is off</RNText>
-          </View>
-        ) : isJoined && !isVideoMuted ? (
-          <RtcSurfaceView canvas={{ uid: 0 }} style={styles.mainVideoView} />
-        ) : (
-          <View style={styles.videoPlaceholder}>
-            {User?.profile_picture ? (
-              <Image
-                source={{ uri: User.profile_picture }}
-                style={styles.videoAvatar}
-              />
-            ) : (
-              <View style={styles.initialsAvatar}>
-                <RNText style={styles.initialsText}>{userInitials}</RNText>
-              </View>
-            )}
-            <RNText style={styles.placeholderName}>{userDisplayName}</RNText>
-            <RNText style={styles.placeholderCaption}>
-              {isVideoMuted ? 'Camera is off' : callStatusLabel}
+            <RNText style={styles.inPersonSessionDescription}>
+              You and the notary are together. Open the shared document below
+              to review and sign electronically.
             </RNText>
           </View>
-        )}
-
-        <View style={styles.callStatusPill}>
-          <View
-            style={[
-              styles.callStatusDot,
-              callStatus === 'connected' && styles.callStatusDotConnected,
-              (callStatus === 'error' || callStatus === 'permissions') &&
-              styles.callStatusDotError,
-            ]}
-          />
-          <RNText style={styles.callStatusText}>{callStatusLabel}</RNText>
-        </View>
-
-        <View pointerEvents="none" style={styles.callPipOverlay}>
-          {extraRemoteUids.map((remoteUid, index) =>
-            renderRemotePip(remoteUid, index + 1, styles.callPipBox),
-          )}
-          <View style={[styles.participantPip, styles.callPipBox]}>
-            {isVideoMuted ? (
-              <View style={styles.pipPlaceholder}>
-                <RNText style={styles.pipInitials}>{userInitials}</RNText>
-              </View>
-            ) : (
-              <RtcSurfaceView canvas={{ uid: 0 }} style={styles.pipVideoView} />
-            )}
-            <View style={styles.pipLabel}>
-              <View style={styles.pipOnlineDot} />
-              <RNText numberOfLines={1} style={styles.pipLabelText}>
-                You
-              </RNText>
-            </View>
-          </View>
         </View>
       </View>
-
-      <View style={styles.videoControlsRow}>
-        <TouchableOpacity
-          style={[styles.controlAction, isMuted && styles.controlActionMuted]}
-          onPress={mute}
-          disabled={!isJoined}>
-          <View style={styles.controlIconCircle}>
-            <Feather
-              name={isMuted ? 'mic-off' : 'mic'}
-              size={19}
-              color={isMuted ? BookingColors.error : BookingColors.white}
-            />
-          </View>
-          <RNText style={styles.controlLabel}>
-            {isMuted ? 'Unmute' : 'Mute'}
-          </RNText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.controlAction,
-            isVideoMuted && styles.controlActionMuted,
-          ]}
-          onPress={toggleVideoMute}
-          disabled={!isJoined}>
-          <View style={styles.controlIconCircle}>
-            <Feather
-              name={isVideoMuted ? 'video-off' : 'video'}
-              size={19}
-              color={isVideoMuted ? BookingColors.error : BookingColors.white}
-            />
-          </View>
-          <RNText style={styles.controlLabel}>
-            {isVideoMuted ? 'Start video' : 'Stop video'}
-          </RNText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.controlAction}
-          onPress={switchCamera}
-          disabled={!isJoined || isVideoMuted}>
-          <View style={styles.controlIconCircle}>
-            <Feather name="refresh-cw" size={19} color={BookingColors.white} />
-          </View>
-          <RNText style={styles.controlLabel}>Flip</RNText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.controlAction}
-          onPress={toggleSpeaker}
-          disabled={!isJoined}>
-          <View style={styles.controlIconCircle}>
-            <Feather
-              name={isSpeakerOn ? 'volume-2' : 'volume-1'}
-              size={19}
-              color={BookingColors.white}
-            />
-          </View>
-          <RNText style={styles.controlLabel}>
-            {isSpeakerOn ? 'Speaker' : 'Earpiece'}
-          </RNText>
-        </TouchableOpacity>
-        {!isClient && (
-          <TouchableOpacity
-            accessibilityLabel="Complete call"
-            style={styles.controlAction}
-            onPress={completeCall}
-            disabled={isCompleting || isWaitingForClientApproval}>
-            <View
-              style={[
-                styles.controlIconCircle,
-                styles.completeCallIconCircle,
-                (isCompleting || isWaitingForClientApproval) &&
-                styles.endCallBtnDisabled,
-              ]}>
-              {isCompleting || isWaitingForClientApproval ? (
-                <ActivityIndicator size="small" color={BookingColors.white} />
-              ) : (
-                <Feather name="phone-off" size={19} color={BookingColors.white} />
-              )}
-            </View>
-            <RNText style={[styles.controlLabel, styles.completeCallLabel]}>
-              {isCompleting
-                ? 'Finishing…'
-                : isWaitingForClientApproval
-                  ? 'Awaiting…'
-                  : 'Complete'}
-            </RNText>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+    ) : (
+      <LiveKitSessionVideo
+        canJoin={sessionAvailability.canJoin}
+        onClientIdentityVerifiedChange={setIdentityVerifiedOverride}
+        isClient={isClient}
+        onComplete={isClient ? undefined : completeCall}
+        recordId={bookingRoomId}
+        unavailableMessage={sessionAvailability.message}
+      />
     );
-  };
-
-  const renderParticipantPips = () => (
-    <ScrollView
-      horizontal
-      pointerEvents="box-none"
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.participantPipStack}
-      style={styles.participantPipScroller}>
-      {visibleRemoteUids.map((remoteUid, index) => renderRemotePip(remoteUid, index))}
-
-      <View pointerEvents="none" style={styles.participantPip}>
-        {isVideoMuted ? (
-          <View style={styles.pipPlaceholder}>
-            <RNText style={styles.pipInitials}>{userInitials}</RNText>
-          </View>
-        ) : (
-          <RtcSurfaceView canvas={{ uid: 0 }} style={styles.pipVideoView} />
-        )}
-        <View style={styles.pipLabel}>
-          <View style={styles.pipOnlineDot} />
-          <RNText numberOfLines={1} style={styles.pipLabelText}>You</RNText>
-        </View>
-      </View>
-    </ScrollView>
-  );
   const [drawingMode, setDrawingMode] = useState<
     'pen' | 'line' | 'arrow' | 'rectangle'
   >(null);
@@ -2527,16 +1772,20 @@ export default function NotaryCallScreen({ route, navigation }: any) {
     }
 
     setIsMarkingDocumentComplete(true);
+    let completionStage = 'Preparing the signed document';
     try {
       setSignatureModalOpen(false);
       setPdfEditMode(false);
       const finalizedPdf = await flattenSigningObjectsIntoPdf(pdfBase64);
+      completionStage = 'Uploading the signed document';
       const signedUrl = await uploadSignedDocumentToSpaces(finalizedPdf);
       const documentName =
         selectedLocalDocument?.name || 'Notarized document.pdf';
       const documentType =
         selectedLocalDocument?.type || 'application/pdf';
 
+      completionStage = 'Saving the completed document to this session';
+      await addSignedDocFunc([{value: signedUrl, url: signedUrl}]);
       setPdfBase64(finalizedPdf);
       setPickerItems(currentItems =>
         currentItems.map(item =>
@@ -2559,7 +1808,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         url: signedUrl,
         type: documentType,
       });
-      await addSignedDocFunc([{value: signedUrl, url: signedUrl}]);
       deleteAllObjects();
       markDocumentComplete([currentDocumentUri, signedUrl], signedUrl);
       setOpenedDocumentUris(currentUris =>
@@ -2578,7 +1826,10 @@ export default function NotaryCallScreen({ route, navigation }: any) {
       Toast.show({
         type: 'error',
         text1: 'Could not complete document',
-        text2: error?.message || 'Please try again.',
+        text2:
+          error?.message === 'Network request failed'
+            ? `${completionStage}: connection failed. Your document is not marked complete; check your connection and retry.`
+            : `${completionStage}: ${error?.message || 'Please try again.'}`,
       });
     } finally {
       setIsMarkingDocumentComplete(false);
@@ -2604,11 +1855,6 @@ export default function NotaryCallScreen({ route, navigation }: any) {
   const closeDocumentPreview = () => {
     setMarkCompleteConfirmVisible(false);
     setClientDocModalVisible(false);
-    if (isClient) {
-      clearSharedDocument();
-      return;
-    }
-
     setDocumentPreviewOpen(false);
   };
 
@@ -2715,8 +1961,30 @@ export default function NotaryCallScreen({ route, navigation }: any) {
         </TouchableOpacity>
       )}
 
+      {!isInPersonMode && (
+        <View style={styles.identityVerificationRow}>
+          <View style={styles.identityProofIcon}>
+            <Feather name={clientIdentityVerified ? 'check-circle' : 'shield'} size={16} color={clientIdentityVerified ? '#168A5B' : BookingColors.primary} />
+          </View>
+          <View style={styles.identityProofCopy}>
+            <RNText style={styles.identityProofTitle}>Client identity</RNText>
+            <RNText numberOfLines={1} style={styles.identityProofName}>
+              {clientIdentityVerified ? 'Verified by notary' : sessionIdentityProofUrl ? 'Review the uploaded ID' : 'Waiting for client ID proof'}
+            </RNText>
+          </View>
+          {isAgent && sessionIdentityProofUrl && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              disabled={verifyingClientIdentity}
+              onPress={markClientIdentityVerified}
+              style={[styles.identityVerifyButton, clientIdentityVerified && styles.identityVerifyButtonDone]}>
+              {verifyingClientIdentity ? <ActivityIndicator size="small" color={BookingColors.primary} /> : <RNText style={styles.identityVerifyButtonText}>{clientIdentityVerified ? 'Verified' : 'Verify'}</RNText>}
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {isDocumentCollaborationActive ? (
-        /* Compact call chrome keeps the shared document as the primary canvas. */
         isInPersonMode ? (
           <View style={styles.sessionControlBar}>
             <View style={styles.compactCallStatus}>
@@ -2726,110 +1994,21 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               </RNText>
             </View>
           </View>
-        ) : useLiveKit && !clientDocModalVisible ? (
+        ) : !clientDocModalVisible ? (
           <LiveKitSessionVideo
             canJoin={sessionAvailability.canJoin}
             compact
+            onClientIdentityVerifiedChange={setIdentityVerifiedOverride}
             isClient={isClient}
             onComplete={isClient ? undefined : completeCall}
             recordId={bookingRoomId}
             unavailableMessage={sessionAvailability.message}
           />
-        ) : (
-        <View style={styles.sessionControlBar}>
-          <View style={styles.compactCallStatus}>
-            <View
-              style={[
-                styles.callStatusDot,
-                callStatus === 'connected' && styles.callStatusDotConnected,
-                (callStatus === 'error' || callStatus === 'permissions') &&
-                styles.callStatusDotError,
-              ]}
-            />
-            <RNText numberOfLines={1} style={styles.compactCallStatusText}>
-              {callStatusLabel}
-            </RNText>
-          </View>
-          <View style={styles.compactControlsRow}>
-            <TouchableOpacity
-              accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
-              style={styles.compactControl}
-              onPress={mute}
-              disabled={!isJoined}>
-              <Feather
-                name={isMuted ? 'mic-off' : 'mic'}
-                size={17}
-                color={isMuted ? BookingColors.error : BookingColors.textPrimary}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel={isVideoMuted ? 'Start video' : 'Stop video'}
-              style={styles.compactControl}
-              onPress={toggleVideoMute}
-              disabled={!isJoined}>
-              <Feather
-                name={isVideoMuted ? 'video-off' : 'video'}
-                size={17}
-                color={
-                  isVideoMuted ? BookingColors.error : BookingColors.textPrimary
-                }
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Switch camera"
-              style={styles.compactControl}
-              onPress={switchCamera}
-              disabled={!isJoined || isVideoMuted}>
-              <Feather
-                name="refresh-cw"
-                size={17}
-                color={BookingColors.textPrimary}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel={isSpeakerOn ? 'Use earpiece' : 'Use speaker'}
-              style={styles.compactControl}
-              onPress={toggleSpeaker}
-              disabled={!isJoined}>
-              <Feather
-                name={isSpeakerOn ? 'volume-2' : 'volume-1'}
-                size={17}
-                color={BookingColors.textPrimary}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-        )
+        ) : null
       ) : (
         renderFullVideoPanel()
       )}
 
-      {!useLiveKit && !isInPersonMode && (callStatus === 'error' || callStatus === 'permissions') && (
-        <View style={styles.callErrorBanner}>
-          <View style={styles.callErrorIcon}>
-            <Feather name="alert-circle" size={18} color={BookingColors.error} />
-          </View>
-          <View style={styles.callErrorCopy}>
-            <RNText style={styles.callErrorTitle}>
-              {callStatus === 'permissions'
-                ? 'Allow camera and microphone'
-                : 'Unable to connect'}
-            </RNText>
-            <RNText style={styles.callErrorMessage}>{callError}</RNText>
-          </View>
-          <TouchableOpacity
-            style={styles.callErrorAction}
-            onPress={
-              callStatus === 'permissions'
-                ? () => Linking.openSettings()
-                : retryCall
-            }>
-            <RNText style={styles.callErrorActionText}>
-              {callStatus === 'permissions' ? 'Settings' : 'Retry'}
-            </RNText>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* ── PDF VIEWER + TOOLBAR (agent) ── */}
       {false && (
@@ -2861,18 +2040,7 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         filePath,
                         { width, height },
                       ) => {
-                        const initialPage = Math.min(
-                          Math.max(remoteCurrentPage || 1, 1),
-                          numberOfPages,
-                        );
-                        displayedPageRef.current = 1;
-                        setCurrentPage(initialPage);
-                        if (initialPage > 1) {
-                          pendingProgrammaticPageRef.current = initialPage;
-                          pdfRef.current?.setPage(initialPage);
-                        } else {
-                          pendingProgrammaticPageRef.current = null;
-                        }
+                        setCurrentPage(1);
                         setTotalPages(numberOfPages);
                         setPageWidth(width);
                         setPageHeight(height);
@@ -2912,11 +2080,35 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         saveToPdf={saveToPdf}
                       />
                     )} */}
-                    <View style={styles.pageIndicator}>
-                      <RNText style={styles.pageIndicatorText}>
-                        {currentPage}
-                      </RNText>
-                    </View>
+                    {totalPages > 1 && (
+                      <View style={styles.pageNavigation}>
+                        <TouchableOpacity
+                          accessibilityLabel="Previous page"
+                          disabled={currentPage <= 1}
+                          onPress={() => navigatePdfPage(currentPage - 1)}
+                          style={styles.pageNavigationButton}>
+                          <Feather
+                            name="chevron-left"
+                            size={18}
+                            color={currentPage <= 1 ? '#A0A6B1' : BookingColors.textPrimary}
+                          />
+                        </TouchableOpacity>
+                        <RNText style={styles.pageNavigationText}>
+                          {currentPage} / {totalPages}
+                        </RNText>
+                        <TouchableOpacity
+                          accessibilityLabel="Next page"
+                          disabled={currentPage >= totalPages}
+                          onPress={() => navigatePdfPage(currentPage + 1)}
+                          style={styles.pageNavigationButton}>
+                          <Feather
+                            name="chevron-right"
+                            size={18}
+                            color={currentPage >= totalPages ? '#A0A6B1' : BookingColors.textPrimary}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </>
                 ) : (
                   <View style={styles.loadingOverlay}>
@@ -2933,10 +2125,11 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               signatureData={signatureData}
               onSignatureChange={handleDragabbleSignatureData}
               locked={isCurrentDocumentComplete}
+              page={currentPage}
             />
           </View>
 
-          {/* The client owns uploads; the notary works with the shared file. */}
+          {/* Clients publish source documents; signatures and stamps are uploaded independently. */}
           <View style={styles.toolbar}>
             {User.account_type != 'client' && (
               <TouchableOpacity
@@ -2984,79 +2177,18 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                 <LiveKitSessionVideo
                   canJoin={sessionAvailability.canJoin}
                   compact
+                  onClientIdentityVerifiedChange={setIdentityVerifiedOverride}
                   isClient={isClient}
                   onComplete={isClient ? undefined : completeCall}
                   recordId={bookingRoomId}
                   unavailableMessage={sessionAvailability.message}
                 />
               )}
-              {renderParticipantPips()}
               {isInPersonMode ? (
                 <RNText style={styles.documentCallModeLabel}>
                   In-person signing
                 </RNText>
-              ) : !useLiveKit && <View style={styles.documentCallControls}>
-                <TouchableOpacity
-                  accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
-                  style={styles.documentCallControl}
-                  onPress={mute}
-                  disabled={!isJoined}>
-                  <Feather
-                    name={isMuted ? 'mic-off' : 'mic'}
-                    size={16}
-                    color={isMuted ? '#FF8A82' : BookingColors.white}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityLabel={isVideoMuted ? 'Start video' : 'Stop video'}
-                  style={styles.documentCallControl}
-                  onPress={toggleVideoMute}
-                  disabled={!isJoined}>
-                  <Feather
-                    name={isVideoMuted ? 'video-off' : 'video'}
-                    size={16}
-                    color={isVideoMuted ? '#FF8A82' : BookingColors.white}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityLabel="Switch camera"
-                  style={styles.documentCallControl}
-                  onPress={switchCamera}
-                  disabled={!isJoined || isVideoMuted}>
-                  <Feather name="refresh-cw" size={16} color={BookingColors.white} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityLabel={isSpeakerOn ? 'Use earpiece' : 'Use speaker'}
-                  style={styles.documentCallControl}
-                  onPress={toggleSpeaker}
-                  disabled={!isJoined}>
-                  <Feather
-                    name={isSpeakerOn ? 'volume-2' : 'volume-1'}
-                    size={16}
-                    color={BookingColors.white}
-                  />
-                </TouchableOpacity>
-                {!isClient && (
-                  <TouchableOpacity
-                    accessibilityLabel="Complete call"
-                    style={[
-                      styles.documentCallControl,
-                      styles.documentCompleteCallControl,
-                    ]}
-                    onPress={completeCall}
-                    disabled={isCompleting || isWaitingForClientApproval}>
-                    {isCompleting || isWaitingForClientApproval ? (
-                      <ActivityIndicator size="small" color={BookingColors.white} />
-                    ) : (
-                      <Feather
-                        name="phone-off"
-                        size={16}
-                        color={BookingColors.white}
-                      />
-                    )}
-                  </TouchableOpacity>
-                )}
-              </View>}
+              ) : null}
             </View>
             <View style={styles.header}>
               <RNText numberOfLines={1} style={[styles.headerTitle, { flex: 1 }]}>
@@ -3118,52 +2250,65 @@ export default function NotaryCallScreen({ route, navigation }: any) {
               <View style={styles.pdfWrapper}>
                 {selectedLocalDocument?.uri && (
                   <>
-                    <PdfView
-                      key={resolveDocumentUri(selectedLocalDocument)}
-                      ref={pdfRef}
-                      style={styles.pdfView}
-                      source={{ uri: resolveDocumentUri(selectedLocalDocument) }}
-                      trustAllCerts={false}
-                      showsVerticalScrollIndicator={false}
-                      showsHorizontalScrollIndicator={false}
-                      horizontal={true}
-                      enablePaging={false}
-                      minScale={1.0}
-                      maxScale={3.0}
-                      scale={1.0}
-                      spacing={0}
-                      fitPolicy={getFitPolicy()}
-                      onLoadComplete={(
-                        numberOfPages,
-                        filePath,
-                        { width, height },
-                      ) => {
-                        const initialPage = Math.min(
-                          Math.max(remoteCurrentPage || 1, 1),
-                          numberOfPages,
-                        );
-                        displayedPageRef.current = 1;
-                        setCurrentPage(initialPage);
-                        if (initialPage > 1) {
-                          pendingProgrammaticPageRef.current = initialPage;
-                          pdfRef.current?.setPage(initialPage);
-                        } else {
-                          pendingProgrammaticPageRef.current = null;
-                        }
-                        setTotalPages(numberOfPages);
-                        setPageWidth(width);
-                        setPageHeight(height);
-                      }}
-                      onPageChanged={page => handleSharedPageChanged(page)}
-                      onPageSingleTap={(page, x, y) => {
-                        if (!isCurrentDocumentComplete) {
-                          handleSingleTap(page, x, y);
-                        }
-                      }}
-                      onError={error =>
-                        console.warn('Unable to display document:', error)
-                      }
-                    />
+                    {fileDownloaded && filePath ? (
+                      <PdfView
+                        key={`${resolveDocumentUri(selectedLocalDocument)}:${filePath}`}
+                        ref={pdfRef}
+                        style={styles.pdfView}
+                        source={{uri: filePath}}
+                        trustAllCerts={false}
+                        showsVerticalScrollIndicator={false}
+                        showsHorizontalScrollIndicator={false}
+                        horizontal={true}
+                        enablePaging={false}
+                        minScale={1.0}
+                        maxScale={3.0}
+                        scale={1.0}
+                        spacing={0}
+                        fitPolicy={getFitPolicy()}
+                        onLoadComplete={(numberOfPages, _path, {width, height}) => {
+                          setDocumentLoadError('');
+                          setCurrentPage(1);
+                          setTotalPages(numberOfPages);
+                          setPageWidth(width);
+                          setPageHeight(height);
+                        }}
+                        onPageChanged={page => handleSharedPageChanged(page)}
+                        onPageSingleTap={(page, x, y) => {
+                          if (!isCurrentDocumentComplete) {
+                            handleSingleTap(page, x, y);
+                          }
+                        }}
+                        onError={error => {
+                          console.warn('Unable to display document:', error);
+                          setFileDownloaded(false);
+                          setDocumentLoadError(
+                            'The document preview could not be rendered. Tap to retry.',
+                          );
+                        }}
+                      />
+                    ) : documentLoadError ? (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        onPress={() => {
+                          setDocumentLoadError('');
+                          setDocumentLoadAttempt(attempt => attempt + 1);
+                        }}
+                        style={styles.documentLoadState}>
+                        <Feather name="refresh-cw" size={22} color={BookingColors.primary} />
+                        <RNText style={styles.documentLoadMessage}>
+                          {documentLoadError}
+                        </RNText>
+                        <RNText style={styles.documentRetryLabel}>Tap to retry</RNText>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.documentLoadState}>
+                        <ActivityIndicator color={BookingColors.primary} />
+                        <RNText style={styles.documentLoadMessage}>
+                          Preparing document…
+                        </RNText>
+                      </View>
+                    )}
                     {!isCurrentDocumentComplete && (
                       <TouchableOpacity
                         accessibilityLabel="Edit document"
@@ -3177,17 +2322,42 @@ export default function NotaryCallScreen({ route, navigation }: any) {
                         />
                       </TouchableOpacity>
                     )}
-                    <View style={styles.pageIndicator}>
-                      <RNText style={styles.pageIndicatorText}>
-                        {currentPage}
-                      </RNText>
-                    </View>
+                    {totalPages > 1 && (
+                      <View style={styles.pageNavigation}>
+                        <TouchableOpacity
+                          accessibilityLabel="Previous page"
+                          disabled={currentPage <= 1}
+                          onPress={() => navigatePdfPage(currentPage - 1)}
+                          style={styles.pageNavigationButton}>
+                          <Feather
+                            name="chevron-left"
+                            size={18}
+                            color={currentPage <= 1 ? '#A0A6B1' : BookingColors.textPrimary}
+                          />
+                        </TouchableOpacity>
+                        <RNText style={styles.pageNavigationText}>
+                          {currentPage} / {totalPages}
+                        </RNText>
+                        <TouchableOpacity
+                          accessibilityLabel="Next page"
+                          disabled={currentPage >= totalPages}
+                          onPress={() => navigatePdfPage(currentPage + 1)}
+                          style={styles.pageNavigationButton}>
+                          <Feather
+                            name="chevron-right"
+                            size={18}
+                            color={currentPage >= totalPages ? '#A0A6B1' : BookingColors.textPrimary}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </>
                 )}
                 <SignatureContainer
                   signatureData={signatureData}
                   onSignatureChange={handleDragabbleSignatureData}
                   locked={isCurrentDocumentComplete}
+                  page={currentPage}
                 />
                 <ActiveSignerPresence
                   currentActivity={signingActivity}
@@ -3591,6 +2761,35 @@ const styles = StyleSheet.create({
     backgroundColor: BookingColors.surface,
     gap: 10,
   },
+  identityVerificationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    borderRadius: 10,
+    backgroundColor: BookingColors.surface,
+    gap: 10,
+  },
+  identityVerifyButton: {
+    minWidth: 68,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    borderRadius: 7,
+    backgroundColor: BookingColors.primarySoft,
+  },
+  identityVerifyButtonDone: {backgroundColor: '#EAF7F0'},
+  identityVerifyButtonText: {
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+  },
   identityProofIcon: {
     width: 32,
     height: 32,
@@ -3781,12 +2980,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
     color: BookingColors.white,
-  },
-  placeholderCaption: {
-    marginTop: 3,
-    fontFamily: 'Manrope-Regular',
-    fontSize: 12,
-    color: '#9CA5B5',
   },
   pipVideoView: {
     ...StyleSheet.absoluteFillObject,
@@ -4084,6 +3277,26 @@ const styles = StyleSheet.create({
   pdfWrapper: {
     flex: 1,
   },
+  documentLoadState: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    backgroundColor: BookingColors.white,
+  },
+  documentLoadMessage: {
+    marginTop: 12,
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  documentRetryLabel: {
+    marginTop: 6,
+    color: BookingColors.primary,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+  },
   pdfView: {
     height: '100%',
     width: '100%',
@@ -4103,6 +3316,40 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  pageNavigation: {
+    position: 'absolute',
+    bottom: 10,
+    left: '50%',
+    marginLeft: -72,
+    width: 144,
+    height: 38,
+    zIndex: 1001,
+    elevation: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BookingColors.border,
+    backgroundColor: BookingColors.white,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.16,
+    shadowRadius: 4,
+  },
+  pageNavigationButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+  },
+  pageNavigationText: {
+    color: BookingColors.textPrimary,
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
   },
   documentEditButton: {
     position: 'absolute',
@@ -4286,768 +3533,3 @@ const styles = StyleSheet.create({
   currentPageText: {} as any,
   actions: {} as any,
 });
-
-///////////////////////////////
-
-// const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
-// // const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
-// const {channel, token: CutomToken} = route.params;
-// const uid = 0;
-// const channelName = channel;
-// const token = CutomToken;
-// const [isMuted, setIsMuted] = useState(false);
-// const [remoteUids, setRemoteUids] = useState<number[]>([]);
-// const agoraEngineRef = useRef<IRtcEngine>();
-// const [isJoined, setIsJoined] = useState(false);
-// const [remoteUid, setRemoteUid] = useState(0);
-// const [selected, setSelected] = useState('notary room');
-// const [value, setValue] = useState(50);
-// const pdfRef = React.useRef<Pdf>(null);
-// const objects = useLiveblocks(state => state.objects);
-// const remoteCurrentPage = useLiveblocks(state => state.currentPage);
-// const setRemoteCurrentPage = useLiveblocks(state => state.setCurrentPage);
-// const insertObject = useLiveblocks(state => state.insertObject);
-// const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
-// const [totalPages, setTotalPages] = React.useState<number>(0);
-// const [newSource, setNewSource] = useState<object>();
-// const [currentPage, setCurrentPage] = React.useState<number>(remoteCurrentPage);
-
-// const handleLinkChange = (linkId: string) => {
-//   setFileDownloaded(true);
-//   setSourceUrl(linkId);
-//   setNewSource({
-//     uri: linkId,
-//     cache: true,
-//   });
-// };
-// React.useEffect(() => {
-//   setNewSource({uri: bookingData?.documents[0].url, cache: true});
-// }, []);
-
-// const handleBackButton = () => {
-//   navigation.navigate('WaitingRoomScreen', {
-//     uid: bookingData?._id,
-//     channel: bookingData?.agora_channel_name,
-//     token: bookingData?.agora_channel_token,
-//     time: bookingData?.time_of_booking,
-//     date: bookingData?.date_of_booking,
-//   });
-//   return true;
-// };
-// useEffect(() => {
-//   BackHandler.addEventListener('hardwareBackPress', handleBackButton);
-//   return () => {
-//     BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
-//   };
-// }, []);
-// useEffect(() => {
-//   const setupVideoSDKEngine = async () => {
-//     try {
-//       if (Platform.OS === 'android') {
-//         await getPermission();
-//       }
-//       agoraEngineRef.current = createAgoraRtcEngine();
-//       const agoraEngine = agoraEngineRef.current;
-//       agoraEngine.registerEventHandler({
-//         onJoinChannelSuccess: () => {
-//           showMessage('Successfully joined ' + channelName);
-//           setIsJoined(true);
-//         },
-//         onUserJoined: (_connection, uid) => {
-//           showMessage('Remote user joined with uid ' + uid);
-
-//           setRemoteUids(prevUids => [...prevUids, uid]);
-//         },
-//         onUserOffline: (_connection, uid) => {
-//           showMessage('Remote user left the channel. uid: ' + uid);
-
-//           setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
-//         },
-//         onRequestToken(connection) {},
-//       });
-//       agoraEngine.initialize({
-//         appId: appId,
-//         channelProfile: ChannelProfileType.ChannelProfileLiveBroadcasting,
-//       });
-//       agoraEngine.enableVideo();
-//     } catch (e) {
-//       console.log(e);
-//     }
-//   };
-//   setupVideoSDKEngine().then(() => {
-//     join();
-//   });
-//   return () => {
-//     agoraEngineRef.current?.leaveChannel();
-//   };
-// }, []);
-// const join = async () => {
-//   console.log('====================================');
-//   if (isJoined) {
-//     return;
-//   }
-//   try {
-//     agoraEngineRef.current?.setChannelProfile(
-//       ChannelProfileType.ChannelProfileCommunication,
-//     );
-//     agoraEngineRef.current?.startPreview();
-//     // console.log(token, channelName, uid);
-//     agoraEngineRef.current?.joinChannel(token, channelName, uid, {
-//       clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-//     });
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
-// const leave = () => {
-//   try {
-//     agoraEngineRef.current?.leaveChannel();
-//     setRemoteUids([]);
-
-//     setIsJoined(false);
-//     showMessage('You left the session');
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
-// function showMessage(msg: string) {
-//   console.log(msg);
-//   Toast.show({
-//     type: 'success',
-//     text1: msg,
-//   });
-// }
-// const mute = () => {
-//   setIsMuted(!isMuted);
-//   console.log('====================================');
-//   console.log(remoteUids, isMuted);
-//   console.log('====================================');
-//   agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
-// };
-
-// const displayValue = () => {
-//   return (
-//     <Text style={[styles.sessionDesc, {color: Colors.Orange}]}>
-//       {Math.floor(value)}%
-//     </Text>
-//   );
-// };
-// const getPermission = async () => {
-//   if (Platform.OS === 'android') {
-//     await PermissionsAndroid.requestMultiple([
-//       PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-//       PermissionsAndroid.PERMISSIONS.CAMERA,
-//     ]);
-//   }
-// };
-// import {
-//   TouchableOpacity,
-//   Image,
-//   StyleSheet,
-//   Pressable,
-//   View,
-//   ScrollView,
-//   SafeAreaView,
-//   PermissionsAndroid,
-//   Platform,
-//   Alert,
-// } from 'react-native';
-// import React, { useCallback, useEffect, useRef, useState } from 'react';
-// import Colors from '../../themes/Colors';
-// import { heightToDp, widthToDp } from '../../utils/Responsive';
-// import MainButton from '../../components/MainGradientButton/MainButton';
-// import {
-//   ClientRoleType,
-//   createAgoraRtcEngine,
-//   IRtcEngine,
-//   RtcSurfaceView,
-//   ChannelProfileType,
-//   VideoContentHint,
-// } from 'react-native-agora';
-// import SplashScreen from 'react-native-splash-screen';
-// import Toast from 'react-native-toast-message';
-// import { PDFDocument } from 'pdf-lib';
-// import PdfView, { Source } from 'react-native-pdf';
-// import ReactNativeBlobUtil from 'react-native-blob-util';
-// import RNPickerSelect from 'react-native-picker-select';
-// import {
-//   Edit,
-//   NavArrowLeft,
-//   NavArrowRight,
-//   PageEdit,
-//   Text,
-// } from 'iconoir-react-native';
-// import { useLiveblocks } from '../../store/liveblocks';
-// const appId = 'f64e76f674b646bc965dc3e257b4e108';
-// import PdfObject from '../../components/LiveBlocksComponents/pdf-object';
-// import HeaderRight from '../../components/LiveBlocksComponents/header-right';
-// import { Picker } from '@react-native-picker/picker';
-// import useChatService from '../../hooks/useChatService';
-// import { useSelector } from 'react-redux';
-// import {
-//   MultipleSelectList,
-//   SelectList,
-// } from 'react-native-dropdown-select-list';
-// export default function NotaryCallScreen({ route, navigation }: any) {
-//   const User = useSelector(state => state?.user?.user);
-//   const agent = useSelector(state => state?.booking?.booking?.agent);
-//   const booked_by = useSelector(state => state?.booking?.booking?.booked_by);
-//   const arrayOfDocs = [
-//     {
-//       id: 1,
-//       name: 'Document 1',
-//       url: 'https://images.template.net/wp-content/uploads/2015/12/29130015/Sample-Contract-Agreement-Template-PDF.pdf',
-//     },
-//     {
-//       id: 2,
-//       name: 'Document 2',
-//       url: 'https://sccrtc.org/wp-content/uploads/2010/09/SampleContract-Shuttle.pdf',
-//     },
-//   ];
-//   const deleteAllObjects = useLiveblocks(state => state.deleteAllObjects);
-//   const [selectedLink, setSelectedLink] = useState(arrayOfDocs[0].id);
-//   const { channel, token: CutomToken } = route.params;
-//   const uid = 0;
-//   const channelName = channel;
-//   const token = CutomToken;
-//   const [isMuted, setIsMuted] = useState(false);
-//   const [remoteUids, setRemoteUids] = useState<number[]>([]);
-//   const agoraEngineRef = useRef<IRtcEngine>();
-//   const [isJoined, setIsJoined] = useState(false);
-//   const [remoteUid, setRemoteUid] = useState(0);
-//   const [selected, setSelected] = useState('notary room');
-//   const [value, setValue] = useState(50);
-//   const pdfRef = React.useRef<PdfView>(null);
-//   const objects = useLiveblocks(state => state.objects);
-//   const remoteCurrentPage = useLiveblocks(state => state.currentPage);
-//   const setRemoteCurrentPage = useLiveblocks(state => state.setCurrentPage);
-//   const insertObject = useLiveblocks(state => state.insertObject);
-//   const selectedObjectId = useLiveblocks(state => state.selectedObjectId);
-//   const [totalPages, setTotalPages] = React.useState<number>(0);
-
-//   const [currentPage, setCurrentPage] =
-//     React.useState<number>(remoteCurrentPage);
-
-//   const [pdfSource, setPdfSource] = React.useState<Source | null>(null);
-
-//   const onUpdatePdf = useCallback(async (link: string) => {
-//     const pdfFile = await ReactNativeBlobUtil.fetch('GET', link);
-//     const pdfDoc = await PDFDocument.load(pdfFile.base64());
-//     const base64Pdf = await pdfDoc.saveAsBase64({ dataUri: true });
-
-//     setPdfSource({
-//       uri: base64Pdf,
-//     });
-//   }, []);
-//   const handleLinkChange = (linkId: number) => {
-//     const selectedDoc = arrayOfDocs.find(doc => doc.id === linkId);
-//     setSelectedLink(linkId);
-//     deleteAllObjects();
-//     onUpdatePdf(selectedDoc?.url);
-//   };
-//   const onLabelAdd = React.useCallback(() => {
-//     insertObject(new Date().toISOString(), {
-//       type: 'label',
-//       text: 'John Doe',
-//       page: currentPage,
-//       position: {
-//         x: 100,
-//         y: 100,
-//       },
-//     });
-//   }, [currentPage, insertObject]);
-
-//   const onSignatureAdd = React.useCallback(() => {
-//     insertObject(new Date().toISOString(), {
-//       type: 'image',
-//       sourceUrl: 'https://i.ibb.co/0XxrCH9/signature-40121.png',
-//       page: currentPage,
-//       position: {
-//         x: 100,
-//         y: 100,
-//       },
-//     });
-//   }, [currentPage, insertObject]);
-
-//   const onStampAdd = React.useCallback(() => {
-//     insertObject(new Date().toISOString(), {
-//       type: 'image',
-//       sourceUrl: 'https://i.ibb.co/989TrsJ/free-stamp-png-24402.png',
-//       page: currentPage,
-//       position: {
-//         x: 200,
-//         y: 200,
-//       },
-//     });
-//   }, [currentPage, insertObject]);
-
-//   React.useEffect(() => {
-//     onUpdatePdf(arrayOfDocs[0].url);
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, []);
-//   React.useEffect(() => {
-//     if (remoteCurrentPage !== currentPage) {
-//       pdfRef.current?.setPage(remoteCurrentPage);
-//     }
-//   }, [remoteCurrentPage, currentPage]);
-//   useEffect(() => {
-//     const setupVideoSDKEngine = async () => {
-//       try {
-//         if (Platform.OS === 'android') {
-//           await getPermission();
-//         }
-//         agoraEngineRef.current = createAgoraRtcEngine();
-//         const agoraEngine = agoraEngineRef.current;
-//         agoraEngine.registerEventHandler({
-//           onJoinChannelSuccess: () => {
-//             showMessage('Successfully joined ' + channelName);
-//             setIsJoined(true);
-//           },
-//           onUserJoined: (_connection, uid) => {
-//             showMessage('Remote user joined with uid ' + uid);
-
-//             setRemoteUids(prevUids => [...prevUids, uid]);
-//           },
-//           onUserOffline: (_connection, uid) => {
-//             showMessage('Remote user left the channel. uid: ' + uid);
-
-//             setRemoteUids(prevUids => prevUids.filter(uid => uid !== uid));
-//           },
-//         });
-//         agoraEngine.initialize({
-//           appId: appId,
-//           channelProfile: ChannelProfileType.ChannelProfileLiveBroadcasting,
-//         });
-//         agoraEngine.enableVideo();
-//       } catch (e) {
-//         console.log(e);
-//       }
-//     };
-//     console.log('useEffect');
-//     setupVideoSDKEngine().then(() => {
-//       join();
-//     });
-//     return () => {
-//       agoraEngineRef.current?.leaveChannel();
-//     };
-//   }, []);
-
-//   const join = async () => {
-//     console.log('====================================');
-//     if (isJoined) {
-//       return;
-//     }
-//     try {
-//       agoraEngineRef.current?.setChannelProfile(
-//         ChannelProfileType.ChannelProfileCommunication,
-//       );
-//       agoraEngineRef.current?.startPreview();
-//       agoraEngineRef.current?.joinChannel(token, channelName, uid, {
-//         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-//       });
-//     } catch (e) {
-//       console.log(e);
-//     }
-//   };
-//   const leave = () => {
-//     try {
-//       agoraEngineRef.current?.leaveChannel();
-//       setRemoteUids([]);
-
-//       setIsJoined(false);
-//       showMessage('You left the session');
-//     } catch (e) {
-//       console.log(e);
-//     }
-//   };
-//   function showMessage(msg: string) {
-//     console.log(msg);
-//     Toast.show({
-//       type: 'success',
-//       text1: msg,
-//     });
-//   }
-//   const mute = () => {
-//     setIsMuted(!isMuted);
-//     console.log('====================================');
-//     console.log(remoteUids, isMuted);
-//     console.log('====================================');
-//     agoraEngineRef.current?.muteRemoteAudioStream(remoteUid, isMuted);
-//   };
-
-//   const displayValue = () => {
-//     return (
-//       <Text style={[styles.sessionDesc, { color: Colors.Orange }]}>
-//         {Math.floor(value)}%
-//       </Text>
-//     );
-//   };
-//   const getPermission = async () => {
-//     if (Platform.OS === 'android') {
-//       await PermissionsAndroid.requestMultiple([
-//         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-//         PermissionsAndroid.PERMISSIONS.CAMERA,
-//       ]);
-//     }
-//   };
-//   return (
-//     <SafeAreaView style={styles.Maincontainer}>
-
-//       <View style={styles.SecondContainer}>
-//         <View style={styles.flexContainer}>
-//           <ScrollView
-//             style={styles.scroll}
-//             horizontal={true}
-//             contentContainerStyle={styles.scrollContainer}>
-//             {isJoined ? (
-//               <React.Fragment key={0}>
-//                 <RtcSurfaceView canvas={{ uid: 0 }} style={styles.videoView} />
-//               </React.Fragment>
-//             ) : (
-//               <View
-//                 style={{
-//                   // borderWidth: 2,
-//                   // borderRadius: 5,
-//                   // borderColor: Colors.DullTextColor,
-//                   justifyContent: 'center',
-//                   alignItems: 'center',
-//                 }}>
-//                 <Image
-//                   source={{ uri: User?.profile_picture }}
-//                   style={{
-//                     width: widthToDp(25),
-//                     height: widthToDp(25),
-//                     borderRadius: 100,
-//                   }}
-//                 />
-//               </View>
-//             )}
-//             {remoteUids.map((uid, index) => (
-//               <View key={index}>
-//                 <RtcSurfaceView canvas={{ uid }} style={styles.videoView} />
-//               </View>
-//             ))}
-//           </ScrollView>
-//           <View style={{ flex: 0.2, justifyContent: 'space-evenly' }}>
-//             {isJoined ? (
-//               <TouchableOpacity
-//                 style={styles.hourGlass}
-//                 onPress={() => setIsJoined(!isJoined)}>
-//                 <Image
-//                   source={require('../../../assets/videoOff.png')}
-//                   style={{ width: widthToDp(10), height: widthToDp(10) }}
-//                 />
-//               </TouchableOpacity>
-//             ) : (
-//               <TouchableOpacity
-//                 style={styles.hourGlass}
-//                 onPress={() => setIsJoined(!isJoined)}>
-//                 <Image
-//                   source={require('../../../assets/video.png')}
-//                   style={{ width: widthToDp(10), height: widthToDp(10) }}
-//                 />
-//               </TouchableOpacity>
-//             )}
-//             <TouchableOpacity style={styles.hourGlass} onPress={() => mute()}>
-//               <Image
-//                 source={
-//                   isMuted
-//                     ? require('../../../assets/unmute.png')
-//                     : require('../../../assets/mute.png')
-//                 }
-//                 style={{ width: widthToDp(10), height: widthToDp(10) }}
-//               />
-//             </TouchableOpacity>
-//             {/* <TouchableOpacity style={styles.hourGlass} onPress={() => leave()}>
-//               <Image
-//                 source={require('../../../assets/callDrop.png')}
-//                 style={{width: widthToDp(10), height: widthToDp(10)}}
-//               />
-//             </TouchableOpacity> */}
-//           </View>
-//         </View>
-//       </View>
-//       <View style={{ backgroundColor: Colors.white }}>
-//         <RNPickerSelect
-//           style={pickerSelectStyles}
-//           onValueChange={itemValue => handleLinkChange(itemValue)}
-//           items={arrayOfDocs.map(doc => ({ label: doc.name, value: doc.url }))}
-//         />
-//         {/* <Picker
-//           selectedValue={selectedLink}
-//           onValueChange={itemValue => handleLinkChange(itemValue)}
-//           style={styles.picker}>
-//           {arrayOfDocs.map(doc => (
-//             <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
-//           ))}
-//         </Picker> */}
-//       </View>
-//       <View style={styles.container}>
-//         <View style={styles.pdfWrapper}>
-//           {pdfSource && (
-//             <PdfView
-//               ref={pdfRef}
-//               style={styles.pdfView}
-//               source={pdfSource}
-//               showsVerticalScrollIndicator={false}
-//               showsHorizontalScrollIndicator={false}
-//               horizontal={true}
-//               singlePage={true}
-//               onLoadComplete={numberOfPages => {
-//                 console.log('Func', numberOfPages);
-//                 setCurrentPage(1);
-//                 setTotalPages(numberOfPages);
-//               }}
-//               onPageChanged={page => {
-//                 setCurrentPage(page);
-//                 setRemoteCurrentPage(page);
-//               }}
-//             />
-//           )}
-//           <View style={styles.objectsWrapper}>
-//             {Object.entries(objects).map(([objectId, object]) => {
-//               if (object.page !== currentPage) {
-//                 return null;
-//               }
-
-//               return (
-//                 <PdfObject
-//                   id={objectId}
-//                   key={objectId}
-//                   object={object}
-//                   selected={selectedObjectId === objectId}
-//                 />
-//               );
-//             })}
-//           </View>
-//         </View>
-//         <View style={styles.actions}>
-//           <View style={styles.editActions}>
-//             <Pressable onPress={() => onSignatureAdd()}>
-//               <Edit width={30} height={30} color="#000000" />
-//             </Pressable>
-//             <Pressable onPress={() => onLabelAdd()}>
-//               <Text width={32} height={32} color="#000000" />
-//             </Pressable>
-//             <Pressable onPress={() => onStampAdd()}>
-//               <PageEdit width={26} height={26} color="#000000" />
-//             </Pressable>
-//             <HeaderRight />
-//           </View>
-//           <View style={styles.navigation}>
-//             <Pressable
-//               onPress={() => {
-//                 if (currentPage !== 1) {
-//                   pdfRef.current?.setPage(currentPage - 1);
-//                 }
-//               }}>
-//               <NavArrowLeft
-//                 width={36}
-//                 height={36}
-//                 color={currentPage === 1 ? '#dddddd' : '#000000'}
-//               />
-//             </Pressable>
-//             <Pressable
-//               onPress={() => {
-//                 pdfRef.current?.setPage(currentPage + 1);
-//               }}>
-//               <NavArrowRight
-//                 width={36}
-//                 height={36}
-//                 color={currentPage === totalPages ? '#dddddd' : '#000000'}
-//               />
-//             </Pressable>
-//           </View>
-//         </View>
-//       </View>
-//     </SafeAreaView>
-//   );
-// }
-// const pickerSelectStyles = StyleSheet.create({
-//   inputIOS: {
-//     fontSize: 16,
-//     paddingVertical: 12,
-//     paddingHorizontal: 10,
-//     borderWidth: 1,
-//     borderColor: 'gray',
-//     borderRadius: 4,
-//     color: 'black',
-//     paddingRight: 30, // to ensure the text is never behind the icon
-//   },
-//   inputAndroid: {
-//     fontSize: 16,
-//     paddingHorizontal: 10,
-//     paddingVertical: 8,
-//     borderWidth: 1.5,
-//     borderColor: 'purple',
-//     borderRadius: 8,
-//     color: 'black',
-//     paddingRight: 30, // to ensure the text is never behind the icon
-//   },
-// });
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//   },
-//   pdfWrapper: {
-//     flex: 1,
-//   },
-//   pdfView: {
-//     flex: 1,
-//   },
-//   objectsWrapper: {
-//     position: 'absolute',
-//     width: '100%',
-//     height: '100%',
-//   },
-//   actions: {
-//     borderTopWidth: 1,
-//     borderTopColor: '#e2e2e2',
-//     backgroundColor: '#ffffff',
-//     paddingBottom: 40,
-//     paddingHorizontal: 20,
-//     paddingTop: 12,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//   },
-//   navigation: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     columnGap: 16,
-//   },
-//   editActions: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     columnGap: 16,
-//   },
-//   Maincontainer: {
-//     flex: 1,
-//     backgroundColor: Colors.PinkBackground,
-//   },
-//   NavbarContainer: {
-//     flexDirection: 'row',
-//     marginHorizontal: widthToDp(5),
-//     marginVertical: widthToDp(2),
-//     justifyContent: 'space-between',
-//   },
-//   NavContainer: {
-//     flexDirection: 'row',
-//     marginHorizontal: widthToDp(2),
-//     marginVertical: widthToDp(2),
-//     // borderWidth: 1,
-//   },
-//   waitingNav: {
-//     width: widthToDp(6),
-//     height: heightToDp(6),
-//     marginVertical: widthToDp(2),
-//   },
-//   profilePic: {
-//     marginVertical: widthToDp(2),
-//   },
-//   flexContainer: {
-//     flexDirection: 'row',
-//     height: heightToDp(40),
-//   },
-//   scrollBar: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//     marginHorizontal: widthToDp(5),
-//   },
-//   picker: {
-//     borderWidth: 2,
-//     backgroundColor: Colors.white,
-//     borderColor: Colors.DisableColor,
-//   },
-//   NavTextContainer: {
-//     // borderWidth: 1,
-//     marginLeft: widthToDp(5),
-//   },
-//   textHead: {
-//     color: Colors.TextColor,
-//     fontSize: widthToDp(5),
-//     fontWeight: '700',
-//     fontFamily: 'Manrope-Regular',
-//   },
-//   textSubHead: {
-//     color: Colors.TextColor,
-//     fontSize: widthToDp(3.5),
-//     fontWeight: '700',
-//     marginLeft: widthToDp(2),
-//     fontFamily: 'Manrope-Regular',
-//   },
-//   buttonContainer: {
-//     flexDirection: 'row',
-//     // borderWidth: 1,
-//     justifyContent: 'center',
-//   },
-//   SecondContainer: {
-//     backgroundColor: Colors.white,
-//   },
-//   hourGlass: {
-//     alignSelf: 'center',
-//   },
-//   textSession: {
-//     color: Colors.TextColor,
-//     marginHorizontal: widthToDp(5),
-//     marginTop: heightToDp(10),
-//     fontSize: widthToDp(6),
-//     fontFamily: 'Manrope-Bold',
-//   },
-//   sessionDesc: {
-//     color: Colors.TextColor,
-//     fontFamily: 'Manrope-Bold',
-//   },
-//   btn: {
-//     marginVertical: heightToDp(2),
-//   },
-//   btncontain: {
-//     flex: 1,
-//     justifyContent: 'flex-end',
-//     marginVertical: heightToDp(5),
-//   },
-//   slideContainer: {
-//     flex: 1,
-//     marginHorizontal: widthToDp(5),
-//     alignItems: 'stretch',
-//     justifyContent: 'center',
-//   },
-//   button: {
-//     paddingHorizontal: 25,
-//     paddingVertical: 4,
-//     fontWeight: 'bold',
-//     color: '#ffffff',
-//     backgroundColor: '#0055cc',
-//     margin: 5,
-//   },
-//   main: {
-//     flex: 1,
-//     alignItems: 'center',
-//   },
-//   scroll: {
-//     flex: 1,
-//     width: '100%',
-//   },
-//   scrollContainer: {
-//     margin: widthToDp(3),
-//     columnGap: widthToDp(4),
-//   },
-//   videoView: {
-//     width: widthToDp(25),
-//     height: heightToDp(30),
-//     resizeMode: 'contain',
-//     borderRadius: 15,
-//   },
-//   btnContainer: {
-//     flexDirection: 'row',
-//     justifyContent: 'center',
-//   },
-//   head: {
-//     fontSize: 20,
-//   },
-//   info: {
-//     backgroundColor: '#ffffe0',
-//     color: '#0000ff',
-//   },
-// });

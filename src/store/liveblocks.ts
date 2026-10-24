@@ -5,14 +5,12 @@ import {client} from '../libs/liveblocks';
 import type {PdfObject} from '../types/liveblocks';
 
 type State = {
-  currentPage: number;
   objects: Record<string, PdfObject>;
   selectedObjectId: string | null;
   pdfFilePath: string | null;
   isPdfSaved: boolean;
   sharedDocument: {name: string; url: string; type: string} | null;
   isDocumentPreviewOpen: boolean;
-  isSignatureModalOpen: boolean;
   isSessionCompleted: boolean;
   sessionCompletedAt: string | null;
   completionRequest: {
@@ -33,7 +31,6 @@ type State = {
   sessionParticipant: {
     name: string;
     role: string;
-    agoraUid?: number | null;
     userId?: string | null;
   } | null;
   signingActivity: {
@@ -50,7 +47,6 @@ type Action = {
   updateObject: (id: string, object: PdfObject) => void;
   deleteObject: (id: string) => void;
   setSelectedObjectId: (id: string | null) => void;
-  setCurrentPage: (page: number) => void;
   deleteAllObjects: () => void;
   setPdfFilePath: (path: string | null) => void;
   setIsPdfSaved: (isSaved: boolean) => void;
@@ -59,7 +55,6 @@ type Action = {
   ) => void;
   clearSharedDocument: () => void;
   setDocumentPreviewOpen: (isOpen: boolean) => void;
-  setSignatureModalOpen: (isOpen: boolean) => void;
   setSessionCompleted: (isCompleted: boolean, completedAt?: string) => void;
   setCompletionRequest: (
     status: State['completionRequest']['status'],
@@ -72,7 +67,6 @@ type Action = {
   setSessionParticipant: (participant: {
     name: string;
     role: string;
-    agoraUid?: number | null;
     userId?: string | null;
   }) => void;
   setSigningActivity: (activity: State['signingActivity']) => void;
@@ -81,14 +75,12 @@ type Action = {
 export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
   liveblocks(
     (set, get) => ({
-      currentPage: 1,
       objects: {},
       selectedObjectId: null,
       pdfFilePath: '',
       isPdfSaved: false,
       sharedDocument: null,
       isDocumentPreviewOpen: false,
-      isSignatureModalOpen: false,
       isSessionCompleted: false,
       sessionCompletedAt: null,
       completionRequest: {
@@ -102,9 +94,6 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         status: 'idle',
         label: '',
         page: 1,
-      },
-      setCurrentPage: page => {
-        set({currentPage: page});
       },
       insertObject: (id, object) => {
         console.log('Inserting object:', {id, object});
@@ -126,7 +115,8 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         });
       },
       deleteObject: id => {
-        const {[id]: _, ...remainingObjects} = get().objects;
+        const remainingObjects = {...get().objects};
+        delete remainingObjects[id];
         set({
           objects: remainingObjects,
           selectedObjectId: null,
@@ -135,7 +125,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
               signingActivity: {
                 status: 'idle' as const,
                 label: '',
-                page: get().currentPage,
+                page: get().signingActivity.page,
               },
             }
             : {}),
@@ -151,7 +141,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
           signingActivity: {
             status: 'idle',
             label: '',
-            page: get().currentPage,
+            page: get().signingActivity.page,
           },
         });
       },
@@ -170,7 +160,6 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
           isDocumentPreviewOpen: false,
           objects: {},
           selectedObjectId: null,
-          currentPage: 1,
           signingActivity: {
             status: 'idle',
             label: '',
@@ -184,9 +173,6 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       },
       setDocumentPreviewOpen: isOpen => {
         set({isDocumentPreviewOpen: isOpen});
-      },
-      setSignatureModalOpen: isOpen => {
-        set({isSignatureModalOpen: isOpen});
       },
       setSessionCompleted: (isCompleted, completedAt) => {
         set({
@@ -247,10 +233,7 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
       client,
       storageMapping: {
         objects: true,
-        currentPage: true,
         sharedDocument: true,
-        isDocumentPreviewOpen: true,
-        isSignatureModalOpen: true,
         isSessionCompleted: true,
         sessionCompletedAt: true,
         completionRequest: true,
@@ -258,7 +241,6 @@ export const useLiveblocks = create<WithLiveblocks<State & Action>>()(
         documentCompletionNotice: true,
       },
       presenceMapping: {
-        selectedObjectId: true,
         sessionParticipant: true,
         signingActivity: true,
       },

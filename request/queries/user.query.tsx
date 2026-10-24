@@ -90,7 +90,6 @@ export const FETCH_USER_INFO = gql`
         location_coordinates
       }
       registered_for
-      userAccessCode
     }
   }
 `;

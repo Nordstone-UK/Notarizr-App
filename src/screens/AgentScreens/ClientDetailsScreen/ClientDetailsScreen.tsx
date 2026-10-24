@@ -713,8 +713,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
       // navigation.navigate('NotaryCallScreen', {
       //   routeFrom: 'agent',
       //   uid: clientDetail?._id,
-      //   channel: clientDetail?.agora_channel_name,
-      //   token: clientDetail?.agora_channel_token,
       // });
     }
   };
@@ -1225,8 +1223,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               sender: clientDetail?.agent,
               receiver: clientDetail?.booked_by || clientDetail?.client,
               chat: clientDetail?._id,
-              channel: clientDetail?.agora_channel_name,
-              voiceToken: clientDetail?.agora_channel_token,
             })
           }
           style={[styles.headerIconButton, styles.messageHeaderButton]}>
@@ -2348,7 +2344,8 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
               </TouchableOpacity>
             )}
 
-            {allocationStatus == null &&
+            {clientDetail?.__typename !== 'Session' &&
+              allocationStatus == null &&
               (clientDetail?.__typename == 'Allocation' ||
                 status === 'Pending') && (
                 <>
@@ -2414,8 +2411,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         navigation.navigate('NotaryCallScreen', {
                           routeFrom: 'agent',
                           uid: clientDetail?._id,
-                          channel: clientDetail?.agora_channel_name,
-                          token: clientDetail?.agora_channel_token,
                           date:
                             clientDetail?.date_of_booking ||
                             clientDetail?.date_time_session,
@@ -2454,8 +2449,6 @@ export default function AgentMobileNotaryStartScreen({route, navigation}: any) {
                         navigation.navigate('NotaryCallScreen', {
                           routeFrom: 'agent',
                           uid: clientDetail?._id,
-                          channel: clientDetail?.agora_channel_name,
-                          token: clientDetail?.agora_channel_token,
                           date:
                             clientDetail?.date_of_booking ||
                             clientDetail?.date_time_session,

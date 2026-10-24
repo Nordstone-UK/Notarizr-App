@@ -38,7 +38,6 @@ export const GET_AGENT_SESSION = gql`
             tag
             location
           }
-          userAccessCode
         }
         client {
           _id
@@ -60,7 +59,6 @@ export const GET_AGENT_SESSION = gql`
           online_status
           description
           state
-          userAccessCode
         }
         price
         price_breakdown {
@@ -93,8 +91,6 @@ export const GET_AGENT_SESSION = gql`
         session_schedule
         date_time_session
         agent_document
-        agora_channel_name
-        agora_channel_token
         signature_request_id
         signatures {
           signatureId

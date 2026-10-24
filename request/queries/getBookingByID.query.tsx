@@ -104,6 +104,10 @@ export const GET_BOOKING_BY_ID = gql`
         preference_analysis
         observers
         status
+        mobile_notary_status
+        mobile_notary_navigation_started_at
+        mobile_notary_started_at
+        mobile_notary_completed_at
         documents
         booked_for {
           first_name
@@ -122,8 +126,6 @@ export const GET_BOOKING_BY_ID = gql`
         createdAt
         updatedAt
 
-        agora_channel_name
-        agora_channel_token
         arrival_otp
         signature_request_id
         signatures {

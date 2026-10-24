@@ -311,8 +311,6 @@ export default function NotificationScreen({navigation}) {
         dispatch(setBookingInfoState(session));
         navigation.navigate('WaitingRoomScreen', {
           uid: session._id,
-          channel: session.agora_channel_name,
-          token: session.agora_channel_token,
           date: session.date_time_session,
           time: session.date_time_session,
           sessionMode,

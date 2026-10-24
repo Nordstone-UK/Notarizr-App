@@ -241,8 +241,6 @@ export default function WaitingRoomScreen({route, navigation}) {
 
     const sessionMedia = buildSessionInviteMedia({
       bookingId: bookingDetail?._id || uid,
-      channel: channel || bookingDetail?.agora_channel_name || '',
-      token: token || bookingDetail?.agora_channel_token || '',
       date: scheduledDate,
       time: scheduledTime,
       joinedBy: String(user?._id || ''),

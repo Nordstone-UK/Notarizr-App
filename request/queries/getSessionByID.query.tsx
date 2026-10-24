@@ -82,8 +82,6 @@ export const GET_SESSION_BY_ID = gql`
         session_schedule
         date_time_session
         agent_document
-        agora_channel_name
-        agora_channel_token
         signature_request_id
         signatures {
           signatureId

@@ -67,8 +67,6 @@ export const CREATE_BOOKING = gql`
       message
       booking {
         _id
-        agora_channel_name
-        agora_channel_token
         booked_by {
           _id
           first_name

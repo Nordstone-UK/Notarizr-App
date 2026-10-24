@@ -322,8 +322,6 @@ export default function AgentMapArrivalScreen({navigation}) {
                 clientData?.booking?.booked_by || clientData.booking?.client,
               receiver: clientData?.booking?.agent,
               chat: clientData?.booking?._id,
-              channel: clientData?.booking?.agora_channel_name,
-              voiceToken: clientData?.booking?.agora_channel_token,
             })
           }
           style={[styles.headerButton, styles.chatButton]}>

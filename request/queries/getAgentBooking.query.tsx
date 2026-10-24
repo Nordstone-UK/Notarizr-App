@@ -39,7 +39,6 @@ export const GET_AGENT_BOOKING = gql`
             zipCode
             location_coordinates
           }
-          userAccessCode
         }
         client_documents
         agent_document
@@ -91,7 +90,6 @@ export const GET_AGENT_BOOKING = gql`
           description
           state
           zipCode
-          userAccessCode
         }
         preference_analysis
         observers
@@ -132,8 +130,6 @@ export const GET_AGENT_BOOKING = gql`
           warnings
         }
         total_signatures_required
-        agora_channel_name
-        agora_channel_token
         signature_request_id
         signatures {
           signatureId

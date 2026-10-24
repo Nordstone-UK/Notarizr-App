@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -84,8 +85,6 @@ export default function ChatScreen({route, navigation}: any) {
     receiver: routeReceiver,
     conversation,
     chatId: routeChatId,
-    channel,
-    voiceToken,
   } = route.params || {};
   const authenticatedUser = useSelector((state: any) => state?.user?.user);
   const activeBooking = useSelector((state: any) => state?.booking?.booking);
@@ -365,11 +364,6 @@ export default function ChatScreen({route, navigation}: any) {
 
   const openSessionInvite = useCallback(
     async invite => {
-      const channelName =
-        invite?.channel || activeBooking?.agora_channel_name || channel;
-      const channelToken =
-        invite?.token || activeBooking?.agora_channel_token || voiceToken;
-
       if (!invite?.bookingId && !activeBooking?._id) {
         Toast.show({
           type: 'error',
@@ -384,8 +378,6 @@ export default function ChatScreen({route, navigation}: any) {
       );
       const callParams = {
         uid: invite?.bookingId || activeBooking?._id,
-        channel: channelName,
-        token: channelToken,
         date: invite?.date || activeBooking?.date_of_booking,
         time: invite?.time || activeBooking?.time_of_booking,
         routeFrom: isAgent ? 'agent' : 'client',
@@ -427,11 +419,9 @@ export default function ChatScreen({route, navigation}: any) {
     [
       activeBooking,
       authenticatedUser,
-      channel,
       navigation,
       sendMessage,
       senderId,
-      voiceToken,
     ],
   );
 
@@ -549,14 +539,17 @@ export default function ChatScreen({route, navigation}: any) {
         lastImg={
           receiver?._id ? require('../../../assets/voiceCallIcon.png') : null
         }
-        lastImgPress={() =>
-          navigation.navigate('VoiceCallScreen', {
-            sender,
-            receiver,
-            channelName: channel,
-            token: voiceToken,
-          })
-        }
+        lastImgPress={async () => {
+          const phone = receiver?.phone_number;
+          if (!phone) {
+            Toast.show({type: 'info', text1: 'No phone number available'});
+            return;
+          }
+          const url = `tel:${phone}`;
+          if (await Linking.canOpenURL(url)) {
+            await Linking.openURL(url);
+          }
+        }}
       />
 
       <View style={styles.contextBar}>

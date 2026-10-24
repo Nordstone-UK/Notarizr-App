@@ -103,7 +103,6 @@ import MobileNotaryDateScreen from '../MobileNotaryDateScreen/MobileNotaryScreen
 import AddNewAddress from '../NewAddressScreen/AddNewAddress';
 import ToBePaidScreen from '../CompletionScreen/ToBePaidScreen';
 import TransactionScreen from '../TransactionScreen/TransactionScreen';
-import VoiceCallScreen from '../VoiceCallScreen/VoiceCallScreen';
 import SessionCreation from '../CompletionScreen/SessionCreation';
 import AuthenticationScreen from '../AuthenticationScreen.jsx/AuthenticationScreen';
 import ClientVerificationScreen from '../ClientVerificationScreen/ClientVerificationScreen';
@@ -220,7 +219,6 @@ export default function AppNavigation() {
           name="ActiveServicesScreen"
           component={ActiveServicesScreen}
         />
-        <Stack.Screen name="VoiceCallScreen" component={VoiceCallScreen} />
         <Stack.Screen name="RonDateDocScreen" component={RonDateDocScreen} />
         <Stack.Screen name="CompletePayment" component={CompletePayment} />
         <Stack.Screen name="BusinessDocScreen" component={BusinessDocScreen} />

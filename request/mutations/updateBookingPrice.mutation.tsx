@@ -51,7 +51,6 @@ export const UPDATE_BOOKING_PRICE = gql`
             tag
             location
           }
-          userAccessCode
         }
         service_type
         service {
@@ -99,7 +98,6 @@ export const UPDATE_BOOKING_PRICE = gql`
           online_status
           description
           state
-          userAccessCode
         }
         preference_analysis
         observers
@@ -122,8 +120,6 @@ export const UPDATE_BOOKING_PRICE = gql`
         createdAt
         updatedAt
         totalPrice
-        agora_channel_name
-        agora_channel_token
         signature_request_id
         signatures {
           signatureId

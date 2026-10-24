@@ -427,8 +427,6 @@ export default function AgentCard(props) {
                 //   navigation.navigate('NotaryCallScreen', {
                 //     routeFrom: 'agent',
                 //     uid: clientDetail?._id,
-                //     channel: clientDetail?.agora_channel_name,
-                //     token: clientDetail?.agora_channel_token,
                 //   })
                 // }
                 GradiStyles={{

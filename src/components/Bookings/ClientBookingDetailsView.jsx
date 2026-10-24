@@ -504,6 +504,7 @@ export default function ClientBookingDetailsView({
   onAddCard,
   onPay,
   onRefresh,
+  onRespondToInvitation,
   onTrack,
   onViewDocument,
   refreshing = false,
@@ -518,6 +519,7 @@ export default function ClientBookingDetailsView({
   const savedCards = paymentCardsData?.getPaymentCardsR?.cards || [];
   const status = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
   const isMobile = booking?.service_type === 'mobile_notary';
+  const isSession = booking?.__typename === 'Session';
   const isInPersonSession = booking?.session_mode === 'in_person';
   const serviceName = isMobile
     ? 'Mobile notary'
@@ -677,17 +679,30 @@ export default function ClientBookingDetailsView({
     }
 
     if (statusKey === 'pending') {
+      if (isMobile) {
+        return (
+          <View style={styles.pendingNotice}>
+            <Feather name="clock" size={18} color={BookingColors.warning} />
+            <Text style={styles.pendingNoticeText}>
+              Waiting for the notary to accept your request.
+            </Text>
+          </View>
+        );
+      }
+
       return (
         <>
           <ActionButton
-            icon="message-circle"
-            label="Message support"
-            onPress={onMessage}
+            disabled={loading}
+            icon="check"
+            label={isSession ? 'Accept invitation' : 'Accept request'}
+            onPress={() => onRespondToInvitation?.('accepted')}
           />
           <ActionButton
+            disabled={loading}
             icon="x"
-            label="Cancel request"
-            onPress={onCancel}
+            label={isSession ? 'Decline invitation' : 'Decline request'}
+            onPress={() => onRespondToInvitation?.('rejected')}
             secondary
           />
         </>
@@ -806,7 +821,11 @@ export default function ClientBookingDetailsView({
               : statusKey === 'expired'
               ? 'This session window has expired.'
               : statusKey === 'pending'
-              ? 'We are confirming your notary and appointment.'
+              ? isMobile
+                ? 'Your request is waiting for the notary to respond.'
+                : isSession
+                ? 'Your notary invited you. Accept or decline this session request.'
+                : 'Your notary sent a request. Accept or decline to continue.'
               : statusKey === 'to_be_paid'
               ? 'Your notary accepted. Pay securely to confirm this appointment.'
               : 'Your notary and appointment details are confirmed.'}
@@ -1521,6 +1540,21 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: BookingColors.border,
     backgroundColor: BookingColors.surface,
+  },
+  pendingNotice: {
+    minHeight: 50,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+  },
+  pendingNoticeText: {
+    color: BookingColors.textMuted,
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+    textAlign: 'center',
   },
   actionButton: {
     minHeight: 50,

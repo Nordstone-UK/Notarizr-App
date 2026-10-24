@@ -8,7 +8,6 @@ import {useDispatch} from 'react-redux';
 import {setAllChats} from '../features/chats/chatsSlice';
 import {GET_AGENT_BOOKING_CHAT} from '../../request/queries/getAgentBookingChat.query';
 import {GET_AGENT_SESSION_CHAT} from '../../request/queries/getAgentSessionChat.query';
-import {GET_AGORA_CALL_TOKEN} from '../../request/queries/getAgoraTokenCName.query';
 
 function useChatService() {
   const [createChat] = useMutation(CREATE_CHAT);
@@ -18,7 +17,6 @@ function useChatService() {
   const [getClientSession] = useLazyQuery(GET_CLIENT_SESSION_CHAT);
   const [getAgentBooking] = useLazyQuery(GET_AGENT_BOOKING_CHAT);
   const [getAgentSession] = useLazyQuery(GET_AGENT_SESSION_CHAT);
-  const [getAgoraTokenCname] = useLazyQuery(GET_AGORA_CALL_TOKEN);
   const dispatch = useDispatch();
   const clientBooking = {
     status: 'accepted',
@@ -156,19 +154,9 @@ function useChatService() {
 
     return resultArray;
   };
-  const getAgoraCallToken = async _id => {
-    const request = {
-      variables: {
-        userId: _id,
-      },
-    };
-    const {data} = await getAgoraTokenCname(request);
-    return data?.getAgoraTokenCName;
-  };
   return {
     createChatWithUser,
     getClientChats,
-    getAgoraCallToken,
     getAllChats,
     getAgentChats,
     handleGetMessages,

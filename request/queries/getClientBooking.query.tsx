@@ -39,7 +39,6 @@ export const GET_CLIENT_BOOKING = gql`
             zipCode
             location_coordinates
           }
-          userAccessCode
         }
         service_type
         service {
@@ -88,7 +87,6 @@ export const GET_CLIENT_BOOKING = gql`
           description
           state
           zipCode
-          userAccessCode
         }
         preference_analysis
         observers
@@ -131,8 +129,6 @@ export const GET_CLIENT_BOOKING = gql`
           calculatedAt
           warnings
         }
-        agora_channel_name
-        agora_channel_token
         arrival_otp
         signature_request_id
         signatures {
